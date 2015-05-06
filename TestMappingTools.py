@@ -36,7 +36,7 @@ def TestMappingTools():
     print "YMin: " + str(YMin)
     print "YMax: " + str(YMax)    
     
-    
+    LSDmt.BasicDensityPlot(ThisFile)
     
 
 if __name__ == "__main__":

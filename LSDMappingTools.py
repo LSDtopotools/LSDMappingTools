@@ -33,6 +33,37 @@ def GetUTMMaxMin(FileName):
 #==============================================================================    
 
 #==============================================================================
+# this takes rows and columns of minium and maximum values and converts them
+# to UTM
+def GetUTMMaxMinFromRowsCol(FileName,x_max_col,x_min_col,y_max_row,y_min_row):
+
+    if exists(FileName) is False:
+            raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')    
+   
+    NDV, xsize, ysize, GeoT, Projection, DataType = GetGeoInfo(FileName)
+    CellSize = GeoT[1]
+    XMin = GeoT[0]
+
+    YMax = GeoT[3]
+    YMin = YMax-CellSize*ysize
+
+    xmax_UTM = XMin+x_max_col*CellSize
+    xmin_UTM = XMin+x_min_col*CellSize
+      
+    # need to be careful with the ymax_UTM since the rows go from the top
+    # but the header index is to bottom corner    
+    
+    print "yll: "+str(YMin)+" and nrows: " +str(ysize) + " dx: "+str(CellSize)   
+    
+    ymax_from_bottom = ysize-y_min_row
+    ymin_from_bottom = ysize-y_max_row
+    ymax_UTM = YMin+ymax_from_bottom*CellSize
+    ymin_UTM = YMin+ymin_from_bottom*CellSize
+   
+    return xmax_UTM,xmin_UTM,ymax_UTM,ymin_UTM
+#==============================================================================  
+
+#==============================================================================
 # This gets the extent of the raster
 def GetRasterExtent(FileName):
     
@@ -137,19 +168,12 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     
     CellSize,XMin,XMax,YMin,YMax = GetUTMMaxMin(FileName)
     NDV, xsize, ysize, GeoT, Projection, DataType = GetGeoInfo(FileName)    
-    
-    xmax_UTM = XMin+XMax*CellSize
-    xmin_UTM = XMin+XMin*CellSize
+   
+    xmax_UTM = XMax
+    xmin_UTM = XMin
       
-    # need to be careful with the ymax_UTM since the rows go from the top
-    # but the header index is to bottom corner    
-    
-    print "yll: "+str(YMin)+" and nrows: " +str(ysize) + " dx: "+str(CellSize)   
-    
-    ymax_from_bottom = ysize-YMin
-    ymin_from_bottom = ysize-YMax
-    ymax_UTM = YMin+ymax_from_bottom*CellSize
-    ymin_UTM = YMin+ymin_from_bottom*CellSize
+    ymax_UTM = YMax
+    ymin_UTM = YMin
     
     print "now UTM, xmax: " +str(xmax_UTM)+" x_min: " +str(xmin_UTM)+" y_maxb: " +str(ymax_UTM)+" y_minb: " +str(ymin_UTM)
     
@@ -176,16 +200,30 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
  
     str_xmin = str(xmin_UTM)
     str_ymin = str(ymin_UTM)
+    print "before split str_xmin: "+ str_xmin + " str ymin: " + str_ymin
     str_xmin = str_xmin.split('.')[0]
     str_ymin = str_ymin.split('.')[0]
+    print "after split str_xmin: "+ str_xmin + " str ymin: " + str_ymin
     xmin_UTM = float(str_xmin)
     ymin_UTM = float(str_ymin)
+    print "UTM: "+ str(xmin_UTM) + " str ymin: " + str(ymin_UTM)
     
     n_digx = str_xmin.__len__() 
     n_digy = str_ymin.__len__() 
     
-    front_x = str_xmin[:(n_digx-nd+1)]
-    front_y = str_ymin[:(n_digy-nd+1)]
+    print "n_dig_x: " + str(n_digx)+ " nd: " + str(nd)  
+       
+    if (n_digx-nd+1) >= 1:
+        front_x = str_xmin[:(n_digx-nd+1)]
+    else:
+        front_x = str_xmin
+        
+    if (n_digy-nd+1) >= 1: 
+        front_y = str_ymin[:(n_digy-nd+1)]
+    else:
+        front_y = str_ymin
+    
+    
       
     print "xmin: " + str_xmin + " ymin: " + str_ymin + " n_digx: " + str(n_digx)+ " n_digy: " + str(n_digy)
     print "frontx: " +front_x+" and fronty: "+ front_y
@@ -208,13 +246,21 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
         xUTMlocs[i] = round_xmin+(i)*dy_spacing_rounded
         yUTMlocs[i] = round_ymin+(i)*dy_spacing_rounded
                   
-        xlocs[i] = (xUTMlocs[i]-XMin)/CellSize
+        xlocs[i] = (xUTMlocs[i]-XMin)
         
         # need to account for the rows starting at the upper boundary
-        ylocs[i] = ysize-((yUTMlocs[i]-YMin)/CellSize)
+        ylocs[i] = YMax-(yUTMlocs[i]-YMin)
+        
         
         new_x_labels.append( str(xUTMlocs[i]).split(".")[0] )
         new_y_labels.append( str(yUTMlocs[i]).split(".")[0] )
+
+    print xUTMlocs
+    print xlocs
+    print yUTMlocs
+    print ylocs
+    print new_x_labels
+    print new_y_labels
    
     return xlocs,ylocs,new_x_labels,new_y_labels
 #==============================================================================
