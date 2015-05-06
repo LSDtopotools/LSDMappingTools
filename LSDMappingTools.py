@@ -295,8 +295,15 @@ def BasicDensityPlot(FileName):
 
     # make a figure, sized for a ppt slide
     fig = plt.figure(1, facecolor='white',figsize=(10,7.5))
+
+    # make room for the colorbar
+    #fig.subplots_adjust(bottom=0.1)
+    #fig.subplots_adjust(top=0.9)
+    
     ax1 =  fig.add_subplot(1,1,1)
     im = ax1.imshow(raster, cmap='gray', extent = extent_raster)
+
+
 
     # now get the tick marks    
     n_target_tics = 5
@@ -322,19 +329,109 @@ def BasicDensityPlot(FileName):
     ax1.set_xlabel("Easting (m)")
     ax1.set_ylabel("Northing (m)")
     im.set_clim(0, np.max(raster))
-    cbar = fig.colorbar(im, orientation='horizontal')
+    cbar = fig.colorbar(im, orientation='vertical')
     cbar.set_label("Elevation in meters")  
+    
+    #plt.tight_layout()
 
     plt.show()
 
 #==============================================================================
 
+#==============================================================================
+# My attempt to drape two plots
+def DrapedPlot(FileName,DrapeFilename):
+
+    import matplotlib.pyplot as plt
+    import matplotlib.lines as mpllines
+
+    label_size = 20
+    #title_size = 30
+    axis_size = 28
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size 
+
+    # get the data
+    raster = ReadRasterArrayBlocks(FileName)
+    DrapeRaster = ReadRasterArrayBlocks(DrapeFilename)
+    
+    # now get the extent
+    extent_raster = GetRasterExtent(FileName)
+    
+    x_min = extent_raster[0]
+    x_max = extent_raster[1]
+    y_min = extent_raster[2]
+    y_max = extent_raster[3]
+
+    # make a figure, sized for a ppt slide
+    fig = plt.figure(1, facecolor='white',figsize=(10,7.5))
+
+    # make room for the colorbar
+    #fig.subplots_adjust(bottom=0.1)
+    #fig.subplots_adjust(top=0.9)
+    
+    ax1 =  fig.add_subplot(1,1,1)
+    im = ax1.imshow(raster, cmap='gray', extent = extent_raster)
 
 
 
+    # now get the tick marks    
+    n_target_tics = 5
+    xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
+    plt.xticks(xlocs, new_x_labels, rotation=60)  #[1:-1] skips ticks where we have no data
+    plt.yticks(ylocs, new_y_labels) 
+    
+    # some formatting to make some of the ticks point outward    
+    for line in ax1.get_xticklines():
+        line.set_marker(mpllines.TICKDOWN)
+        #line.set_markeredgewidth(3)
 
+    for line in ax1.get_yticklines():
+        line.set_marker(mpllines.TICKLEFT)
+        #line.set_markeredgewidth(3)  
+    
+    plt.xlim(x_min,x_max)    
+    plt.ylim(y_max,y_min)   
+   
+    plt.xlabel('Easting (m)',fontsize = axis_size)
+    plt.ylabel('Northing (m)', fontsize = axis_size)  
 
+    ax1.set_xlabel("Easting (m)")
+    ax1.set_ylabel("Northing (m)")
+    
+    plt.hold(True)    
+    im2 = ax1.imshow(DrapeRaster, cmap=plt.cm.jet, alpha=.6, extent = extent_raster)    
+    
+    #im.set_clim(0, np.max(raster))
+    #cbar = fig.colorbar(im, orientation='vertical')
+    #cbar.set_label("Elevation in meters")  
+    
+    #plt.tight_layout()
 
+    plt.show()
+#==============================================================================
+
+#==============================================================================
+# Make a simple hillshade plot
+def Hillshade(raster_file, azimuth, angle_altitude): 
+    
+    array = ReadRasterArrayBlocks(raster_file,raster_band=1)    
+    
+    x, y = np.gradient(array)
+    slope = np.pi/2. - np.arctan(np.sqrt(x*x + y*y))
+    aspect = np.arctan2(-x, y)
+    azimuthrad = np.azimuth*np.pi / 180.
+    altituderad = np.angle_altitude*np.pi / 180.
+     
+ 
+    shaded = np.sin(altituderad) * np.sin(slope)\
+     + np.cos(altituderad) * np.cos(slope)\
+     * np.cos(azimuthrad - aspect)
+    return 255*(shaded + 1)/2
+#==============================================================================
 
 def round_to_n(x, n):
     if n < 1:
