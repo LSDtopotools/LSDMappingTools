@@ -11,8 +11,9 @@ import LSDMappingTools as LSDmt
 def TestMappingTools():
     #DataDirectory = "C://basin_data//Chile//lat26p0//"
     #Filename = "Site_lat26p0_UTM19_DEM_FILL.bil"
-    DataDirectory = "C://basin_data//Model_results//" 
-    Filename = "CRNvariable_long_0_0_1var128.asc"
+    DataDirectory = "C://basin_data//Model_results//June2015_Results//HighK//" 
+    Filename = "InitialForCRN.asc"
+    #Filename = "CRNvariable_long_0_0_1var128.asc"
     DrapeFileName = "CRNvariable_long_0_0_1var128_erosion.asc"
     ThisFile = DataDirectory+Filename
     DrapeFile =DataDirectory+DrapeFileName 
@@ -38,8 +39,10 @@ def TestMappingTools():
     print "YMin: " + str(YMin)
     print "YMax: " + str(YMax)    
     
-    #LSDmt.BasicDensityPlot(DrapeFile)
-    LSDmt.DrapedPlot(ThisFile,DrapeFile)
+    
+    tcmap = 'bone'
+    LSDmt.BasicDensityPlot(ThisFile,tcmap)
+    #LSDmt.DrapedPlot(ThisFile,DrapeFile)
 
 if __name__ == "__main__":
     #fit_weibull_from_file(sys.argv[1]) 

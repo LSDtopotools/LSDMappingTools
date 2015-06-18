@@ -268,7 +268,7 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
 
 
 #==============================================================================
-def BasicDensityPlot(FileName):
+def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters'):
     
     import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
@@ -301,7 +301,7 @@ def BasicDensityPlot(FileName):
     #fig.subplots_adjust(top=0.9)
     
     ax1 =  fig.add_subplot(1,1,1)
-    im = ax1.imshow(raster, cmap='gray', extent = extent_raster)
+    im = ax1.imshow(raster, thiscmap, extent = extent_raster)
 
 
 
@@ -330,7 +330,7 @@ def BasicDensityPlot(FileName):
     ax1.set_ylabel("Northing (m)")
     im.set_clim(0, np.max(raster))
     cbar = fig.colorbar(im, orientation='vertical')
-    cbar.set_label("Elevation in meters")  
+    cbar.set_label(colorbarlabel)  
     
     #plt.tight_layout()
 
