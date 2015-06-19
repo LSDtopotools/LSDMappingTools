@@ -41,7 +41,9 @@ def TestMappingTools():
     
     
     tcmap = 'bone'
-    LSDmt.BasicDensityPlot(ThisFile,tcmap)
+    tcmapcolorbarlabel='Elevation in meters'
+    clim_val = (0,40)
+    LSDmt.BasicDensityPlot(ThisFile,tcmap,tcmapcolorbarlabel,clim_val)
     #LSDmt.DrapedPlot(ThisFile,DrapeFile)
 
 if __name__ == "__main__":

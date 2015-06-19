@@ -268,7 +268,7 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
 
 
 #==============================================================================
-def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters'):
+def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters',clim_val = (0,0)):
     
     import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
@@ -328,7 +328,17 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
 
     ax1.set_xlabel("Easting (m)")
     ax1.set_ylabel("Northing (m)")
-    im.set_clim(0, np.max(raster))
+    
+    # set the colour limits
+    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    if (clim_val == (0,0)):
+        print "I don't think I should be here"
+        im.set_clim(0, np.max(raster))
+    else:
+        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        im.set_clim(clim_val[0],clim_val[1])
+    
+    
     cbar = fig.colorbar(im, orientation='vertical')
     cbar.set_label(colorbarlabel)  
     
