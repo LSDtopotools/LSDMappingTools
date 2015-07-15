@@ -96,6 +96,16 @@ def GetGeoInfo(FileName):
 #==============================================================================
 
 #==============================================================================
+# Function to read the original file's projection:
+def GetNPixelsInRaster(FileName):
+
+    NDV, xsize, ysize, GeoT, Projection, DataType = GetGeoInfo(FileName)
+    
+    return xsize*ysize
+
+#==============================================================================
+
+#==============================================================================
 def ReadRasterArrayBlocks(raster_file,raster_band=1):
     
     if exists(raster_file) is False:
