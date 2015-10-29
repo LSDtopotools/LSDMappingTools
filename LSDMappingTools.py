@@ -256,7 +256,8 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
         xUTMlocs[i] = round_xmin+(i)*dy_spacing_rounded
         yUTMlocs[i] = round_ymin+(i)*dy_spacing_rounded
                   
-        xlocs[i] = (xUTMlocs[i]-XMin)
+        #xlocs[i] = (xUTMlocs[i]-XMin)
+        xlocs[i] = xUTMlocs[i]
         
         # need to account for the rows starting at the upper boundary
         ylocs[i] = YMax-(yUTMlocs[i]-YMin)
@@ -275,7 +276,105 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     return xlocs,ylocs,new_x_labels,new_y_labels
 #==============================================================================
 
+#==============================================================================
+def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters',clim_val = (0,0)):
+    
+    import matplotlib.pyplot as plt
+    import matplotlib.lines as mpllines
 
+    label_size = 20
+    #title_size = 30
+    axis_size = 28
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size 
+
+    # get the data
+    raster = ReadRasterArrayBlocks(FileName)
+    
+    # get the log of the raster
+    raster = np.log10(raster)
+    
+    # now get the extent
+    extent_raster = GetRasterExtent(FileName)
+    
+    x_min = extent_raster[0]
+    x_max = extent_raster[1]
+    y_min = extent_raster[2]
+    y_max = extent_raster[3]
+
+    # make a figure, sized for a ppt slide
+    fig = plt.figure(1, facecolor='white',figsize=(10,7.5))
+
+    # make room for the colorbar
+    fig.subplots_adjust(bottom=0.2)
+    fig.subplots_adjust(top=0.9)
+    #fig.subplots_adjust(left=0.2)
+    #fig.subplots_adjust(right=0.8)
+    
+    ax1 =  fig.add_subplot(1,1,1)
+    im = ax1.imshow(raster, thiscmap, extent = extent_raster)
+    
+    print "The is the extent raster data element"
+    print extent_raster
+
+    print "now I am in the mapping routine"
+    print "x_min: " + str(x_min)
+    print "x_max: " + str(x_max)
+    print "y_min: " + str(y_min)
+    print "y_max: " + str(y_max)
+
+    # now get the tick marks    
+    n_target_tics = 5
+    xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
+
+    plt.xticks(xlocs, new_x_labels, rotation=60)  #[1:-1] skips ticks where we have no data
+    plt.yticks(ylocs, new_y_labels) 
+    
+    print "The x locs are: " 
+    print xlocs
+    
+    print "The x labels are: "
+    print new_x_labels
+    
+    # some formatting to make some of the ticks point outward    
+    for line in ax1.get_xticklines():
+        line.set_marker(mpllines.TICKDOWN)
+        #line.set_markeredgewidth(3)
+
+    for line in ax1.get_yticklines():
+        line.set_marker(mpllines.TICKLEFT)
+        #line.set_markeredgewidth(3)  
+    
+    plt.xlim(x_min,x_max)    
+    plt.ylim(y_max,y_min)   
+   
+    plt.xlabel('Easting (m)',fontsize = axis_size)
+    plt.ylabel('Northing (m)', fontsize = axis_size)  
+
+    ax1.set_xlabel("Easting (m)")
+    ax1.set_ylabel("Northing (m)")
+    
+    # set the colour limits
+    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    if (clim_val == (0,0)):
+        print "I don't think I should be here"
+        im.set_clim(0, np.max(raster))
+    else:
+        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        im.set_clim(clim_val[0],clim_val[1])
+    
+    
+    cbar = fig.colorbar(im, orientation='horizontal')
+    cbar.set_label(colorbarlabel)  
+    
+    #plt.tight_layout()
+
+    plt.show()
+
+#==============================================================================
 
 #==============================================================================
 def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters',clim_val = (0,0)):
@@ -309,17 +408,33 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     # make room for the colorbar
     #fig.subplots_adjust(bottom=0.1)
     #fig.subplots_adjust(top=0.9)
+    #fig.subplots_adjust(left=0.2)
+    #fig.subplots_adjust(right=0.8)
     
     ax1 =  fig.add_subplot(1,1,1)
     im = ax1.imshow(raster, thiscmap, extent = extent_raster)
+    
+    print "The is the extent raster data element"
+    print extent_raster
 
-
+    print "now I am in the mapping routine"
+    print "x_min: " + str(x_min)
+    print "x_max: " + str(x_max)
+    print "y_min: " + str(y_min)
+    print "y_max: " + str(y_max)
 
     # now get the tick marks    
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
+
     plt.xticks(xlocs, new_x_labels, rotation=60)  #[1:-1] skips ticks where we have no data
     plt.yticks(ylocs, new_y_labels) 
+    
+    print "The x locs are: " 
+    print xlocs
+    
+    print "The x labels are: "
+    print new_x_labels
     
     # some formatting to make some of the ticks point outward    
     for line in ax1.get_xticklines():
