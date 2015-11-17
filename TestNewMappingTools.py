@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Oct 28 17:32:40 2015
-
-@author: smudd
-"""
-
 #==============================================================================
 # These are some scripts for testing the functionality of LSDMappingTools
 #==============================================================================
@@ -16,38 +9,24 @@ Created on Tue May 05 14:08:16 2015
 """
 
 import numpy as np
-import LSDMappingTools as LSDmt
+import LSDPlottingTools as LSDP
 
-def TestMappingTools():
+def TestNewMappingTools():
     #DataDirectory = "C://basin_data//Chile//lat26p0//"
     #Filename = "Site_lat26p0_UTM19_DEM_FILL.bil"
     #DataDirectory = "C://basin_data//Model_results//June2015_Results//HighK//" 
-    #Filename = "InitialForCRN.asc"
-    #Filename = "CRNvariable_long_0_0_1var128.asc"
-    #DataDirectory = "C://basin_data//Babault2//"
-    #Filename = "Julien_DEM_HS.bil"    
-    #Filename = "Julien_DEM_Q.bil"
-    
-    #DrapeFileName = "Julien_DEM_Q.bil"
-    
+    #DataDirectory = "T://test_clone//topodata//"
     DataDirectory = "T://analysis_for_papers//Cosmo_paper//Tibet//for_plotting//"
     #Filename = "SanBern.bil"
     Filename = "SpawnedBasin_07C13-(Q8)_SH.bil"
     #Filename = "CRNvariable_long_0_0_1var128.asc"
     #DrapeFileName = "CRNvariable_long_0_0_1var128_erosion.asc"
     DrapeFileName = "SpawnedBasin_07C13-(Q8)_BASINS.bil"
-
-    
     ThisFile = DataDirectory+Filename
     DrapeFile =DataDirectory+DrapeFileName 
+
     
-    #data = LSDmt.ReadRasterArrayBlocks(ThisFile)
-    #print "Data is: "
-    #print data
-    
-    #print data.shape
-    
-    NDV, xsize, ysize, GeoT, Projection, DataType = LSDmt.GetGeoInfo(ThisFile)
+    NDV, xsize, ysize, GeoT, Projection, DataType = LSDP.GetGeoInfo(ThisFile)
     print "NDV: " + str(NDV)
     print "xsize: " + str(xsize)
     print "ysize: " + str(ysize)
@@ -55,7 +34,7 @@ def TestMappingTools():
     print "Projection: " + str(Projection)
     print "DataType: " + str(DataType)
     
-    CellSize,XMin,XMax,YMin,YMax = LSDmt.GetUTMMaxMin(ThisFile)
+    CellSize,XMin,XMax,YMin,YMax = LSDP.GetUTMMaxMin(ThisFile)
     print "CellSize: " + str(CellSize)
     print "XMin: " + str(XMin)
     print "XMax: " + str(XMax)
@@ -64,13 +43,13 @@ def TestMappingTools():
     
     
     tcmap = 'autumn'
-    tcmapcolorbarlabel='Discharge in $m^3$ per year'
-    clim_val = (0,0)
-    LSDmt.BasicDensityPlot(ThisFile,tcmap,tcmapcolorbarlabel,clim_val)
-    #LSDmt.LogStretchDensityPlot(ThisFile,tcmap,tcmapcolorbarlabel,clim_val)
+    tcmapcolorbarlabel='Topographic shielding'
+    clim_val = (0.72,1)
+    #LSDP.BasicDensityPlot(ThisFile,tcmap,tcmapcolorbarlabel,clim_val)
+    #LSDP.DrapedPlot(ThisFile,DrapeFile)
     
-    LSDmt.DrapedPlot(ThisFile,DrapeFile)
+    LSDP.BasicDensityPlotGridPlot(ThisFile,tcmap,tcmapcolorbarlabel,clim_val)
 
 if __name__ == "__main__":
     #fit_weibull_from_file(sys.argv[1]) 
-    TestMappingTools() 
+    TestNewMappingTools() 
