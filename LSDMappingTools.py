@@ -372,6 +372,7 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     
     #plt.tight_layout()
 
+
     plt.show()
 
 #==============================================================================
