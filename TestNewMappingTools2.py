@@ -15,8 +15,10 @@ def TestNewMappingTools2():
     DataDirectory = "T://analysis_for_papers//Manny_idaho//"
     Filename = "TestIdaho.bil"
     NewFilename = "TestIdaho_after2.bil"
+    ThreshFname = "ThreshIdaho.bil"
     ThisFile = DataDirectory+Filename
     NewFilename = DataDirectory+NewFilename
+    ThreshFname = DataDirectory+ThreshFname
     
     #FigFormat = 'svg'
     #FigFileN= 'Sorbas_chi.svg'
@@ -44,10 +46,13 @@ def TestNewMappingTools2():
     #get the nodata values
     NData2 = LSDP.getNoDataValue(NewFilename)
     
-    print "NoData 2 is: " + str(NData2)    
+    #print "NoData 2 is: " + str(NData2)    
+
+    LSDP.SetNoDataBelowThreshold(ThisFile,ThreshFname)
 
 
 
 if __name__ == "__main__":
     #fit_weibull_from_file(sys.argv[1]) 
     TestNewMappingTools2() 
+    

@@ -184,7 +184,7 @@ def ReadRasterArrayBlocks(raster_file,raster_band=1):
 
 
 #==============================================================================
-def array2raster(rasterfn,newRasterfn,array,driver_name, noDataValue = -9999):
+def array2raster(rasterfn,newRasterfn,array,driver_name = "ENVI", noDataValue = -9999):
     raster = gdal.Open(rasterfn)
     geotransform = raster.GetGeoTransform()
     originX = geotransform[0]
