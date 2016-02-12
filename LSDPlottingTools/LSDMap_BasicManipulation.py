@@ -36,7 +36,7 @@ def SetNoDataBelowThreshold(raster_filename,new_raster_filename, threshold = 0, 
 #==============================================================================
 # This function sets all nodata values to a constant value
 #==============================================================================
-def SetToConstantValue(raster_filename,new_raster_filename, driver_name = "ENVI", constant_value):
+def SetToConstantValue(raster_filename,new_raster_filename, constant_value, driver_name = "ENVI"):
 
     # get the nodata value
     NoDataValue =  LSDMap_IO.getNoDataValue(raster_filename)
@@ -47,6 +47,7 @@ def SetToConstantValue(raster_filename,new_raster_filename, driver_name = "ENVI"
     
     # set any nodata to a constant value
     rasterArray[rasterArray != NoDataValue] = constant_value
+    print "Changed to a constant value"
     
     # write the data to a new file
     LSDMap_IO.array2raster(raster_filename,new_raster_filename,rasterArray,driver_name, NoDataValue)

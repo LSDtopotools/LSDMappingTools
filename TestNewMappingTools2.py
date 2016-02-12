@@ -16,9 +16,11 @@ def TestNewMappingTools2():
     Filename = "TestIdaho.bil"
     NewFilename = "TestIdaho_after2.bil"
     ThreshFname = "ThreshIdaho.bil"
+    ConstFname = "ConstEros.bil"
     ThisFile = DataDirectory+Filename
     NewFilename = DataDirectory+NewFilename
     ThreshFname = DataDirectory+ThreshFname
+    ConstFname = DataDirectory+ConstFname    
     
     #FigFormat = 'svg'
     #FigFileN= 'Sorbas_chi.svg'
@@ -49,7 +51,10 @@ def TestNewMappingTools2():
     #print "NoData 2 is: " + str(NData2)    
 
     LSDP.SetNoDataBelowThreshold(ThisFile,ThreshFname)
-
+    
+    # now print the constant value file
+    constant_value = 0.001
+    LSDP.SetToConstantValue(ThreshFname,ConstFname,constant_value)
 
 
 if __name__ == "__main__":
