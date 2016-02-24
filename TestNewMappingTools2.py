@@ -61,16 +61,18 @@ def ResetErosionRaster():
     #DataDirectory = "T://analysis_for_papers//Manny_idaho//"
     DataDirectory = "C://basin_data//Manny_Idaho//nested//"
     ConstFname = "ConstEros.bil"
-    NewErateName = "HarringCreek_Shield_ERKnown.bil"
+    NewErateName = "HarringCreek_ERKnown.bil"
     ThisFile = DataDirectory+ConstFname
     NewFilename = DataDirectory+NewErateName
     
     LSDP.CheckNoData(ThisFile)
 
     # now print the constant value file
-    constant_value = 0.00031
+    constant_value = 0.0084
     LSDP.SetToConstantValue(ThisFile,NewFilename,constant_value)
       
+    LSDP.CheckNoData(NewFilename)
+
 
 if __name__ == "__main__":
     #fit_weibull_from_file(sys.argv[1]) 
