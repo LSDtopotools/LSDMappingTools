@@ -13,6 +13,21 @@ from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
 
+
+#==============================================================================
+def getNoDataValue(rasterfn):
+    raster = gdal.Open(rasterfn)
+    band = raster.GetRasterBand(1)
+    return band.GetNoDataValue()
+#==============================================================================  
+
+#==============================================================================
+def setNoDataValue(rasterfn):
+    raster = gdal.Open(rasterfn)
+    band = raster.GetRasterBand(1)
+    return band.SetNoDataValue()
+#==============================================================================  
+
 #==============================================================================
 def GetUTMMaxMin(FileName):
 
@@ -211,5 +226,27 @@ def ReadRasterArrayBlocks(raster_file,raster_band=1):
     return data_array
 #==============================================================================
 
+#==============================================================================
+def array2raster(rasterfn,newRasterfn,array,driver_name = "ENVI", noDataValue = -9999):
+    raster = gdal.Open(rasterfn)
+    geotransform = raster.GetGeoTransform()
+    originX = geotransform[0]
+    originY = geotransform[3]
+    pixelWidth = geotransform[1]
+    pixelHeight = geotransform[5]
+    cols = raster.RasterXSize
+    rows = raster.RasterYSize
 
+    driver = gdal.GetDriverByName(driver_name)
+    outRaster = driver.Create(newRasterfn, cols, rows, 1, gdal.GDT_Float32)
+    outRaster.SetGeoTransform((originX, pixelWidth, 0, originY, 0, pixelHeight))
+    outRaster.GetRasterBand(1).SetNoDataValue( noDataValue )    
+    outband = outRaster.GetRasterBand(1)   
+    outband.WriteArray(array)
+    outRasterSRS = osr.SpatialReference()
+    outRasterSRS.ImportFromWkt(raster.GetProjectionRef())
+    outRaster.SetProjection(outRasterSRS.ExportToWkt())
+    outband.FlushCache()
+#==============================================================================  
+    
 
