@@ -13,22 +13,6 @@ from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
 
-
-#==============================================================================
-def getNoDataValue(rasterfn):
-    raster = gdal.Open(rasterfn)
-    band = raster.GetRasterBand(1)
-    return band.GetNoDataValue()
-#==============================================================================  
-
-#==============================================================================
-def setNoDataValue(rasterfn):
-    raster = gdal.Open(rasterfn)
-    band = raster.GetRasterBand(1)
-    return band.SetNoDataValue()
-#==============================================================================  
-
-
 #==============================================================================
 def GetUTMMaxMin(FileName):
 
@@ -120,6 +104,52 @@ def GetNPixelsInRaster(FileName):
 #==============================================================================
 
 #==============================================================================
+# Function to read the original file's projection:
+def CheckNoData(FileName):
+
+    if exists(FileName) is False:
+        raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')   
+
+    # read the file, and check if there is a no data value
+    SourceDS = gdal.Open(FileName, gdal.GA_ReadOnly)
+    if SourceDS == None:
+        raise Exception("Unable to read the data file")
+    NoDataValue = SourceDS.GetRasterBand(1).GetNoDataValue()
+    
+    print "In the check nodata routine. Nodata is: "
+    print NoDataValue
+
+    if NoDataValue == None:
+        print "This raster does not have no data. Updating the header file"
+        header_name = FileName[:-4]
+        header_name = header_name+".hdr"
+        
+        # read the header
+        if exists(header_name) is False:
+            raise Exception('[Errno 2] No such file or directory: \'' + header_name + '\'')  
+        else:
+            this_file = open(header_name, 'r')
+            lines = this_file.readlines()
+            lines.append("data ignore value = -9999")
+            this_file.close()
+
+            this_file = open(header_name, 'w') 
+            for item in lines:
+                print>>this_file, item
+            this_file.close()
+            
+                
+        
+    
+    
+    NDV, xsize, ysize, GeoT, Projection, DataType = GetGeoInfo(FileName)
+    
+    return xsize*ysize
+
+#==============================================================================
+
+
+#==============================================================================
 def ReadRasterArrayBlocks(raster_file,raster_band=1):
     
     if exists(raster_file) is False:
@@ -183,26 +213,3 @@ def ReadRasterArrayBlocks(raster_file,raster_band=1):
 
 
 
-#==============================================================================
-def array2raster(rasterfn,newRasterfn,array,driver_name = "ENVI", noDataValue = -9999):
-    raster = gdal.Open(rasterfn)
-    geotransform = raster.GetGeoTransform()
-    originX = geotransform[0]
-    originY = geotransform[3]
-    pixelWidth = geotransform[1]
-    pixelHeight = geotransform[5]
-    cols = raster.RasterXSize
-    rows = raster.RasterYSize
-
-    driver = gdal.GetDriverByName(driver_name)
-    outRaster = driver.Create(newRasterfn, cols, rows, 1, gdal.GDT_Float32)
-    outRaster.SetGeoTransform((originX, pixelWidth, 0, originY, 0, pixelHeight))
-    outRaster.GetRasterBand(1).SetNoDataValue( noDataValue )    
-    outband = outRaster.GetRasterBand(1)   
-    outband.WriteArray(array)
-    outRasterSRS = osr.SpatialReference()
-    outRasterSRS.ImportFromWkt(raster.GetProjectionRef())
-    outRaster.SetProjection(outRasterSRS.ExportToWkt())
-    outband.FlushCache()
-#==============================================================================  
-    
