@@ -57,7 +57,23 @@ def TestNewMappingTools2():
     LSDP.SetToConstantValue(ThreshFname,ConstFname,constant_value)
 
 
+def ResetErosionRaster():
+    #DataDirectory = "T://analysis_for_papers//Manny_idaho//"
+    DataDirectory = "C://basin_data//Manny_Idaho//nested//"
+    ConstFname = "ConstEros.bil"
+    NewErateName = "HarringCreek_Shield_ERKnown.bil"
+    ThisFile = DataDirectory+ConstFname
+    NewFilename = DataDirectory+NewErateName
+    
+    LSDP.CheckNoData(ThisFile)
+
+    # now print the constant value file
+    constant_value = 0.00031
+    LSDP.SetToConstantValue(ThisFile,NewFilename,constant_value)
+      
+
 if __name__ == "__main__":
     #fit_weibull_from_file(sys.argv[1]) 
-    TestNewMappingTools2() 
+    #TestNewMappingTools2() 
+    ResetErosionRaster()
     
