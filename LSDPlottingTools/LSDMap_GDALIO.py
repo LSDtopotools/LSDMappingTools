@@ -150,13 +150,10 @@ def CheckNoData(FileName):
 
             this_file = open(header_name, 'w') 
             for item in lines:
-                print>>this_file, item
+                this_file.write("%s" % item)        # no newline since a newline command character comes with the lines
+
             this_file.close()
             
-                
-        
-    
-    
     NDV, xsize, ysize, GeoT, Projection, DataType = GetGeoInfo(FileName)
     
     return xsize*ysize
