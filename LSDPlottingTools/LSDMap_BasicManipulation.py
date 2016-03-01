@@ -13,6 +13,7 @@ from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
 import LSDMap_GDALIO as LSDMap_IO
+import LSDMap_BasicPlotting as LSDMBP
 
 #==============================================================================
 # THis function takes a raster an writes a new raster where everything below a
@@ -52,8 +53,17 @@ def SetToConstantValue(raster_filename,new_raster_filename, constant_value, driv
     # write the data to a new file
     LSDMap_IO.array2raster(raster_filename,new_raster_filename,rasterArray,driver_name, NoDataValue)
     print "Wrote raster"
-    
-    
+
+#==============================================================================
+# This function calcualtes a hillshade and writes to file
+#==============================================================================    
+def GetHillshade(raster_filename,new_raster_filename, azimuth = 315, angle_altitude = 45, driver_name = "ENVI", NoDataValue = -9999):
+
+    # get the hillshade
+    hillshade_raster = LSDMBP.Hillshade(raster_filename, azimuth, angle_altitude)
+
+    # write to file
+    LSDMap_IO.array2raster(raster_filename,new_raster_filename,hillshade_raster,driver_name, NoDataValue)         
     
     
     

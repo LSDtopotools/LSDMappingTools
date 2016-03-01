@@ -74,6 +74,19 @@ def ResetErosionRaster():
     LSDP.CheckNoData(NewFilename)
 
 
+def FloodThenHillshade():
+    DataDirectory = "M:\\students\\kunkelova\\"
+    DEMName = "bk_10m_dem.bil"
+    newDEMName = "bk_10m_dem_updated.bil"
+    HillshadeName = "bk_10m_dem_HS.bil"
+    
+    RasterFilename = DataDirectory+DEMName
+    NewRasterFilename = DataDirectory+newDEMName 
+    
+    LSDP.SetNoDataBelowThreshold(RasterFilename,NewRasterFilename, threshold = 0, driver_name = "ENVI", NoDataValue = -9999)
+    
+    
+
 if __name__ == "__main__":
     #fit_weibull_from_file(sys.argv[1]) 
     #TestNewMappingTools2() 
