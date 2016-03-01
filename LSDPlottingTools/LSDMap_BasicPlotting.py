@@ -702,7 +702,7 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
 
 #==============================================================================
 # Make a simple hillshade plot
-def Hillshade(raster_file, azimuth = 315, angle_altitude = 45): 
+def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -9999): 
     
     array = LSDMap_IO.ReadRasterArrayBlocks(raster_file,raster_band=1)    
     
@@ -716,6 +716,8 @@ def Hillshade(raster_file, azimuth = 315, angle_altitude = 45):
     shaded = np.sin(altituderad) * np.sin(slope)\
      + np.cos(altituderad) * np.cos(slope)\
      * np.cos(azimuthrad - aspect)
+     
+     
      
     #this_array = 255*(shaded + 1)/2 
     return 255*(shaded + 1)/2

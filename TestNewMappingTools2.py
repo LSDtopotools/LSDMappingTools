@@ -82,13 +82,15 @@ def FloodThenHillshade():
     
     RasterFilename = DataDirectory+DEMName
     NewRasterFilename = DataDirectory+newDEMName 
+    HillshadeNameFile = DataDirectory+HillshadeName
     
     LSDP.SetNoDataBelowThreshold(RasterFilename,NewRasterFilename, threshold = 0, driver_name = "ENVI", NoDataValue = -9999)
-    
+    LSDP.GetHillshade(NewRasterFilename, HillshadeNameFile, azimuth = 315, angle_altitude = 45, driver_name = "ENVI", NoDataValue = -9999)
     
 
 if __name__ == "__main__":
     #fit_weibull_from_file(sys.argv[1]) 
     #TestNewMappingTools2() 
-    ResetErosionRaster()
+    #ResetErosionRaster()
+    FloodThenHillshade()
     
