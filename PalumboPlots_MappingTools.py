@@ -21,7 +21,7 @@ def PalumboPlots():
 
     LSDP.BasicDrapedPlotGridPlot(ThisFile, DrapeFile, thiscmap='terrain',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (2000,5000),
-                            drape_alpha = 0.4,FigFileName = 'Basin.pdf',FigFormat = 'show')
+                            drape_alpha = 0.4,FigFileName = 'Basin.pdf',FigFormat = 'pdf')
 
 def ShieldPlots_coarse():
     DataDirectory = "T://analysis_for_papers//Cosmo_paper//Palumbo_shield_plots//"
@@ -30,7 +30,7 @@ def ShieldPlots_coarse():
     ThisFile = DataDirectory+Filename
 
     LSDP.BasicDensityPlotGridPlot(ThisFile, thiscmap='summer',colorbarlabel='Topographic shielding coarse',
-                             clim_val = (0.85,1),FigFileName = 'Shield_coarse.pdf', FigFormat = 'show')
+                             clim_val = (0.85,1),FigFileName = 'Shield_coarse.pdf', FigFormat = 'pdf')
 
 def ShieldPlots_fine():
     DataDirectory = "T://analysis_for_papers//Cosmo_paper//Palumbo_shield_plots//"
@@ -39,7 +39,7 @@ def ShieldPlots_fine():
     ThisFile = DataDirectory+Filename
 
     LSDP.BasicDensityPlotGridPlot(ThisFile, thiscmap='summer',colorbarlabel='Topographic shielding fine',
-                             clim_val = (0.85,1),FigFileName = 'Shield_fine.pdf', FigFormat = 'show')
+                             clim_val = (0.85,1),FigFileName = 'Shield_fine.pdf', FigFormat = 'pdf')
 
 
 if __name__ == "__main__":
