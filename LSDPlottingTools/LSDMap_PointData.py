@@ -134,11 +134,14 @@ class LSDMap_PointData(object):
         
         FileOut = this_path+DataName+".shp"
         
-        #print "The filename will be: " + FileOut
+        print "The filename will be: " + FileOut
 
         # delete the existing file
         if os.path.exists(FileOut):
             driver.DeleteDataSource(FileOut)
+            print "That file exists, I am deleting it in order to start again."
+        else:
+            print "I am making a new shapefile for you"
 
         # create the data source
         data_source = driver.CreateDataSource(FileOut)
@@ -150,7 +153,7 @@ class LSDMap_PointData(object):
         print "Creating the layer"
 
         # create the layer
-        layer = data_source.CreateLayer("PointData", srs, ogr.wkbPoint)
+        layer = data_source.CreateLayer(DataName, srs, ogr.wkbPoint)
 
         print "Adding the field names"
         
@@ -159,7 +162,7 @@ class LSDMap_PointData(object):
             layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
         
         # Process the text file and add the attributes and features to the shapefile
-        for index,lat in enumerate(self.Latitude[index]):
+        for index,lat in enumerate(self.Latitude):
             
             # create the feature
             feature = ogr.Feature(layer.GetLayerDefn())
@@ -226,7 +229,7 @@ class LSDMap_PointData(object):
             layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
         
         # Process the text file and add the attributes and features to the shapefile
-        for index,lat in enumerate(self.Latitude[index]):
+        for index,lat in enumerate(self.Latitude):
             
             # create the feature
             feature = ogr.Feature(layer.GetLayerDefn())

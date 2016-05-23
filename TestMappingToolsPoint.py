@@ -17,13 +17,15 @@ def TestMappingToolsPoints():
     ExportName = "ShapeTest"
     
     fname = DataDirectory+Filename
+    Exp_fname = DataDirectory+ExportName
 
     thisPointData = LSDP.LSDMap_PointData(fname)   
 
     thisPointData.GetParameterNames(True)
     thisPointData.GetLongitude(True)
     
-    
+    #thisPointData.TranslateToReducedShapefile(fname)
+    thisPointData.TranslateToReducedGeoJSON(fname)
     
 
 
