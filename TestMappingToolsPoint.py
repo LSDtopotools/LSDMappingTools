@@ -27,11 +27,15 @@ def TestMappingToolsPoints():
     #thisPointData.TranslateToReducedShapefile(fname)
     thisPointData.TranslateToReducedGeoJSON(fname)
     
-
+def TestMappingToolsLassoCSV(): 
+    
+    DataDirectory = "T://analysis_for_papers//Test_map_chi_gradient//results//"
+    LSDP.ConvertAllCSVToGeoJSON(DataDirectory)
 
 
 
 
 if __name__ == "__main__":
-    TestMappingToolsPoints() 
+    #TestMappingToolsPoints() 
+    TestMappingToolsLassoCSV()
     

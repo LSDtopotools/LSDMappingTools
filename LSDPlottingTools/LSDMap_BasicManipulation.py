@@ -12,8 +12,12 @@ from osgeo import osr
 from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
+from glob import glob
+import LSDOSystemTools as LSDOst
 import LSDMap_GDALIO as LSDMap_IO
 import LSDMap_BasicPlotting as LSDMBP
+import LSDMap_PointData as LSDMPD
+
 
 #==============================================================================
 # THis function takes a raster an writes a new raster where everything below a
@@ -65,5 +69,23 @@ def GetHillshade(raster_filename,new_raster_filename, azimuth = 315, angle_altit
     # write to file
     LSDMap_IO.array2raster(raster_filename,new_raster_filename,hillshade_raster,driver_name, NoDataValue)         
     
+#==============================================================================
+# This function takes all the csv files in a directory and converts to 
+# GeoJSON files
+#==============================================================================     
+def ConvertAllCSVToGeoJSON(path):
     
+    # make sure names are in correct format
+    NewPath = LSDOst.AppendSepToDirectoryPath(path)
+    
+    print "The formatted path is: " + NewPath
+    
+        
+    for FileName in glob(NewPath+"*.csv"): 
+        print "filename is: " + FileName
+        
+        thisPointData = LSDMPD.LSDMap_PointData(FileName)
+        thisPointData.TranslateToReducedGeoJSON(FileName)
+        
+        
     
