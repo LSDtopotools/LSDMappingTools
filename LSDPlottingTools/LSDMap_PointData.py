@@ -41,7 +41,8 @@ class LSDMap_PointData(object):
             TestList = this_line.split(',')
             
             for name in TestList:
-                self.VariableList.append(name.lower())
+                this_name = LSDOst.RemoveEscapeCharacters(name)
+                self.VariableList.append(this_name.lower())
                 
             
             print "Variable list is: "
@@ -51,22 +52,37 @@ class LSDMap_PointData(object):
             del lines[0]             
             
             # now you need to make a dict that contains a list for each varaible name
-            DataDict = {}  
+            DataDict = {} 
+            TypeList = []
             for name in self.VariableList:
                 DataDict[name] = []
                 
             # now get the data into the dict
+            #firstline = True
             for line in lines:
                 this_line = LSDOst.RemoveEscapeCharacters(line)
                 split_line = this_line.split(',')
                 
                 for index,name in enumerate(self.VariableList):
-                    DataDict[name].append(float(split_line[index]))                    
-          
+                    this_var = LSDOst.RemoveEscapeCharacters(split_line[index])
+                    #this_variable = LSDOst.ParseStringToType(this_var)
+                    DataDict[name].append(this_var) 
+            
+            # now go back and get the correct type             
+            DataDictTyped = {}    
+            for name in self.VariableList:
+                this_list = DataDict[name]
+                typed_list = LSDOst.ParseListToType(this_list)
+                DataDictTyped[name] = typed_list
+                
+                TypeList.append(type(typed_list[0])) 
+                             
             self.PointData = DataDict
+            self.DataTypes = TypeList
         else:
             print "Uh oh I could not open that file"
             self.VariableList = []
+            self.DataTypes = []
             self.PointData = {}
             
         # now make sure the data has latitude and longitude entries
@@ -98,6 +114,15 @@ class LSDMap_PointData(object):
             print self.VariableList
             
         return self.VariableList 
+
+    # Get data types
+    def GetParameterTypes(self,PrintToScreen = False):
+        
+        if PrintToScreen:        
+            print self.DataTypes
+            
+        return self.DataTypes 
+
         
     # Get data elements
     def GetLatitude(self,PrintToScreen = False):
@@ -113,7 +138,19 @@ class LSDMap_PointData(object):
         if PrintToScreen:        
             print self.Longitude
             
-        return self.Longitude            
+        return self.Longitude 
+
+    def QueryData(self,data_name,PrintToScreen = False):
+
+        if data_name not in self.VariableList:
+            print "The data " + data_name + " is not one of the data elements in this point data"
+        else:
+        
+            if PrintToScreen:
+                print "The " + data_name + "data is: "
+                print self.PointData[data_name]  
+                
+            return self.PointData[data_name]   
         
 ##==============================================================================
 ##==============================================================================
@@ -155,11 +192,20 @@ class LSDMap_PointData(object):
         # create the layer
         layer = data_source.CreateLayer(DataName, srs, ogr.wkbPoint)
 
-        print "Adding the field names"
-        
         # Add the field names
-        for name in self.VariableList:
-            layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
+        for index,name in enumerate(self.VariableList):
+            print "The variable name is " + name + " and the type is: " + str(self.DataTypes[index])           
+            
+            
+            if self.DataTypes[index] is int:           
+                layer.CreateField(ogr.FieldDefn(name, ogr.OFTInteger))
+            elif self.DataTypes[index] is float:
+                layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
+            elif self.DataTypes[index] is str:
+                print "Making a sting layer for layer " + name
+                layer.CreateField(ogr.FieldDefn(name, ogr.OFTString))
+            else:
+                layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
         
         # Process the text file and add the attributes and features to the shapefile
         for index,lat in enumerate(self.Latitude):
@@ -222,11 +268,22 @@ class LSDMap_PointData(object):
         # create the layer
         layer = data_source.CreateLayer("PointData", srs, ogr.wkbPoint)
 
-        print "Adding the field names"
+        #print "Adding the field names"
         
         # Add the field names
-        for name in self.VariableList:
-            layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
+        for index,name in enumerate(self.VariableList):
+            print "The variable name is " + name + " and the type is: " + str(self.DataTypes[index])           
+            
+            
+            if self.DataTypes[index] is int:           
+                layer.CreateField(ogr.FieldDefn(name, ogr.OFTInteger))
+            elif self.DataTypes[index] is float:
+                layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
+            elif self.DataTypes[index] is str:
+                print "Making a sting layer for layer " + name
+                layer.CreateField(ogr.FieldDefn(name, ogr.OFTString))
+            else:
+                layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
         
         # Process the text file and add the attributes and features to the shapefile
         for index,lat in enumerate(self.Latitude):

@@ -12,19 +12,28 @@ import numpy as np
 import LSDPlottingTools as LSDP
 
 def TestMappingToolsPoints():
-    DataDirectory = "T://analysis_for_papers//Test_map_chi_gradient//results//"
-    Filename = "Mandakini_OutletList.csv"
-    ExportName = "ShapeTest"
+    #DataDirectory = "T://analysis_for_papers//Test_map_chi_gradient//results//"
+    DataDirectory = "T://students//Wainwright//"
+    #Filename = "Mandakini_OutletList.csv"
+    Filename = "Bids_DD.csv"
+    
+    #ExportName = "ShapeTest"
     
     fname = DataDirectory+Filename
-    Exp_fname = DataDirectory+ExportName
+    #Exp_fname = DataDirectory+ExportName
 
     thisPointData = LSDP.LSDMap_PointData(fname)   
 
     thisPointData.GetParameterNames(True)
     thisPointData.GetLongitude(True)
     
-    #thisPointData.TranslateToReducedShapefile(fname)
+    print "Hey buddy, the province is: "
+    thisPointData.QueryData("province",True)
+    
+    print "Hey buddy, the gma is: "
+    thisPointData.QueryData("gma",True)    
+    
+    thisPointData.TranslateToReducedShapefile(fname)
     thisPointData.TranslateToReducedGeoJSON(fname)
     
 def TestMappingToolsLassoCSV(): 
@@ -36,6 +45,6 @@ def TestMappingToolsLassoCSV():
 
 
 if __name__ == "__main__":
-    #TestMappingToolsPoints() 
-    TestMappingToolsLassoCSV()
+    TestMappingToolsPoints() 
+    #TestMappingToolsLassoCSV()
     
