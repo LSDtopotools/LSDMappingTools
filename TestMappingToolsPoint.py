@@ -45,6 +45,6 @@ def TestMappingToolsLassoCSV():
 
 
 if __name__ == "__main__":
-    TestMappingToolsPoints() 
-    #TestMappingToolsLassoCSV()
+    #TestMappingToolsPoints() 
+    TestMappingToolsLassoCSV()
     
