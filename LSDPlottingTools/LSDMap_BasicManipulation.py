@@ -88,4 +88,20 @@ def ConvertAllCSVToGeoJSON(path):
         thisPointData.TranslateToReducedGeoJSON(FileName)
         
         
+#==============================================================================
+# This function takes all the csv files in a directory and converts to 
+# GeoJSON files
+#==============================================================================     
+def ConvertAllCSVToShapefile(path):
     
+    # make sure names are in correct format
+    NewPath = LSDOst.AppendSepToDirectoryPath(path)
+    
+    print "The formatted path is: " + NewPath
+    
+        
+    for FileName in glob(NewPath+"*.csv"): 
+        print "filename is: " + FileName
+        
+        thisPointData = LSDMPD.LSDMap_PointData(FileName)
+        thisPointData.TranslateToReducedShapefile(FileName)    
