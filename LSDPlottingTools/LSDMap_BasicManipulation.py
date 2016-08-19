@@ -125,6 +125,8 @@ def RasterMeanValue(path, file1):
   
     return mean_value   
 
+
+
         
 #==============================================================================
 # This does a basic mass balance. 

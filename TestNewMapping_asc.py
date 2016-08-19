@@ -25,9 +25,15 @@ def TestNewMappingTools_asc():
     print yo
     
     
-    LSDP.BasicMassBalance(DataDirectory, Filename1, Filename2)
+        
     
+    MB = LSDP.BasicMassBalance(DataDirectory, Filename1, Filename2)
+    print "Mass balance between these two time steps is: " + str(MB) + " cubic metres"
 
+    Mean1 = LSDP.RasterMeanValue(DataDirectory, Filename1)
+    Mean2 = LSDP.RasterMeanValue(DataDirectory, Filename2)
+
+    print "The mean values of the two rasters are: " + str(Mean1) +" and "+ str(Mean2)
 
 if __name__ == "__main__":
     #fit_weibull_from_file(sys.argv[1]) 
