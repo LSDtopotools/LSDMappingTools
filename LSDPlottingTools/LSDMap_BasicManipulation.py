@@ -104,4 +104,31 @@ def ConvertAllCSVToShapefile(path):
         print "filename is: " + FileName
         
         thisPointData = LSDMPD.LSDMap_PointData(FileName)
-        thisPointData.TranslateToReducedShapefile(FileName)    
+        thisPointData.TranslateToReducedShapefile(FileName)   
+        
+#==============================================================================
+# This does a basic mass balance. 
+# Assumes all units are metres
+#==============================================================================         
+def BasicMassBalance(path, file1, file2):
+    
+    # make sure names are in correct format
+    NewPath = LSDOst.AppendSepToDirectoryPath(path)
+    
+    raster_file1 = NewPath+file1
+    raster_file2 = NewPath+file2
+    
+    PixelArea = LSDMap_IO.GetPixelArea(raster_file1)
+    print "PixelArea is: " + str(PixelArea) 
+    
+    print "The formatted path is: " + NewPath
+    Raster1 = LSDMap_IO.ReadRasterArrayBlocks(raster_file1,raster_band=1)
+    Raster2 = LSDMap_IO.ReadRasterArrayBlocks(raster_file2,raster_band=1)
+    
+    NewRaster = np.subtract(Raster2,Raster1)
+    
+    mass_balance = np.sum(NewRaster)*PixelArea
+
+    print "linear dif " + str(np.sum(NewRaster))    
+        
+    return mass_balance       

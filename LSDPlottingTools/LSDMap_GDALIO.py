@@ -45,6 +45,21 @@ def GetUTMMaxMin(FileName):
     return CellSize,XMin,XMax,YMin,YMax
 #==============================================================================    
 
+#============================================================================== 
+# Gets the pixel area, assumes units are projected
+#============================================================================== 
+def GetPixelArea(FileName):
+
+    if exists(FileName) is False:
+            raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')    
+    
+    NDV, xsize, ysize, GeoT, Projection, DataType = GetGeoInfo(FileName)
+    CellSize = GeoT[1]
+    
+    return CellSize*CellSize
+#============================================================================== 
+
+
 #==============================================================================
 # this takes rows and columns of minium and maximum values and converts them
 # to UTM

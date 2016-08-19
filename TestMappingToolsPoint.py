@@ -39,7 +39,7 @@ def TestMappingToolsPoints():
 def TestMappingToolsLassoCSV(): 
     
     #DataDirectory = "T://analysis_for_papers//Test_map_chi_gradient//results//"
-    DataDirectory = "T://analysis_for_papers//Indus//IndusChi//"
+    DataDirectory = "T://analysis_for_papers//Indus//NewChi//"
     LSDP.ConvertAllCSVToGeoJSON(DataDirectory)
 
 
