@@ -105,6 +105,26 @@ def ConvertAllCSVToShapefile(path):
         
         thisPointData = LSDMPD.LSDMap_PointData(FileName)
         thisPointData.TranslateToReducedShapefile(FileName)   
+
+#==============================================================================
+# This does a basic mass balance. 
+# Assumes all units are metres
+#==============================================================================         
+def RasterMeanValue(path, file1):
+    
+    # make sure names are in correct format
+    NewPath = LSDOst.AppendSepToDirectoryPath(path)
+    
+    raster_file1 = NewPath+file1
+    
+    NPixels = LSDMap_IO.GetNPixelsInRaster(raster_file1)
+
+    Raster1 = LSDMap_IO.ReadRasterArrayBlocks(raster_file1,raster_band=1)
+    
+    mean_value = np.sum(Raster1)/float(NPixels)     
+  
+    return mean_value   
+
         
 #==============================================================================
 # This does a basic mass balance. 
