@@ -89,7 +89,27 @@ def GetUTMMaxMinFromRowsCol(FileName,x_max_col,x_min_col,y_max_row,y_min_row):
     ymin_UTM = YMin+ymin_from_bottom*CellSize
    
     return xmax_UTM,xmin_UTM,ymax_UTM,ymin_UTM
-#==============================================================================  
+#============================================================================== 
+
+#==============================================================================
+# This gets the x and y vectors of the data
+#==============================================================================
+def GetLocationVectors(FileName):
+    
+    NDV, xsize, ysize, GeoT, Projection, DataType = GetGeoInfo(FileName)
+    
+    CellSize,XMin,XMax,YMin,YMax = GetUTMMaxMin(FileName) 
+    
+    
+    
+    x_vec = np.arange(XMin,XMax,CellSize)
+    y_vec = np.arange(YMin,YMax,CellSize)
+    
+    return x_vec,y_vec
+#==============================================================================    
+    
+    
+ 
 
 #==============================================================================
 # This gets the extent of the raster

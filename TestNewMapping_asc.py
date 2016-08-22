@@ -27,13 +27,20 @@ def TestNewMappingTools_asc():
     
         
     
-    MB = LSDP.BasicMassBalance(DataDirectory, Filename1, Filename2)
-    print "Mass balance between these two time steps is: " + str(MB) + " cubic metres"
+    #MB = LSDP.BasicMassBalance(DataDirectory, Filename1, Filename2)
+    #print "Mass balance between these two time steps is: " + str(MB) + " cubic metres"
 
-    Mean1 = LSDP.RasterMeanValue(DataDirectory, Filename1)
-    Mean2 = LSDP.RasterMeanValue(DataDirectory, Filename2)
+    #Mean1 = LSDP.RasterMeanValue(DataDirectory, Filename1)
+    #Mean2 = LSDP.RasterMeanValue(DataDirectory, Filename2)
 
-    print "The mean values of the two rasters are: " + str(Mean1) +" and "+ str(Mean2)
+    #print "The mean values of the two rasters are: " + str(Mean1) +" and "+ str(Mean2)
+    
+    # now try the swath plotting
+    axis = 0
+    LSDP.SwathPlot(DataDirectory, Filename1, axis)
+    
+    axis = 1
+    LSDP.SwathPlot(DataDirectory, Filename1, axis)
 
 if __name__ == "__main__":
     #fit_weibull_from_file(sys.argv[1]) 
