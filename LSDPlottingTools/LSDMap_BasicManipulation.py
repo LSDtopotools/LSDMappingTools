@@ -142,11 +142,14 @@ def SimpleSwath(path, file1, axis):
     
     Raster1 = LSDMap_IO.ReadRasterArrayBlocks(raster_file1,raster_band=1)
     
-    means = np.mean(Raster1, axis)
-    medians = np.median(Raster1, axis)
-    std_deviations = np.std(Raster1, axis)
-    twentyfifth_percentile = np.percentile(Raster1, 25, axis)
-    seventyfifth_percentile = np.percentile(Raster1, 75, axis)
+    #now mask the nodata
+    masked_Raster1  = np.ma.masked_values(Raster1, NDV)
+    
+    means = np.mean(masked_Raster1, axis)
+    medians = np.median(masked_Raster1, axis)
+    std_deviations = np.std(masked_Raster1, axis)
+    twentyfifth_percentile = np.percentile(masked_Raster1, 25, axis)
+    seventyfifth_percentile = np.percentile(masked_Raster1, 75, axis)
       
     return means,medians,std_deviations,twentyfifth_percentile,seventyfifth_percentile   
 

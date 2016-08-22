@@ -13,8 +13,9 @@ import LSDPlottingTools as LSDP
 
 def TestNewMappingTools_asc():
     DataDirectory = "T:\\analysis_for_papers\\Beaches\\"
-    Filename1 = "BedThickness_050.asc"
-    Filename2 = "BedThickness_100.asc"
+    #Filename1 = "BedThickness_050.asc"
+    #Filename2 = "BedThickness_100.asc"
+    Filename1 = "20m_bl.asc"
 
     ThisFile = DataDirectory+Filename1
 
@@ -36,8 +37,8 @@ def TestNewMappingTools_asc():
     #print "The mean values of the two rasters are: " + str(Mean1) +" and "+ str(Mean2)
     
     # now try the swath plotting
-    axis = 0
-    LSDP.SwathPlot(DataDirectory, Filename1, axis)
+    #axis = 0
+    #LSDP.SwathPlot(DataDirectory, Filename1, axis)
     
     axis = 1
     LSDP.SwathPlot(DataDirectory, Filename1, axis)
