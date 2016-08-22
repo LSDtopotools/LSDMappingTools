@@ -125,7 +125,30 @@ def RasterMeanValue(path, file1):
   
     return mean_value   
 
+#==============================================================================
+# This does a very basic swath analysis in one direction
+# if axis is 0, this is along x axis, if axis is 1, is along y axis
+# otherwise will throw error
+#==============================================================================         
+def SimpleSwath(path, file1, axis):
+   
+    # make sure names are in correct format
+    NewPath = LSDOst.AppendSepToDirectoryPath(path)
+    
+    raster_file1 = NewPath+file1
 
+    # get some information about the raster 
+    NDV, xsize, ysize, GeoT, Projection, DataType = LSDMap_IO.GetGeoInfo(raster_file1)
+    
+    Raster1 = LSDMap_IO.ReadRasterArrayBlocks(raster_file1,raster_band=1)
+    
+    means = np.mean(Raster1, axis)
+    medians = np.median(Raster1, axis)
+    std_deviations = np.std(Raster1, axis)
+    twentyfifth_percentile = np.percentile(Raster1, 25, axis)
+    seventyfifth_percentile = np.percentile(Raster1, 75, axis)
+      
+    return means,medians,std_deviations,twentyfifth_percentile,seventyfifth_percentile   
 
         
 #==============================================================================
