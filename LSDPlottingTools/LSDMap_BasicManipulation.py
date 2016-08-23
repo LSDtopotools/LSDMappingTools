@@ -140,7 +140,18 @@ def SimpleSwath(path, file1, axis):
     # get some information about the raster 
     NDV, xsize, ysize, GeoT, Projection, DataType = LSDMap_IO.GetGeoInfo(raster_file1)
     
+    print "NDV is: "
+    print NDV
+    
+    if NDV == None:
+        NDV = -9999
+        print "No NDV defined"
+    
     Raster1 = LSDMap_IO.ReadRasterArrayBlocks(raster_file1,raster_band=1)
+    
+    
+    #nan_raster = Raster1[Raster1==NDV]=np.nan 
+    #print nan_raster
     
     #now mask the nodata
     masked_Raster1  = np.ma.masked_values(Raster1, NDV)
@@ -150,7 +161,21 @@ def SimpleSwath(path, file1, axis):
     std_deviations = np.std(masked_Raster1, axis)
     twentyfifth_percentile = np.percentile(masked_Raster1, 25, axis)
     seventyfifth_percentile = np.percentile(masked_Raster1, 75, axis)
-      
+ 
+    # This stuff only works with numpy 1.8 or later, wich we don't have
+    #means = np.nanmean(nan_raster, axis)
+    #medians = np.nanmedian(nan_raster, axis)
+    #std_deviations = np.nanstd(nan_raster, axis)
+    #twentyfifth_percentile = np.nanpercentile(nan_raster, 25, axis)
+    #seventyfifth_percentile = np.nanpercentile(nan_raster, 75, axis)
+   
+    #print means
+    #print medians
+    #print std_deviations
+    #print twentyfifth_percentile
+    #print seventyfifth_percentile    
+    
+    
     return means,medians,std_deviations,twentyfifth_percentile,seventyfifth_percentile   
 
         
