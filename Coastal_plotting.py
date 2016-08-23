@@ -9,8 +9,47 @@ import numpy as np
 import LSDPlottingTools as LSDP
 import LSDOSystemTools as LSDOst
 from matplotlib import rcParams
+from glob import glob
 
-def ElevationSwaths(path, filename, axis):
+def BedPlotAutomator(Dirname):
+    
+    # This is used to tell the model we want a profile perpendicular to shore
+    axis = 1
+    
+    for fname in glob(Dirname+"*_BedElev.asc"):
+        
+        
+        # first we need the filename without the path
+        NoDirFname = LSDOst.GetFileNameNoPath(fname)
+        
+        print "fname is: "+ NoDirFname       
+        
+        # Now get the prefix of the file
+        splitfname = NoDirFname.split('_BedElev.asc')
+        fprefix = splitfname[0]
+               
+        ElevationSwaths(Dirname, NoDirFname, axis, fprefix)
+
+    # now do the bed thickness
+    for fname in glob(Dirname+"*_BedThick.asc"):
+        
+        # first we need the filename without the path
+        NoDirFname = LSDOst.GetFileNameNoPath(fname)
+        
+        print "fname is: "+ NoDirFname          
+        
+        # Now get the prefix of the file
+        splitfname = NoDirFname.split('_BedThick.asc')
+        fprefix = splitfname[0]
+               
+        ElevationSwaths(Dirname, NoDirFname, axis, fprefix)
+        
+#===============================================================================        
+        
+#===============================================================================        
+def ElevationSwaths(path, filename, axis, fprefix):
+
+    Fileformat = 'png'
     
     # get the path to the raster file
     NewPath = LSDOst.AppendSepToDirectoryPath(path)    
@@ -85,15 +124,20 @@ def ElevationSwaths(path, filename, axis):
 
     plt.xlabel('Distance from shore (m)', fontsize = axis_size)
     plt.ylabel('Bed elevation relative to MSL (m)', fontsize = axis_size)
+    plt.title(fprefix)
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
     ax.tick_params(axis='both', width=2, pad = 10)
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(10)   
     
-    plt.show()
+    #plt.show()
+    plt.savefig(NewPath+fprefix+"_BedElev.png",format = Fileformat)
+    plt.clf()
 
-def BedThickSwaths(path, filename, axis):
+def BedThickSwaths(path, filename, axis, fprefix):
+
+    Fileformat = 'png'
     
     # get the path to the raster file
     NewPath = LSDOst.AppendSepToDirectoryPath(path)    
@@ -168,14 +212,16 @@ def BedThickSwaths(path, filename, axis):
 
     plt.xlabel('Distance from shore (m)', fontsize = axis_size)
     plt.ylabel('Bed thickness (m)', fontsize = axis_size)
+    plt.title(fprefix)
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
     ax.tick_params(axis='both', width=2, pad = 10)
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(10)   
     
-    plt.show()    
-
+    #plt.show()    
+    plt.savefig(NewPath+fprefix+"_BedThick.png",format = Fileformat)
+    plt.clf()
 
 if __name__ == "__main__":
 
@@ -185,6 +231,6 @@ if __name__ == "__main__":
     Filename1 = "20m_bl.asc"
     axis = 1
 
-    ElevationSwaths(DataDirectory, Filename1, axis)
-    BedThickSwaths(DataDirectory, Filename2, axis)
-    
+    #ElevationSwaths(DataDirectory, Filename1, axis)
+    #BedThickSwaths(DataDirectory, Filename2, axis)
+    BedPlotAutomator(DataDirectory)
