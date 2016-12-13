@@ -16,6 +16,7 @@ from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
 import LSDOSystemTools as LSDOst
 import os
+from pyproj import Proj, transform
 
 class LSDMap_PointData(object):
     
@@ -151,7 +152,15 @@ class LSDMap_PointData(object):
                 print self.PointData[data_name]  
                 
             return self.PointData[data_name]   
+ 
+    def GetUTMEastingNorthing(EPSG_string):
         
+        # The lat long are in epsg 4326 which is WGS84
+        inProj = Proj(init='epsg:4326')
+        outProj = Proj(init='EPSG_string')
+        x2,y2 = transform(inProj,outProj,self.Latitude,self.Longitude)
+        return x2,y2
+
 ##==============================================================================
 ##==============================================================================
 ## Format conversion

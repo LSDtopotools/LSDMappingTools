@@ -581,8 +581,8 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     ax.spines['left'].set_linewidth(1.5)
     ax.spines['right'].set_linewidth(1.5)
     ax.spines['bottom'].set_linewidth(1.5) 
- 
-    ax.spines['bottom'].set_capstyle('projecting')
+     
+    #ax.spines['bottom'].set_capstyle('projecting')
 
     #for spine in ax.spines.values():
     #    spine.set_capstyle('projecting')

@@ -144,6 +144,49 @@ def GetGeoInfo(FileName):
 #==============================================================================
 
 #==============================================================================
+# This gets the UTM zone, if it exists
+def GetUTMESPG(FileName):
+    
+    if exists(FileName) is False:
+            raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')    
+    
+    # see if the file exists and get the dataset
+    SourceDS = gdal.Open(FileName, gdal.GA_ReadOnly)
+    if SourceDS == None:
+        raise Exception("Unable to read the data file")
+    
+    ESPG_string = 'NULL'
+    
+    # get the projection
+    prj=SourceDS.GetProjection()
+    srs=osr.SpatialReference(wkt=prj)
+    if srs.IsProjected:
+        print srs.GetAttrValue('projcs')
+        proj_str = srs.GetAttrValue('projcs')
+        
+        # extract the UTM information
+        proj_split = proj_str.split('_')
+        zone = proj_split[-1]
+    
+        N_or_S = zone[-1] 
+        zone = zone[:-1]
+
+    
+        ESPG_string = 'espg:'
+        if N_or_S == 'S':
+            ESPG_string = ESPG_string+'327'+zone
+        else:
+            ESPG_string = ESPG_string+'326'+zone        
+    else:
+        raise Exception("This is not a projected coordinate system!")
+    
+
+    
+    print ESPG_string
+    return ESPG_string
+
+
+#==============================================================================
 # Function to read the original file's projection:
 def GetNPixelsInRaster(FileName):
 
