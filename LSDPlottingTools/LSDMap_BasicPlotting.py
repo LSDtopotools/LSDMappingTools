@@ -546,33 +546,47 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     print "ymin: " + str(y_min)
 
 
-    im = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
-    #im = grid[0].imshow(raster, thiscmap, interpolation="nearest")
-    
-    cbar = plt.colorbar(im)
-    cbar.set_label(colorbarlabel) 
-    #cbar.set_height(1)
+    #Z1 = np.array(([0, 1]*4 + [1, 0]*4)*4)
+    #Z1.shape = (8, 8)  # chessboard
+    #im2 = ax.imshow(Z1, cmap=plt.cm.gray, interpolation='nearest',
+    #             extent=extent_raster)  
+ 
+    #plt.hold(True)
 
-    #cbar = fig.cbar_axes[0].colorbar(im)
-    #cbar.set_label_text(colorbarlabel)
+    im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     
+    cbar = plt.colorbar(im1)
+    cbar.set_label(colorbarlabel) 
+
     # set the colour limits
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
-        print "I don't think I should be here"
-        im.set_clim(0, np.max(raster))
+        print "Im setting colour limits based on minimum and maximum values"
+        im1.set_clim(0, np.max(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
-        im.set_clim(clim_val[0],clim_val[1])
+        im1.set_clim(clim_val[0],clim_val[1])
+   
+    plt.hold(True)
+   
+    # Now for the drape: it is in grayscale
+    #print "drape_cmap is: "+drape_cmap
+    im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
+
+    # Set the colour limits of the drape
+    im3.set_clim(0,np.max(raster_drape))
     
-    # Now for the drape: it is in grayscape
-    im = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
-      
-    ax.spines['top'].set_linewidth(2.5)
-    ax.spines['left'].set_linewidth(2.5)
-    ax.spines['right'].set_linewidth(2.5)
-    ax.spines['bottom'].set_linewidth(2.5) 
-        
+    
+    ax.spines['top'].set_linewidth(1.5)
+    ax.spines['left'].set_linewidth(1.5)
+    ax.spines['right'].set_linewidth(1.5)
+    ax.spines['bottom'].set_linewidth(1.5) 
+ 
+    ax.spines['bottom'].set_capstyle('projecting')
+
+    #for spine in ax.spines.values():
+    #    spine.set_capstyle('projecting')
+
     # This affects all axes because we set share_all = True.
     ax.set_xlim(x_min,x_max)    
     ax.set_ylim(y_max,y_min)     
@@ -587,7 +601,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     ax.set_ylabel("Northing (m)")  
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
-    ax.tick_params(axis='both', width=2.5, pad = 10)
+    ax.tick_params(axis='both', width=1.5, pad = 10)
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(10)    
 
@@ -595,7 +609,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     if FigFormat == 'show':    
         plt.show()
     else:
-        plt.savefig(FigFileName,format=FigFormat)
+        plt.savefig(FigFileName,format=FigFormat,dpi=250)
         fig.clf()
 
 #==============================================================================
