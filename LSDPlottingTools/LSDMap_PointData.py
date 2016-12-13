@@ -153,13 +153,29 @@ class LSDMap_PointData(object):
                 
             return self.PointData[data_name]   
  
-    def GetUTMEastingNorthing(EPSG_string):
+    def GetUTMEastingNorthing(self,EPSG_string):
         
+        print "Yo, getting this stuff: "+EPSG_string
         # The lat long are in epsg 4326 which is WGS84
         inProj = Proj(init='epsg:4326')
-        outProj = Proj(init='EPSG_string')
-        x2,y2 = transform(inProj,outProj,self.Latitude,self.Longitude)
-        return x2,y2
+        outProj = Proj(init=EPSG_string)
+        this_Lat = self.Latitude[0]
+        this_Lon = self.Longitude[0]
+        
+        print "Lat-long: "
+        print this_Lat
+        print this_Lon
+        
+        easting =[]
+        northing = []
+        
+        for idx, Lon in enumerate(self.Longitude):
+            Lat = self.Latitude[idx]
+            ea,no = transform(inProj,outProj,Lon,Lat)
+            easting.append(ea)
+            northing.append(no)
+            
+        return easting,northing
 
 ##==============================================================================
 ##==============================================================================

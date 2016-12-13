@@ -145,7 +145,7 @@ def GetGeoInfo(FileName):
 
 #==============================================================================
 # This gets the UTM zone, if it exists
-def GetUTMESPG(FileName):
+def GetUTMEPSG(FileName):
     
     if exists(FileName) is False:
             raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')    
@@ -155,7 +155,7 @@ def GetUTMESPG(FileName):
     if SourceDS == None:
         raise Exception("Unable to read the data file")
     
-    ESPG_string = 'NULL'
+    EPSG_string = 'NULL'
     
     # get the projection
     prj=SourceDS.GetProjection()
@@ -172,18 +172,18 @@ def GetUTMESPG(FileName):
         zone = zone[:-1]
 
     
-        ESPG_string = 'espg:'
+        EPSG_string = 'epsg:'
         if N_or_S == 'S':
-            ESPG_string = ESPG_string+'327'+zone
+            EPSG_string = EPSG_string+'327'+zone
         else:
-            ESPG_string = ESPG_string+'326'+zone        
+            EPSG_string = EPSG_string+'326'+zone        
     else:
         raise Exception("This is not a projected coordinate system!")
     
 
     
-    print ESPG_string
-    return ESPG_string
+    print EPSG_string
+    return EPSG_string
 
 
 #==============================================================================
