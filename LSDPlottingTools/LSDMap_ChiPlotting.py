@@ -22,7 +22,8 @@ import LSDMap_PointData as LSDMap_PD
 
 def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
-                            drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show'):
+                            drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
+                            elevation_threshold = 0):
     
     import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
@@ -140,6 +141,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     print "EPSG string is: " + EPSG_string
     
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
+    thisPointData.ThinData('elevation',elevation_threshold)
     
     # convert to easting and northing
     [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
@@ -151,8 +153,9 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     Ncoord = np.add(Ncoord,extent_raster[2])
     
     M_chi = thisPointData.QueryData('m_chi')
-    M_chi = [float(x) for x in M_chi]
     #print M_chi
+    M_chi = [float(x) for x in M_chi]
+    
     
     # make a color map of fixed colors
     this_cmap = colors.ListedColormap(['#2c7bb6','#abd9e9','#ffffbf','#fdae61','#d7191c'])

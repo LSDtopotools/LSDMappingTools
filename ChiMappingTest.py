@@ -26,10 +26,11 @@ def ChiMappingToolsTest():
     #FigFormat = 'svg'
     #FigFileN= 'Sorbas_chi.svg'
     #FigFileName= DataDirectory+FigFileN
+    elevation_threshold = 30
     
     LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
                             '$k_{sn}$',(0,0),
-                            0.4,FigName,'png')  
+                            0.4,FigName,'png',elevation_threshold)  
     
     
     #LSDP.BasicDrapedPlotGridPlot(DEMname,HSname, 'gray','gray',

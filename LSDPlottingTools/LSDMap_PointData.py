@@ -78,7 +78,7 @@ class LSDMap_PointData(object):
                 
                 TypeList.append(type(typed_list[0])) 
                              
-            self.PointData = DataDict
+            self.PointData = DataDictTyped
             self.DataTypes = TypeList
         else:
             print "Uh oh I could not open that file"
@@ -182,16 +182,42 @@ class LSDMap_PointData(object):
 ## Data manipulation
 ##==============================================================================
 ##==============================================================================    
-    def ThinData(self,):
-            
-            # now go back and get the correct type             
-            DataDictTyped = {}    
-            for name in self.VariableList:
-                this_list = DataDict[name]
-                typed_list = LSDOst.ParseListToType(this_list)
-                DataDictTyped[name] = typed_list
+    def ThinData(self,data_name,Threshold_value):
+        
+        print "I am thinning the data for you!"
+        
+        # Get the data for thinning
+        if data_name not in self.VariableList:
+            print "The data " + data_name + " is not one of the data elements in this point data"
+        else:       
+            this_data = self.PointData[data_name]
+        
+        this_data = [float(x) for x in this_data]
+        
+        # Start a new data dict
+        NewDataDict = {}
+        NewLat = []
+        NewLon = []
+        for name in self.VariableList:
+            NewDataDict[name] = []
+
+        
+        # Get all the data to be delelted
+        delete_indices = []
+        for index, data in enumerate(this_data):
+            if data<Threshold_value:
+                delete_indices.append(index)
+            else:
+                NewLat.append(self.Latitude[index])
+                NewLon.append(self.Longitude[index])
+                for name in self.VariableList:
+                    this_element = self.PointData[name][index]
+                    NewDataDict[name].append(this_element)    
                 
-                TypeList.append(type(typed_list[0])) 
+        # Now reset the data dict
+        self.PointData = NewDataDict
+        self.Latitude = NewLat
+        self.Longitude = NewLon
     
     
 ##==============================================================================
