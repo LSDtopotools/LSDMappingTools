@@ -20,13 +20,18 @@ def ChiMappingToolsTest():
     DEMname = DataDirectory+Filename
     HSname = DataDirectory+HSFilename
     
-    FigName = DataDirectory+'Image3.pdf'
+    FigName = DataDirectory+'TestChiFull.pdf'
+    ChiName = DataDirectory+'Mega_for_chi_MChiSegmented.csv'
     
     #FigFormat = 'svg'
     #FigFileN= 'Sorbas_chi.svg'
     #FigFileName= DataDirectory+FigFileN
     
-
+    LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
+                            '$k_{sn}$',(0,0),
+                            0.4,FigName,'pdf')  
+    
+    
     #LSDP.BasicDrapedPlotGridPlot(DEMname,HSname, 'gray','gray',
     #                        'Elevation in meters',(0,0),
     #                        0.4,FigName,'pdf')  
@@ -43,16 +48,16 @@ def ChiMappingToolsTest():
     #LSDP.BasicDensityPlotGridPlot(ThisFile,tcmap,tcmapcolorbarlabel,clim_val)
 
     # Now load some point data
-    Filename = "Test_chi.csv"
+    #Filename = "Mega_for_chi_MChiSegmented.csv"
 
-    fname = DataDirectory+Filename
-    thisPointData = LSDP.LSDMap_PointData(fname) 
+    #fname = DataDirectory+Filename
+    #thisPointData = LSDP.LSDMap_PointData(fname) 
     
     # convert to easting and northing
-    [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+    #[easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
     
-    print easting
-    print northing
+    #print easting
+    #print northing
 
 if __name__ == "__main__":
     ChiMappingToolsTest()

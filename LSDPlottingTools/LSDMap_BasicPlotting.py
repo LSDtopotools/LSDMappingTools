@@ -473,9 +473,12 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
     print "The figure format is: " + FigFormat
     if FigFormat == 'show':    
         plt.show()
+    elif FigFormat == 'return':
+        return fig
     else:
         plt.savefig(FigFileName,format=FigFormat)
         fig.clf()
+    
 
 #==============================================================================
 
@@ -608,11 +611,14 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     print "The figure format is: " + FigFormat
     if FigFormat == 'show':    
         plt.show()
+    elif FigFormat == 'return':
+        return fig 
     else:
         plt.savefig(FigFileName,format=FigFormat,dpi=250)
         fig.clf()
 
 #==============================================================================
+
 
 #==============================================================================
 def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
@@ -678,25 +684,26 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
     print "ymin: " + str(y_min)
 
 
-    im = grid[0].imshow(hillshade[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
+    im1 = grid[0].imshow(hillshade[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     #im = grid[0].imshow(raster, thiscmap, interpolation="nearest")
     if ShowColorbar:
-        cbar = grid.cbar_axes[0].colorbar(im)
+        cbar = grid.cbar_axes[0].colorbar(im1)
         cbar.set_label_text(colorbarlabel)
     
     # set the colour limits
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "I don't think I should be here"
-        im.set_clim(0, np.max(hillshade))
+        im1.set_clim(0, np.max(hillshade))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
-        im.set_clim(clim_val[0],clim_val[1])
+        im1.set_clim(clim_val[0],clim_val[1])
     
     # Now for the drape: it is in grayscape
-    im = grid[0].imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
+    im2 = grid[0].imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
       
-    
+    # Set the colour limits of the drape
+    im2.set_clim(0,np.max(raster_drape))    
 
     # This affects all axes because we set share_all = True.
     grid.axes_llc.set_xlim(x_min,x_max)    
