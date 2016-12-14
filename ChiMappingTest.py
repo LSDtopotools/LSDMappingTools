@@ -20,7 +20,7 @@ def ChiMappingToolsTest():
     DEMname = DataDirectory+Filename
     HSname = DataDirectory+HSFilename
     
-    FigName = DataDirectory+'TestChiFull.pdf'
+    FigName = DataDirectory+'TestChiFull2.png'
     ChiName = DataDirectory+'Mega_for_chi_MChiSegmented.csv'
     
     #FigFormat = 'svg'
@@ -29,7 +29,7 @@ def ChiMappingToolsTest():
     
     LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
                             '$k_{sn}$',(0,0),
-                            0.4,FigName,'pdf')  
+                            0.4,FigName,'png')  
     
     
     #LSDP.BasicDrapedPlotGridPlot(DEMname,HSname, 'gray','gray',

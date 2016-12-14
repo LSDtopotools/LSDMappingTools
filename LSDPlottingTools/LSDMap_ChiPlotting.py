@@ -54,11 +54,11 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     # make a figure, sized for a ppt slide
     fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
 
-    gs = plt.GridSpec(100,100,bottom=0.3,left=0.1,right=1.0,top=1.0)
-    ax = fig.add_subplot(gs[25:100,10:100])
+    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
     
     # This is the axis for the colorbar
-    ax2 = fig.add_subplot(gs[5:10,10:60])
+    ax2 = fig.add_subplot(gs[10:15,15:70])
 
     #grid = AxesGrid(fig, 111, 
     #                nrows_ncols=(1, 1),
@@ -159,7 +159,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     bounds=[0,50,100,175,250,1205]
     norm = colors.BoundaryNorm(bounds, this_cmap.N)
     
-    sc = ax.scatter(easting,Ncoord,s=1, c=M_chi,cmap=this_cmap,norm=norm,edgecolors='none')
+    sc = ax.scatter(easting,Ncoord,s=0.5, c=M_chi,cmap=this_cmap,norm=norm,edgecolors='none')
 
     # This affects all axes because we set share_all = True.
     ax.set_xlim(x_min,x_max)    
@@ -170,12 +170,13 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     
     cbar = plt.colorbar(sc,cmap=this_cmap,norm=norm,spacing='uniform', ticks=bounds, boundaries=bounds,orientation='horizontal',cax=ax2)
     cbar.set_label(colorbarlabel, fontsize=10)
-    
+    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)    
+
     print "The figure format is: " + FigFormat
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
         return fig 
     else:
-        plt.savefig(FigFileName,format=FigFormat,dpi=250)
+        plt.savefig(FigFileName,format=FigFormat,dpi=500)
         fig.clf()
