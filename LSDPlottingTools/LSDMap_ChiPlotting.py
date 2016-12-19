@@ -425,6 +425,11 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     max_chi = np.amax(Chi)
     max_Elevation = np.amax(Elevation)
     max_M_chi = np.amax(M_chi)
+    min_Elevation = np.amin(Elevation)
+    
+    z_axis_min = int(min_Elevation/10)*10 
+    z_axis_max = int(max_Elevation/10)*10+10
+    chi_axis_max = int(max_chi/5)*5+5
     
     # make a color map of fixed colors
     NUM_COLORS = 15
@@ -438,7 +443,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     #print Source_colours
     
     # create a mask
-    basin_number = 8
+    basin_number = 10
     
     dot_pos = FigFileName.rindex('.')
     newFilename = FigFileName[:dot_pos]+'_'+str(basin_number)+FigFileName[dot_pos:]
@@ -465,7 +470,11 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     #ax.set_yticklabels(new_y_labels)  
     
     ax.set_xlabel("$\chi$")
-    ax.set_ylabel("Elevation (m)")  
+    ax.set_ylabel("Elevation (m)") 
+    
+    # This affects all axes because we set share_all = True.
+    ax.set_ylim(z_axis_min,z_axis_max)    
+    ax.set_xlim(0,chi_axis_max)      
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
     ax.tick_params(axis='both', width=1, pad = 2)
@@ -478,6 +487,6 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     elif FigFormat == 'return':
         return fig 
     else:
-        plt.savefig(FigFileName,format=FigFormat,dpi=500)
+        plt.savefig(newFilename,format=FigFormat,dpi=500)
         fig.clf()     
         
