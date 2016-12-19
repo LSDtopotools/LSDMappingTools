@@ -21,6 +21,9 @@ import LSDOSystemTools as LSDOst
 import LSDMap_BasicPlotting as LSDMap_BP
 import LSDMap_PointData as LSDMap_PD
 
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function plots the chi slope on a shaded relief map
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
@@ -185,6 +188,10 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
         plt.savefig(FigFileName,format=FigFormat,dpi=500)
         fig.clf()
         
+        
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function plots channels, color coded
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
@@ -224,7 +231,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     ax = fig.add_subplot(gs[25:100,10:95])
     
     # This is the axis for the colorbar
-    ax2 = fig.add_subplot(gs[10:15,15:70])
+    #ax2 = fig.add_subplot(gs[10:15,15:70])
 
     #grid = AxesGrid(fig, 111, 
     #                nrows_ncols=(1, 1),
@@ -310,8 +317,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     
     # convert to easting and northing
     [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
-    
-    
+ 
     # The image is inverted so we have to invert the northing coordinate
     Ncoord = np.asarray(northing)
     Ncoord = np.subtract(extent_raster[3],Ncoord)
@@ -320,14 +326,16 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     these_data = thisPointData.QueryData(data_name)
     #print M_chi
     these_data = [int(x) for x in these_data]
-    
-    
+
     # make a color map of fixed colors
-    this_cmap = plt.cm.Paired
-    #bounds=[0,50,100,175,250,1205]
-    #norm = colors.BoundaryNorm(bounds, this_cmap.N)
-    
-    sc = ax.scatter(easting,Ncoord,s=0.5, c=these_data,cmap=this_cmap,edgecolors='none')
+    NUM_COLORS = 15
+
+    this_cmap = plt.cm.Set1
+    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
+    scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+    channel_data = [x % NUM_COLORS for x in these_data]
+
+    sc = ax.scatter(easting,Ncoord,s=0.5, c=channel_data,norm=cNorm,cmap=this_cmap,edgecolors='none')
 
     # This affects all axes because we set share_all = True.
     ax.set_xlim(x_min,x_max)    
@@ -335,10 +343,15 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
 
     ax.set_xticks(xlocs)
     ax.set_yticks(ylocs)   
+    ax.set_title('Channels colored by source number')
+    #ax.text(1.1, 0.01, 'Channels colored by source number',
+    #    verticalalignment='top', horizontalalignment='right',
+    #    transform=ax.transAxes,
+    #    color='green', fontsize=15)
     
-    cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)
-    cbar.set_label(colorbarlabel, fontsize=10)
-    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)    
+    #cbar = plt.colorbar(sc,cmap=this_cmap,norm=cNorm,spacing='uniform', orientation='horizontal',cax=ax2)
+    #cbar.set_label(colorbarlabel, fontsize=10)
+    #ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)    
 
     print "The figure format is: " + FigFormat
     if FigFormat == 'show':    
@@ -347,4 +360,124 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
         return fig 
     else:
         plt.savefig(FigFileName,format=FigFormat,dpi=500)
-        fig.clf()        
+        fig.clf() 
+        
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function plots channels, color coded
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
+def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
+                elevation_threshold = 0):
+
+    import matplotlib.pyplot as plt
+    import matplotlib.lines as mpllines
+    from mpl_toolkits.axes_grid1 import AxesGrid
+    from matplotlib import colors
+
+    label_size = 10
+    #title_size = 30
+    axis_size = 12
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size     
+   
+
+    # make a figure, sized for a ppt slide
+    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+
+    # Now we get the chi points
+    #EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
+    #print "EPSG string is: " + EPSG_string
+    
+    thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
+    thisPointData.ThinData('elevation',elevation_threshold)
+    
+    # Get the chi, m_chi, basin number, and source ID code
+    chi = thisPointData.QueryData('chi')
+    chi = [float(x) for x in chi]
+    elevation = thisPointData.QueryData('elevation')
+    elevation = [float(x) for x in elevation]
+    fdist = thisPointData.QueryData('flow distance')
+    fdist = [float(x) for x in fdist]     
+    m_chi = thisPointData.QueryData('m_chi')
+    m_chi = [float(x) for x in m_chi]    
+    basin = thisPointData.QueryData('basin_key')
+    basin = [int(x) for x in basin] 
+    source = thisPointData.QueryData('source_key')
+    source = [int(x) for x in source]
+    
+    #print source
+    
+ 
+    # need to convert everything into arrays so we can mask different basins
+    Chi = np.asarray(chi)
+    Elevation = np.asarray(elevation)
+    Fdist = np.asarray(fdist)
+    M_chi = np.asarray(m_chi)
+    Basin = np.asarray(basin)
+    Source = np.asarray(source)
+    
+    max_basin = np.amax(Basin)
+    max_chi = np.amax(Chi)
+    max_Elevation = np.amax(Elevation)
+    max_M_chi = np.amax(M_chi)
+    
+    # make a color map of fixed colors
+    NUM_COLORS = 15
+
+    this_cmap = plt.cm.Set1
+    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
+    scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
+    Source_colors = [x % NUM_COLORS for x in Source]
+    
+    #print "The source colours!!"
+    #print Source_colours
+    
+    # create a mask
+    basin_number = 8
+    
+    dot_pos = FigFileName.rindex('.')
+    newFilename = FigFileName[:dot_pos]+'_'+str(basin_number)+FigFileName[dot_pos:]
+    print "newFilename: "+newFilename
+    
+    
+    m = np.ma.masked_where(Basin!=basin_number, Basin)
+    maskChi = np.ma.masked_where(np.ma.getmask(m), Chi)
+    maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+    maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
+        
+    
+
+    source_colors = [x % NUM_COLORS for x in maskSource]
+
+    sc = ax.scatter(maskChi,maskElevation,s=2.0, c=Source_colors,norm=cNorm,cmap=this_cmap,edgecolors='none')
+
+    ax.spines['top'].set_linewidth(1)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['right'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1) 
+     
+    #ax.set_xticklabels(new_x_labels,rotation=60)
+    #ax.set_yticklabels(new_y_labels)  
+    
+    ax.set_xlabel("$\chi$")
+    ax.set_ylabel("Elevation (m)")  
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)       
+
+    print "The figure format is: " + FigFormat
+    if FigFormat == 'show':    
+        plt.show()
+    elif FigFormat == 'return':
+        return fig 
+    else:
+        plt.savefig(FigFileName,format=FigFormat,dpi=500)
+        fig.clf()     
+        

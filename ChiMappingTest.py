@@ -12,9 +12,9 @@ import numpy as np
 import LSDPlottingTools as LSDP
 
 def ChiMappingToolsTest():
-    #DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
+    DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
     #DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
-    DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
+    #DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
     Filename = "Mega_clip.bil"
     HSFilename = "Mega_clip_hs.bil"
     
@@ -27,15 +27,18 @@ def ChiMappingToolsTest():
     #FigFormat = 'svg'
     #FigFileN= 'Sorbas_chi.svg'
     #FigFileName= DataDirectory+FigFileN
-    elevation_threshold = 30
+    elevation_threshold = 1
     
     #LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
     #                        '$k_{sn}$',(0,0),
     #                        0.4,FigName,'png',elevation_threshold)  
-    FigName2 = DataDirectory+'TestChannelMap.png'    
-    LSDP.BasicChannelPlotGridPlotCategories(DEMname,HSname,ChiName, 'gray','gray',
-                            '$Channel$',(0,0),
-                            0.4,FigName2,'png',elevation_threshold,'source_key')      
+    #FigName2 = DataDirectory+'TestChannelMap.png'    
+    #LSDP.BasicChannelPlotGridPlotCategories(DEMname,HSname,ChiName, 'gray','gray',
+    #                        '$Channel$',(0,0),
+    #                        0.4,FigName2,'png',elevation_threshold,'source_key')      
+    
+    FigName3 =  DataDirectory+'ChiProfiles.png'    
+    LSDP.ChiProfiles(ChiName, FigName3,'png',elevation_threshold)     
     
     #LSDP.BasicDrapedPlotGridPlot(DEMname,HSname, 'gray','gray',
     #                        'Elevation in meters',(0,0),
