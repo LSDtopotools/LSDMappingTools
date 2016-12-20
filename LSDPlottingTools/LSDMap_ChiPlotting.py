@@ -436,7 +436,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
 
     this_cmap = plt.cm.Set1
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
-    scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
+    #scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
     Source_colors = [x % NUM_COLORS for x in Source]
     
     #print "The source colours!!"
@@ -455,8 +455,6 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
     maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
         
-    
-
     source_colors = [x % NUM_COLORS for x in maskSource]
 
     sc = ax.scatter(maskChi,maskElevation,s=2.0, c=Source_colors,norm=cNorm,cmap=this_cmap,edgecolors='none')
@@ -465,10 +463,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
     ax.spines['bottom'].set_linewidth(1) 
-     
-    #ax.set_xticklabels(new_x_labels,rotation=60)
-    #ax.set_yticklabels(new_y_labels)  
-    
+
     ax.set_xlabel("$\chi$")
     ax.set_ylabel("Elevation (m)") 
     
@@ -489,4 +484,143 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     else:
         plt.savefig(newFilename,format=FigFormat,dpi=500)
         fig.clf()     
+        
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function plots channels, color coded
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
+def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
+                       FigFormat = 'show',elevation_threshold = 0, 
+                       first_basin = 0, last_basin = 0):
+
+    import matplotlib.pyplot as plt
+    import matplotlib.lines as mpllines
+    from mpl_toolkits.axes_grid1 import AxesGrid
+    from matplotlib import colors
+
+    label_size = 10
+    #title_size = 30
+    axis_size = 12
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size     
+   
+
+    # make a figure, sized for a ppt slide
+    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+
+    thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
+    thisPointData.ThinData('elevation',elevation_threshold)
+    
+    # Get the chi, m_chi, basin number, and source ID code
+    chi = thisPointData.QueryData('chi')
+    chi = [float(x) for x in chi]
+    elevation = thisPointData.QueryData('elevation')
+    elevation = [float(x) for x in elevation]
+    fdist = thisPointData.QueryData('flow distance')
+    fdist = [float(x) for x in fdist]     
+    m_chi = thisPointData.QueryData('m_chi')
+    m_chi = [float(x) for x in m_chi]    
+    basin = thisPointData.QueryData('basin_key')
+    basin = [int(x) for x in basin] 
+    source = thisPointData.QueryData('source_key')
+    source = [int(x) for x in source]
+
+    # need to convert everything into arrays so we can mask different basins
+    Chi = np.asarray(chi)
+    Elevation = np.asarray(elevation)
+    Fdist = np.asarray(fdist)
+    M_chi = np.asarray(m_chi)
+    Basin = np.asarray(basin)
+    Source = np.asarray(source)
+    
+    max_basin = np.amax(Basin)
+    max_chi = np.amax(Chi)
+    max_Elevation = np.amax(Elevation)
+    max_M_chi = np.amax(M_chi)
+    min_Elevation = np.amin(Elevation)
+    
+    z_axis_min = int(min_Elevation/10)*10 
+    z_axis_max = int(max_Elevation/10)*10+10
+    chi_axis_max = int(max_chi/5)*5+5
+    
+    # make a color map of fixed colors
+    NUM_COLORS = 15
+
+    this_cmap = plt.cm.Set1
+    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
+    scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
+    Source_colors = [x % NUM_COLORS for x in Source]
+    
+    # now loop through a number of basins
+    if last_basin >= max_basin:
+        last_basin = max_basin-1
+    
+    if first_basin > last_basin:
+        first_basin = last_basin
+        print("Your first basin was larger than last basin. I won't plot anything")
+     
+    plt.hold(True) 
+    chi_offset = 5
+    this_chi_offset = 0
+    
+    n_stacks = last_basin-first_basin+1
+    added_chi = chi_offset*n_stacks
+    print("The number of stacks is: "+str(n_stacks)+" the old max: "+str(chi_axis_max))    
+    chi_axis_max = chi_axis_max+added_chi
+    print("The nex max is: "+str(chi_axis_max))
+    
+    
+    dot_pos = FigFileName.rindex('.')
+    newFilename = FigFileName[:dot_pos]+'_Stack'+str(first_basin)+FigFileName[dot_pos:]
+    basins_list = list(range(first_basin,last_basin+1))
+    
+    for basin_number in basins_list:
+        
+        print ("This basin is: " +str(basin_number))
+
+        m = np.ma.masked_where(Basin!=basin_number, Basin)
+        maskChi = np.ma.masked_where(np.ma.getmask(m), Chi)
+        maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+        maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
+        
+        print("adding an offset of: "+str(this_chi_offset))
+        
+        maskChi = np.add(maskChi,this_chi_offset)
+        this_chi_offset = this_chi_offset+chi_offset
+        
+        source_colors = [x % NUM_COLORS for x in maskSource]
+
+        sc = ax.scatter(maskChi,maskElevation,s=2.0, c=Source_colors,norm=cNorm,cmap=this_cmap,edgecolors='none')
+        
+    ax.spines['top'].set_linewidth(1)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['right'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1) 
+
+    ax.set_xlabel("$\chi$ (m)")
+    ax.set_ylabel("Elevation (m)") 
+    
+    # This affects all axes because we set share_all = True.
+    ax.set_ylim(z_axis_min,z_axis_max)    
+    ax.set_xlim(0,chi_axis_max)      
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)       
+
+    print "The figure format is: " + FigFormat
+    if FigFormat == 'show':    
+        plt.show()
+    elif FigFormat == 'return':
+        return fig 
+    else:
+        plt.savefig(newFilename,format=FigFormat,dpi=500)
+        fig.clf()           
+        
         

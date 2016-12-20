@@ -12,9 +12,9 @@ import numpy as np
 import LSDPlottingTools as LSDP
 
 def ChiMappingToolsTest():
-    DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
+    #DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
     #DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
-    #DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
+    DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
     Filename = "Mega_clip.bil"
     HSFilename = "Mega_clip_hs.bil"
     
@@ -37,9 +37,13 @@ def ChiMappingToolsTest():
     #                        '$Channel$',(0,0),
     #                        0.4,FigName2,'png',elevation_threshold,'source_key')      
     
-    FigName3 =  DataDirectory+'ChiProfiles.png'    
-    LSDP.ChiProfiles(ChiName, FigName3,'png',elevation_threshold)     
+    #FigName3 =  DataDirectory+'ChiProfiles.png'    
+    #LSDP.ChiProfiles(ChiName, FigName3,'png',elevation_threshold)     
     
+    FigName4 =  DataDirectory+'ChiStackProfiles.png'  
+    first_basin = 3
+    last_basin = 6
+    LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,first_basin,last_basin)  
     #LSDP.BasicDrapedPlotGridPlot(DEMname,HSname, 'gray','gray',
     #                        'Elevation in meters',(0,0),
     #                        0.4,FigName,'pdf')  
