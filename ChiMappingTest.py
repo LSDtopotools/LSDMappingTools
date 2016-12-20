@@ -41,8 +41,8 @@ def ChiMappingToolsTest():
     #LSDP.ChiProfiles(ChiName, FigName3,'png',elevation_threshold)     
     
     FigName4 =  DataDirectory+'ChiStackProfiles.png'  
-    first_basin = 3
-    last_basin = 6
+    first_basin = 0
+    last_basin = 10
     LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,first_basin,last_basin)  
     #LSDP.BasicDrapedPlotGridPlot(DEMname,HSname, 'gray','gray',
     #                        'Elevation in meters',(0,0),

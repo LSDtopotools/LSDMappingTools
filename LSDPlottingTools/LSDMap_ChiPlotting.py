@@ -553,7 +553,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
 
     this_cmap = plt.cm.Set1
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
-    scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
+    #scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
     Source_colors = [x % NUM_COLORS for x in Source]
     
     # now loop through a number of basins
@@ -592,6 +592,13 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
         
         maskChi = np.add(maskChi,this_chi_offset)
         this_chi_offset = this_chi_offset+chi_offset
+        
+        if basin_number == basins_list[-1]:
+            print("last basin, geting maximum value,basin is: "+str(basin_number))
+            this_max = np.amax(maskChi)
+            this_max = int(this_max/5)*5+5
+            print("The rounded maximum is: "+str(this_max))
+            chi_axis_max = this_max
         
         source_colors = [x % NUM_COLORS for x in maskSource]
 
