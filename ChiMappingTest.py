@@ -32,10 +32,10 @@ def ChiMappingToolsTest():
     #LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
     #                        '$k_{sn}$',(0,0),
     #                        0.4,FigName,'png',elevation_threshold)  
-    #FigName2 = DataDirectory+'TestChannelMap.png'    
-    #LSDP.BasicChannelPlotGridPlotCategories(DEMname,HSname,ChiName, 'gray','gray',
-    #                        '$Channel$',(0,0),
-    #                        0.4,FigName2,'png',elevation_threshold,'source_key')      
+    FigName2 = DataDirectory+'TestChannelMap.png'    
+    LSDP.BasicChannelPlotGridPlotCategories(DEMname,HSname,ChiName, 'gray','gray',
+                            '$Channel$',(0,0),
+                            0.4,FigName2,'png',elevation_threshold,'source_key')      
     
     #FigName3 =  DataDirectory+'ChiProfiles.png'    
     #LSDP.ChiProfiles(ChiName, FigName3,'png',elevation_threshold)     
