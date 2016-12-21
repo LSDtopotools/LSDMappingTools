@@ -630,4 +630,149 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
         plt.savefig(newFilename,format=FigFormat,dpi=500)
         fig.clf()           
         
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function plots channels, color coded in chi space with a gradient
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
+def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
+                       FigFormat = 'show',elevation_threshold = 0, 
+                       first_basin = 0, last_basin = 0,
+                       cmap = plt.cm.cubehelix,data_name = 'chi'):
+
+    import matplotlib.pyplot as plt
+    import matplotlib.lines as mpllines
+    from mpl_toolkits.axes_grid1 import AxesGrid
+    from matplotlib import colors
+
+    label_size = 10
+    #title_size = 30
+    axis_size = 12
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size     
+   
+
+    # make a figure, sized for a ppt slide
+    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+
+    thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
+    thisPointData.ThinData('elevation',elevation_threshold)
+    
+    
+    # Get the chi, m_chi, basin number, and source ID code
+    if data_name  == 'chi':
+        x_data = thisPointData.QueryData('chi')
+        x_data = [float(x) for x in chi]
+    elif data_name == 'flow_distance':
+        x_data = thisPointData.QueryData('flow distance')
+        x_data = [float(x) for x in fdist]   
+    else:
+        print("I did not understand the data name. Choices are chi and elevation. Defaulting to chi.")
+        x_data = thisPointData.QueryData('chi')
+        x_data = [float(x) for x in chi] 
+
+    elevation = thisPointData.QueryData('elevation')
+    elevation = [float(x) for x in elevation]        
+    m_chi = thisPointData.QueryData('m_chi')
+    m_chi = [float(x) for x in m_chi]    
+    basin = thisPointData.QueryData('basin_key')
+    basin = [int(x) for x in basin] 
+    source = thisPointData.QueryData('source_key')
+    source = [int(x) for x in source]
+
+    # need to convert everything into arrays so we can mask different basins
+    Xdata = np.asarray(x_data)
+    Elevation = np.asarray(elevation)
+    M_chi = np.asarray(m_chi)
+    Basin = np.asarray(basin)
+    Source = np.asarray(source)
+    
+    max_basin = np.amax(Basin)
+    max_X = np.amax(Xdata)
+    max_Elevation = np.amax(Elevation)
+    max_M_chi = np.amax(M_chi)
+    min_Elevation = np.amin(Elevation)
+    
+    z_axis_min = int(min_Elevation/10)*10 
+    z_axis_max = int(max_Elevation/10)*10+10
+    X_axis_max = int(max_X/5)*5+5
+    
+    # now loop through a number of basins
+    if last_basin >= max_basin:
+        last_basin = max_basin-1
+    
+    if first_basin > last_basin:
+        first_basin = last_basin
+        print("Your first basin was larger than last basin. I won't plot anything")
+     
+    plt.hold(True)
+    
+    # Needs work for flow distance!!
+    X_offset = 5
+    this_X_offset = 0
+    
+    n_stacks = last_basin-first_basin+1
+    added_X = X_offset*n_stacks
+    print("The number of stacks is: "+str(n_stacks)+" the old max: "+str(X_axis_max))    
+    X_axis_max = X_axis_max+added_X
+    print("The nex max is: "+str(X_axis_max))
+    
+    
+    dot_pos = FigFileName.rindex('.')
+    newFilename = FigFileName[:dot_pos]+'_GradientStack'+str(first_basin)+FigFileName[dot_pos:]
+    basins_list = list(range(first_basin,last_basin+1))
+    
+    for basin_number in basins_list:
         
+        print ("This basin is: " +str(basin_number))
+
+        m = np.ma.masked_where(Basin!=basin_number, Basin)
+        maskX = np.ma.masked_where(np.ma.getmask(m), XData)
+        maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+        #maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
+        
+        print("adding an offset of: "+str(this_chi_offset))
+        
+        maskX = np.add(maskChi,this_chi_offset)
+        this_chi_offset = this_chi_offset+chi_offset
+        
+        if basin_number == basins_list[-1]:
+            print("last basin, geting maximum value,basin is: "+str(basin_number))
+            this_max = np.amax(maskChi)
+            this_max = int(this_max/5)*5+5
+            print("The rounded maximum is: "+str(this_max))
+            chi_axis_max = this_max
+        
+        source_colors = [x % NUM_COLORS for x in maskSource]
+
+        sc = ax.scatter(maskChi,maskElevation,s=2.0, c=Source_colors,norm=cNorm,cmap=this_cmap,edgecolors='none')
+        
+    ax.spines['top'].set_linewidth(1)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['right'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1) 
+
+    ax.set_xlabel("$\chi$ (m)")
+    ax.set_ylabel("Elevation (m)") 
+    
+    # This affects all axes because we set share_all = True.
+    ax.set_ylim(z_axis_min,z_axis_max)    
+    ax.set_xlim(0,chi_axis_max)      
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)       
+
+    print "The figure format is: " + FigFormat
+    if FigFormat == 'show':    
+        plt.show()
+    elif FigFormat == 'return':
+        return fig 
+    else:
+        plt.savefig(newFilename,format=FigFormat,dpi=500)
+        fig.clf()                   

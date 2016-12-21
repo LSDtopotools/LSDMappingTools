@@ -12,9 +12,9 @@ import numpy as np
 import LSDPlottingTools as LSDP
 
 def ChiMappingToolsTest():
-    #DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
+    DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
     #DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
-    DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
+    #DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
     Filename = "Mega_clip.bil"
     HSFilename = "Mega_clip_hs.bil"
     
