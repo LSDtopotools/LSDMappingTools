@@ -31,6 +31,7 @@ def cm2inch(value):
 # Also reads in a series of map files to show locations of each site. At the moment
 # you have to manually indicate on these maps where the field site is - would
 # be nice to automate this when I have some time to mess around with it.
+# FJC 22/12/16
 #------------------------------------------------------------------------------
 
 def field_sites(DataDirectory, N_HSFiles, NRows, NCols, n_target_ticks):
@@ -119,6 +120,88 @@ def field_sites(DataDirectory, N_HSFiles, NRows, NCols, n_target_ticks):
     OutputFigureFormat = 'pdf'
     pp.savefig(DataDirectory+OutputFigureName + '.' + OutputFigureFormat, format=OutputFigureFormat, dpi=300)
     #pp.show()
+    
+#==============================================================================
+# Function to create comparison plots for floodplain mapping between the published
+# flood maps and the geometric method
+# FJC 22/12/16
+#------------------------------------------------------------------------------   
+    
+def multiple_flood_maps(DataDirectory):
+    """
+    Make nice subplots of floodplain rasters for different field sites
+    
+    """
+    import seaborn as sns
+    
+    # Set up fonts
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = 12
+    
+    # Read in the files for each site
+    FPFiles = sorted(glob(DataDirectory+'*_FP*.bil'), key=str)
+      
+    n_files = len(FPFiles)
+    print "Number of files = ", n_files
+    
+    # Now make the subplots
+    fig, ax = pp.subplots(2,3, figsize=(cm2inch(15),cm2inch(11)))
+    ax = ax.ravel()
+       
+    #use seaborn to get a nice color palette
+    cmap_oranges = sns.light_palette("#ff8f66", input="hex", as_cmap=True, reverse=True)  
+    cmap_ice = sns.light_palette("#00ffff", input="hex", as_cmap=True, reverse=True)
+    
+    alphabet = list(string.ascii_lowercase)
+    
+    for i in range (n_files):
+        print "The floodplain file name is: ", FPFiles[i]
+        
+        # get the name of the field site
+        fname = FPFiles[i].split('/')
+        print fname
+        split_fname = fname[-1].split('_')
+        print split_fname
+        HSFile = DataDirectory+split_fname[1]+'_'+split_fname[2]+"_HS.bil"
+        print HSFile
+         
+        hillshade_raster = LSDMap_IO.ReadRasterArrayBlocks(HSFile)
+        FP_raster = LSDMap_IO.ReadRasterArrayBlocks(FPFiles[i])
+        FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
+        
+        # now get the extent
+        extent_raster = LSDMap_IO.GetRasterExtent(HSFile)
+    
+        # get DEM info
+        CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(HSFile)
+        print YMin, YMax
+        
+        #plot the rasters
+        ax[i].imshow(hillshade_raster, extent = extent_raster, cmap=cmx.gray)
+        
+        if i < 3:               
+            ax[i].imshow(FP_raster, extent = extent_raster, cmap=cmap_oranges, alpha=0.8)
+        else:
+            ax[i].imshow(FP_raster, extent = extent_raster, cmap=cmap_ice, alpha=0.6)
+            
+        ax[i].text(0.03,0.97, alphabet[i], bbox=dict(facecolor='white', edgecolor='k', pad=5), horizontalalignment='left', verticalalignment='top', transform=ax[i].transAxes)
+        #scalebars.add_scalebar(ax[i], matchx=False, sizex=500.0, loc=3, borderpad =1, lw=3, matchy=False, hidex=False, hidey=False)
+        
+        ax[i].set_xticklabels([])
+        ax[i].set_yticklabels([])
+        ax[i].set_xticks([])
+        ax[i].set_yticks([])
+    
+        ax[i].tick_params(axis='x', pad=3)
+        ax[i].tick_params(axis='y', pad=3)
+  
+    # Save figure
+    pp.tight_layout(pad=0.5, h_pad=0, w_pad=0.1)
+    pp.subplots_adjust(wspace=0.05,hspace=0)
+    OutputFigureName = "Comparison_published_maps"
+    OutputFigureFormat = 'pdf'
+    pp.savefig(DataDirectory+OutputFigureName + '.' + OutputFigureFormat, format=OutputFigureFormat, transparent=True, dpi=300)
 
 
 
