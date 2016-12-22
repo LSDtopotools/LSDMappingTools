@@ -13,7 +13,8 @@ from osgeo import osr
 from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
-from cycler import cycler
+import matplotlib.pyplot as plt
+#from cycler import cycler
 from matplotlib import rcParams
 import LSDMap_GDALIO as LSDMap_IO
 import LSDMap_BasicManipulation as LSDMap_BM
@@ -29,7 +30,6 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0):
     
-    import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
     from mpl_toolkits.axes_grid1 import AxesGrid
     from matplotlib import colors
@@ -197,7 +197,6 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0, data_name = 'source_key'):
     
-    import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
     from mpl_toolkits.axes_grid1 import AxesGrid
     from matplotlib import colors
@@ -368,7 +367,6 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
 def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
                 elevation_threshold = 0):
 
-    import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
     from mpl_toolkits.axes_grid1 import AxesGrid
     from matplotlib import colors
@@ -492,7 +490,6 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                        FigFormat = 'show',elevation_threshold = 0, 
                        first_basin = 0, last_basin = 0):
 
-    import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
     from mpl_toolkits.axes_grid1 import AxesGrid
     from matplotlib import colors
@@ -636,9 +633,10 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
 def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        FigFormat = 'show',elevation_threshold = 0, 
                        first_basin = 0, last_basin = 0,
-                       cmap = plt.cm.cubehelix,data_name = 'chi'):
+                       this_cmap = plt.cm.cubehelix,data_name = 'chi', X_offset = 5,
+                       plotting_data_format = 'log'):
 
-    import matplotlib.pyplot as plt
+    import math
     import matplotlib.lines as mpllines
     from mpl_toolkits.axes_grid1 import AxesGrid
     from matplotlib import colors
@@ -666,14 +664,14 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     # Get the chi, m_chi, basin number, and source ID code
     if data_name  == 'chi':
         x_data = thisPointData.QueryData('chi')
-        x_data = [float(x) for x in chi]
+        x_data = [float(x) for x in x_data]
     elif data_name == 'flow_distance':
         x_data = thisPointData.QueryData('flow distance')
         x_data = [float(x) for x in fdist]   
     else:
         print("I did not understand the data name. Choices are chi and elevation. Defaulting to chi.")
         x_data = thisPointData.QueryData('chi')
-        x_data = [float(x) for x in chi] 
+        x_data = [float(x) for x in x_data] 
 
     elevation = thisPointData.QueryData('elevation')
     elevation = [float(x) for x in elevation]        
@@ -684,12 +682,23 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     source = thisPointData.QueryData('source_key')
     source = [int(x) for x in source]
 
+    colorbarlabel = "$k_{sn}$"
+    if (plotting_data_format == 'log'):
+        log_m_chi = []
+        for value in m_chi:
+            if value < 0.1:
+                log_m_chi.append(0)
+            else:
+                log_m_chi.append(math.log10(value))
+        m_chi = log_m_chi
+        colorbarlabel = "log$_{10}k_{sn}$"
+    
     # need to convert everything into arrays so we can mask different basins
     Xdata = np.asarray(x_data)
     Elevation = np.asarray(elevation)
     M_chi = np.asarray(m_chi)
     Basin = np.asarray(basin)
-    Source = np.asarray(source)
+    Source = np.asarray(source)  
     
     max_basin = np.amax(Basin)
     max_X = np.amax(Xdata)
@@ -697,9 +706,12 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     max_M_chi = np.amax(M_chi)
     min_Elevation = np.amin(Elevation)
     
+    print("Max M_chi is: "+str(max_M_chi))
+    
     z_axis_min = int(min_Elevation/10)*10 
     z_axis_max = int(max_Elevation/10)*10+10
     X_axis_max = int(max_X/5)*5+5
+    M_chi_axis_max = max_M_chi
     
     # now loop through a number of basins
     if last_basin >= max_basin:
@@ -711,8 +723,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
      
     plt.hold(True)
     
-    # Needs work for flow distance!!
-    X_offset = 5
+    # X offest is now given by user so they can tune to the channel profiles
+    #X_offset = 5
     this_X_offset = 0
     
     n_stacks = last_basin-first_basin+1
@@ -731,26 +743,36 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         print ("This basin is: " +str(basin_number))
 
         m = np.ma.masked_where(Basin!=basin_number, Basin)
-        maskX = np.ma.masked_where(np.ma.getmask(m), XData)
+        maskX = np.ma.masked_where(np.ma.getmask(m), Xdata)
         maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+        maskMChi = np.ma.masked_where(np.ma.getmask(m), M_chi)
         #maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
         
-        print("adding an offset of: "+str(this_chi_offset))
+        print("adding an offset of: "+str(this_X_offset))
         
-        maskX = np.add(maskChi,this_chi_offset)
-        this_chi_offset = this_chi_offset+chi_offset
+        maskX = np.add(maskX,this_X_offset)
+        this_X_offset = this_X_offset+X_offset
         
         if basin_number == basins_list[-1]:
             print("last basin, geting maximum value,basin is: "+str(basin_number))
-            this_max = np.amax(maskChi)
+            this_max = np.amax(maskX)
             this_max = int(this_max/5)*5+5
             print("The rounded maximum is: "+str(this_max))
-            chi_axis_max = this_max
+            X_axis_max = this_max
         
-        source_colors = [x % NUM_COLORS for x in maskSource]
+        sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskMChi,cmap=this_cmap,edgecolors='none')
+ 
+    # set the colour limits
+    sc.set_clim(0, M_chi_axis_max)
+    bounds = (0, M_chi_axis_max)
 
-        sc = ax.scatter(maskChi,maskElevation,s=2.0, c=Source_colors,norm=cNorm,cmap=this_cmap,edgecolors='none')
-        
+    # This is the axis for the colorbar
+    
+    ax2 = fig.add_subplot(gs[10:15,15:70])
+    cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)   
+    cbar.set_label(colorbarlabel, fontsize=10)
+    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)        
+
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
@@ -761,7 +783,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     
     # This affects all axes because we set share_all = True.
     ax.set_ylim(z_axis_min,z_axis_max)    
-    ax.set_xlim(0,chi_axis_max)      
+    ax.set_xlim(0,X_axis_max)      
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
     ax.tick_params(axis='both', width=1, pad = 2)

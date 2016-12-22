@@ -10,6 +10,7 @@ Created on Tue May 05 14:08:16 2015
 
 import numpy as np
 import LSDPlottingTools as LSDP
+import matplotlib.pyplot as plt
 
 def ChiMappingToolsTest():
     DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
@@ -29,24 +30,52 @@ def ChiMappingToolsTest():
     #FigFileName= DataDirectory+FigFileN
     elevation_threshold = 1
     
+    #======================================
+    # Uncomment this for a basic plot of the hillshade draped over the elevation, 
+    # With chi on top
     #LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
     #                        '$k_{sn}$',(0,0),
     #                        0.4,FigName,'png',elevation_threshold)  
-    FigName2 = DataDirectory+'TestChannelMap.png'    
-    LSDP.BasicChannelPlotGridPlotCategories(DEMname,HSname,ChiName, 'gray','gray',
-                            '$Channel$',(0,0),
-                            0.4,FigName2,'png',elevation_threshold,'source_key')      
+    #======================================
     
+    #======================================
+    # Uncomment this for a plot of channels color coded by their sources
+    #FigName2 = DataDirectory+'TestChannelMap.png'    
+    #LSDP.BasicChannelPlotGridPlotCategories(DEMname,HSname,ChiName, 'gray','gray',
+    #                        '$Channel$',(0,0),
+    #                        0.4,FigName2,'png',elevation_threshold,'source_key')      
+    #======================================
+    
+    #======================================
+    # Uncomment this for a very rudimentary plot of the chi profiles
     #FigName3 =  DataDirectory+'ChiProfiles.png'    
-    #LSDP.ChiProfiles(ChiName, FigName3,'png',elevation_threshold)     
+    #LSDP.ChiProfiles(ChiName, FigName3,'png',elevation_threshold) 
+    #======================================
     
-    FigName4 =  DataDirectory+'ChiStackProfiles.png'  
-    first_basin = 0
-    last_basin = 10
-    LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,first_basin,last_basin)  
+    #======================================
+    # Uncomment this for a stack of chi plots
+    #FigName4 =  DataDirectory+'ChiStackProfiles.png'  
+    #first_basin = 0
+    #last_basin = 10
+    #LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,first_basin,last_basin)  
+    #======================================
+    
+    
+    #======================================
+    # Uncomment this for just a plot of the hillshade draped over topography
+    #FigName = DataDirectory+'Basic_plot.png'
     #LSDP.BasicDrapedPlotGridPlot(DEMname,HSname, 'gray','gray',
     #                        'Elevation in meters',(0,0),
-    #                        0.4,FigName,'pdf')  
+    #                        0.4,FigName,'png') 
+    #======================================
+
+    #======================================
+    # Uncomment this for a stack of gradient profiles 
+    FigName5 =  DataDirectory+'ChiGradientProfiles.png'  
+    first_basin = 0
+    last_basin = 5
+    LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'chi',10,'log')  
+    #======================================
     
     #EPSG_string = LSDP.GetUTMEPSG(DEMname)
     #print "EPSG string is: " + EPSG_string
