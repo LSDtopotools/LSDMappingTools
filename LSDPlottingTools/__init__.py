@@ -10,3 +10,4 @@ from LSDMap_GDALIO import *
 from LSDMap_BasicManipulation import *
 from LSDMap_PointData import *
 from LSDMap_ChiPlotting import *
+from LSDMap_Subplots import *
