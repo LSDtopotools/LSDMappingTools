@@ -201,13 +201,14 @@ def multiple_flood_maps(DataDirectory):
     OutputFigureFormat = 'pdf'
     pp.savefig(DataDirectory+OutputFigureName + '.' + OutputFigureFormat, format=OutputFigureFormat, transparent=True, dpi=300)
     
-def flood_maps_with_shapefile(DataDirectory):
-    """
-    Make subplots showing the difference between the mapped and predicted
-    floodplain initiation points.
-    Uses Fiona (yaaay) to read in the shapefile
+#==============================================================================
+#    Make subplots showing the difference between the mapped and predicted
+#    floodplain initiation points. Uses Fiona (yaaay) to read in the shapefile
+#    FJC 23/12/16
+#------------------------------------------------------------------------------ 
     
-    """
+def flood_maps_with_shapefile(DataDirectory):
+
     from fiona import collection
     
     # Set up fonts
