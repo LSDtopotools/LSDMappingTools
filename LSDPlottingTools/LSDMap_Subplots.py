@@ -15,8 +15,6 @@ import matplotlib.image as mpimg
 import matplotlib.cm as cmx
 from matplotlib import rcParams
 import LSDMap_GDALIO as LSDMap_IO
-import LSDMap_BasicManipulation as LSDMap_BM
-import LSDOSystemTools as LSDOst
 import LSDMap_BasicPlotting as LSDMap_BP
 
 #==============================================================================
@@ -202,6 +200,98 @@ def multiple_flood_maps(DataDirectory):
     OutputFigureName = "Comparison_published_maps"
     OutputFigureFormat = 'pdf'
     pp.savefig(DataDirectory+OutputFigureName + '.' + OutputFigureFormat, format=OutputFigureFormat, transparent=True, dpi=300)
+    
+def flood_maps_with_shapefile(DataDirectory):
+    """
+    Make subplots showing the difference between the mapped and predicted
+    floodplain initiation points.
+    Uses Fiona (yaaay) to read in the shapefile
+    
+    """
+    from fiona import collection
+    
+    # Set up fonts
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = 8
+    
+    # Read in the files for each site
+    HSFiles = sorted(glob(DataDirectory+'*_HS.bil'), key=str)
+    FPFiles = sorted(glob(DataDirectory+'*_FP*.bil'), key=str)
+    SHPFiles = sorted(glob(DataDirectory+'*_FIPs.shp'), key=str)
+      
+    n_files = len(FPFiles)
+    print "Number of files = ", n_files
+    
+    # Now make the subplots
+    fig, ax = pp.subplots(1,2, figsize=(cm2inch(12),cm2inch(7)))
+    ax = ax.ravel()
+    
+    #get a list with the figure letterings
+    figure_letter = ["a", "b"]
+    
+    for i in range (n_files):
+        
+        print "The hillshade file name is: ", HSFiles[i]
+        print "The floodplain file name is: ", FPFiles[i]
+        print "The shapefile name is: ", SHPFiles[i]
+        
+        # get the name of the field site
+        split_fname = FPFiles[i].split('_FP')
+        print split_fname[0]
+         
+        hillshade_raster = LSDMap_IO.ReadRasterArrayBlocks(HSFiles[i])
+        FP_raster = LSDMap_IO.ReadRasterArrayBlocks(FPFiles[i])
+        FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
+        
+        # now get the extent
+        extent_raster = LSDMap_IO.GetRasterExtent(HSFiles[i])
+
+        # get DEM info
+        CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(HSFiles[i])
+        print YMin, YMax
+        
+        #plot the rasters
+        ax[i].imshow(hillshade_raster, extent = extent_raster, cmap=cmx.gray)
+        ax[i].imshow(FP_raster, extent = extent_raster, cmap=cmx.bwr, alpha=0.6)
+        
+        #plot the mapped points
+        with collection(SHPFiles[i],'r') as input:
+            for point in input:
+                x = point['geometry']['coordinates'][0]
+                y = point['geometry']['coordinates'][1]
+                ax[i].scatter(x,y, c="red", s=15)
+     
+        ax[i].text(0.03,0.97, figure_letter[i], bbox=dict(facecolor='white', edgecolor='k', pad=3), horizontalalignment='left', verticalalignment='top', fontsize = 8, transform=ax[i].transAxes)
+        
+        #change ticks
+        xlocs = ax[i].xaxis.get_ticklocs()
+        ylocs = ax[i].yaxis.get_ticklocs()
+    
+        n_target_tics = 7
+        new_xlocs,new_ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(HSFiles[i],xlocs.max(),xlocs.min(),ylocs.max(),ylocs.min(),n_target_tics)
+
+        ax[i].set_xticklabels(new_x_labels, rotation=30)
+        ax[i].set_yticklabels(new_y_labels)
+        
+        #set axis limits
+        ax[i].set_xlim(XMin,XMax)
+        ax[i].set_ylim(YMin,YMax)
+
+        if i == 0:
+            ax[i].set_xlabel('Easting (m)', position=(1,0))
+            ax[i].set_ylabel('Northing (m)')
+        if i > 0:
+            ax[i].yaxis.tick_right()
+    
+        ax[i].tick_params(axis='x', pad=2)
+        ax[i].tick_params(axis='y', pad=2)
+  
+    # Save figure
+    pp.tight_layout(pad=0.5)
+    OutputFigureName = "Comparison_with_mapped_FIPs"
+    OutputFigureFormat = 'pdf'
+    pp.savefig(DataDirectory+OutputFigureName + '.' + OutputFigureFormat, format=OutputFigureFormat, dpi=300)
 
 
 
