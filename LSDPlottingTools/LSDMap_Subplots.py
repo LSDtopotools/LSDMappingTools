@@ -203,13 +203,14 @@ def multiple_flood_maps(DataDirectory):
     
 #==============================================================================
 #    Make subplots showing the difference between the mapped and predicted
-#    floodplain initiation points. Uses Fiona (yaaay) to read in the shapefile
-#    FJC 23/12/16
+#    floodplain initiation points. Uses Fiona (yaaay) to read in the shapefiles
+#    FJC 05/01/17
 #------------------------------------------------------------------------------ 
     
 def flood_maps_with_shapefile(DataDirectory):
 
     from fiona import collection
+    from descartes import PolygonPatch 
     
     # Set up fonts
     rcParams['font.family'] = 'sans-serif'
@@ -218,8 +219,8 @@ def flood_maps_with_shapefile(DataDirectory):
     
     # Read in the files for each site
     HSFiles = sorted(glob(DataDirectory+'*_HS.bil'), key=str)
-    FPFiles = sorted(glob(DataDirectory+'*_FP*.bil'), key=str)
-    SHPFiles = sorted(glob(DataDirectory+'*_FIPs.shp'), key=str)
+    FPFiles = sorted(glob(DataDirectory+'*_FIPs_FP.shp'), key=str)
+    PointFiles = sorted(glob(DataDirectory+'*_FIPs.shp'), key=str)
       
     n_files = len(FPFiles)
     print "Number of files = ", n_files
@@ -235,15 +236,13 @@ def flood_maps_with_shapefile(DataDirectory):
         
         print "The hillshade file name is: ", HSFiles[i]
         print "The floodplain file name is: ", FPFiles[i]
-        print "The shapefile name is: ", SHPFiles[i]
+        print "The shapefile name is: ", PointFiles[i]
         
         # get the name of the field site
         split_fname = FPFiles[i].split('_FP')
         print split_fname[0]
          
         hillshade_raster = LSDMap_IO.ReadRasterArrayBlocks(HSFiles[i])
-        FP_raster = LSDMap_IO.ReadRasterArrayBlocks(FPFiles[i])
-        FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
         
         # now get the extent
         extent_raster = LSDMap_IO.GetRasterExtent(HSFiles[i])
@@ -252,12 +251,16 @@ def flood_maps_with_shapefile(DataDirectory):
         CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(HSFiles[i])
         print YMin, YMax
         
-        #plot the rasters
+        # plot the raster
         ax[i].imshow(hillshade_raster, extent = extent_raster, cmap=cmx.gray)
-        ax[i].imshow(FP_raster, extent = extent_raster, cmap=cmx.bwr, alpha=0.6)
+        
+        # plot the floodplain shapefile using fiona and descartes
+        with collection(FPFiles[i], 'r') as input:
+            for f in input:
+                ax[i].add_patch(PolygonPatch(f['geometry'], fc='blue', ec='k'))
         
         #plot the mapped points
-        with collection(SHPFiles[i],'r') as input:
+        with collection(PointFiles[i],'r') as input:
             for point in input:
                 x = point['geometry']['coordinates'][0]
                 y = point['geometry']['coordinates'][1]
