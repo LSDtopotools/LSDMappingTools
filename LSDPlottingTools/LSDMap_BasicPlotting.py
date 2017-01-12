@@ -623,11 +623,12 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
 #==============================================================================
 def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
-                            drape_alpha = 0.6, ShowColorbar = False):
+                            drape_alpha = 0.6, ShowColorbar = False, 
+                            ShowDrapeColorbar=False, drape_cbarlabel=None):
     
     import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
-    from mpl_toolkits.axes_grid1 import AxesGrid
+    from mpl_toolkits.axes_grid1 import AxesGrid, make_axes_locatable
 
     label_size = 20
     #title_size = 30
@@ -640,7 +641,19 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
 
     hillshade = Hillshade(FileName) 
     #hillshade = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
-    raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
+    
+    # DAV - option to supply array directly (after masking for example, rather
+    # than reading directly from a file. Should not break anyone's code)
+    # (You can't overload functions in Python...)
+    if isinstance(DrapeName, str):
+      raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
+    elif isinstance(DrapeName, np.ndarray):
+      raster_drape = DrapeName
+    else:
+      print "DrapeName supplied is of type: ", type(DrapeName)
+      raise ValueError('DrapeName must either be a string to a filename, \
+      or a numpy ndarray type. Please try again.')
+    
     
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
@@ -664,6 +677,12 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
                         cbar_size="7%",
                         cbar_pad="2%",
                         )
+                        
+    #ShowDrapeColorbar = True                    
+    #if ShowDrapeColorbar and ShowColorbar:
+      #divider = make_axes_locatable(fig)
+      #cax = divider.append_axes("right", size = "5%", pad=0.05)
+      
     else:
         grid = AxesGrid(fig, 111, 
                         nrows_ncols=(1, 1),
@@ -684,26 +703,29 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
     print "ymin: " + str(y_min)
 
 
-    im1 = grid[0].imshow(hillshade[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
+    im = grid[0].imshow(hillshade[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     #im = grid[0].imshow(raster, thiscmap, interpolation="nearest")
     if ShowColorbar:
-        cbar = grid.cbar_axes[0].colorbar(im1)
+        cbar = grid.cbar_axes[0].colorbar(im)
         cbar.set_label_text(colorbarlabel)
     
     # set the colour limits
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "I don't think I should be here"
-        im1.set_clim(0, np.max(hillshade))
+        im.set_clim(0, np.max(hillshade))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
-        im1.set_clim(clim_val[0],clim_val[1])
+        im.set_clim(clim_val[0],clim_val[1])
     
     # Now for the drape: it is in grayscape
-    im2 = grid[0].imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
+    im2 = grid[0].imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="none")
       
-    # Set the colour limits of the drape
-    im2.set_clim(0,np.max(raster_drape))    
+    if ShowDrapeColorbar:
+      cbar2 = grid.cbar_axes[0].colorbar(im2)
+      cbar2.set_label_text(drape_cbarlabel)
+      
+      #plt.colorbar(im)
 
     # This affects all axes because we set share_all = True.
     grid.axes_llc.set_xlim(x_min,x_max)    
@@ -727,6 +749,10 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
 def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -9999): 
     
     array = LSDMap_IO.ReadRasterArrayBlocks(raster_file,raster_band=1)    
+    
+    # DAV attempting mask nodata vals
+    nodata_mask = array == NoDataValue
+    array[nodata_mask] = np.nan
     
     x, y = np.gradient(array)
     slope = np.pi/2. - np.arctan(np.sqrt(x*x + y*y))
