@@ -13,9 +13,9 @@ import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 
 def ChiMappingToolsTest():
-    DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
+    #DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
     #DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
-    #DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
+    DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
     Filename = "Mega_clip.bil"
     HSFilename = "Mega_clip_hs.bil"
     
@@ -33,9 +33,9 @@ def ChiMappingToolsTest():
     #======================================
     # Uncomment this for a basic plot of the hillshade draped over the elevation, 
     # With chi on top
-    #LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
-    #                        '$k_{sn}$',(0,0),
-    #                        0.4,FigName,'png',elevation_threshold)  
+    LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
+                            '$k_{sn}$',(0,0),
+                            0.4,FigName,'png',elevation_threshold)  
     #======================================
     
     #======================================

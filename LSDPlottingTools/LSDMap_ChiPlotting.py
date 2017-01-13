@@ -47,7 +47,19 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
-    
+
+    # DAV attempting mask nodata vals
+    NoDataValue = -9999    
+    nodata_mask = raster == NoDataValue
+    raster[nodata_mask] = np.nan
+
+    nodata_mask2 = raster_drape == NoDataValue
+    raster_drape[nodata_mask2] = np.nan 
+
+    #print("Min, max raster is: "+ str(np.nanmax(raster))+","+str(np.min(raster)))
+    #print("Min, max raster_drape is: "+ str(np.nanmax(raster_drape))+","+str(np.min(raster_drape)))
+
+
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
     
@@ -86,8 +98,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     print "xmin: " + str(x_min)
     print "ymax: " + str(y_max)
     print "ymin: " + str(y_min)
-
-
+    
     #Z1 = np.array(([0, 1]*4 + [1, 0]*4)*4)
     #Z1.shape = (8, 8)  # chessboard
     #im2 = ax.imshow(Z1, cmap=plt.cm.gray, interpolation='nearest',
@@ -102,7 +113,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "Im setting colour limits based on minimum and maximum values"
-        im1.set_clim(0, np.max(raster))
+        im1.set_clim(0, np.nanmax(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im1.set_clim(clim_val[0],clim_val[1])
@@ -114,8 +125,8 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
 
     # Set the colour limits of the drape
-    im3.set_clim(0,np.max(raster_drape))
-    
+    im3.set_clim(0,np.nanmax(raster_drape))
+
     
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
