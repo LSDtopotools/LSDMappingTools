@@ -10,6 +10,8 @@ Created on Tue May 05 14:08:16 2015
 
 import numpy as np
 import LSDPlottingTools as LSDP
+import LSDPlottingTools.LSDMatplotlibExtensions as mplext
+
 
 #fit_weibull_from_file(sys.argv[1]) 
 #TestNewMappingTools2() 
@@ -17,7 +19,7 @@ import LSDPlottingTools as LSDP
 #FloodThenHillshade()
 #FixStupidNoData()
 
-DataDirectory = "/run/media/dav/SHETLAND/Analyses/Ryedale_storms_simulation/Lumped/TransLim/"
+DataDirectory = "/run/media/dav/SHETLAND/Analyses/Ryedale_storms_simulation/Gridded/DetachLim/"
 filename = DataDirectory + "Elevations0.asc"
 drapename = DataDirectory + "WaterDepths2880.asc"
 
@@ -28,9 +30,12 @@ drape_array = LSDP.ReadRasterArrayBlocks(drapename)
 low_values_index = drape_array < 0.005
 drape_array[low_values_index] = np.nan
 
+#cmap = plt.get_cmap("Blues")
+
+trunc_cmap = mplext.truncate_colormap("Blues", 0.4, 1.0)
+
 LSDP.DrapedOverHillshade(filename,drape_array,clim_val=(0,400), \
-                         drape_cmap='winter', colorbarlabel='Elevation in meters',\
+                         drape_cmap=trunc_cmap, colorbarlabel='Elevation in meters',\
                          ShowColorbar=True, ShowDrapeColorbar=True,
                          drape_cbarlabel = "Water depth (m)",
                          drape_alpha=1.0)
-    
