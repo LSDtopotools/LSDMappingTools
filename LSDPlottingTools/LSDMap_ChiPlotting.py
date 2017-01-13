@@ -48,7 +48,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
 
-    # DAV attempting mask nodata vals
+    # SMM attempting mask nodata vals
     NoDataValue = -9999    
     nodata_mask = raster == NoDataValue
     raster[nodata_mask] = np.nan
@@ -225,7 +225,16 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
-    
+ 
+    # SMM attempting mask nodata vals
+    NoDataValue = -9999    
+    nodata_mask = raster == NoDataValue
+    raster[nodata_mask] = np.nan
+
+    nodata_mask2 = raster_drape == NoDataValue
+    raster_drape[nodata_mask2] = np.nan 
+
+   
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
     
@@ -280,7 +289,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "Im setting colour limits based on minimum and maximum values"
-        im1.set_clim(0, np.max(raster))
+        im1.set_clim(0, np.nanmax(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im1.set_clim(clim_val[0],clim_val[1])
@@ -292,7 +301,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
 
     # Set the colour limits of the drape
-    im3.set_clim(0,np.max(raster_drape))
+    im3.set_clim(0,np.nanmax(raster_drape))
     
     
     ax.spines['top'].set_linewidth(1)
