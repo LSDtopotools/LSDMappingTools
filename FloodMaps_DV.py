@@ -8,6 +8,7 @@ Created on Tue May 05 14:08:16 2015
 @author: smudd
 """
 import glob as glob
+import os.path
 import numpy as np
 import LSDPlottingTools as LSDP
 import LSDPlottingTools.LSDMatplotlibExtensions as mplext
@@ -22,6 +23,24 @@ import matplotlib.pyplot as plt
 #FloodThenHillshade()
 #FixStupidNoData()
 
+def findmaxval_multirasters(FileList):
+    """
+    Loops through a list or array of rasters (np arrays)
+    and finds the maximum single value in the set of arrays.
+    """
+    overall_max_val = 0
+    
+    for i in range (len(FileList)):
+        
+        raster_as_array = LSDP.ReadRasterArrayBlocks(FileList[i])
+        this_max_val = np.max(raster_as_array)
+        
+        if this_max_val > overall_max_val:
+            overall_max_val = this_max_val
+            print overall_max_val
+            
+    return overall_max_val
+
 def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap):
     """
     Plots flood extents from water depth rasters
@@ -31,6 +50,13 @@ def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap):
     Takes a wildcard for the drapes
     Expexts a fixed elevation raster, but this could be
     modified in future.
+    
+    Thought: consider, if plotting multiple datasets, how you
+    are going to deal with min a max values in the colur range.
+    imshow will automatically set vmin and vmax and stretch the colour bar 
+    over this - which can be visually misleading. Ideally, you
+    want to have the same colour map used for *all* subplots, and 
+    this is not default behaviour.
     """
     f, ax_arr = plt.subplots(2, 2, figsize=(10, 5), sharex=True, sharey=True)
     ax_arr = ax_arr.ravel()
@@ -61,30 +87,53 @@ def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap):
     print "ymax: " + str(y_max)
     print "ymin: " + str(y_min)
     
+    """
+    Find the maximum water depth in all rasters.
+    You need this to normalize the colourscale accross
+    all plots when teh imshow is done later.
+    """
+    max_water_depth = findmaxval_multirasters(FPFiles)
+    
     for i in range(n_files):
         
         print "The floodplain file name is: ", FPFiles[i]
         FP_raster = LSDP.ReadRasterArrayBlocks(FPFiles[i])
         #FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
         
-        low_values_index = FP_raster < 0.0005
+        filename = os.path.basename(FPFiles[i])
+        title = mplext.make_line_label(filename)
+        print title
+        
+        low_values_index = FP_raster < 0.01
         FP_raster[low_values_index] = np.nan
         
-        ax_arr[i].imshow(hillshade, "gray", extent=extent_raster, interpolation="nearest")
-        ax_arr[i].imshow(FP_raster, cmap, extent=extent_raster, alpha=1.0, interpolation="none")
-        
-        
+        im = ax_arr[i].imshow(hillshade, "gray", extent=extent_raster, interpolation="nearest")
+        """
+        Now we can set vmax to be the maximum water depth we calcualted earlier, making our separate
+        subplots all have the same colourscale
+        """
+        im = ax_arr[i].imshow(FP_raster, cmap, extent=extent_raster, alpha=1.0, interpolation="none", vmin=0, vmax=max_water_depth)
+        ax_arr[i].set_title(title)
+ 
+    f.subplots_adjust(right=0.8)
+    cax = f.add_axes([0.9, 0.1, 0.03, 0.8])
+    cbar = f.colorbar(im, cax=cax) 
+    cbar.set_label("Water depth (m)")
+    
+    f.text(0.5, 0.04, 'Easting (m)', ha='center')
+    f.text(0.04, 0.5, 'Northing (m)', va='center', rotation='vertical')
         
 # truncate the colourmap    
-cmap = plt.get_cmap("Blues")
+#cmap =  plt.get_cmap("Blues")
 trunc_cmap = mplext.truncate_colormap("Blues", 0.4, 1.0)
+discreet_cmap = mplext.discrete_colourmap(8, trunc_cmap)
 
 #DataDirectory = "/run/media/dav/SHETLAND/Analyses/Ryedale_storms_simulation/Gridded/DetachLim/"
-DataDirectory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/"
+DataDirectory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"
 filename = DataDirectory + "Elevations0.asc"
 drapename = DataDirectory + "WaterDepths2880.asc"
 
-MultiDrapeMaps(DataDirectory, "Elevations0.asc", "WaterDepths*.asc", trunc_cmap)
+MultiDrapeMaps(DataDirectory, "Elevations0.asc", "WaterDepths*.asc", discreet_cmap)
 
 # Create the drape array from one of the Catchment model output rasters
 #drape_array = LSDP.ReadRasterArrayBlocks(drapename)
