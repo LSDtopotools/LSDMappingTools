@@ -11,7 +11,7 @@ import glob as glob
 import os.path
 import numpy as np
 import LSDPlottingTools as LSDP
-import LSDPlottingTools.LSDMatplotlibExtensions as mplext
+import lsdmatplotlibextensions as mplext
 
 import matplotlib.pyplot as plt
 
@@ -125,8 +125,8 @@ def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap):
         
 # truncate the colourmap    
 #cmap =  plt.get_cmap("Blues")
-trunc_cmap = mplext.truncate_colormap("Blues", 0.4, 1.0)
-discreet_cmap = mplext.discrete_colourmap(8, trunc_cmap)
+trunc_cmap = mplext.colours.truncate_colormap("Blues", 0.4, 1.0)
+discreet_cmap = mplext.colours.discrete_colourmap(8, trunc_cmap)
 
 #DataDirectory = "/run/media/dav/SHETLAND/Analyses/Ryedale_storms_simulation/Gridded/DetachLim/"
 DataDirectory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"

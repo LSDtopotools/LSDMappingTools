@@ -10,7 +10,7 @@ Created on Tue May 05 14:08:16 2015
 
 import numpy as np
 import LSDPlottingTools as LSDP
-import LSDPlottingTools.LSDMatplotlibExtensions as mplext
+import lsdmatplotlibextensions as mplext
 
 
 #fit_weibull_from_file(sys.argv[1]) 
@@ -32,7 +32,7 @@ drape_array[low_values_index] = np.nan
 
 #cmap = plt.get_cmap("Blues")
 
-trunc_cmap = mplext.truncate_colormap("Blues", 0.4, 1.0)
+trunc_cmap = mplext.colours.truncate_colormap("Blues", 0.4, 1.0)
 
 LSDP.DrapedOverHillshade(filename,drape_array,clim_val=(0,400), \
                          drape_cmap=trunc_cmap, colorbarlabel='Elevation in meters',\
