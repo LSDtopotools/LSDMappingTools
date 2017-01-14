@@ -14,7 +14,7 @@ import LSDPlottingTools as LSDP
 import lsdmatplotlibextensions as mplext
 
 import matplotlib.pyplot as plt
-
+from matplotlib import ticker
 
 
 #fit_weibull_from_file(sys.argv[1]) 
@@ -41,7 +41,7 @@ def findmaxval_multirasters(FileList):
             
     return overall_max_val
 
-def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap):
+def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, drape_min_threshold=None, drape_max=None):
     """
     Plots flood extents from water depth rasters
     draped over the catchment elevation raster
@@ -92,7 +92,18 @@ def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap):
     You need this to normalize the colourscale accross
     all plots when teh imshow is done later.
     """
-    max_water_depth = findmaxval_multirasters(FPFiles)
+
+    try:
+        print "Calculating max drape raster value by scanning rasters..."
+        max_water_depth = findmaxval_multirasters(FPFiles)
+        drape_max = max_water_depth
+        
+    except:
+        print "Something went wrong trying to obtain the max value in \
+                your drape raster file list."
+    finally:
+        print "The drape(s) max value is set to: ", drape_max 
+    
     
     for i in range(n_files):
         
@@ -101,10 +112,10 @@ def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap):
         #FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
         
         filename = os.path.basename(FPFiles[i])
-        title = mplext.make_line_label(filename)
+        title = mplext.labels.make_line_label(filename)
         print title
         
-        low_values_index = FP_raster < 0.01
+        low_values_index = FP_raster < drape_min_threshold
         FP_raster[low_values_index] = np.nan
         
         im = ax_arr[i].imshow(hillshade, "gray", extent=extent_raster, interpolation="nearest")
@@ -112,28 +123,44 @@ def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap):
         Now we can set vmax to be the maximum water depth we calcualted earlier, making our separate
         subplots all have the same colourscale
         """
-        im = ax_arr[i].imshow(FP_raster, cmap, extent=extent_raster, alpha=1.0, interpolation="none", vmin=0, vmax=max_water_depth)
+        im = ax_arr[i].imshow(FP_raster, cmap, extent=extent_raster, 
+                                alpha=1.0, interpolation="none", 
+                                vmin=drape_min_threshold, 
+                                vmax=drape_max)
         ax_arr[i].set_title(title)
  
     f.subplots_adjust(right=0.8)
     cax = f.add_axes([0.9, 0.1, 0.03, 0.8])
+    
     cbar = f.colorbar(im, cax=cax) 
     cbar.set_label("Water depth (m)")
+    #cbar.set_ticks(np.linspace(0, 8, 8))
+    #cbar = mplext.colours.colorbar_index(f, cax, 8, cmap, 
+    #                                     drape_min_threshold, drape_max)
+    cbar.set_label("Water depth (m)")
+    #tick_locator = ticker.MaxNLocator(nbins=8)
+    #cbar.locator = tick_locator
+    #cbar.update_ticks()
     
     f.text(0.5, 0.04, 'Easting (m)', ha='center')
     f.text(0.04, 0.5, 'Northing (m)', va='center', rotation='vertical')
         
 # truncate the colourmap    
 #cmap =  plt.get_cmap("Blues")
+
 trunc_cmap = mplext.colours.truncate_colormap("Blues", 0.4, 1.0)
-discreet_cmap = mplext.colours.discrete_colourmap(8, trunc_cmap)
+
+#discreet_cmap = mplext.colours.discrete_colourmap(8, "Blues")
+#discreet_cmap = mplext.colours.cmap_discretize(8, trunc_cmap)
 
 #DataDirectory = "/run/media/dav/SHETLAND/Analyses/Ryedale_storms_simulation/Gridded/DetachLim/"
 DataDirectory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"
 filename = DataDirectory + "Elevations0.asc"
 drapename = DataDirectory + "WaterDepths2880.asc"
 
-MultiDrapeMaps(DataDirectory, "Elevations0.asc", "WaterDepths*.asc", discreet_cmap)
+MultiDrapeMaps(DataDirectory, "Elevations0.asc", "WaterDepths*.asc", 
+               trunc_cmap, 
+               drape_min_threshold=0.01)
 
 # Create the drape array from one of the Catchment model output rasters
 #drape_array = LSDP.ReadRasterArrayBlocks(drapename)
