@@ -255,7 +255,7 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "I don't think I should be here"
-        im.set_clim(0, np.max(raster))
+        im.set_clim(0, np.nanmax(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im.set_clim(clim_val[0],clim_val[1])
@@ -352,7 +352,7 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "I don't think I should be here"
-        im.set_clim(0, np.max(raster))
+        im.set_clim(0, np.nanmax(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im.set_clim(clim_val[0],clim_val[1])
@@ -441,7 +441,7 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
     #print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         #print "I don't think I should be here"
-        im.set_clim(0, np.max(raster))
+        im.set_clim(0, np.nanmax(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im.set_clim(clim_val[0],clim_val[1])
@@ -565,7 +565,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "Im setting colour limits based on minimum and maximum values"
-        im1.set_clim(0, np.max(raster))
+        im1.set_clim(0, np.nanmax(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im1.set_clim(clim_val[0],clim_val[1])
@@ -577,7 +577,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
 
     # Set the colour limits of the drape
-    im3.set_clim(0,np.max(raster_drape))
+    im3.set_clim(0,np.nanmax(raster_drape))
     
     
     ax.spines['top'].set_linewidth(1.5)
@@ -713,7 +713,7 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "I don't think I should be here"
-        im.set_clim(0, np.max(hillshade))
+        im.set_clim(0, np.nanmax(hillshade))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im.set_clim(clim_val[0],clim_val[1])

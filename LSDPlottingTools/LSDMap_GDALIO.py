@@ -250,6 +250,7 @@ def ReadRasterArrayBlocks(raster_file,raster_band=1):
         raise Exception("Unable to read the data file")
     
     band = dataset.GetRasterBand(raster_band)
+    NoDataValue = dataset.GetRasterBand(1).GetNoDataValue()
 
     block_sizes = band.GetBlockSize()
     x_block_size = block_sizes[0]
@@ -297,7 +298,10 @@ def ReadRasterArrayBlocks(raster_file,raster_band=1):
             
             # move these values to the data array
             data_array[i:i+rows,j:j+cols] = values
-            
+ 
+    nodata_mask = data_array == NoDataValue
+    data_array[nodata_mask] = np.nan
+           
     return data_array
 #==============================================================================
 

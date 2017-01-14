@@ -48,18 +48,6 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
 
-    # SMM attempting mask nodata vals
-    NoDataValue = -9999    
-    nodata_mask = raster == NoDataValue
-    raster[nodata_mask] = np.nan
-
-    nodata_mask2 = raster_drape == NoDataValue
-    raster_drape[nodata_mask2] = np.nan 
-
-    #print("Min, max raster is: "+ str(np.nanmax(raster))+","+str(np.min(raster)))
-    #print("Min, max raster_drape is: "+ str(np.nanmax(raster_drape))+","+str(np.min(raster_drape)))
-
-
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
     
@@ -225,15 +213,6 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
- 
-    # SMM attempting mask nodata vals
-    NoDataValue = -9999    
-    nodata_mask = raster == NoDataValue
-    raster[nodata_mask] = np.nan
-
-    nodata_mask2 = raster_drape == NoDataValue
-    raster_drape[nodata_mask2] = np.nan 
-
    
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
