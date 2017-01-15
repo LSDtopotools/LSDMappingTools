@@ -7,6 +7,7 @@
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 import osgeo.gdal as gdal
+import osgeo.gdal_array as gdal_array
 import numpy as np
 from osgeo import osr
 from os.path import exists
@@ -329,3 +330,54 @@ def array2raster(rasterfn,newRasterfn,array,driver_name = "ENVI", noDataValue = 
 #==============================================================================  
     
 
+def RasterDifference(RasterFile1, RasterFile2, raster_band=1, OutFileName="Test.outfile", OutFileType="ENVI"):
+    """
+    Takes two rasters of same size and subtracts second from first,
+    e.g. Raster1 - Raster2 = raster_of_difference
+    then writes it out to file
+    """
+    
+    Raster1 = gdal.Open(RasterFile1)
+    Raster2 = gdal.Open(RasterFile2)
+    
+    print "RASTER 1: "
+    print Raster1.GetGeoTransform()
+    print Raster1.RasterCount
+    print Raster1.GetRasterBand(1).XSize
+    print Raster1.GetRasterBand(1).YSize
+    print Raster1.GetRasterBand(1).DataType
+    
+    print "RASTER 2: "
+    print Raster2.GetGeoTransform()
+    print Raster2.RasterCount
+    print Raster2.GetRasterBand(1).XSize
+    print Raster2.GetRasterBand(1).YSize
+    print Raster2.GetRasterBand(1).DataType
+    
+    raster_array1 = np.array(Raster1.GetRasterBand(raster_band).ReadAsArray())
+    raster_array2 = np.array(Raster2.GetRasterBand(raster_band).ReadAsArray())
+    
+    assert(raster_array1.shape == raster_array2.shape )
+    print "Shapes: ", raster_array1.shape, raster_array2.shape
+    
+    difference_raster_array = raster_array1 - raster_array2
+    
+#    import matplotlib.pyplot as plt
+#    
+#    plt.imshow(difference_raster_array)
+#    
+    
+    driver = gdal.GetDriverByName(OutFileType)
+
+    dsOut = driver.Create(OutFileName, 
+                          Raster1.GetRasterBand(1).XSize, 
+                          Raster1.GetRasterBand(1).YSize, 
+                          1, 
+                          gdal.GDT_Float32)
+                          #Raster1.GetRasterBand(raster_band).DataType)
+    
+    
+    gdal_array.CopyDatasetInfo(Raster1,dsOut)
+    bandOut = dsOut.GetRasterBand(1)
+    gdal_array.BandWriteArray(bandOut, difference_raster_array)
+    
