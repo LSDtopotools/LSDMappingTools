@@ -19,6 +19,83 @@ import LSDMap_BasicManipulation as LSDMap_BM
 import LSDOSystemTools as LSDOst
 
 
+#==============================================================================
+# This formats ticks if you want to convert metres to km
+#==============================================================================
+def TickConverter(x_min,x_max,n_target_tics):
+    dx_fig = x_max-x_min
+    dx_spacing = dx_fig/n_target_tics
+    #print("spacing: "+str(dx_spacing))
+
+    # This extracts the digits before the full stop
+    str_dx = str(dx_spacing)
+    str_dx = str_dx.split('.')[0]
+    n_digits = str_dx.__len__()
+    nd = int(n_digits)
+    # We are left with the number of digits in the spacing. This will be used
+    # to round tick locations
+        
+    first_digit = float(str_dx[0])
+       
+    dx_spacing_rounded = first_digit*pow(10,(nd-1))
+    #print("dx spacing is: " + str(dx_spacing_rounded))
+ 
+    str_xmin = str(x_min)
+    #print("before split str_xmin: "+ str_xmin)
+    str_xmin = str_xmin.split('.')[0]
+    #print("after split str_xmin: "+ str_xmin)
+    x_min = float(str_xmin)
+    #print("x_min: "+ str(x_min))
+    
+    n_digx = str_xmin.__len__() 
+      
+    if (n_digx-nd+1) >= 1:
+        front_x = str_xmin[:(n_digx-nd+1)]
+    else:
+        front_x = str_xmin
+        
+    round_xmin = float(front_x)*pow(10,nd-1)
+    #print("round xmin is: " + str(round_xmin))
+    if round_xmin <0:
+        round_xmin = 0
+
+    # now we need to figure out where the xllocs and ylocs are
+    xlocs = np.zeros(2*n_target_tics) 
+    xlocs_km = np.zeros(2*n_target_tics) 
+    new_x_labels = []
+
+    for i in range(0,2*n_target_tics):
+        xlocs[i] = round_xmin+(i)*dx_spacing_rounded       
+        xlocs_km[i] = xlocs[i]/1000.0      
+        new_x_labels.append( str(xlocs_km[i]).split(".")[0] )
+
+    #print xlocs
+    #print new_x_labels
+    #print new_y_labels
+
+    new_xlocs = []
+    new_xlocs_km = []
+    x_labels = []
+
+    # Now loop through these to get rid of those not in range
+    for index,xloc in enumerate(xlocs):
+        #print xloc
+        if (xloc <= x_max and xloc >= x_min):
+            new_xlocs.append(xloc)
+            new_xlocs_km.append(xlocs_km[index])
+            x_labels.append(new_x_labels[index])
+ 
+            
+    #print "======================================="
+    #print "I am getting the tick marks now"    
+    #print "X extent: " + str(x_min)+ " " +str(x_max)
+    #print "x ticks: "
+    #print new_xlocs
+    #print x_labels
+   
+    #return xlocs,ylocs,new_x_labels,new_y_labels
+    return new_xlocs,x_labels
+
 
 #==============================================================================
 # Formats ticks for an imshow plot in UTM

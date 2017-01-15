@@ -666,9 +666,9 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         x_data = [float(x) for x in x_data]
     elif data_name == 'flow_distance':
         x_data = thisPointData.QueryData('flow distance')
-        x_data = [float(x) for x in fdist]   
+        x_data = [float(x) for x in x_data]   
     else:
-        print("I did not understand the data name. Choices are chi and elevation. Defaulting to chi.")
+        print("I did not understand the data name. Choices are chi and flow distance. Defaulting to chi.")
         x_data = thisPointData.QueryData('chi')
         x_data = [float(x) for x in x_data] 
 
@@ -777,9 +777,25 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     ax.spines['right'].set_linewidth(1)
     ax.spines['bottom'].set_linewidth(1) 
 
-    ax.set_xlabel("$\chi$ (m)")
-    ax.set_ylabel("Elevation (m)") 
     
+    ax.set_ylabel("Elevation (m)") 
+ 
+    # we need special formatting for the fow distance, since we want locations in kilometres
+    if data_name == 'flow_distance':
+        # now get the tick marks    
+        n_target_tics = 5
+        X_axis_min = 0
+        xlocs,new_x_labels = LSDMap_BP.TickConverter(X_axis_min,X_axis_max,n_target_tics)
+        
+        ax.set_xticks(xlocs)
+ 
+        ax.set_xticklabels(new_x_labels,rotation=60)
+ 
+        ax.set_xlabel("Flow distance (km)")        
+    else:
+        ax.set_xlabel("$\chi$ (m)")
+
+   
     # This affects all axes because we set share_all = True.
     ax.set_ylim(z_axis_min,z_axis_max)    
     ax.set_xlim(0,X_axis_max)      
