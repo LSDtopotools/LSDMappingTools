@@ -33,9 +33,9 @@ def ChiMappingToolsTest():
     #======================================
     # Uncomment this for a basic plot of the hillshade draped over the elevation, 
     # With chi on top
-    LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
-                            '$k_{sn}$',(0,0),
-                            0.4,FigName,'png',elevation_threshold)  
+    #LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
+    #                        '$k_{sn}$',(0,0),
+    #                        0.4,FigName,'png',elevation_threshold)  
     #======================================
     
     #======================================
@@ -71,10 +71,13 @@ def ChiMappingToolsTest():
 
     #======================================
     # Uncomment this for a stack of gradient profiles 
-    FigName5 =  DataDirectory+'ChiGradientProfiles.png'  
+    FigName5 =  DataDirectory+'ChiGradientProfiles.png'
+    FigName6 =  DataDirectory+'FDGradientProfiles.png'
     first_basin = 0
     last_basin = 5
     LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'chi',10,'log')  
+    LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'flow_distance',100000,'log')  
+ 
     #======================================
     
     #EPSG_string = LSDP.GetUTMEPSG(DEMname)
