@@ -352,7 +352,7 @@ def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, drape_m
     
     hillshade = LSDMap_BP.Hillshade(elev_raster_file)
     #hillshade_array = LSDP.ReadRasterArrayBlocks(elev_raster_file)
-
+    
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(elev_raster_file)
     
