@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jan 16 21:50:53 2017
@@ -10,11 +9,12 @@ LSDMapArtist
 Object-oriented plotting module for constructing
 drape maps in a reusable, generic way.
 
-(This is also partly an exercise in writing more complex classes in python...)
+(This is also partly an exercise in writing more useful classes in python...)
 
 """
 
 import LSDPlottingTools as LSDP
+import matplotlib.pyplot as plt
 
 class BaseRaster(object):
     """ 
@@ -43,19 +43,56 @@ class BaseRaster(object):
         return self._FullPathRaster
 
 
+        
 class BackgroundRaster(BaseRaster):
     """
     Class Background raster represents the background image over which the
     drape data can be overlain.
     """
-    def __init__(self, RasterName, Directory):
-        #BaseRaster.__init__(RasterName, Directory)
+    def __init__(self, RasterName, Directory, backgroundtype="Hillshade"):
+        
+        # We need to initialise our base class though first!
         super(BackgroundRaster, self).__init__(RasterName, Directory)
         
-        self._hillshade_raster = LSDP.Hillshade(self.fullpath_to_raster)
-
+        # Could also have done it this way:
+        # BaseRaster.__init__(RasterName, Directory)
+        
+        self._backgroundtype = backgroundtype
+        
+        self._render_background(self.fullpath_to_raster)
+        #self._hillshade_raster = LSDP.Hillshade(self.fullpath_to_raster)
+        
+    def _render_background(self, fullpath_to_raster):
+        """
+        Renders the background image that 
+        will form the drape plot, e.g. a hillshade
+        """
+        if self._backgroundtype == "Hillshade":
+          self.Hillshade = LSDP.Hillshade(self.fullpath_to_raster)
+        else:
+          print "That background style is not yet supported. Currently only " \
+                " 'Hillshade' is supported"
+        
+    def show_hillshade(self):
+        """
+        For testing the hillshade
+        """
+        plt.imshow(self.Hillshade,
+                   cmap="gray",
+                   extent=self.extents)
+        
 class DrapeRaster(BaseRaster):
-    pass        
+    """
+    This class is for constructing the drape raster which gets overlaid on
+    top of the BackgroundRaster
+    """
+    def __init__(self, RasterName, Directory):
+        super(DrapeRaster, self).__init__(RasterName, Directory)
+        
+        self._render_drape(self.fullpath_to_raster)      
+        
+    def _render_drape(self, fullpath_to_raster):
+        pass
 
 class DrapeMap:
     pass
