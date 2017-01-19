@@ -14,16 +14,19 @@ import matplotlib.pyplot as plt
 
 def ChiMappingToolsTest():
     #DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
-    #DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
-    DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
+    DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
+    #DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
     Filename = "Mega_clip.bil"
     HSFilename = "Mega_clip_hs.bil"
+    BasinFilename = "Mega_clip_AllBasins.bil"
     
     DEMname = DataDirectory+Filename
     HSname = DataDirectory+HSFilename
+    Basinname = DataDirectory+BasinFilename 
     
     FigName = DataDirectory+'TestChiFull2.png'
     ChiName = DataDirectory+'Mega_clip_MChiSegmented.csv'
+    BasinInfoName = DataDirectory+'Mega_clip_AllBasinsInfo.csv'
     
     #FigFormat = 'svg'
     #FigFileN= 'Sorbas_chi.svg'
@@ -70,14 +73,34 @@ def ChiMappingToolsTest():
     #======================================
 
     #======================================
+    # Uncomment this for a plot of the basins draped over a fancy hillshde map
+    #FigName8 = DataDirectory+'BasinPlot.png'
+    #LSDP.DrapedOverFancyHillshade(DEMname,HSname,Basinname, 'gray','cubehelix',
+    #                        'Basin Number',(0,0),
+    #                        0.4,FigName8,'png',elevation_threshold)  
+    #======================================    
+    
+    
+    #======================================    
+    # Uncomment this for a plot of the basins draped over a fancy hillshde map
+    # with the basins annotated onto the figure
+    FigName9 = DataDirectory+'NumberedBasinPlot.png'
+    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
+                            (0,0), 0.4 ,FigName9,'png',elevation_threshold)  
+    #======================================    
+    
+    
+    
+    
+    
+    #======================================
     # Uncomment this for a stack of gradient profiles 
-    FigName5 =  DataDirectory+'ChiGradientProfiles.png'
-    FigName6 =  DataDirectory+'FDGradientProfiles.png'
-    first_basin = 0
-    last_basin = 5
-    LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'chi',10,'log')  
-    LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'flow_distance',100000,'log')  
- 
+    #FigName5 =  DataDirectory+'ChiGradientProfiles.png'
+    #FigName6 =  DataDirectory+'FDGradientProfiles.png'
+    #first_basin = 0
+    #last_basin = 5
+    #LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'chi',10,'log')  
+    #LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'flow_distance',100000,'log')  
     #======================================
     
     #EPSG_string = LSDP.GetUTMEPSG(DEMname)
