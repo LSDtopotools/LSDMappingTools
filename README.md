@@ -7,4 +7,6 @@ drape maps in a reusable, generic way.
 
 Experimental. Use at your own risk.
 
+If it ever works I'll transfer it to @LSDTopoTools
+
 This software is realsed under the Artistic Licence v2.0
