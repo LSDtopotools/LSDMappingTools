@@ -16,12 +16,7 @@ import lsdmatplotlibextensions as mplext
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 
-
-#fit_weibull_from_file(sys.argv[1]) 
-#TestNewMappingTools2() 
-#ResetErosionRaster()
-#FloodThenHillshade()
-#FixStupidNoData()
+from __future__ import print_function
 
 def findmaxval_multirasters(FileList):
     """
@@ -37,7 +32,7 @@ def findmaxval_multirasters(FileList):
         
         if this_max_val > overall_max_val:
             overall_max_val = this_max_val
-            print overall_max_val
+            print(overall_max_val)
             
     return overall_max_val
 
@@ -63,7 +58,7 @@ def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, drape_min_th
     
     FPFiles = sorted(glob.glob(DataDirectory+DrapeRasterWild), key=str)
     n_files = len(FPFiles)
-    print "Number of files = ", n_files
+    print("Number of files = ", n_files)
     
     elev_raster_file = DataDir + ElevationRaster
     
@@ -82,10 +77,10 @@ def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, drape_min_th
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = LSDP.GetTicksForUTM(elev_raster_file,x_max,x_min,y_max,y_min,n_target_tics)  
 
-    print "xmax: " + str(x_max)
-    print "xmin: " + str(x_min)
-    print "ymax: " + str(y_max)
-    print "ymin: " + str(y_min)
+    print("xmax: " + str(x_max))
+    print("xmin: " + str(x_min))
+    print("ymax: " + str(y_max))
+    print("ymin: " + str(y_min))
     
     """
     Find the maximum water depth in all rasters.
@@ -94,26 +89,26 @@ def MultiDrapeMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, drape_min_th
     """
 
     try:
-        print "Calculating max drape raster value by scanning rasters..."
+        print("Calculating max drape raster value by scanning rasters...")
         max_water_depth = findmaxval_multirasters(FPFiles)
         drape_max = max_water_depth
         
     except:
-        print "Something went wrong trying to obtain the max value in \
-                your drape raster file list."
+        print("Something went wrong trying to obtain the max value in \
+                your drape raster file list.")
     finally:
-        print "The drape(s) max value is set to: ", drape_max 
+        print("The drape(s) max value is set to: ", drape_max) 
     
     
     for i in range(n_files):
         
-        print "The floodplain file name is: ", FPFiles[i]
+        print("The floodplain file name is: ", FPFiles[i])
         FP_raster = LSDP.ReadRasterArrayBlocks(FPFiles[i])
         #FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
         
         filename = os.path.basename(FPFiles[i])
         title = mplext.labels.make_line_label(filename)
-        print title
+        print(title)
         
         low_values_index = FP_raster < drape_min_threshold
         FP_raster[low_values_index] = np.nan
