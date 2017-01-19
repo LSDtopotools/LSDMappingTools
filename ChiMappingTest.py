@@ -26,6 +26,7 @@ def ChiMappingToolsTest():
     
     FigName = DataDirectory+'TestChiFull2.png'
     ChiName = DataDirectory+'Mega_clip_MChiSegmented.csv'
+    BasinInfoName = DataDirectory+'Mega_clip_AllBasinsInfo.csv'
     
     #FigFormat = 'svg'
     #FigFileN= 'Sorbas_chi.svg'
@@ -73,11 +74,23 @@ def ChiMappingToolsTest():
 
     #======================================
     # Uncomment this for a plot of the basins draped over a fancy hillshde map
-    FigName = DataDirectory+'BasinPlot.png'
-    LSDP.DrapedOverFancyHillshade(DEMname,HSname,Basinname, 'gray','cubehelix',
-                            '$k_{sn}$',(0,0),
-                            0.4,FigName,'png',elevation_threshold)  
+    #FigName8 = DataDirectory+'BasinPlot.png'
+    #LSDP.DrapedOverFancyHillshade(DEMname,HSname,Basinname, 'gray','cubehelix',
+    #                        'Basin Number',(0,0),
+    #                        0.4,FigName8,'png',elevation_threshold)  
     #======================================    
+    
+    
+    #======================================    
+    # Uncomment this for a plot of the basins draped over a fancy hillshde map
+    # with the basins annotated onto the figure
+    FigName9 = DataDirectory+'NumberedBasinPlot.png'
+    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
+                            (0,0), 0.4 ,FigName9,'png',elevation_threshold)  
+    #======================================    
+    
+    
+    
     
     
     #======================================
