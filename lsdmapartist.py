@@ -9,16 +9,19 @@ LSDMapArtist
 Object-oriented plotting module for constructing
 drape maps in a reusable, generic way.
 
-(This is also partly an exercise in writing more useful classes in python...)
+Experimental. Use at your own risk.
+
+This software is realsed under the Artistic Licence v2.0
 
 """
 
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 
+
 class BaseRaster(object):
     """ 
-    Class BaseRaster represents the data associated with the basic raster
+    Class BaseRaster represents the data associated with the basic rasters
     used to create to image to be plotted. It also contains the methods
     associated with performing any basic analyses to that raster.
     """
@@ -47,7 +50,7 @@ class BaseRaster(object):
 class BackgroundRaster(BaseRaster):
     """
     Class Background raster represents the background image over which the
-    drape data can be overlain.
+    drape data can be overlain. (overlaid? overlayed? superimposed?)
     """
     def __init__(self, RasterName, Directory, backgroundtype="Hillshade"):
         
@@ -70,8 +73,8 @@ class BackgroundRaster(BaseRaster):
         if self._backgroundtype == "Hillshade":
           self.Hillshade = LSDP.Hillshade(self.fullpath_to_raster)
         else:
-          print "That background style is not yet supported. Currently only " \
-                " 'Hillshade' is supported"
+          print ("That background style is not yet supported. Currently only " \
+                " 'Hillshade' is supported")
         
     def show_hillshade(self):
         """
