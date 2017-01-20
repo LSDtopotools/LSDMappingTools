@@ -886,7 +886,8 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscmap='gray',drape_cmap='gray',
                              clim_val = (0,0), drape_alpha = 0.6,FigFileName = 'Image.pdf',
-                             FigFormat = 'show',elevation_threshold = 0, grouped_basin_list = []):
+                             FigFormat = 'show',elevation_threshold = 0, 
+                             grouped_basin_list = [],spread  = 20,chan_net_csv = "None"):
 
     label_size = 10
 
@@ -941,6 +942,13 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     # Set the colour limits of the drape
     im2.set_clim(0,np.nanmax(raster_HS))
 
+    # now we need to update the basin colours
+    # this groups basins
+    if grouped_basin_list:       
+        key_groups = LSDMap_BM.BasinKeyToJunction(grouped_basin_list,Basin_csv_name)
+        raster_drape = LSDMap_BM.RedefineIntRaster(raster_drape,key_groups,spread)
+        
+
     # Now for the drape: it is in grayscale
     #print "drape_cmap is: "+drape_cmap
     im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")    
@@ -953,7 +961,24 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     # Now we get the chi points
     EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
     print "EPSG string is: " + EPSG_string
+ 
+    # Now plot channel data
+    if chan_net_csv != "None":
+        chanPointData = LSDMap_PD.LSDMap_PointData(chan_net_csv) 
     
+        # convert to easting and northing
+        [easting_c,northing_c] = chanPointData.GetUTMEastingNorthing(EPSG_string)
+ 
+        # The image is inverted so we have to invert the northing coordinate
+        Ncoord_c = np.asarray(northing_c)
+        Ncoord_c = np.subtract(extent_raster[3],Ncoord_c)
+        Ncoord_c = np.add(Ncoord_c,extent_raster[2])
+
+        # plot the rivers
+        ax.scatter(easting_c,Ncoord_c,s=0.2, marker='.',color= 'b',alpha=0.2)        
+
+
+   
     thisPointData = LSDMap_PD.LSDMap_PointData(Basin_csv_name) 
     
     # convert to easting and northing
@@ -997,17 +1022,11 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         this_easting = easting[index]
         this_northing = Ncoord[index]
         texts.append(ax.text(this_easting,this_northing, str(index),fontsize = 8, color= "r",alpha=0.7))
-        #ax.annotate(str(datum), xy=(this_easting, this_northing),  xycoords='data',
-        #    xytext=(this_easting+x_range/20, this_northing+y_range/20), textcoords='data', fontsize = 8,
-        #    arrowprops=dict(facecolor='black', shrink=0.1,headlength = 2,
-        #                    headwidth = 3,width=1),
-        #    horizontalalignment='right', verticalalignment='top',
-        #    )
-    #iterations = adjust_text(texts,x=easting,y=Ncoord,autoalign='x',ax=ax,force_points=0.9)
     adjust_text(texts,x=buffered_east,y=buffered_north,autoalign='xy',ax=ax)
-    #iterations = adjust_text(texts, )
-    #plt.title(str(iterations)+ " iterations")
-            
+ 
+
+ 
+    # Now to fix up the axes 
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
@@ -1040,64 +1059,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         plt.savefig(FigFileName,format=FigFormat,dpi=500)
         fig.clf()
 
-
-
-
-
-        
-        
-##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-## This function orders basins in a sequence, so that plots can be made
-## as a function of distance, for example
-##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
-def BasinOrderer(Basin_csv_name, FileName, criteria_string,reverse=False, 
-                 exclude_criteria_string = "None", exlude_criteria_greater = False, 
-                 exclude_criteria_value = 0 ):        
-
-    #========================================================
-    # now we need to label the basins
-    # Now we get the chi points
-    EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
-    print "EPSG string is: " + EPSG_string
     
-    thisPointData = LSDMap_PD.LSDMap_PointData(Basin_csv_name) 
-    
-    # convert to easting and northing
-    [easting,northing] = thisPointData.GetUTMEastingNorthingFromQuery(EPSG_string,"outlet_latitude","outlet_longitude")
- 
-    these_data = thisPointData.QueryData("outlet_junction")
-    #print M_chi
-    these_data = [int(x) for x in these_data]
-
-    wanted_data = thisPointData.QueryData(criteria_string)
-
-    wd = np.asarray(wanted_data)
-
-
-    # Now we exclude some of the basins
-    #if exclude_criteria_string != "None":
-    #    exclude_data = thisPointData.QueryData(exclude_criteria_string)
-        
-        
-         
-    
-    
-    indices = np.argsort(wd)
-    
-    print("data is: ")
-    print wd
-
-    if reverse:
-        indices = indices[::-1]
-   
-        
-    sorted_basins = np.array(these_data)[indices]
-
-
-    print sorted_basins          
-    
-    
-        
         
 #==============================================================================
 # Make a simple hillshade plot

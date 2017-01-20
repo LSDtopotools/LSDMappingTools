@@ -47,7 +47,7 @@ def ChiMappingToolsTest():
     #======================================
     # This tests the basin sorting
     Junction_list = [[3,0,2,1],[4],[6,7,8,9,10]]
-    LSDP.basin_key_to_junction(Junction_list,BasinInfoName)
+    LSDP.BasinKeyToJunction(Junction_list,BasinInfoName)
     LSDP.BasinOrderer(BasinInfoName, DEMname, "outlet_longitude",reverse=True) 
     #======================================
     
@@ -114,9 +114,11 @@ def ChiMappingToolsTest():
     #======================================    
     # Uncomment this for a plot of the basins draped over a fancy hillshde map
     # with the basins annotated onto the figure
-    #FigName9 = DataDirectory+'NumberedBasinPlot.png'
-    #LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
-    #                        (0,0), 0.4 ,FigName9,'png',elevation_threshold)  
+    FigName9 = DataDirectory+'NumberedBasinPlot.png'
+    spread = 10
+    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
+                            (0,0), 0.4 ,FigName9,'png',
+                            elevation_threshold,Junction_list,spread,ChiName)  
     #======================================    
     
     
