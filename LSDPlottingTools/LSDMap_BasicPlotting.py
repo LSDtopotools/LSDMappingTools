@@ -1095,7 +1095,15 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
 # Make a simple hillshade plot
 def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -9999): 
     
-    array = LSDMap_IO.ReadRasterArrayBlocks(raster_file,raster_band=1)    
+    # You have passed a filepath to be read in as a raster
+    if isinstance(raster_file, str):
+      array = LSDMap_IO.ReadRasterArrayBlocks(raster_file,raster_band=1)  
+    
+    # You already have an array and just want the hill shade
+    elif isinstance(raster_file, np.ndarray):
+      array = raster_file
+    else:
+        print "raster_file must be either a filepath (string) or a numpy array. Try again."
     
     # DAV attempting mask nodata vals
     nodata_mask = array == NoDataValue
