@@ -13,20 +13,31 @@ import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 
 def ChiMappingToolsTest():
-    #DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
-    DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
+    DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
     #DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
-    Filename = "Mega_clip.bil"
-    HSFilename = "Mega_clip_hs.bil"
-    BasinFilename = "Mega_clip_AllBasins.bil"
+    #DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
+    Base_file = "Mega_clip"
     
-    DEMname = DataDirectory+Filename
-    HSname = DataDirectory+HSFilename
-    Basinname = DataDirectory+BasinFilename 
+    
+    
+    #DataDirectory = "/home/smudd/LSDTopoData/India/Southern_india/"
+    #Base_file = "SIndia_clip"
+    
+    
+    
+    bil = ".bil"
+    
+    #Filename = "Mega_clip.bil"
+    #HSFilename = "Mega_clip_hs.bil"
+    #BasinFilename = "Mega_clip_AllBasins.bil"
+    
+    DEMname = DataDirectory+Base_file+bil
+    HSname = DataDirectory+Base_file+"_hs"+bil
+    Basinname = DataDirectory+Base_file+"_AllBasins"+bil
     
     FigName = DataDirectory+'TestChiFull2.png'
-    ChiName = DataDirectory+'Mega_clip_MChiSegmented.csv'
-    BasinInfoName = DataDirectory+'Mega_clip_AllBasinsInfo.csv'
+    ChiName = DataDirectory+Base_file+'_MChiSegmented.csv'
+    BasinInfoName = DataDirectory+Base_file+'_AllBasinsInfo.csv'
     
     #FigFormat = 'svg'
     #FigFileN= 'Sorbas_chi.svg'
@@ -35,11 +46,22 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a basic plot of the hillshade draped over the elevation, 
-    # With chi on top
-    #LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
+    # With chi on top, using the cubehelix colour scheme
+    FigName = DataDirectory+'Chi_plot_CubeHelix.png'
+    LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
+                            '$k_{sn}$',(0,0),
+                            0.4,FigName,'png',elevation_threshold)  
+    #======================================
+
+    #======================================
+    # Uncomment this for a basic plot of the hillshade draped over the elevation, 
+    # With chi on top, using the kirby and whipple colour scheme
+    #FigName = DataDirectory+'Chi_plot_KW.png'
+    #LSDP.BasicChiPlotGridPlotKirby(DEMname,HSname,ChiName, 'gray','gray',
     #                        '$k_{sn}$',(0,0),
     #                        0.4,FigName,'png',elevation_threshold)  
     #======================================
+
     
     #======================================
     # Uncomment this for a plot of channels color coded by their sources
@@ -84,9 +106,9 @@ def ChiMappingToolsTest():
     #======================================    
     # Uncomment this for a plot of the basins draped over a fancy hillshde map
     # with the basins annotated onto the figure
-    FigName9 = DataDirectory+'NumberedBasinPlot.png'
-    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
-                            (0,0), 0.4 ,FigName9,'png',elevation_threshold)  
+    #FigName9 = DataDirectory+'NumberedBasinPlot.png'
+    #LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
+    #                        (0,0), 0.4 ,FigName9,'png',elevation_threshold)  
     #======================================    
     
     
@@ -98,7 +120,7 @@ def ChiMappingToolsTest():
     #FigName5 =  DataDirectory+'ChiGradientProfiles.png'
     #FigName6 =  DataDirectory+'FDGradientProfiles.png'
     #first_basin = 0
-    #last_basin = 5
+    #last_basin = 4
     #LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'chi',10,'log')  
     #LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'flow_distance',100000,'log')  
     #======================================
