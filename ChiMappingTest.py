@@ -114,11 +114,11 @@ def ChiMappingToolsTest():
     #======================================    
     # Uncomment this for a plot of the basins draped over a fancy hillshde map
     # with the basins annotated onto the figure
-    FigName9 = DataDirectory+'NumberedBasinPlot.png'
-    spread = 10
-    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
-                            (0,0), 0.4 ,FigName9,'png',
-                            elevation_threshold,Junction_list,spread,ChiName)  
+    #FigName9 = DataDirectory+'NumberedBasinPlot.png'
+    #spread = 15
+    #LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
+    #                        (0,0), 0.4 ,FigName9,'png',
+    #                        elevation_threshold,Junction_list,spread,ChiName)  
     #======================================    
     
     
@@ -127,11 +127,11 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a stack of gradient profiles 
-    #FigName5 =  DataDirectory+'ChiGradientProfiles.png'
+    FigName5 =  DataDirectory+'ChiGradientProfiles.png'
     #FigName6 =  DataDirectory+'FDGradientProfiles.png'
-    #first_basin = 0
-    #last_basin = 4
-    #LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'chi',10,'log')  
+    first_basin = 0
+    last_basin = 3
+    LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'chi',10,'log')  
     #LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'flow_distance',100000,'log')  
     #======================================
     

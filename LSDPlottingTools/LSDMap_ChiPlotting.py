@@ -705,6 +705,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     import matplotlib.lines as mpllines
     from mpl_toolkits.axes_grid1 import AxesGrid
     from matplotlib import colors
+    import matplotlib.patches as patches
 
     label_size = 10
     #title_size = 30
@@ -778,6 +779,10 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     X_axis_max = int(max_X/5)*5+5
     M_chi_axis_max = max_M_chi
     
+    elevation_range = z_axis_max-z_axis_min
+    z_axis_min = z_axis_min - 0.075*elevation_range    
+    
+    
     # now loop through a number of basins
     if last_basin >= max_basin:
         last_basin = max_basin-1
@@ -818,6 +823,16 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         maskX = np.add(maskX,this_X_offset)
         this_X_offset = this_X_offset+X_offset
         
+        this_min_x = np.nanmin(maskX)
+        this_max_x =np.nanmax(maskX)
+        width_box = this_max_x-this_min_x
+        
+        print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
+        print("Hey they big guy I am adding a patch")
+        ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))      
+        this_basin_text = "Basin "+str(basin_number)        
+        ax.text(this_min_x+0.1*width_box, z_axis_min+0.025*elevation_range, this_basin_text, style='italic',
+                verticalalignment='bottom', horizontalalignment='left',fontsize=8)
         if basin_number == basins_list[-1]:
             print("last basin, geting maximum value,basin is: "+str(basin_number))
             this_max = np.amax(maskX)
