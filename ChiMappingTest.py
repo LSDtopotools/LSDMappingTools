@@ -13,8 +13,8 @@ import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 
 def ChiMappingToolsTest():
-    DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
-    #DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
+    #DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
+    DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
     #DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
     Base_file = "Mega_clip"
     
@@ -46,6 +46,8 @@ def ChiMappingToolsTest():
 
     #======================================
     # This tests the basin sorting
+    Junction_list = [[3,0,2,1],[4],[6,7,8,9,10]]
+    LSDP.basin_key_to_junction(Junction_list,BasinInfoName)
     LSDP.BasinOrderer(BasinInfoName, DEMname, "outlet_longitude",reverse=True) 
     #======================================
     

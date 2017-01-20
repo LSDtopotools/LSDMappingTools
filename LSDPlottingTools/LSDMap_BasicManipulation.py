@@ -105,6 +105,58 @@ def ConvertAllCSVToShapefile(path):
         
         thisPointData = LSDMPD.LSDMap_PointData(FileName)
         thisPointData.TranslateToReducedShapefile(FileName)   
+#==============================================================================
+# This takes a grouping list of basin keys and transforms it into a list
+# of junction names
+#==============================================================================
+def basin_key_to_junction(grouped_data_list,basin_info_csv):
+    
+    thisPointData = LSDMPD.LSDMap_PointData(basin_info_csv)
+    
+    thisJunctionData = thisPointData.QueryData("outlet_junction")
+    
+    junction_grouped_list = []
+
+    if not grouped_data_list:
+        return grouped_data_list
+    else:
+        for group in grouped_data_list:
+            this_list = []
+            for element in group:
+                this_list.append(thisJunctionData[element])
+            junction_grouped_list.append(this_list)
+
+    print junction_grouped_list 
+    return junction_grouped_list
+    
+    
+
+
+#==============================================================================
+# This function takes groups of data and then resets values in a
+# raster to mimic these values
+#============================================================================== 
+def redefine_int_raster(rasterArray,grouped_data_list,spread):
+    
+    counter = 0
+    if not grouped_data_list:
+        return rasterArray
+    else:
+        for group in grouped_data_list:
+            for element in group:
+                rasterArray[rasterArray == group] = counter
+                counter= counter+1
+                            
+            counter = counter+10
+    return rasterArray
+            
+            
+    
+    
+
+    # You need to manipulate the groupings 
+
+
 
 #==============================================================================
 # This does a basic mass balance. 

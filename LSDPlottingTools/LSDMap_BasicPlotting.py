@@ -488,31 +488,11 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
     gs = plt.GridSpec(100,75,bottom=0.1,left=0.1,right=0.9,top=1.0)
     ax = fig.add_subplot(gs[10:100,10:75])
 
-    #grid = AxesGrid(fig, 111,  # similar to subplot(144)
-    #                nrows_ncols=(1, 1),
-    #                axes_pad=(0.8, 0.3),
-    #                label_mode="1",
-    #                share_all=True,
-    #                cbar_location="right",
-    #                cbar_mode="each",
-    #                cbar_size="7%",
-    #                cbar_pad="2%",
-    #                )
-
-
     # now get the tick marks    
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
 
-
-    #print "xmax: " + str(x_max)
-    #print "xmin: " + str(x_min)
-    #print "ymax: " + str(y_max)
-    #print "ymin: " + str(y_min)
-
-
     im = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
-    #im = grid[0].imshow(raster, thiscmap, interpolation="nearest")
 
     cbar = plt.colorbar(im)
     cbar.set_label(colorbarlabel) 
@@ -606,35 +586,9 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     gs = plt.GridSpec(100,75,bottom=0.1,left=0.1,right=0.9,top=1.0)
     ax = fig.add_subplot(gs[10:100,10:75])
 
-    #grid = AxesGrid(fig, 111, 
-    #                nrows_ncols=(1, 1),
-    #                axes_pad=(0.45, 0.15),
-    #                label_mode="1",
-    #                share_all=True,
-    #                cbar_location="right",
-    #                cbar_mode="each",
-    #                cbar_size="7%",
-    #                cbar_pad="2%",
-    #                )
-
-
     # now get the tick marks    
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
-
-
-    print "xmax: " + str(x_max)
-    print "xmin: " + str(x_min)
-    print "ymax: " + str(y_max)
-    print "ymin: " + str(y_min)
-
-
-    #Z1 = np.array(([0, 1]*4 + [1, 0]*4)*4)
-    #Z1.shape = (8, 8)  # chessboard
-    #im2 = ax.imshow(Z1, cmap=plt.cm.gray, interpolation='nearest',
-    #             extent=extent_raster)  
- 
-    #plt.hold(True)
 
     im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     
@@ -932,7 +886,7 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscmap='gray',drape_cmap='gray',
                              clim_val = (0,0), drape_alpha = 0.6,FigFileName = 'Image.pdf',
-                             FigFormat = 'show',elevation_threshold = 0):
+                             FigFormat = 'show',elevation_threshold = 0, grouped_basin_list = []):
 
     label_size = 10
 
@@ -945,7 +899,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     raster_HS = LSDMap_IO.ReadRasterArrayBlocks(HSName)
     raster_drape = LSDMap_IO.ReadRasterArrayBlocks(BasinName)
-
+    
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
     
@@ -957,8 +911,6 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     x_range = x_max-x_min
     y_range = y_max-y_min
     
-    
-
     # make a figure, sized for a ppt slide
     fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
 
@@ -1055,9 +1007,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     adjust_text(texts,x=buffered_east,y=buffered_north,autoalign='xy',ax=ax)
     #iterations = adjust_text(texts, )
     #plt.title(str(iterations)+ " iterations")
-    
-
-        
+            
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
@@ -1089,6 +1039,10 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     else:
         plt.savefig(FigFileName,format=FigFormat,dpi=500)
         fig.clf()
+
+
+
+
 
         
         
