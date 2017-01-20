@@ -281,7 +281,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     elif FigFormat == 'return':
         return fig 
     else:
-        plt.savefig(FigFileName,format=FigFormat,dpi=500)
+        plt.savefig(FigFileName,format=FigFormat,dpi=750)
         fig.clf()
 
 
@@ -624,6 +624,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     if first_basin > last_basin:
         first_basin = last_basin
         print("Your first basin was larger than last basin. I won't plot anything")
+
      
     plt.hold(True) 
     chi_offset = 5
@@ -878,3 +879,4 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     else:
         plt.savefig(newFilename,format=FigFormat,dpi=500)
         fig.clf()                   
+        

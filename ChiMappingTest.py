@@ -43,14 +43,20 @@ def ChiMappingToolsTest():
     #FigFileN= 'Sorbas_chi.svg'
     #FigFileName= DataDirectory+FigFileN
     elevation_threshold = 1
+
+    #======================================
+    # This tests the basin sorting
+    LSDP.BasinOrderer(BasinInfoName, DEMname, "outlet_longitude",reverse=True) 
+    #======================================
+    
     
     #======================================
     # Uncomment this for a basic plot of the hillshade draped over the elevation, 
     # With chi on top, using the cubehelix colour scheme
-    FigName = DataDirectory+'Chi_plot_CubeHelix.png'
-    LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
-                            '$k_{sn}$',(0,0),
-                            0.4,FigName,'png',elevation_threshold)  
+    #FigName = DataDirectory+'Chi_plot_CubeHelix.png'
+    #LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
+    #                        '$k_{sn}$',(0,0),
+    #                        0.4,FigName,'png',elevation_threshold)  
     #======================================
 
     #======================================

@@ -1090,7 +1090,61 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         plt.savefig(FigFileName,format=FigFormat,dpi=500)
         fig.clf()
 
+        
+        
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function orders basins in a sequence, so that plots can be made
+## as a function of distance, for example
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
+def BasinOrderer(Basin_csv_name, FileName, criteria_string,reverse=False, 
+                 exclude_criteria_string = "None", exlude_criteria_greater = False, 
+                 exclude_criteria_value = 0 ):        
 
+    #========================================================
+    # now we need to label the basins
+    # Now we get the chi points
+    EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
+    print "EPSG string is: " + EPSG_string
+    
+    thisPointData = LSDMap_PD.LSDMap_PointData(Basin_csv_name) 
+    
+    # convert to easting and northing
+    [easting,northing] = thisPointData.GetUTMEastingNorthingFromQuery(EPSG_string,"outlet_latitude","outlet_longitude")
+ 
+    these_data = thisPointData.QueryData("outlet_junction")
+    #print M_chi
+    these_data = [int(x) for x in these_data]
+
+    wanted_data = thisPointData.QueryData(criteria_string)
+
+    wd = np.asarray(wanted_data)
+
+
+    # Now we exclude some of the basins
+    #if exclude_criteria_string != "None":
+    #    exclude_data = thisPointData.QueryData(exclude_criteria_string)
+        
+        
+         
+    
+    
+    indices = np.argsort(wd)
+    
+    print("data is: ")
+    print wd
+
+    if reverse:
+        indices = indices[::-1]
+   
+        
+    sorted_basins = np.array(these_data)[indices]
+
+
+    print sorted_basins          
+    
+    
+        
+        
 #==============================================================================
 # Make a simple hillshade plot
 def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -9999): 
