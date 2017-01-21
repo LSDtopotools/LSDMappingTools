@@ -127,12 +127,22 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a stack of gradient profiles 
-    FigName5 =  DataDirectory+'ChiGradientProfiles.png'
-    #FigName6 =  DataDirectory+'FDGradientProfiles.png'
+    FigName5 =  DataDirectory+'ChiGradientProfilesNorth.png'
+    FigName6 =  DataDirectory+'FDGradientProfilesNorth.png'
+    
+    FigName55 =  DataDirectory+'ChiGradientProfilesSouth.png'
+    FigName66 =  DataDirectory+'FDGradientProfilesSouth.png'    
     first_basin = 0
-    last_basin = 3
-    LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'chi',10,'log')  
-    #LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,plt.cm.afmhot,'flow_distance',100000,'log')  
+    last_basin = 6
+    this_basins_list = [3,0,2,1]
+    LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,this_basins_list,plt.cm.afmhot,'chi',10,'log')  
+    LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,this_basins_list,plt.cm.afmhot,'flow_distance',100000,'log')  
+
+    this_basins_list = [5,7,8,6,9,10]
+    LSDP.StackedProfilesGradient(ChiName,FigName55,'png',elevation_threshold,first_basin,last_basin,this_basins_list,plt.cm.afmhot,'chi',5,'log')  
+    LSDP.StackedProfilesGradient(ChiName,FigName66,'png',elevation_threshold,first_basin,last_basin,this_basins_list,plt.cm.afmhot,'flow_distance',50000,'log')  
+
+
     #======================================
     
     #EPSG_string = LSDP.GetUTMEPSG(DEMname)

@@ -8,6 +8,7 @@
 
 import osgeo.gdal as gdal
 import numpy as np
+import cubehelix
 import numpy.ma as ma
 from osgeo import osr
 from os.path import exists
@@ -159,10 +160,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0):
 
-
     import math
-    import cubehelix
-
     label_size = 10
 
     # Set up fonts for plots
@@ -253,7 +251,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
             log_m_chi.append(math.log10(value))
     colorbarlabel = "log$_{10}k_{sn}$"    
 
-    this_cmap = cubehelix.cmap(rot=0.5, reverse=True,start=0.5,gamma=0.6,sat=2.0)
+    this_cmap = cubehelix.cmap(rot=1, reverse=True,start=3,gamma=1.0,sat=2.0)
     sc = ax.scatter(easting,Ncoord,s=0.5, c=log_m_chi,cmap=this_cmap,edgecolors='none')
     
     # set the colour limits
@@ -697,7 +695,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
 def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        FigFormat = 'show',elevation_threshold = 0, 
-                       first_basin = 0, last_basin = 0,
+                       first_basin = 0, last_basin = 0, basin_order_list = [],
                        this_cmap = plt.cm.cubehelix,data_name = 'chi', X_offset = 5,
                        plotting_data_format = 'log'):
 
@@ -759,6 +757,9 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         m_chi = log_m_chi
         colorbarlabel = "log$_{10}k_{sn}$"
     
+    # Add the cubehelix colourbar    
+    this_cmap = cubehelix.cmap(rot=1, reverse=True,start=3,gamma=1.0,sat=2.0)
+    
     # need to convert everything into arrays so we can mask different basins
     Xdata = np.asarray(x_data)
     Elevation = np.asarray(elevation)
@@ -783,31 +784,42 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     z_axis_min = z_axis_min - 0.075*elevation_range    
     
     
-    # now loop through a number of basins
-    if last_basin >= max_basin:
-        last_basin = max_basin-1
-    
-    if first_basin > last_basin:
-        first_basin = last_basin
-        print("Your first basin was larger than last basin. I won't plot anything")
+
      
     plt.hold(True)
-    
+
+
     # X offest is now given by user so they can tune to the channel profiles
     #X_offset = 5
     this_X_offset = 0
+    if basin_order_list:
+        basins_list = basin_order_list
+        
+        n_stacks = len(basins_list)
+        added_X = X_offset*n_stacks
+        X_axis_max = X_axis_max+added_X        
+    else:
+        # now loop through a number of basins
+        if last_basin >= max_basin:
+            last_basin = max_basin-1
     
-    n_stacks = last_basin-first_basin+1
-    added_X = X_offset*n_stacks
-    print("The number of stacks is: "+str(n_stacks)+" the old max: "+str(X_axis_max))    
-    X_axis_max = X_axis_max+added_X
-    print("The nex max is: "+str(X_axis_max))
+        if first_basin > last_basin:
+            first_basin = last_basin
+            print("Your first basin was larger than last basin. I won't plot anything")
+        basins_list = list(range(first_basin,last_basin+1))
+ 
+        n_stacks = last_basin-first_basin+1
+        added_X = X_offset*n_stacks
+        print("The number of stacks is: "+str(n_stacks)+" the old max: "+str(X_axis_max))    
+        X_axis_max = X_axis_max+added_X
+        print("The nex max is: "+str(X_axis_max))
+ 
     
-    
+
+    # Now start looping through the basins   
     dot_pos = FigFileName.rindex('.')
     newFilename = FigFileName[:dot_pos]+'_GradientStack'+str(first_basin)+FigFileName[dot_pos:]
-    basins_list = list(range(first_basin,last_basin+1))
-    
+  
     for basin_number in basins_list:
         
         print ("This basin is: " +str(basin_number))
