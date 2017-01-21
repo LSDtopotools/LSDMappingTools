@@ -696,6 +696,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
 def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        FigFormat = 'show',elevation_threshold = 0, 
                        first_basin = 0, last_basin = 0, basin_order_list = [],
+                       basin_rename_list = [],
                        this_cmap = plt.cm.cubehelix,data_name = 'chi', X_offset = 5,
                        plotting_data_format = 'log'):
 
@@ -840,9 +841,16 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         width_box = this_max_x-this_min_x
         
         print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
-        print("Hey they big guy I am adding a patch")
         ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))      
-        this_basin_text = "Basin "+str(basin_number)        
+        
+        # some logic for the basin rename
+        if basin_rename_list:
+            if len(basin_rename_list) == max_basin+1:
+                this_basin_text = "Basin "+str(basin_rename_list[basin_number])
+        else:
+            this_basin_text = "Basin "+str(basin_number)      
+        
+          
         ax.text(this_min_x+0.1*width_box, z_axis_min+0.025*elevation_range, this_basin_text, style='italic',
                 verticalalignment='bottom', horizontalalignment='left',fontsize=8)
         if basin_number == basins_list[-1]:

@@ -887,7 +887,7 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
 def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscmap='gray',drape_cmap='gray',
                              clim_val = (0,0), drape_alpha = 0.6,FigFileName = 'Image.pdf',
                              FigFormat = 'show',elevation_threshold = 0, 
-                             grouped_basin_list = [],spread  = 20,chan_net_csv = "None"):
+                             grouped_basin_list = [], basin_rename_list = [],spread  = 20,chan_net_csv = "None"):
 
     label_size = 10
 
@@ -1021,7 +1021,13 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     for index, datum in enumerate(these_data):
         this_easting = easting[index]
         this_northing = Ncoord[index]
-        texts.append(ax.text(this_easting,this_northing, str(index),fontsize = 8, color= "r",alpha=0.7))
+        
+        # Check to see if basins rename list works
+        if basin_rename_list:
+            if len(basin_rename_list) == len(these_data):
+                texts.append(ax.text(this_easting,this_northing, str(basin_rename_list[index]),fontsize = 8, color= "r",alpha=0.7))
+        else:
+            texts.append(ax.text(this_easting,this_northing, str(index),fontsize = 8, color= "r",alpha=0.7))
     adjust_text(texts,x=buffered_east,y=buffered_north,autoalign='xy',ax=ax)
  
 
