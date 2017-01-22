@@ -95,7 +95,7 @@ def ChiMappingToolsTest():
     basin_rename_list =[1,3,2,0,4,5,8,6,7,9,10]
     LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,
                             first_basin,last_basin,this_basins_list,
-                            basin_rename_list,chi_offset)  
+                            basin_rename_list,chi_offset,True)  
     #======================================
     
     

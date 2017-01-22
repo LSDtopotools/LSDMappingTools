@@ -152,6 +152,58 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
         fig.clf()
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## THis function finds the source locations, with chi elevation, flow distance, 
+## etc
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def FindSourceInformation(thisPointData):
+
+    # Get the chi, m_chi, basin number, and source ID code
+    chi = thisPointData.QueryData('chi')
+    chi = [float(x) for x in chi]
+    elevation = thisPointData.QueryData('elevation')
+    elevation = [float(x) for x in elevation]
+    fdist = thisPointData.QueryData('flow distance')
+    fdist = [float(x) for x in fdist]        
+    source = thisPointData.QueryData('source_key')
+    source = [int(x) for x in source]
+    
+
+    Chi = np.asarray(chi)
+    Elevation = np.asarray(elevation)
+    Fdist = np.asarray(fdist)
+    Source = np.asarray(source)
+
+    n_sources = Source.max()+1
+    print("N sources is: "+str(n_sources))
+ 
+
+    # This loops through all the source indices, and then picks out the
+    # Elevation, chi coordinate and flow distance of each node
+    # Then it returns a dictionary containing the elements of the node
+    these_source_nodes = {}
+    for src_idx in range(0,n_sources-1):
+        m = np.ma.masked_where(Source!=src_idx, Source)
+        
+        # Mask the unwanted values
+        maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
+        maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+        maskFlowDistance = np.ma.masked_where(np.ma.getmask(m), Fdist)
+        
+        # get the locations of the source         
+        this_dict = {}
+        idx_of_max_FD = maskX.argmax()
+        this_dict["FlowDistance"]=maskFlowDistance[idx_of_max_FD]
+        this_dict["Chi"]=maskX[idx_of_max_FD]
+        this_dict["Elevation"]=maskElevation[idx_of_max_FD]
+
+        these_source_nodes[src_idx] = this_dict
+        
+    return these_source_nodes
+        
+        
+    
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## This function plots the chi slope on a shaded relief map
 ## It uses a cubehelix colourmap over the log 10 of the channel steepness
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -611,6 +663,12 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     z_axis_min = z_axis_min - 0.075*elevation_range 
 
 
+    # Logic for stacked labels
+    if label_sources:
+        source_info = FindSourceInformation(thisPointData)
+
+
+
     # Now calculate the spacing of the stacks
     this_X_offset = 0
     if basin_order_list:
@@ -660,7 +718,6 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
         print("adding an offset of: "+str(this_X_offset))
         
         maskX = np.add(maskX,this_X_offset)
-        this_X_offset = this_X_offset+X_offset
         
         this_min_x = np.nanmin(maskX)
         this_max_x =np.nanmax(maskX)
@@ -689,7 +746,32 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
         ax.text(this_min_x+0.1*width_box, z_axis_min+0.025*elevation_range, this_basin_text, style='italic',
                 verticalalignment='bottom', horizontalalignment='left',fontsize=8)
 
+        # logic for source labeling
+        if label_sources:
+            # Convert the masked data to a list and then that list to a set and
+            # back to a list (phew!)            
+            list_source = maskSource.tolist()
+            set_source = set(list_source)
+            list_source = list(set_source)
+            
+            # Now we have to get rid of stupid non values
+            list_source = [x for x in list_source if x is not None]
+
+            print("these sources are: ")
+            print list_source            
+            
+            for this_source in list_source:
+                source_Chi= source_info[this_source]["Chi"]
+                source_Elevation = source_info[this_source]["Elevation"]
+                print("Source is: "+str(this_source))
+                #print("Chi is: "+str(source_info[this_source]["Chi"]))
+                #print("FlowDistance is is: "+str(source_info[this_source]["FlowDistance"]))
+                #print("Elevation is: "+str(source_info[this_source]["Elevation"]))
+                ax.text(source_Chi+this_X_offset, source_Elevation, str(this_source), style='italic',
+                        verticalalignment='bottom', horizontalalignment='left',fontsize=8)
+        
         sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskSource,norm=cNorm,cmap=this_cmap,edgecolors='none')
+        this_X_offset = this_X_offset+X_offset
         
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
