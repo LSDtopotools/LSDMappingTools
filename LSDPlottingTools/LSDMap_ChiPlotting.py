@@ -550,15 +550,14 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
 def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                        FigFormat = 'show',elevation_threshold = 0, 
-                       first_basin = 0, last_basin = 0):
+                       first_basin = 0, last_basin = 0,
+                       basin_order_list = [],basin_rename_list = [],
+                       X_offset = 5,label_sources = False):
 
-    import matplotlib.lines as mpllines
-    from mpl_toolkits.axes_grid1 import AxesGrid
     from matplotlib import colors
+    import matplotlib.patches as patches
 
     label_size = 10
-    #title_size = 30
-    axis_size = 12
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
@@ -602,11 +601,41 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     max_Elevation = np.amax(Elevation)
     max_M_chi = np.amax(M_chi)
     min_Elevation = np.amin(Elevation)
-    
+
+    # determine the maximum and minimum elevations    
     z_axis_min = int(min_Elevation/10)*10 
     z_axis_max = int(max_Elevation/10)*10+10
-    chi_axis_max = int(max_chi/5)*5+5
+    X_axis_max = int(max_chi/5)*5+5
     
+    elevation_range = z_axis_max-z_axis_min
+    z_axis_min = z_axis_min - 0.075*elevation_range 
+
+
+    # Now calculate the spacing of the stacks
+    this_X_offset = 0
+    if basin_order_list:
+        basins_list = basin_order_list
+        
+        n_stacks = len(basins_list)
+        added_X = X_offset*n_stacks
+        X_axis_max = X_axis_max+added_X        
+    else:
+        # now loop through a number of basins
+        if last_basin >= max_basin:
+            last_basin = max_basin-1
+    
+        if first_basin > last_basin:
+            first_basin = last_basin
+            print("Your first basin was larger than last basin. I won't plot anything")
+        basins_list = list(range(first_basin,last_basin+1))
+ 
+        n_stacks = last_basin-first_basin+1
+        added_X = X_offset*n_stacks
+        print("The number of stacks is: "+str(n_stacks)+" the old max: "+str(X_axis_max))    
+        X_axis_max = X_axis_max+added_X
+        print("The nex max is: "+str(X_axis_max))
+ 
+   
     # make a color map of fixed colors
     NUM_COLORS = 15
 
@@ -614,55 +643,53 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
     #scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
     Source_colors = [x % NUM_COLORS for x in Source]
-    
-    # now loop through a number of basins
-    if last_basin >= max_basin:
-        last_basin = max_basin-1
-    
-    if first_basin > last_basin:
-        first_basin = last_basin
-        print("Your first basin was larger than last basin. I won't plot anything")
-
-     
     plt.hold(True) 
-    chi_offset = 5
-    this_chi_offset = 0
-    
-    n_stacks = last_basin-first_basin+1
-    added_chi = chi_offset*n_stacks
-    print("The number of stacks is: "+str(n_stacks)+" the old max: "+str(chi_axis_max))    
-    chi_axis_max = chi_axis_max+added_chi
-    print("The nex max is: "+str(chi_axis_max))
-    
-    
+   
     dot_pos = FigFileName.rindex('.')
     newFilename = FigFileName[:dot_pos]+'_Stack'+str(first_basin)+FigFileName[dot_pos:]
-    basins_list = list(range(first_basin,last_basin+1))
     
     for basin_number in basins_list:
         
         print ("This basin is: " +str(basin_number))
 
         m = np.ma.masked_where(Basin!=basin_number, Basin)
-        maskChi = np.ma.masked_where(np.ma.getmask(m), Chi)
+        maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
         maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
         maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
+
+        print("adding an offset of: "+str(this_X_offset))
         
-        print("adding an offset of: "+str(this_chi_offset))
+        maskX = np.add(maskX,this_X_offset)
+        this_X_offset = this_X_offset+X_offset
         
-        maskChi = np.add(maskChi,this_chi_offset)
-        this_chi_offset = this_chi_offset+chi_offset
+        this_min_x = np.nanmin(maskX)
+        this_max_x =np.nanmax(maskX)
+        width_box = this_max_x-this_min_x
+        
+        print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
+        ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))      
         
         if basin_number == basins_list[-1]:
             print("last basin, geting maximum value,basin is: "+str(basin_number))
-            this_max = np.amax(maskChi)
+            this_max = np.amax(maskX)
             this_max = int(this_max/5)*5+5
             print("The rounded maximum is: "+str(this_max))
             chi_axis_max = this_max
         
-        Source_colors = [x % NUM_COLORS for x in maskSource]
+        #Source_colors = [x % NUM_COLORS for x in maskSource]
 
-        sc = ax.scatter(maskChi,maskElevation,s=2.0, c=Source_colors,norm=cNorm,cmap=this_cmap,edgecolors='none')
+        # some logic for the basin rename
+        if basin_rename_list:
+            if len(basin_rename_list) == max_basin+1:
+                this_basin_text = "Basin "+str(basin_rename_list[basin_number])
+        else:
+            this_basin_text = "Basin "+str(basin_number)      
+        
+          
+        ax.text(this_min_x+0.1*width_box, z_axis_min+0.025*elevation_range, this_basin_text, style='italic',
+                verticalalignment='bottom', horizontalalignment='left',fontsize=8)
+
+        sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskSource,norm=cNorm,cmap=this_cmap,edgecolors='none')
         
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
@@ -698,17 +725,13 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        first_basin = 0, last_basin = 0, basin_order_list = [],
                        basin_rename_list = [],
                        this_cmap = plt.cm.cubehelix,data_name = 'chi', X_offset = 5,
-                       plotting_data_format = 'log'):
+                       plotting_data_format = 'log',
+                       label_sources = False):
 
     import math
-    import matplotlib.lines as mpllines
-    from mpl_toolkits.axes_grid1 import AxesGrid
-    from matplotlib import colors
     import matplotlib.patches as patches
 
     label_size = 10
-    #title_size = 30
-    axis_size = 12
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
@@ -790,8 +813,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     plt.hold(True)
 
 
-    # X offest is now given by user so they can tune to the channel profiles
-    #X_offset = 5
+    # Now calculate the spacing of the stacks
     this_X_offset = 0
     if basin_order_list:
         basins_list = basin_order_list

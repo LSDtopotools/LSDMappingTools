@@ -87,10 +87,15 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a stack of chi plots
-    #FigName4 =  DataDirectory+'ChiStackProfiles.png'  
-    #first_basin = 0
-    #last_basin = 10
-    #LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,first_basin,last_basin)  
+    FigName4 =  DataDirectory+'ChiStackProfiles_Coloured.png'  
+    first_basin = 0
+    last_basin = 10
+    chi_offset = 10
+    this_basins_list = [3,0,2,1]
+    basin_rename_list =[1,3,2,0,4,5,8,6,7,9,10]
+    LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,
+                            first_basin,last_basin,this_basins_list,
+                            basin_rename_list,chi_offset)  
     #======================================
     
     
@@ -115,12 +120,12 @@ def ChiMappingToolsTest():
     #======================================    
     # Uncomment this for a plot of the basins draped over a fancy hillshde map
     # with the basins annotated onto the figure
-    FigName9 = DataDirectory+'NumberedBasinPlot.png'
-    spread = 15
-    basin_rename_list = [1,3,2,0,4,5,8,6,7,9,10]
-    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
-                            (0,0), 0.4 ,FigName9,'png',
-                            elevation_threshold,Junction_list,basin_rename_list,spread,ChiName)  
+    #FigName9 = DataDirectory+'NumberedBasinPlot.png'
+    #spread = 15
+    #basin_rename_list = [1,3,2,0,4,5,8,6,7,9,10]
+    #LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
+    #                        (0,0), 0.4 ,FigName9,'png',
+    #                        elevation_threshold,Junction_list,basin_rename_list,spread,ChiName)  
     #======================================    
     
     
@@ -129,21 +134,21 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a stack of gradient profiles 
-    FigName5 =  DataDirectory+'ChiGradientProfilesNorth.png'
-    FigName6 =  DataDirectory+'FDGradientProfilesNorth.png'
+    #FigName5 =  DataDirectory+'ChiGradientProfilesNorth.png'
+    #FigName6 =  DataDirectory+'FDGradientProfilesNorth.png'
     
-    FigName55 =  DataDirectory+'ChiGradientProfilesSouth.png'
-    FigName66 =  DataDirectory+'FDGradientProfilesSouth.png'    
-    first_basin = 0
-    last_basin = 6
-    this_basins_list = [3,0,2,1]
-    basin_rename_list = [1,3,2,0,4,5,8,6,7,9,10]
-    LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',10,'log')  
-    LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',100000,'log')  
+    #FigName55 =  DataDirectory+'ChiGradientProfilesSouth.png'
+    #FigName66 =  DataDirectory+'FDGradientProfilesSouth.png'    
+    #first_basin = 0
+    #last_basin = 6
+    #this_basins_list = [3,0,2,1]
+    #basin_rename_list = [1,3,2,0,4,5,8,6,7,9,10]
+    #LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',10,'log')  
+    #LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',100000,'log')
 
-    this_basins_list = [5,7,8,6,9,10]
-    LSDP.StackedProfilesGradient(ChiName,FigName55,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',5,'log')  
-    LSDP.StackedProfilesGradient(ChiName,FigName66,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',50000,'log')  
+    #this_basins_list = [5,7,8,6,9,10]
+    #LSDP.StackedProfilesGradient(ChiName,FigName55,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',5,'log')  
+    #LSDP.StackedProfilesGradient(ChiName,FigName66,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',50000,'log')  
 
 
     #======================================
