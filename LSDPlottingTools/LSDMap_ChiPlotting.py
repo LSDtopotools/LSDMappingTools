@@ -606,6 +606,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                        basin_order_list = [],basin_rename_list = [],
                        X_offset = 5,label_sources = False):
 
+    from adjust_text import adjust_text
     from matplotlib import colors
     import matplotlib.patches as patches
 
@@ -706,6 +707,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     dot_pos = FigFileName.rindex('.')
     newFilename = FigFileName[:dot_pos]+'_Stack'+str(first_basin)+FigFileName[dot_pos:]
     
+    texts = []  
     for basin_number in basins_list:
         
         print ("This basin is: " +str(basin_number))
@@ -748,6 +750,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
 
         # logic for source labeling
         if label_sources:
+                      
             # Convert the masked data to a list and then that list to a set and
             # back to a list (phew!)            
             list_source = maskSource.tolist()
@@ -767,12 +770,14 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                 #print("Chi is: "+str(source_info[this_source]["Chi"]))
                 #print("FlowDistance is is: "+str(source_info[this_source]["FlowDistance"]))
                 #print("Elevation is: "+str(source_info[this_source]["Elevation"]))
-                ax.text(source_Chi+this_X_offset, source_Elevation, str(this_source), style='italic',
-                        verticalalignment='bottom', horizontalalignment='left',fontsize=8)
+                texts.append(ax.text(source_Chi+this_X_offset, source_Elevation, str(this_source), style='italic',
+                        verticalalignment='bottom', horizontalalignment='left',fontsize=8))
+                
         
         sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskSource,norm=cNorm,cmap=this_cmap,edgecolors='none')
         this_X_offset = this_X_offset+X_offset
-        
+     
+    adjust_text(texts) 
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
