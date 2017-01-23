@@ -177,6 +177,30 @@ class LSDMap_PointData(object):
             
         return easting,northing
 
+    def GetUTMEastingNorthingFromQuery(self,EPSG_string,Latitude_string,Longitude_string):
+        
+        print "Yo, getting this stuff: "+EPSG_string
+        # The lat long are in epsg 4326 which is WGS84
+        inProj = Proj(init='epsg:4326')
+        outProj = Proj(init=EPSG_string)
+        
+        
+        this_Lat = self.QueryData(Latitude_string)
+        this_Lon = self.QueryData(Longitude_string)
+
+        
+        easting =[]
+        northing = []
+        
+        for idx, Lon in enumerate(this_Lon):
+            Lat = this_Lat[idx]
+            ea,no = transform(inProj,outProj,Lon,Lat)
+            easting.append(ea)
+            northing.append(no)
+            
+        return easting,northing
+
+        
     
 ##==============================================================================
 ##==============================================================================

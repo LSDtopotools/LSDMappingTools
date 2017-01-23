@@ -14,10 +14,89 @@ from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
 from matplotlib import rcParams
+from adjust_text import adjust_text
 import LSDMap_GDALIO as LSDMap_IO
 import LSDMap_BasicManipulation as LSDMap_BM
-import LSDOSystemTools as LSDOst
 from scipy import misc
+import LSDMap_PointData as LSDMap_PD 
+import matplotlib.pyplot as plt
+
+#==============================================================================
+# This formats ticks if you want to convert metres to km
+#==============================================================================
+def TickConverter(x_min,x_max,n_target_tics):
+    dx_fig = x_max-x_min
+    dx_spacing = dx_fig/n_target_tics
+    #print("spacing: "+str(dx_spacing))
+
+    # This extracts the digits before the full stop
+    str_dx = str(dx_spacing)
+    str_dx = str_dx.split('.')[0]
+    n_digits = str_dx.__len__()
+    nd = int(n_digits)
+    # We are left with the number of digits in the spacing. This will be used
+    # to round tick locations
+        
+    first_digit = float(str_dx[0])
+       
+    dx_spacing_rounded = first_digit*pow(10,(nd-1))
+    #print("dx spacing is: " + str(dx_spacing_rounded))
+ 
+    str_xmin = str(x_min)
+    #print("before split str_xmin: "+ str_xmin)
+    str_xmin = str_xmin.split('.')[0]
+    #print("after split str_xmin: "+ str_xmin)
+    x_min = float(str_xmin)
+    #print("x_min: "+ str(x_min))
+    
+    n_digx = str_xmin.__len__() 
+      
+    if (n_digx-nd+1) >= 1:
+        front_x = str_xmin[:(n_digx-nd+1)]
+    else:
+        front_x = str_xmin
+        
+    round_xmin = float(front_x)*pow(10,nd-1)
+    #print("round xmin is: " + str(round_xmin))
+    if round_xmin <0:
+        round_xmin = 0
+
+    # now we need to figure out where the xllocs and ylocs are
+    xlocs = np.zeros(2*n_target_tics) 
+    xlocs_km = np.zeros(2*n_target_tics) 
+    new_x_labels = []
+
+    for i in range(0,2*n_target_tics):
+        xlocs[i] = round_xmin+(i)*dx_spacing_rounded       
+        xlocs_km[i] = xlocs[i]/1000.0      
+        new_x_labels.append( str(xlocs_km[i]).split(".")[0] )
+
+    #print xlocs
+    #print new_x_labels
+    #print new_y_labels
+
+    new_xlocs = []
+    new_xlocs_km = []
+    x_labels = []
+
+    # Now loop through these to get rid of those not in range
+    for index,xloc in enumerate(xlocs):
+        #print xloc
+        if (xloc <= x_max and xloc >= x_min):
+            new_xlocs.append(xloc)
+            new_xlocs_km.append(xlocs_km[index])
+            x_labels.append(new_x_labels[index])
+ 
+            
+    #print "======================================="
+    #print "I am getting the tick marks now"    
+    #print "X extent: " + str(x_min)+ " " +str(x_max)
+    #print "x ticks: "
+    #print new_xlocs
+    #print x_labels
+   
+    #return xlocs,ylocs,new_x_labels,new_y_labels
+    return new_xlocs,x_labels
 
 
 #==============================================================================
@@ -255,7 +334,7 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "I don't think I should be here"
-        im.set_clim(0, np.max(raster))
+        im.set_clim(0, np.nanmax(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im.set_clim(clim_val[0],clim_val[1])
@@ -352,7 +431,7 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "I don't think I should be here"
-        im.set_clim(0, np.max(raster))
+        im.set_clim(0, np.nanmax(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im.set_clim(clim_val[0],clim_val[1])
@@ -408,31 +487,11 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
     gs = plt.GridSpec(100,75,bottom=0.1,left=0.1,right=0.9,top=1.0)
     ax = fig.add_subplot(gs[10:100,10:75])
 
-    #grid = AxesGrid(fig, 111,  # similar to subplot(144)
-    #                nrows_ncols=(1, 1),
-    #                axes_pad=(0.8, 0.3),
-    #                label_mode="1",
-    #                share_all=True,
-    #                cbar_location="right",
-    #                cbar_mode="each",
-    #                cbar_size="7%",
-    #                cbar_pad="2%",
-    #                )
-
-
     # now get the tick marks    
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
 
-
-    #print "xmax: " + str(x_max)
-    #print "xmin: " + str(x_min)
-    #print "ymax: " + str(y_max)
-    #print "ymin: " + str(y_min)
-
-
     im = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
-    #im = grid[0].imshow(raster, thiscmap, interpolation="nearest")
 
     cbar = plt.colorbar(im)
     cbar.set_label(colorbarlabel) 
@@ -441,7 +500,7 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
     #print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         #print "I don't think I should be here"
-        im.set_clim(0, np.max(raster))
+        im.set_clim(0, np.nanmax(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im.set_clim(clim_val[0],clim_val[1])
@@ -526,35 +585,9 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     gs = plt.GridSpec(100,75,bottom=0.1,left=0.1,right=0.9,top=1.0)
     ax = fig.add_subplot(gs[10:100,10:75])
 
-    #grid = AxesGrid(fig, 111, 
-    #                nrows_ncols=(1, 1),
-    #                axes_pad=(0.45, 0.15),
-    #                label_mode="1",
-    #                share_all=True,
-    #                cbar_location="right",
-    #                cbar_mode="each",
-    #                cbar_size="7%",
-    #                cbar_pad="2%",
-    #                )
-
-
     # now get the tick marks    
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
-
-
-    print "xmax: " + str(x_max)
-    print "xmin: " + str(x_min)
-    print "ymax: " + str(y_max)
-    print "ymin: " + str(y_min)
-
-
-    #Z1 = np.array(([0, 1]*4 + [1, 0]*4)*4)
-    #Z1.shape = (8, 8)  # chessboard
-    #im2 = ax.imshow(Z1, cmap=plt.cm.gray, interpolation='nearest',
-    #             extent=extent_raster)  
- 
-    #plt.hold(True)
 
     im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     
@@ -565,7 +598,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "Im setting colour limits based on minimum and maximum values"
-        im1.set_clim(0, np.max(raster))
+        im1.set_clim(0, np.nanmax(raster))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im1.set_clim(clim_val[0],clim_val[1])
@@ -577,7 +610,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
 
     # Set the colour limits of the drape
-    im3.set_clim(0,np.max(raster_drape))
+    im3.set_clim(0,np.nanmax(raster_drape))
     
     
     ax.spines['top'].set_linewidth(1.5)
@@ -623,11 +656,12 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
 #==============================================================================
 def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
-                            drape_alpha = 0.6, ShowColorbar = False):
+                            drape_alpha = 0.6, ShowColorbar = False, 
+                            ShowDrapeColorbar=False, drape_cbarlabel=None):
     
     import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
-    from mpl_toolkits.axes_grid1 import AxesGrid
+    from mpl_toolkits.axes_grid1 import AxesGrid, make_axes_locatable
 
     label_size = 20
     #title_size = 30
@@ -640,7 +674,19 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
 
     hillshade = Hillshade(FileName) 
     #hillshade = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
-    raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
+    
+    # DAV - option to supply array directly (after masking for example, rather
+    # than reading directly from a file. Should not break anyone's code)
+    # (You can't overload functions in Python...)
+    if isinstance(DrapeName, str):
+      raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
+    elif isinstance(DrapeName, np.ndarray):
+      raster_drape = DrapeName
+    else:
+      print "DrapeName supplied is of type: ", type(DrapeName)
+      raise ValueError('DrapeName must either be a string to a filename, \
+      or a numpy ndarray type. Please try again.')
+    
     
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
@@ -664,6 +710,12 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
                         cbar_size="7%",
                         cbar_pad="2%",
                         )
+                        
+    #ShowDrapeColorbar = True                    
+    #if ShowDrapeColorbar and ShowColorbar:
+      #divider = make_axes_locatable(fig)
+      #cax = divider.append_axes("right", size = "5%", pad=0.05)
+      
     else:
         grid = AxesGrid(fig, 111, 
                         nrows_ncols=(1, 1),
@@ -684,26 +736,29 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
     print "ymin: " + str(y_min)
 
 
-    im1 = grid[0].imshow(hillshade[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
+    im = grid[0].imshow(hillshade[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     #im = grid[0].imshow(raster, thiscmap, interpolation="nearest")
     if ShowColorbar:
-        cbar = grid.cbar_axes[0].colorbar(im1)
+        cbar = grid.cbar_axes[0].colorbar(im)
         cbar.set_label_text(colorbarlabel)
     
     # set the colour limits
     print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
         print "I don't think I should be here"
-        im1.set_clim(0, np.max(hillshade))
+        im.set_clim(0, np.nanmax(hillshade))
     else:
         print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
-        im1.set_clim(clim_val[0],clim_val[1])
+        im.set_clim(clim_val[0],clim_val[1])
     
     # Now for the drape: it is in grayscape
-    im2 = grid[0].imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
+    im2 = grid[0].imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="none")
       
-    # Set the colour limits of the drape
-    im2.set_clim(0,np.max(raster_drape))    
+    if ShowDrapeColorbar:
+      cbar2 = grid.cbar_axes[0].colorbar(im2)
+      cbar2.set_label_text(drape_cbarlabel)
+      
+      #plt.colorbar(im)
 
     # This affects all axes because we set share_all = True.
     grid.axes_llc.set_xlim(x_min,x_max)    
@@ -722,11 +777,312 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
 
 #==============================================================================
 
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function plots the chi slope on a shaded relief map
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_cmap='gray',
+                            colorbarlabel='Basin number',clim_val = (0,0),
+                            drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
+                            elevation_threshold = 0):
+    label_size = 10
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size 
+
+    # get the data
+    raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
+    raster_HS = LSDMap_IO.ReadRasterArrayBlocks(HSName)
+    raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
+
+    # now get the extent
+    extent_raster = LSDMap_IO.GetRasterExtent(FileName)
+    
+    x_min = extent_raster[0]
+    x_max = extent_raster[1]
+    y_min = extent_raster[2]
+    y_max = extent_raster[3]
+
+    # make a figure, sized for a ppt slide
+    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+    
+    # This is the axis for the colorbar
+    ax2 = fig.add_subplot(gs[10:15,15:70])
+
+    # now get the tick marks    
+    n_target_tics = 5
+    xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
+    im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
+    
+    # set the colour limits
+    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    if (clim_val == (0,0)):
+        print "Im setting colour limits based on minimum and maximum values"
+        im1.set_clim(0, np.nanmax(raster))
+    else:
+        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        im1.set_clim(clim_val[0],clim_val[1])
+   
+    plt.hold(True)
+   
+    # Now for the drape: it is in grayscale
+    #print "drape_cmap is: "+drape_cmap
+    HS_cmap = 'gray'
+    im2 = ax.imshow(raster_HS[::-1], HS_cmap, extent = extent_raster, alpha = 0.4, interpolation="nearest")
+
+    # Set the colour limits of the drape
+    im2.set_clim(0,np.nanmax(raster_HS))
+
+    # Now for the drape: it is in grayscale
+    #print "drape_cmap is: "+drape_cmap
+    im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")    
+
+    # Set the colour limits of the drape
+    im3.set_clim(0,np.nanmax(raster_drape))
+        
+    ax.spines['top'].set_linewidth(1)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['right'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1) 
+   
+    ax.set_xticklabels(new_x_labels,rotation=60)
+    ax.set_yticklabels(new_y_labels)  
+    
+    ax.set_xlabel("Easting (m)")
+    ax.set_ylabel("Northing (m)")  
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)    
+
+    # This affects all axes because we set share_all = True.
+    ax.set_xlim(x_min,x_max)    
+    ax.set_ylim(y_max,y_min)     
+
+    ax.set_xticks(xlocs)
+    ax.set_yticks(ylocs)   
+ 
+    cbar = plt.colorbar(im3,cmap=drape_cmap,spacing='uniform', orientation='horizontal',cax=ax2)
+    cbar.set_label(colorbarlabel, fontsize=10)
+    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)        
+    
+    print "The figure format is: " + FigFormat
+    if FigFormat == 'show':    
+        plt.show()
+    elif FigFormat == 'return':
+        return fig 
+    else:
+        plt.savefig(FigFileName,format=FigFormat,dpi=500)
+        fig.clf()
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function plots the chi slope on a shaded relief map
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscmap='gray',drape_cmap='gray',
+                             clim_val = (0,0), drape_alpha = 0.6,FigFileName = 'Image.pdf',
+                             FigFormat = 'show',elevation_threshold = 0, 
+                             grouped_basin_list = [], basin_rename_list = [],spread  = 20,chan_net_csv = "None"):
+
+    label_size = 10
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size 
+
+    # get the data
+    raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
+    raster_HS = LSDMap_IO.ReadRasterArrayBlocks(HSName)
+    raster_drape = LSDMap_IO.ReadRasterArrayBlocks(BasinName)
+    
+    # now get the extent
+    extent_raster = LSDMap_IO.GetRasterExtent(FileName)
+    
+    x_min = extent_raster[0]
+    x_max = extent_raster[1]
+    y_min = extent_raster[2]
+    y_max = extent_raster[3]
+    
+    x_range = x_max-x_min
+    y_range = y_max-y_min
+    
+    # make a figure, sized for a ppt slide
+    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+    
+    # now get the tick marks    
+    n_target_tics = 5
+    xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
+    im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
+    
+    # set the colour limits
+    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    if (clim_val == (0,0)):
+        print "Im setting colour limits based on minimum and maximum values"
+        im1.set_clim(0, np.nanmax(raster))
+    else:
+        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        im1.set_clim(clim_val[0],clim_val[1])
+   
+    plt.hold(True)
+   
+    # Now for the drape: it is in grayscale
+    #print "drape_cmap is: "+drape_cmap
+    HS_cmap = 'gray'
+    im2 = ax.imshow(raster_HS[::-1], HS_cmap, extent = extent_raster, alpha = 0.4, interpolation="nearest")
+
+    # Set the colour limits of the drape
+    im2.set_clim(0,np.nanmax(raster_HS))
+
+    # now we need to update the basin colours
+    # this groups basins
+    if grouped_basin_list:       
+        key_groups = LSDMap_BM.BasinKeyToJunction(grouped_basin_list,Basin_csv_name)
+        raster_drape = LSDMap_BM.RedefineIntRaster(raster_drape,key_groups,spread)
+        
+
+    # Now for the drape: it is in grayscale
+    #print "drape_cmap is: "+drape_cmap
+    im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")    
+
+    # Set the colour limits of the drape
+    im3.set_clim(0,np.nanmax(raster_drape))
+
+    #========================================================
+    # now we need to label the basins
+    # Now we get the chi points
+    EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
+    print "EPSG string is: " + EPSG_string
+ 
+    # Now plot channel data
+    if chan_net_csv != "None":
+        chanPointData = LSDMap_PD.LSDMap_PointData(chan_net_csv) 
+    
+        # convert to easting and northing
+        [easting_c,northing_c] = chanPointData.GetUTMEastingNorthing(EPSG_string)
+ 
+        # The image is inverted so we have to invert the northing coordinate
+        Ncoord_c = np.asarray(northing_c)
+        Ncoord_c = np.subtract(extent_raster[3],Ncoord_c)
+        Ncoord_c = np.add(Ncoord_c,extent_raster[2])
+
+        # plot the rivers
+        ax.scatter(easting_c,Ncoord_c,s=0.2, marker='.',color= 'b',alpha=0.2)        
+
+
+   
+    thisPointData = LSDMap_PD.LSDMap_PointData(Basin_csv_name) 
+    
+    # convert to easting and northing
+    [easting,northing] = thisPointData.GetUTMEastingNorthingFromQuery(EPSG_string,"outlet_latitude","outlet_longitude")
+ 
+    # The image is inverted so we have to invert the northing coordinate
+    Ncoord = np.asarray(northing)
+    Ncoord = np.subtract(extent_raster[3],Ncoord)
+    Ncoord = np.add(Ncoord,extent_raster[2])
+    
+    these_data = thisPointData.QueryData("outlet_junction")
+    #print M_chi
+    these_data = [int(x) for x in these_data]
+
+    # plot the centroids
+    ax.scatter(easting,Ncoord,s=1, marker='o',color= 'r',alpha=0.7)
+    
+    # add a load of xmin, xmax points
+    buffered_east = []
+    buffered_north = []
+    
+    for loc in easting:
+        buffered_east.append(loc)
+        buffered_east.append(loc)
+        buffered_east.append(loc)
+        buffered_east.append(extent_raster[0])
+        buffered_east.append(extent_raster[1])
+    
+    for loc in Ncoord:
+        buffered_north.append(loc)
+        buffered_north.append(extent_raster[2]) 
+        buffered_north.append(extent_raster[3]) 
+        buffered_north.append(loc) 
+        buffered_north.append(loc) 
+        
+    
+    
+    # add text
+    texts = []
+    for index, datum in enumerate(these_data):
+        this_easting = easting[index]
+        this_northing = Ncoord[index]
+        
+        # Check to see if basins rename list works
+        if basin_rename_list:
+            if len(basin_rename_list) == len(these_data):
+                texts.append(ax.text(this_easting,this_northing, str(basin_rename_list[index]),fontsize = 8, color= "r",alpha=0.7))
+        else:
+            texts.append(ax.text(this_easting,this_northing, str(index),fontsize = 8, color= "r",alpha=0.7))
+    adjust_text(texts,x=buffered_east,y=buffered_north,autoalign='xy',ax=ax)
+ 
+
+ 
+    # Now to fix up the axes 
+    ax.spines['top'].set_linewidth(1)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['right'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1) 
+   
+    ax.set_xticklabels(new_x_labels,rotation=60)
+    ax.set_yticklabels(new_y_labels)  
+    
+    ax.set_xlabel("Easting (m)")
+    ax.set_ylabel("Northing (m)")  
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)    
+
+    # This affects all axes because we set share_all = True.
+    ax.set_xlim(x_min,x_max)    
+    ax.set_ylim(y_max,y_min)     
+
+    ax.set_xticks(xlocs)
+    ax.set_yticks(ylocs)   
+    
+    print "The figure format is: " + FigFormat
+    if FigFormat == 'show':    
+        plt.show()
+    elif FigFormat == 'return':
+        return fig 
+    else:
+        plt.savefig(FigFileName,format=FigFormat,dpi=500)
+        fig.clf()
+
+    
+        
 #==============================================================================
 # Make a simple hillshade plot
 def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -9999): 
     
-    array = LSDMap_IO.ReadRasterArrayBlocks(raster_file,raster_band=1)    
+    # You have passed a filepath to be read in as a raster
+    if isinstance(raster_file, str):
+      array = LSDMap_IO.ReadRasterArrayBlocks(raster_file,raster_band=1)  
+    
+    # You already have an array and just want the hill shade
+    elif isinstance(raster_file, np.ndarray):
+      array = raster_file
+    else:
+        print "raster_file must be either a filepath (string) or a numpy array. Try again."
+    
+    # DAV attempting mask nodata vals
+    nodata_mask = array == NoDataValue
+    array[nodata_mask] = np.nan
     
     x, y = np.gradient(array)
     slope = np.pi/2. - np.arctan(np.sqrt(x*x + y*y))
@@ -819,7 +1175,27 @@ def round_to_n(x, n):
     return float(as_string)
 #==============================================================================
 
-
-
-
-
+def init_plotting_DV():
+    plt.rcParams['figure.figsize'] = (8, 8)
+    plt.rcParams['font.size'] = 17
+    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['axes.labelsize'] = 1.2*plt.rcParams['font.size']
+    plt.rcParams['axes.titlesize'] = 1.2*plt.rcParams['font.size']
+    plt.rcParams['legend.fontsize'] = plt.rcParams['font.size']
+    plt.rcParams['xtick.labelsize'] = plt.rcParams['font.size']
+    plt.rcParams['ytick.labelsize'] = plt.rcParams['font.size']
+    plt.rcParams['savefig.dpi'] = 2*plt.rcParams['savefig.dpi']
+    plt.rcParams['xtick.major.size'] = 3
+    plt.rcParams['xtick.minor.size'] = 3
+    plt.rcParams['xtick.major.width'] = 1
+    plt.rcParams['xtick.minor.width'] = 1
+    plt.rcParams['ytick.major.size'] = 3
+    plt.rcParams['ytick.minor.size'] = 3
+    plt.rcParams['ytick.major.width'] = 1
+    plt.rcParams['ytick.minor.width'] = 1
+    plt.rcParams['legend.frameon'] = True
+    plt.rcParams['legend.loc'] = 'center left'
+    plt.rcParams['axes.linewidth'] = 1
+    plt.rcParams['xtick.minor.visible'] = False
+    plt.rcParams['ytick.minor.visible'] = False
+    plt.rcParams['lines.linewidth'] = 2

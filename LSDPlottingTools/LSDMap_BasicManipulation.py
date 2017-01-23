@@ -107,6 +107,100 @@ def ConvertAllCSVToShapefile(path):
         thisPointData.TranslateToReducedShapefile(FileName)   
 
 #==============================================================================
+# This takes a grouping list of basin keys and transforms it into a list
+# of junction names
+#==============================================================================
+def BasinKeyToJunction(grouped_data_list,basin_info_csv):
+    
+    thisPointData = LSDMPD.LSDMap_PointData(basin_info_csv)
+    
+    thisJunctionData = thisPointData.QueryData("outlet_junction")
+    
+    junction_grouped_list = []
+
+    if not grouped_data_list:
+        return grouped_data_list
+    else:
+        for group in grouped_data_list:
+            this_list = []
+            for element in group:
+                this_list.append(thisJunctionData[element])
+            junction_grouped_list.append(this_list)
+
+    print junction_grouped_list 
+    return junction_grouped_list
+    
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function orders basins in a sequence, so that plots can be made
+## as a function of distance, for example
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
+def BasinOrderer(Basin_csv_name, FileName, criteria_string,reverse=False, 
+                 exclude_criteria_string = "None", exlude_criteria_greater = False, 
+                 exclude_criteria_value = 0 ):        
+
+    #========================================================
+    # now we need to label the basins
+    # Now we get the chi points
+    EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
+    print "EPSG string is: " + EPSG_string
+    
+    thisPointData = LSDMPD.LSDMap_PointData(Basin_csv_name) 
+    
+    # convert to easting and northing
+    [easting,northing] = thisPointData.GetUTMEastingNorthingFromQuery(EPSG_string,"outlet_latitude","outlet_longitude")
+ 
+    these_data = thisPointData.QueryData("outlet_junction")
+    #print M_chi
+    these_data = [int(x) for x in these_data]
+
+    wanted_data = thisPointData.QueryData(criteria_string)
+    wd = np.asarray(wanted_data)
+
+    # Now we exclude some of the basins
+    #if exclude_criteria_string != "None":
+    #    exclude_data = thisPointData.QueryData(exclude_criteria_string)
+        
+    indices = np.argsort(wd)
+    
+    print("data is: ")
+    print wd
+
+    if reverse:
+        indices = indices[::-1]
+           
+    sorted_basins = np.array(these_data)[indices]
+
+
+    print sorted_basins       
+
+
+#==============================================================================
+# This function takes groups of data and then resets values in a
+# raster to mimic these values
+#============================================================================== 
+def RedefineIntRaster(rasterArray,grouped_data_list,spread):
+    
+    counter = 0
+    if not grouped_data_list:
+        return rasterArray
+    else:
+        for group in grouped_data_list:
+            for element in group:
+                rasterArray[rasterArray == element] = counter
+                counter= counter+1
+                            
+            counter = counter+spread
+    return rasterArray
+            
+            
+    
+    
+
+    # You need to manipulate the groupings 
+
+
+
+#==============================================================================
 # This does a basic mass balance. 
 # Assumes all units are metres
 #==============================================================================         

@@ -8,6 +8,7 @@
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 from glob import glob
+import os.path
 import numpy as np
 import matplotlib.pyplot as pp
 import string
@@ -218,9 +219,9 @@ def flood_maps_with_shapefile(DataDirectory):
     rcParams['font.size'] = 8
     
     # Read in the files for each site
-    HSFiles = sorted(glob(DataDirectory+'*_HS*.bil'), key=str)
-    FPFiles = sorted(glob(DataDirectory+'*_FIPs_FP*.shp'), key=str)
-    PointFiles = sorted(glob(DataDirectory+'*_FIPs_MP*.shp'), key=str)
+    HSFiles = sorted(glob(DataDirectory+'*_HS.bil'), key=str)
+    FPFiles = sorted(glob(DataDirectory+'*_FIPs_FP.shp'), key=str)
+    PointFiles = sorted(glob(DataDirectory+'*_FIPs.shp'), key=str)
       
     n_files = len(FPFiles)
     print "Number of files = ", n_files
@@ -229,8 +230,8 @@ def flood_maps_with_shapefile(DataDirectory):
     fig, ax = pp.subplots(1,2, figsize=(cm2inch(12),cm2inch(7)))
     ax = ax.ravel()
     
-    # get a list with letters for figure labelling
-    alphabet = list(string.ascii_lowercase)
+    #get a list with the figure letterings
+    figure_letter = ["a", "b"]
     
     for i in range (n_files):
         
@@ -257,22 +258,22 @@ def flood_maps_with_shapefile(DataDirectory):
         # plot the floodplain shapefile using fiona and descartes
         with collection(FPFiles[i], 'r') as input:
             for f in input:
-                ax[i].add_patch(PolygonPatch(f['geometry'], fc='blue', ec='k', lw=0.1, alpha=0.7))
+                ax[i].add_patch(PolygonPatch(f['geometry'], fc='blue', ec='k'))
         
         #plot the mapped points
         with collection(PointFiles[i],'r') as input:
             for point in input:
                 x = point['geometry']['coordinates'][0]
                 y = point['geometry']['coordinates'][1]
-                ax[i].scatter(x,y, c="red", s=15, lw=0.8, zorder=100)
+                ax[i].scatter(x,y, c="red", s=15)
      
-        ax[i].text(-0.1,1.05, alphabet[i], horizontalalignment='left', verticalalignment='top', fontsize = 10, transform=ax[i].transAxes)
+        ax[i].text(0.03,0.97, figure_letter[i], bbox=dict(facecolor='white', edgecolor='k', pad=3), horizontalalignment='left', verticalalignment='top', fontsize = 8, transform=ax[i].transAxes)
         
         #change ticks
         xlocs = ax[i].xaxis.get_ticklocs()
         ylocs = ax[i].yaxis.get_ticklocs()
     
-        n_target_tics = 10
+        n_target_tics = 7
         new_xlocs,new_ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(HSFiles[i],xlocs.max(),xlocs.min(),ylocs.max(),ylocs.min(),n_target_tics)
 
         ax[i].set_xticklabels(new_x_labels, rotation=30)
@@ -297,32 +298,252 @@ def flood_maps_with_shapefile(DataDirectory):
     OutputFigureFormat = 'pdf'
     pp.savefig(DataDirectory+OutputFigureName + '.' + OutputFigureFormat, format=OutputFigureFormat, dpi=300)
 
-#==============================================================================
-#    Zoom in test
-#    FJC 06/01/17
-#------------------------------------------------------------------------------ 
 
-def flood_maps_shapefile_with_zoom(DataDirectory):
+def findmaxval_multirasters(FileList):
+    """
+    Loops through a list or array of rasters (np arrays)
+    and finds the maximum single value in the set of arrays.
+    """
+    overall_max_val = 0
+    
+    for i in range (len(FileList)):
         
-    # Set up fonts
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = 8
+        raster_as_array = LSDMap_IO.ReadRasterArrayBlocks(FileList[i])
+        this_max_val = np.max(raster_as_array)
+        
+        if this_max_val > overall_max_val:
+            overall_max_val = this_max_val
+            print overall_max_val
+            
+    return overall_max_val
     
-    # Read in the files for each site
-    HSFile = DataDirectory+"Bailey_FIPs_HS.bil"
-    
-    hillshade_raster = LSDMap_IO.ReadRasterArrayBlocks(HSFile)
-    # now get the extent
-    extent_raster = LSDMap_IO.GetRasterExtent(HSFile) 
-    
-    # get DEM info
-    CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(HSFile)
-    print XMin, XMax, YMin, YMax
-         
-    # Now make the subplots
-    fig, ax = pp.subplots(2,1, figsize=(cm2inch(7),cm2inch(12)))
-    ax = ax.ravel()
 
- 
+def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, 
+                        drape_min_threshold=None, drape_max=None, cbar_label=None):
+    """
+    @author DV, after FJC's function above
     
+    Plots flood extents from water depth rasters
+    draped over the catchment elevation raster
+    in a series of subplots
+    
+    Takes a wildcard for the drapes
+    Expexts a fixed elevation raster, but this could be
+    modified in future.
+    
+    Thought: consider, if plotting multiple datasets, how you
+    are going to deal with min a max values in the colur range.
+    imshow will automatically set vmin and vmax and stretch the colour bar 
+    over this - which can be visually misleading. Ideally, you
+    want to have the same colour map used for *all* subplots, and 
+    this is not default behaviour.
+    
+    
+    """
+    import lsdmatplotlibextensions as mplext
+    
+    f, ax_arr = pp.subplots(2, 2, figsize=(10, 5), sharex=True, sharey=True)
+    ax_arr = ax_arr.ravel()
+    
+    FPFiles = sorted(glob(DataDir+DrapeRasterWild), key=str)
+    n_files = len(FPFiles)
+    print "Number of files = ", n_files
+    
+    elev_raster_file = DataDir + ElevationRaster
+    
+    hillshade = LSDMap_BP.Hillshade(elev_raster_file)
+    #hillshade_array = LSDP.ReadRasterArrayBlocks(elev_raster_file)
+    
+    # now get the extent
+    extent_raster = LSDMap_IO.GetRasterExtent(elev_raster_file)
+    
+    x_min = extent_raster[0]
+    x_max = extent_raster[1]
+    y_min = extent_raster[2]
+    y_max = extent_raster[3]
+
+    # now get the tick marks    
+    n_target_tics = 5
+    xlocs,ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(elev_raster_file,x_max,x_min,y_max,y_min,n_target_tics)  
+
+    print "xmax: " + str(x_max)
+    print "xmin: " + str(x_min)
+    print "ymax: " + str(y_max)
+    print "ymin: " + str(y_min)
+    
+    """
+    Find the maximum water depth in all rasters.
+    You need this to normalize the colourscale accross
+    all plots when teh imshow is done later.
+    """
+
+    try:
+        print "Calculating max drape raster value by scanning rasters..."
+        max_water_depth = findmaxval_multirasters(FPFiles)
+        drape_max = max_water_depth
+        
+    except:
+        print "Something went wrong trying to obtain the max value in \
+                your drape raster file list."
+    finally:
+        print "The drape(s) max value is set to: ", drape_max 
+    
+    
+    #im = mpimg.AxesImage()   
+    
+    for i in range(n_files):
+        
+        print "The floodplain file name is: ", FPFiles[i]
+        FP_raster = LSDMap_IO.ReadRasterArrayBlocks(FPFiles[i])
+        #FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
+        
+        filename = os.path.basename(FPFiles[i])
+        title = mplext.labels.make_line_label(filename)
+        print title
+        
+        low_values_index = FP_raster < drape_min_threshold
+        FP_raster[low_values_index] = np.nan
+        
+        im = ax_arr[i].imshow(hillshade, "gray", extent=extent_raster, interpolation="nearest")
+        """
+        Now we can set vmax to be the maximum water depth we calcualted earlier, making our separate
+        subplots all have the same colourscale
+        """
+        im = ax_arr[i].imshow(FP_raster, cmap, extent=extent_raster, 
+                                alpha=1.0, interpolation="nearest", 
+                                vmin=drape_min_threshold, 
+                                vmax=drape_max)
+        ax_arr[i].set_title(title)
+        pp.setp( ax_arr[i].xaxis.get_majorticklabels(), rotation=70 )
+ 
+    f.subplots_adjust(right=0.85)
+    cax = f.add_axes([0.9, 0.1, 0.03, 0.8])
+    
+    cbar = f.colorbar(im, cax=cax) 
+    cbar.set_label(cbar_label)
+    #cbar.set_ticks(np.linspace(0, 8, 8))
+    #cbar = mplext.colours.colorbar_index(f, cax, 8, cmap, 
+    #                                     drape_min_threshold, drape_max)
+
+    #tick_locator = ticker.MaxNLocator(nbins=8)
+    #cbar.locator = tick_locator
+    #cbar.update_ticks()
+    
+    f.text(0.5, 0.04, 'Easting (m)', ha='center', fontsize=17)
+    f.text(0.04, 0.5, 'Northing (m)', va='center', rotation='vertical', fontsize=17)
+
+
+def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, 
+                        drape_min_threshold=None, drape_max=None, cbar_label=None,
+                        drape_max_threshold=None):
+    """
+    @author DV, after FJC's function above
+    
+    Plots flood extents from water depth rasters
+    draped over the catchment elevation raster
+    in a series of subplots
+    
+    Takes a wildcard for the drapes
+    Expexts a fixed elevation raster, but this could be
+    modified in future.
+    
+    Thought: consider, if plotting multiple datasets, how you
+    are going to deal with min a max values in the colur range.
+    imshow will automatically set vmin and vmax and stretch the colour bar 
+    over this - which can be visually misleading. Ideally, you
+    want to have the same colour map used for *all* subplots, and 
+    this is not default behaviour.
+    
+    
+    """
+    import lsdmatplotlibextensions as mplext
+    
+    f, ax_arr = pp.subplots(2, 2, figsize=(10, 5), sharex=True, sharey=True)
+    ax_arr = ax_arr.ravel()
+    
+    FPFiles = sorted(glob(DataDir+DrapeRasterWild), key=str)
+    n_files = len(FPFiles)
+    print "Number of files = ", n_files
+    
+    elev_raster_file = DataDir + ElevationRaster
+    
+    hillshade = LSDMap_BP.Hillshade(elev_raster_file)
+    #hillshade_array = LSDP.ReadRasterArrayBlocks(elev_raster_file)
+    
+    # now get the extent
+    extent_raster = LSDMap_IO.GetRasterExtent(elev_raster_file)
+    
+    x_min = extent_raster[0]
+    x_max = extent_raster[1]
+    y_min = extent_raster[2]
+    y_max = extent_raster[3]
+
+    # now get the tick marks    
+    n_target_tics = 5
+    xlocs,ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(elev_raster_file,x_max,x_min,y_max,y_min,n_target_tics)  
+
+    print "xmax: " + str(x_max)
+    print "xmin: " + str(x_min)
+    print "ymax: " + str(y_max)
+    print "ymin: " + str(y_min)
+    
+    """
+    Find the maximum water depth in all rasters.
+    You need this to normalize the colourscale accross
+    all plots when teh imshow is done later.
+    """
+
+    try:
+        print "Calculating max drape raster value by scanning rasters..."
+        max_water_depth = findmaxval_multirasters(FPFiles)
+        drape_max = max_water_depth
+        
+    except:
+        print "Something went wrong trying to obtain the max value in \
+                your drape raster file list."
+    finally:
+        print "The drape(s) max value is set to: ", drape_max 
+    
+    
+    #im = mpimg.AxesImage()   
+    
+    for i in range(n_files):
+        
+        print "The floodplain file name is: ", FPFiles[i]
+        FP_raster = LSDMap_IO.ReadRasterArrayBlocks(FPFiles[i])
+        #FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
+        
+        filename = os.path.basename(FPFiles[i])
+        title = mplext.labels.make_line_label(filename)
+        print title
+        
+        low_values_index = FP_raster > drape_max_threshold
+        FP_raster[low_values_index] = np.nan
+        
+        im = ax_arr[i].imshow(hillshade, "gray", extent=extent_raster, interpolation="nearest")
+        """
+        Now we can set vmax to be the maximum water depth we calcualted earlier, making our separate
+        subplots all have the same colourscale
+        """
+        im = ax_arr[i].imshow(FP_raster, cmap, extent=extent_raster, 
+                                alpha=1.0, interpolation="nearest", 
+                                vmin=drape_min_threshold, 
+                                vmax=drape_max)
+        ax_arr[i].set_title(title)
+        pp.setp( ax_arr[i].xaxis.get_majorticklabels(), rotation=70 )
+ 
+    f.subplots_adjust(right=0.85)
+    cax = f.add_axes([0.9, 0.1, 0.03, 0.8])
+    
+    cbar = f.colorbar(im, cax=cax) 
+    cbar.set_label(cbar_label)
+    #cbar.set_ticks(np.linspace(0, 8, 8))
+    #cbar = mplext.colours.colorbar_index(f, cax, 8, cmap, 
+    #                                     drape_min_threshold, drape_max)
+
+    #tick_locator = ticker.MaxNLocator(nbins=8)
+    #cbar.locator = tick_locator
+    #cbar.update_ticks()
+    
+    f.text(0.5, 0.04, 'Easting (m)', ha='center', fontsize=17)
+    f.text(0.04, 0.5, 'Northing (m)', va='center', rotation='vertical', fontsize=17)
