@@ -536,7 +536,22 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
 def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
                 elevation_threshold = 0):
+    """This function plots the chi vs elevation: lumps everything onto the same axis. This tends to make a mess. 
 
+    Args:
+        param1: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        param2: FigFileName The name of the figure file
+        param3: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        param4: elevation_threshold chi points below this elevation are removed from plotting. 
+
+    Returns:
+        Does not return anything but makes a plot.
+        
+    Author: 
+        Simon M. Mudd
+
+    """
+    
 
     from matplotlib import colors
 
@@ -648,7 +663,24 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                        first_basin = 0, last_basin = 0,
                        basin_order_list = [],basin_rename_list = [],
                        X_offset = 5,label_sources = False):
+    """This function plots the chi vs elevation and colours the plot by the channel number. It stacks the chi profiles so they separate out and you can see each basin as a sequence. 
 
+    Args:
+        param1: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        param2: FigFileName The name of the figure file
+        param3: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        param4: elevation_threshold chi points below this elevation are removed from plotting. 
+
+    Returns:
+        Does not return anything but makes a plot.
+        
+    Author: 
+        Simon M. Mudd
+
+    """
+    
+    
+    
     from adjust_text import adjust_text
     from matplotlib import colors
     import matplotlib.patches as patches
