@@ -14,17 +14,15 @@ import matplotlib.pyplot as plt
 
 def ChiMappingToolsTest():
     #DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
-    DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
-    #DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
+    #DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
+    DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
     Base_file = "Mega_clip"
-    
     
     
     #DataDirectory = "/home/smudd/LSDTopoData/India/Southern_india/"
     #Base_file = "SIndia_clip"
     
-    
-    
+        
     bil = ".bil"
     
     #Filename = "Mega_clip.bil"
@@ -81,21 +79,25 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a very rudimentary plot of the chi profiles
-    #FigName3 =  DataDirectory+'ChiProfiles.png'    
-    #LSDP.ChiProfiles(ChiName, FigName3,'png',elevation_threshold) 
+    FigName3 =  DataDirectory+'ChiProfiles.png'
+    this_basins_list = [3,0,2,1]
+    basin_rename_list = []
+    #basin_rename_list =[1,3,2,0,4,5,8,6,7,9,10]    
+    LSDP.ChiProfiles(ChiName, FigName3,'png',elevation_threshold,this_basins_list,
+                            basin_rename_list,False) 
     #======================================
     
     #======================================
     # Uncomment this for a stack of chi plots
-    FigName4 =  DataDirectory+'ChiStackProfiles_Coloured.png'  
-    first_basin = 0
-    last_basin = 10
-    chi_offset = 10
-    this_basins_list = [3,0,2,1]
-    basin_rename_list =[1,3,2,0,4,5,8,6,7,9,10]
-    LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,
-                            first_basin,last_basin,this_basins_list,
-                            basin_rename_list,chi_offset,True)  
+    #FigName4 =  DataDirectory+'ChiStackProfiles_Coloured.png'  
+    #first_basin = 0
+    #last_basin = 10
+    #chi_offset = 10
+    #this_basins_list = [3,0,2,1]
+    #basin_rename_list =[1,3,2,0,4,5,8,6,7,9,10]
+    #LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,
+    #                        first_basin,last_basin,this_basins_list,
+    #                        basin_rename_list,chi_offset,True)  
     #======================================
     
     
@@ -120,12 +122,12 @@ def ChiMappingToolsTest():
     #======================================    
     # Uncomment this for a plot of the basins draped over a fancy hillshde map
     # with the basins annotated onto the figure
-    #FigName9 = DataDirectory+'NumberedBasinPlot.png'
-    #spread = 15
+    FigName9 = DataDirectory+'NumberedBasinPlot.png'
+    spread = 15
     #basin_rename_list = [1,3,2,0,4,5,8,6,7,9,10]
-    #LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
-    #                        (0,0), 0.4 ,FigName9,'png',
-    #                        elevation_threshold,Junction_list,basin_rename_list,spread,ChiName)  
+    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
+                            (0,0), 0.4 ,FigName9,'png',
+                            elevation_threshold,Junction_list,basin_rename_list,spread,ChiName)  
     #======================================    
     
     
