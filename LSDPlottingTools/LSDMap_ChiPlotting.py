@@ -401,7 +401,29 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0, data_name = 'source_key'):
-    
+    """This plots the channels over a draped plot, colour coded by source
+
+    Args:
+        param1: FileName The name (with full path and extension) of the DEM
+        param2: DrapenName The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
+        param3: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        param4: thiscmap The colourmap for the elevation raster
+        param5: thiscmap The colourmap for the drape raster
+        param6: colorbarlabel the text label on the colourbar. 
+        param7: clim_val The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
+        param8: drape_alpha The alpha value of the drape
+        param9: FigFileName The name of the figure file
+        param10: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        param11: elevation_threshold chi points below this elevation are removed from plotting. 
+        param12: data_name Doesn't do anything at the moment
+        
+    Returns:
+        Prints a plot to file.
+        
+    Author: 
+        Simon M. Mudd
+
+    """           
     from matplotlib import colors
     label_size = 10
 
@@ -458,13 +480,6 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
     ax.spines['bottom'].set_linewidth(1) 
-     
-    #ax.spines['bottom'].set_capstyle('projecting')
-
-    #for spine in ax.spines.values():
-    #    spine.set_capstyle('projecting')
-
-
     
     ax.set_xticklabels(new_x_labels,rotation=60)
     ax.set_yticklabels(new_y_labels)  
@@ -513,14 +528,6 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     ax.set_xticks(xlocs)
     ax.set_yticks(ylocs)   
     ax.set_title('Channels colored by source number')
-    #ax.text(1.1, 0.01, 'Channels colored by source number',
-    #    verticalalignment='top', horizontalalignment='right',
-    #    transform=ax.transAxes,
-    #    color='green', fontsize=15)
-    
-    #cbar = plt.colorbar(sc,cmap=this_cmap,norm=cNorm,spacing='uniform', orientation='horizontal',cax=ax2)
-    #cbar.set_label(colorbarlabel, fontsize=10)
-    #ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)    
 
     print "The figure format is: " + FigFormat
     if FigFormat == 'show':    
@@ -535,34 +542,49 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
 ## This function plots channels, color coded
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
 def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
+                basin_order_list = [],basin_rename_list = [],
+                label_sources = False,
                 elevation_threshold = 0):
+    """This function plots the chi vs elevation: lumps everything onto the same axis. This tends to make a mess. 
+ 
+     Args:
+         param1: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+         param2: FigFileName The name of the figure file
+         param3: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+         param4: elevation_threshold chi points below this elevation are removed from plotting. 
+ 
+    Returns:
+         Does not return anything but makes a plot.
+         
+    Author: 
+         Simon M. Mudd
+ 
+    """
 
-    import matplotlib.lines as mpllines
-    from mpl_toolkits.axes_grid1 import AxesGrid
     from matplotlib import colors
-
+    from adjust_text import adjust_text
+    
     label_size = 10
-    #title_size = 30
-    axis_size = 12
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size     
    
-
     # make a figure, sized for a ppt slide
     fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
 
     gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
-
-    # Now we get the chi points
-    #EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
-    #print "EPSG string is: " + EPSG_string
-    
+ 
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
+
+
+    # Logic for stacked labels
+    if label_sources:
+        source_info = FindSourceInformation(thisPointData)
+
     
     # Get the chi, m_chi, basin number, and source ID code
     chi = thisPointData.QueryData('chi')
@@ -577,10 +599,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     basin = [int(x) for x in basin] 
     source = thisPointData.QueryData('source_key')
     source = [int(x) for x in source]
-    
-    #print source
-    
- 
+
     # need to convert everything into arrays so we can mask different basins
     Chi = np.asarray(chi)
     Elevation = np.asarray(elevation)
@@ -603,29 +622,56 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     NUM_COLORS = 15
 
     this_cmap = plt.cm.Set1
-    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
-    #scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
-    Source_colors = [x % NUM_COLORS for x in Source]
-    
-    #print "The source colours!!"
-    #print Source_colours
-    
-    # create a mask
-    basin_number = 10
+    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)    
+    Basin_colors = [x % NUM_COLORS for x in Basin]
+
     
     dot_pos = FigFileName.rindex('.')
-    newFilename = FigFileName[:dot_pos]+'_'+str(basin_number)+FigFileName[dot_pos:]
+    newFilename = FigFileName[:dot_pos]+FigFileName[dot_pos:]
     print "newFilename: "+newFilename
-    
-    
-    m = np.ma.masked_where(Basin!=basin_number, Basin)
-    maskChi = np.ma.masked_where(np.ma.getmask(m), Chi)
-    maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
-    maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
-        
-    source_colors = [x % NUM_COLORS for x in maskSource]
 
-    sc = ax.scatter(maskChi,maskElevation,s=2.0, c=Source_colors,norm=cNorm,cmap=this_cmap,edgecolors='none')
+    texts = []  
+    for basin_number in basin_order_list:
+        
+        print ("This basin is: " +str(basin_number))
+
+        m = np.ma.masked_where(Basin!=basin_number, Basin)
+        maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
+        maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+        maskBasin = np.ma.masked_where(np.ma.getmask(m), Basin_colors)
+        maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
+    
+        # logic for source labeling
+        if label_sources:
+                      
+            # Convert the masked data to a list and then that list to a set and
+            # back to a list (phew!)            
+            list_source = maskSource.tolist()
+            set_source = set(list_source)
+            list_source = list(set_source)
+            
+            # Now we have to get rid of stupid non values
+            list_source = [x for x in list_source if x is not None]
+
+            print("these sources are: ")
+            print list_source            
+            
+            for this_source in list_source:
+                source_Chi= source_info[this_source]["Chi"]
+                source_Elevation = source_info[this_source]["Elevation"]
+                print("Source is: "+str(this_source))
+                #print("Chi is: "+str(source_info[this_source]["Chi"]))
+                #print("FlowDistance is is: "+str(source_info[this_source]["FlowDistance"]))
+                #print("Elevation is: "+str(source_info[this_source]["Elevation"]))
+                texts.append(ax.text(source_Chi, source_Elevation, str(this_source), style='italic',
+                        verticalalignment='bottom', horizontalalignment='left',fontsize=8))
+                
+        
+        sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskBasin,norm=cNorm,cmap=this_cmap,edgecolors='none')
+     
+    adjust_text(texts)     
+    
+    
 
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
