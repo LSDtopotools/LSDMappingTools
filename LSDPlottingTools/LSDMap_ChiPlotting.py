@@ -35,8 +35,17 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
     """This function plots the chi slope on a shaded relief map. It uses the Kirby and Whipple colour scheme.
 
     Args:
-        param1: The first parameter.
-        param2: The second parameter.
+        param1: FileName The name (with full path and extension) of the DEM
+        param2: DrapenName The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
+        param3: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        param4: thiscmap The colourmap for the elevation raster
+        param5: drape_cmap The colourmap for the drape raster
+        param6: colorbarlabel the text label on the colourbar. 
+        param7: clim_val The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
+        param8: drape_alpha The alpha value of the drape
+        param9: FigFileName The name of the figure file
+        param10: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        param11: elevation_threshold chi points below this elevation are removed from plotting. 
 
     Returns:
         Does not return anything but makes a plot.
@@ -165,12 +174,23 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
         plt.savefig(FigFileName,format=FigFormat,dpi=500)
         fig.clf()
 
-##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-## THis function finds the source locations, with chi elevation, flow distance, 
-## etc
-##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-def FindSourceInformation(thisPointData):
 
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def FindSourceInformation(thisPointData):    
+    """This function finds the source locations, with chi elevation, flow distance, etc.
+
+    Args:
+        param1: thisPointData A LSDMap_PointData object
+
+    Returns:
+        A dict with key of the soirce node that returns a dict that has the FlowDistance, Chi, and Elevation of each source.
+        Used for plotting source numbers on profile plots. 
+        
+    Author: 
+        Simon M. Mudd
+
+    """    
+    
     # Get the chi, m_chi, basin number, and source ID code
     chi = thisPointData.QueryData('chi')
     chi = [float(x) for x in chi]
@@ -226,6 +246,29 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0):
 
+    """This is the main chi plotting script that prints a chi steepness map over the hillshade. Note that the colour scale for the chi slope values are always cubehelix
+
+    Args:
+        param1: FileName The name (with full path and extension) of the DEM
+        param2: DrapenName The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
+        param3: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        param4: thiscmap The colourmap for the elevation raster
+        param5: thiscmap The colourmap for the drape raster
+        param6: colorbarlabel the text label on the colourbar. 
+        param7: clim_val The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
+        param8: drape_alpha The alpha value of the drape
+        param9: FigFileName The name of the figure file
+        param10: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        param11: elevation_threshold chi points below this elevation are removed from plotting. 
+        
+    Returns:
+        Prints a plot to file.
+        
+    Author: 
+        Simon M. Mudd
+
+    """       
+    
     import math
     label_size = 10
 
