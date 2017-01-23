@@ -31,7 +31,6 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0):
-
     """This function plots the chi slope on a shaded relief map. It uses the Kirby and Whipple colour scheme.
 
     Args:
@@ -245,7 +244,6 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
                             colorbarlabel='log$_{10}k_{sn}$',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0):
-
     """This is the main chi plotting script that prints a chi steepness map over the hillshade. Note that the colour scale for the chi slope values are always cubehelix
 
     Args:
@@ -253,7 +251,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
         param2: DrapenName The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
         param3: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
         param4: thiscmap The colourmap for the elevation raster
-        param5: thiscmap The colourmap for the drape raster
+        param5: drape_cmap The colourmap for the drape raster
         param6: colorbarlabel the text label on the colourbar. 
         param7: clim_val The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
         param8: drape_alpha The alpha value of the drape
@@ -312,7 +310,6 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     plt.hold(True)
    
     # Now for the drape: it is in grayscale
-    #print "drape_cmap is: "+drape_cmap
     im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
 
     # Set the colour limits of the drape
@@ -366,15 +363,11 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     # set the colour limits
     sc.set_clim(0, np.nanmax(log_m_chi))
 
-
     # This is the axis for the colorbar   
     ax2 = fig.add_subplot(gs[10:15,15:70])
-    cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)   
-    #cbar.set_label(colorbarlabel, fontsize=10)
+    plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)   
     ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)       
     
-    
-
     # This affects all axes because we set share_all = True.
     ax.set_xlim(x_min,x_max)    
     ax.set_ylim(y_max,y_min)     
@@ -401,6 +394,29 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0, data_name = 'source_key'):
+    """This plots channels over the draped plot colour coded by channel number. It is intended to help viewers of plots compare channels in the planview maps and on profile plots. 
+
+    Args:
+        param1: FileName The name (with full path and extension) of the DEM
+        param2: DrapenName The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
+        param3: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        param4: thiscmap The colourmap for the elevation raster
+        param5: drape_cmap The colourmap for the drape raster
+        param6: colorbarlabel the text label on the colourbar. 
+        param7: clim_val The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
+        param8: drape_alpha The alpha value of the drape
+        param9: FigFileName The name of the figure file
+        param10: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        param11: elevation_threshold chi points below this elevation are removed from plotting. 
+        param12: source_key This doesn't do anything at the moment! 
+        
+    Returns:
+        Prints a plot to file.
+        
+    Author: 
+        Simon M. Mudd
+
+    """     
     
     from matplotlib import colors
     label_size = 10
@@ -452,23 +468,15 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
 
     # Set the colour limits of the drape
     im3.set_clim(0,np.nanmax(raster_drape))
-    
-    
+
+    # Set the axes         
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
     ax.spines['bottom'].set_linewidth(1) 
-     
-    #ax.spines['bottom'].set_capstyle('projecting')
-
-    #for spine in ax.spines.values():
-    #    spine.set_capstyle('projecting')
-
-
-    
     ax.set_xticklabels(new_x_labels,rotation=60)
     ax.set_yticklabels(new_y_labels)  
-    
+   
     ax.set_xlabel("Easting (m)")
     ax.set_ylabel("Northing (m)")  
 
@@ -513,14 +521,6 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     ax.set_xticks(xlocs)
     ax.set_yticks(ylocs)   
     ax.set_title('Channels colored by source number')
-    #ax.text(1.1, 0.01, 'Channels colored by source number',
-    #    verticalalignment='top', horizontalalignment='right',
-    #    transform=ax.transAxes,
-    #    color='green', fontsize=15)
-    
-    #cbar = plt.colorbar(sc,cmap=this_cmap,norm=cNorm,spacing='uniform', orientation='horizontal',cax=ax2)
-    #cbar.set_label(colorbarlabel, fontsize=10)
-    #ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)    
 
     print "The figure format is: " + FigFormat
     if FigFormat == 'show':    
@@ -537,13 +537,10 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
 def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
                 elevation_threshold = 0):
 
-    import matplotlib.lines as mpllines
-    from mpl_toolkits.axes_grid1 import AxesGrid
+
     from matplotlib import colors
 
     label_size = 10
-    #title_size = 30
-    axis_size = 12
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
@@ -557,10 +554,6 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
 
-    # Now we get the chi points
-    #EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
-    #print "EPSG string is: " + EPSG_string
-    
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
     
@@ -577,10 +570,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     basin = [int(x) for x in basin] 
     source = thisPointData.QueryData('source_key')
     source = [int(x) for x in source]
-    
-    #print source
-    
- 
+
     # need to convert everything into arrays so we can mask different basins
     Chi = np.asarray(chi)
     Elevation = np.asarray(elevation)
@@ -602,14 +592,12 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     # make a color map of fixed colors
     NUM_COLORS = 15
 
+    # Set the source colours. This is the same for the planform map above so that 
+    # the channels always have the same colours. 
     this_cmap = plt.cm.Set1
-    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
-    #scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
+    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)   
     Source_colors = [x % NUM_COLORS for x in Source]
-    
-    #print "The source colours!!"
-    #print Source_colours
-    
+
     # create a mask
     basin_number = 10
     
@@ -621,9 +609,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     m = np.ma.masked_where(Basin!=basin_number, Basin)
     maskChi = np.ma.masked_where(np.ma.getmask(m), Chi)
     maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
-    maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
-        
-    source_colors = [x % NUM_COLORS for x in maskSource]
+    #maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
 
     sc = ax.scatter(maskChi,maskElevation,s=2.0, c=Source_colors,norm=cNorm,cmap=this_cmap,edgecolors='none')
 
@@ -724,8 +710,6 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     # Logic for stacked labels
     if label_sources:
         source_info = FindSourceInformation(thisPointData)
-
-
 
     # Now calculate the spacing of the stacks
     this_X_offset = 0
@@ -829,8 +813,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                 #print("Elevation is: "+str(source_info[this_source]["Elevation"]))
                 texts.append(ax.text(source_Chi+this_X_offset, source_Elevation, str(this_source), style='italic',
                         verticalalignment='bottom', horizontalalignment='left',fontsize=8))
-                
-        
+                        
         sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskSource,norm=cNorm,cmap=this_cmap,edgecolors='none')
         this_X_offset = this_X_offset+X_offset
      
@@ -882,7 +865,6 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size     
    
-
     # make a figure, sized for a ppt slide
     fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
 
@@ -891,8 +873,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
 
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
-    
-    
+        
     # Get the chi, m_chi, basin number, and source ID code
     if data_name  == 'chi':
         x_data = thisPointData.QueryData('chi')
@@ -950,12 +931,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     
     elevation_range = z_axis_max-z_axis_min
     z_axis_min = z_axis_min - 0.075*elevation_range    
-    
-    
-
-     
+         
     plt.hold(True)
-
 
     # Now calculate the spacing of the stacks
     this_X_offset = 0
