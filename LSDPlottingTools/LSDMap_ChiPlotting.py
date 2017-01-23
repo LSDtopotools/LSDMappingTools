@@ -229,12 +229,35 @@ def FindSourceInformation(thisPointData):
         this_dict["FlowDistance"]=maskFlowDistance[idx_of_max_FD]
         this_dict["Chi"]=maskX[idx_of_max_FD]
         this_dict["Elevation"]=maskElevation[idx_of_max_FD]
+        
+        # get the minimum of the source
+        idx_of_min_Chi = maskX.argmin()
+        chi_length = maskX[idx_of_max_FD]-maskX[idx_of_min_Chi]
+        this_dict["SourceLength"]=chi_length
 
         these_source_nodes[src_idx] = this_dict
         
     return these_source_nodes
-        
-        
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
+def FindShortSourceChannels(these_source_nodes,threshold_length):         
+    """This function gets the list of sources that are shorter than a threshold value
+    
+    Args: 
+        param1: these_source_nodes a dict from the FindSourceInformation module
+    
+    Return:
+        A list of integers of source with the appropriate length
+    
+    Author:
+        Simon M Mudd
+    """
+    long_sources = []
+    for key in these_source_nodes:
+        if these_source_nodes[key]["SourceLength"] > threshold_length:
+            long_sources.append(key)
+    
+    return long_sources        
     
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -660,16 +683,16 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
                 source_Chi= source_info[this_source]["Chi"]
                 source_Elevation = source_info[this_source]["Elevation"]
                 print("Source is: "+str(this_source))
-                #print("Chi is: "+str(source_info[this_source]["Chi"]))
+                print("Chi is: "+str(source_info[this_source]["Chi"]))
                 #print("FlowDistance is is: "+str(source_info[this_source]["FlowDistance"]))
-                #print("Elevation is: "+str(source_info[this_source]["Elevation"]))
+                print("Elevation is: "+str(source_info[this_source]["Elevation"]))
                 texts.append(ax.text(source_Chi, source_Elevation, str(this_source), style='italic',
                         verticalalignment='bottom', horizontalalignment='left',fontsize=8))
                 
         
         sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskBasin,norm=cNorm,cmap=this_cmap,edgecolors='none')
      
-    adjust_text(texts)     
+    #adjust_text(texts)     
     
     
 

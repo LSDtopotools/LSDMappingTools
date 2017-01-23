@@ -45,8 +45,15 @@ def ChiMappingToolsTest():
     #======================================
     # This tests the basin sorting
     Junction_list = [[3,0,2,1],[4],[6,7,8,9,10]]
-    LSDP.BasinKeyToJunction(Junction_list,BasinInfoName)
-    LSDP.BasinOrderer(BasinInfoName, DEMname, "outlet_longitude",reverse=True) 
+    #LSDP.BasinKeyToJunction(Junction_list,BasinInfoName)
+    #LSDP.BasinOrderer(BasinInfoName, DEMname, "outlet_longitude",reverse=True) 
+    threshold_length = 8
+    thisPointData = LSDP.LSDMap_PointData(ChiName)
+    these_source_nodes = LSDP.FindSourceInformation(thisPointData)
+    remaining_sources = LSDP.FindShortSourceChannels(these_source_nodes,threshold_length)
+    print("The remaining sources are: ")
+    print(remaining_sources)
+    print("The number of remaining sources are: "+str(len(remaining_sources)))
     #======================================
     
     
@@ -84,7 +91,7 @@ def ChiMappingToolsTest():
     basin_rename_list = []
     #basin_rename_list =[1,3,2,0,4,5,8,6,7,9,10]    
     LSDP.ChiProfiles(ChiName, FigName3,'png',this_basins_list,
-                            basin_rename_list,False,elevation_threshold,) 
+                            basin_rename_list,True,elevation_threshold) 
     #======================================
     
     #======================================
@@ -122,12 +129,12 @@ def ChiMappingToolsTest():
     #======================================    
     # Uncomment this for a plot of the basins draped over a fancy hillshde map
     # with the basins annotated onto the figure
-    FigName9 = DataDirectory+'NumberedBasinPlot.png'
-    spread = 15
+    #FigName9 = DataDirectory+'NumberedBasinPlot.png'
+    #spread = 15
     #basin_rename_list = [1,3,2,0,4,5,8,6,7,9,10]
-    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
-                            (0,0), 0.4 ,FigName9,'png',
-                            elevation_threshold,Junction_list,basin_rename_list,spread,ChiName)  
+    #LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
+    #                        (0,0), 0.4 ,FigName9,'png',
+    #                        elevation_threshold,Junction_list,basin_rename_list,spread,ChiName)  
     #======================================    
     
     

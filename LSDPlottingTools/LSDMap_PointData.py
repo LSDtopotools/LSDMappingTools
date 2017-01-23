@@ -244,7 +244,64 @@ class LSDMap_PointData(object):
         self.Latitude = NewLat
         self.Longitude = NewLon
     
+
+##==============================================================================
+##==============================================================================
+## Data manipulation
+##==============================================================================
+##==============================================================================    
+    def ThinDataSelection(self,data_name,data_for_selection_list):
+        """This function takes a list of values and retains the members in data name corresponding to that selection
+
+        Args:
+            param1: data_name the name of the data member to select
+            param2: data_for_selection_list a name of the data 
+        
+            Returns:
+                removes data from the object (not reversible!!)
+            
+                Author:
+                    Simon M. Mudd
     
+        """
+    
+    
+        print "I am thinning the data for you from a list!"
+        
+        # Get the data for thinning
+        if data_name not in self.VariableList:
+            print "The data " + data_name + " is not one of the data elements in this point data"
+        else:       
+            this_data = self.PointData[data_name]
+        
+        this_data = [int(x) for x in this_data]
+        
+        # Start a new data dict
+        NewDataDict = {}
+        NewLat = []
+        NewLon = []
+        for name in self.VariableList:
+            NewDataDict[name] = []
+
+        
+        # Get all the data to be deleted
+        delete_indices = []
+        for index, data in enumerate(this_data):
+            if data not in data_for_selection_list:
+                delete_indices.append(index)
+            else:
+                NewLat.append(self.Latitude[index])
+                NewLon.append(self.Longitude[index])
+                for name in self.VariableList:
+                    this_element = self.PointData[name][index]
+                    NewDataDict[name].append(this_element)    
+                
+        # Now reset the data dict
+        self.PointData = NewDataDict
+        self.Latitude = NewLat
+        self.Longitude = NewLon        
+        
+        
 ##==============================================================================
 ##==============================================================================
 ## Format conversion
