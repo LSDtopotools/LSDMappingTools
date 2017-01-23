@@ -22,12 +22,16 @@ def make_flood_maps(DataDirectory):
     
 def flood_maps_with_shapefile(DataDirectory):
     LSDP.flood_maps_with_shapefile(DataDirectory)
+
+def flood_maps_shapefile_zoom(DataDirectory):
+    LSDP.flood_maps_shapefile_with_zoom(DataDirectory)
     
 if __name__ == "__main__":
     DataDirectory = "/home/s0923330/Datastore/Python/floodplain_initiation/results_comparison/field_data/"
     #make_field_sites_figure(DataDirectory)
-    #make_flood_maps(DataDirectory)
-    flood_maps_with_shapefile(DataDirectory)
+    make_flood_maps(DataDirectory)
+    #flood_maps_with_shapefile(DataDirectory)
+    #flood_maps_shapefile_zoom(DataDirectory)
     
 
     

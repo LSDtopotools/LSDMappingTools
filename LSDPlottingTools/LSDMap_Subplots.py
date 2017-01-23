@@ -218,9 +218,9 @@ def flood_maps_with_shapefile(DataDirectory):
     rcParams['font.size'] = 8
     
     # Read in the files for each site
-    HSFiles = sorted(glob(DataDirectory+'*_HS.bil'), key=str)
-    FPFiles = sorted(glob(DataDirectory+'*_FIPs_FP.shp'), key=str)
-    PointFiles = sorted(glob(DataDirectory+'*_FIPs.shp'), key=str)
+    HSFiles = sorted(glob(DataDirectory+'*_HS*.bil'), key=str)
+    FPFiles = sorted(glob(DataDirectory+'*_FIPs_FP*.shp'), key=str)
+    PointFiles = sorted(glob(DataDirectory+'*_FIPs_MP*.shp'), key=str)
       
     n_files = len(FPFiles)
     print "Number of files = ", n_files
@@ -229,8 +229,8 @@ def flood_maps_with_shapefile(DataDirectory):
     fig, ax = pp.subplots(1,2, figsize=(cm2inch(12),cm2inch(7)))
     ax = ax.ravel()
     
-    #get a list with the figure letterings
-    figure_letter = ["a", "b"]
+    # get a list with letters for figure labelling
+    alphabet = list(string.ascii_lowercase)
     
     for i in range (n_files):
         
@@ -257,22 +257,22 @@ def flood_maps_with_shapefile(DataDirectory):
         # plot the floodplain shapefile using fiona and descartes
         with collection(FPFiles[i], 'r') as input:
             for f in input:
-                ax[i].add_patch(PolygonPatch(f['geometry'], fc='blue', ec='k'))
+                ax[i].add_patch(PolygonPatch(f['geometry'], fc='blue', ec='k', lw=0.1, alpha=0.7))
         
         #plot the mapped points
         with collection(PointFiles[i],'r') as input:
             for point in input:
                 x = point['geometry']['coordinates'][0]
                 y = point['geometry']['coordinates'][1]
-                ax[i].scatter(x,y, c="red", s=15)
+                ax[i].scatter(x,y, c="red", s=15, lw=0.8, zorder=100)
      
-        ax[i].text(0.03,0.97, figure_letter[i], bbox=dict(facecolor='white', edgecolor='k', pad=3), horizontalalignment='left', verticalalignment='top', fontsize = 8, transform=ax[i].transAxes)
+        ax[i].text(-0.1,1.05, alphabet[i], horizontalalignment='left', verticalalignment='top', fontsize = 10, transform=ax[i].transAxes)
         
         #change ticks
         xlocs = ax[i].xaxis.get_ticklocs()
         ylocs = ax[i].yaxis.get_ticklocs()
     
-        n_target_tics = 7
+        n_target_tics = 10
         new_xlocs,new_ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(HSFiles[i],xlocs.max(),xlocs.min(),ylocs.max(),ylocs.min(),n_target_tics)
 
         ax[i].set_xticklabels(new_x_labels, rotation=30)
@@ -297,7 +297,32 @@ def flood_maps_with_shapefile(DataDirectory):
     OutputFigureFormat = 'pdf'
     pp.savefig(DataDirectory+OutputFigureName + '.' + OutputFigureFormat, format=OutputFigureFormat, dpi=300)
 
+#==============================================================================
+#    Zoom in test
+#    FJC 06/01/17
+#------------------------------------------------------------------------------ 
 
+def flood_maps_shapefile_with_zoom(DataDirectory):
+        
+    # Set up fonts
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = 8
+    
+    # Read in the files for each site
+    HSFile = DataDirectory+"Bailey_FIPs_HS.bil"
+    
+    hillshade_raster = LSDMap_IO.ReadRasterArrayBlocks(HSFile)
+    # now get the extent
+    extent_raster = LSDMap_IO.GetRasterExtent(HSFile) 
+    
+    # get DEM info
+    CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(HSFile)
+    print XMin, XMax, YMin, YMax
+         
+    # Now make the subplots
+    fig, ax = pp.subplots(2,1, figsize=(cm2inch(7),cm2inch(12)))
+    ax = ax.ravel()
 
-
-
+ 
+    
