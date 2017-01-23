@@ -31,6 +31,20 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0):
+
+    """This function plots the chi slope on a shaded relief map. It uses the Kirby and Whipple colour scheme.
+
+    Args:
+        param1: The first parameter.
+        param2: The second parameter.
+
+    Returns:
+        Does not return anything but makes a plot.
+        
+    Author: 
+        Simon M. Mudd
+
+    """
     
     from matplotlib import colors
 
