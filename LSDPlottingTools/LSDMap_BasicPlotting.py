@@ -1017,6 +1017,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     
     # add text
     texts = []
+    bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec="k", lw=0.5,alpha = 0.5)
     for index, datum in enumerate(these_data):
         this_easting = easting[index]
         this_northing = Ncoord[index]
@@ -1024,12 +1025,12 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         # Check to see if basins rename list works
         if basin_rename_list:
             if len(basin_rename_list) == len(these_data):
-                texts.append(ax.text(this_easting,this_northing, str(basin_rename_list[index]),fontsize = 8, color= "r",alpha=0.7))
+                texts.append(ax.text(this_easting,this_northing, str(basin_rename_list[index]),fontsize = 8, color= "r",alpha=0.7,bbox=bbox_props))
         else:
-            texts.append(ax.text(this_easting,this_northing, str(index),fontsize = 8, color= "r",alpha=0.7))
+            texts.append(ax.text(this_easting,this_northing, str(index),fontsize = 8, color= "r",alpha=0.7,bbox=bbox_props))
+    
+    
     adjust_text(texts,x=buffered_east,y=buffered_north,autoalign='xy',ax=ax)
- 
-
  
     # Now to fix up the axes 
     ax.spines['top'].set_linewidth(1)
@@ -1052,6 +1053,11 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     ax.set_xlim(x_min,x_max)    
     ax.set_ylim(y_max,y_min)     
 
+    # Adjust the text
+    #adjust_text(texts,x=buffered_east,y=buffered_north,autoalign='xy',ax=ax)
+    #adjust_text(texts)
+    
+    
     ax.set_xticks(xlocs)
     ax.set_yticks(ylocs)   
     

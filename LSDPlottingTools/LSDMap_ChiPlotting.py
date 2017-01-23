@@ -567,7 +567,8 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
 def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
                 basin_order_list = [],basin_rename_list = [],
                 label_sources = False,
-                elevation_threshold = 0):
+                elevation_threshold = 0,
+                source_thinning_threshold = 0):
     """This function plots the chi vs elevation: lumps everything onto the same axis. This tends to make a mess. 
  
      Args:
@@ -603,8 +604,17 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
 
-
-    # Logic for stacked labels
+    
+    # Logic for thinning the sources    
+    if source_thinning_threshold > 0:
+        print("I am going to thin some sources out for you")
+        source_info = FindSourceInformation(thisPointData)
+        remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
+        thisPointData.ThinDataSelection("source_key",remaining_sources)
+        
+        
+    # Logic for stacked labels. You need to run this after source thinning to 
+    # get an updated source dict
     if label_sources:
         source_info = FindSourceInformation(thisPointData)
 
@@ -653,7 +663,8 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     newFilename = FigFileName[:dot_pos]+FigFileName[dot_pos:]
     print "newFilename: "+newFilename
 
-    texts = []  
+    texts = []
+    bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec="k", lw=0.5,alpha = 0.25)
     for basin_number in basin_order_list:
         
         print ("This basin is: " +str(basin_number))
@@ -682,20 +693,18 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
             for this_source in list_source:
                 source_Chi= source_info[this_source]["Chi"]
                 source_Elevation = source_info[this_source]["Elevation"]
-                print("Source is: "+str(this_source))
-                print("Chi is: "+str(source_info[this_source]["Chi"]))
+                #print("Source is: "+str(this_source))
+                #print("Chi is: "+str(source_info[this_source]["Chi"]))
                 #print("FlowDistance is is: "+str(source_info[this_source]["FlowDistance"]))
-                print("Elevation is: "+str(source_info[this_source]["Elevation"]))
+                #print("Elevation is: "+str(source_info[this_source]["Elevation"]))
                 texts.append(ax.text(source_Chi, source_Elevation, str(this_source), style='italic',
-                        verticalalignment='bottom', horizontalalignment='left',fontsize=8))
+                        verticalalignment='bottom', horizontalalignment='left',fontsize=8,bbox=bbox_props))
                 
         
-        sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskBasin,norm=cNorm,cmap=this_cmap,edgecolors='none')
-     
-    #adjust_text(texts)     
-    
+        ax.scatter(maskX,maskElevation,s=2.0, c=maskBasin,norm=cNorm,cmap=this_cmap,edgecolors='none')
     
 
+    
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
@@ -708,6 +717,12 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     ax.set_ylim(z_axis_min,z_axis_max)    
     ax.set_xlim(0,chi_axis_max)      
 
+        
+    #print("Number of text elements is: "+str(len(texts)))    
+    adjust_text(texts)
+    #print("Now the number of text elements is: "+str(len(texts)))      
+    
+    
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
     ax.tick_params(axis='both', width=1, pad = 2)
     for tick in ax.xaxis.get_major_ticks():
@@ -903,7 +918,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
         sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskSource,norm=cNorm,cmap=this_cmap,edgecolors='none')
         this_X_offset = this_X_offset+X_offset
      
-    adjust_text(texts) 
+    
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
@@ -916,6 +931,9 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     ax.set_ylim(z_axis_min,z_axis_max)    
     ax.set_xlim(0,chi_axis_max)      
 
+    # adjust the text
+    adjust_text(texts)   
+    
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
     ax.tick_params(axis='both', width=1, pad = 2)
     for tick in ax.xaxis.get_major_ticks():
