@@ -355,10 +355,10 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     """This creates a plot of a raster. The most basic plotting function
     
     Args:
-        param1: FileName the name of the raster (with full path and extension)        
-        param2: thiscmap The colourmap to be used
-        param3: colorbarlabel a string for the label of the colourbar
-        param4: clim_val The colour limits. If (0,0) then the min and max raster values are used. 
+        FileName (str): The name of the raster (with full path and extension).        
+        thiscmap (colormap): The colourmap to be used.
+        colorbarlabel (str): The label of the colourbar
+        clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
 
     Returns:
         A density plot of the raster
@@ -457,12 +457,12 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
     """This creates a plot of a raster. The most basic plotting function. It uses AxisGrid to ensure proper placment of the raster.
     
     Args:
-        param1: FileName the name of the raster (with full path and extension)        
-        param2: thiscmap The colourmap to be used
-        param3: colorbarlabel a string for the label of the colourbar
-        param4: clim_val The colour limits. If (0,0) then the min and max raster values are used. 
-        param5: FigFilename the name of the figure
-        param6: FigFormat: the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen. 
+        FileName (str): The name of the raster (with full path and extension).        
+        thiscmap (colormap): The colourmap to be used.
+        colorbarlabel (str): The label of the colourbar
+        clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
+        FigFilename (str): The name of the figure (with extension)
+        FigFormat (str): the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen. 
     
     Returns:
         A density plot of the raster
@@ -558,16 +558,16 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     """This creates a draped plot of a raster. It uses AxisGrid to ensure proper placment of the raster.
     
     Args:
-        param1: FileName the name of the raster (with full path and extension)    
-        param2: DrapeName the name of the raster drape (with full path and extension) 
-        param3: thiscmap The colourmap to be used
-        param4: drape_cmap The colourmap of the drape
-        param5: colorbarlabel a string for the label of the colourbar
-        param6: clim_val The colour limits. If (0,0) then the min and max raster values are used.
-        param7: The alpha value (transparency) of the drape
-        param8: FigFilename the name of the figure
-        param9: FigFormat: the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen. 
-    
+        FileName (str): The name of the raster (with full path and extension).   
+        DrapeName (str): The name of the drape raster (with full path and extension).   
+        thiscmap (colormap): The colourmap to be used.
+        drape_cmap (colormap): The colourmap to be used for the drape.
+        colorbarlabel (str): The label of the colourbar
+        clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
+        drape_alpha (float): The alpha value (transparency) of the drape
+        FigFilename (str): The name of the figure (with extension)
+        FigFormat (str): the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen. 
+
     Returns:
         A density plot of the draped raster
         
@@ -672,16 +672,15 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
     """This creates a draped plot of a raster. It uses AxisGrid to ensure proper placment of the raster. It also includes a hillshde to make the figure look nicer (so there are three raster layers)
     
     Args:
-        param1: FileName the name of the raster (with full path and extension)    
-        param2: DrapeName the name of the raster drape (with full path and extension) 
-        param3: thiscmap The colourmap to be used
-        param4: drape_cmap The colourmap of the drape
-        param5: colorbarlabel a string for the label of the colourbar
-        param6: clim_val The colour limits. If (0,0) then the min and max raster values are used.
-        param7: The alpha value (transparency) of the drape
-        param8: ShowColorbar A boolean that shows or not the colorbar
-        param8: ShowDrapeColorbar A boolean that shows or not the colorbar of the drape       
-        param9: drape_cbarlabel A string for the draped colourbar
+        FileName (str): The name of the raster (with full path and extension).   
+        DrapeName (str): The name of the drape raster (with full path and extension).   
+        thiscmap (colormap): The colourmap to be used.
+        drape_cmap (colormap): The colourmap to be used for the drape.
+        colorbarlabel (str): The label of the colourbar
+        clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
+        drape_alpha (float): The alpha value (transparency) of the drape
+        ShowColorbar (bool): Whether you want to show the colorbar
+        drape_cbarlabel (str): The label of the drape colourbar
 
     Returns:
         A density plot of the draped raster
@@ -801,15 +800,17 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
     """This creates a draped plot of a raster. It uses AxisGrid to ensure proper placment of the raster. It also includes a hillshde to make the figure look nicer (so there are three raster layers). In this case you need to tell it the name of the hillshade raster. 
     
     Args:
-        param1: FileName the name of the raster (with full path and extension)  
-        param2: HSName the name of the hillshade raster (with full path and extension)
-        param3: DrapeName the name of the raster drape (with full path and extension) 
-        param4: thiscmap The colourmap to be used
-        param5: drape_cmap The colourmap of the drape
-        param6: colorbarlabel a string for the label of the colourbar
-        param7: clim_val The colour limits. If (0,0) then the min and max raster values are used.
-        param8: The alpha value (transparency) of the drape
-        param9: elevation_threshold Turns data elements to nodata if below the threshold
+        FileName (str): The name of the raster (with full path and extension).   
+        HSName (str): The name of the hillshade raster (with full path and extension).   
+        DrapeName (str): The name of the drape raster (with full path and extension).   
+        thiscmap (colormap): The colourmap to be used.
+        drape_cmap (colormap): The colourmap to be used for the drape.
+        colorbarlabel (str): The label of the colourbar
+        clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
+        drape_alpha (float): The alpha value (transparency) of the drape
+        FigFilename (str): The name of the figure (with extension)
+        FigFormat (str): the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen. 
+        elevation_threshold (float): If raster values are less than this threshold they become nodata.
 
     Returns:
         A density plot of the draped raster
@@ -924,15 +925,17 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     """This creates a draped plot of a raster. It also plots basins, and labels them. 
     
     Args:
-        param1: FileName the name of the raster (with full path and extension)  
-        param2: HSName the name of the hillshade raster (with full path and extension)
-        param3: DrapeName the name of the raster drape (with full path and extension) 
-        param4: thiscmap The colourmap to be used
-        param5: drape_cmap The colourmap of the drape
-        param6: colorbarlabel a string for the label of the colourbar
-        param7: clim_val The colour limits. If (0,0) then the min and max raster values are used.
-        param8: The alpha value (transparency) of the drape
-        param9: elevation_threshold Turns data elements to nodata if below the threshold
+        FileName (str): The name of the raster (with full path and extension).   
+        HSName (str): The name of the hillshade raster (with full path and extension).   
+        DrapeName (str): The name of the drape raster (with full path and extension).   
+        thiscmap (colormap): The colourmap to be used.
+        drape_cmap (colormap): The colourmap to be used for the drape.
+        colorbarlabel (str): The label of the colourbar
+        clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
+        drape_alpha (float): The alpha value (transparency) of the drape
+        FigFilename (str): The name of the figure (with extension)
+        FigFormat (str): the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen. 
+        elevation_threshold (float): If raster values are less than this threshold they become nodata.
 
     Returns:
         A density plot of the draped raster
@@ -1128,7 +1131,20 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
 #==============================================================================
 # Make a simple hillshade plot
 def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -9999): 
+    """Creates a hillshade raster
     
+    Args:
+        raster_file (str): The name of the raster file with path and extension.
+        azimuth (float): Azimuth of sunlight
+        angle_altitude (float): Angle altitude of sun
+        NoDataValue (float): The nodata value of the raster
+        
+    Returns:
+        HSArray (numpy.array): The hillshade array
+        
+    Author:
+        DAV and SWDG
+    """    
     # You have passed a filepath to be read in as a raster
     if isinstance(raster_file, str):
       array = LSDMap_IO.ReadRasterArrayBlocks(raster_file,raster_band=1)  
@@ -1163,6 +1179,19 @@ def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -99
 
 #==============================================================================
 def SwathPlot(path, filename, axis):
+    """A function that creates a swath in either the x or y direction only. Averages across entire DEM. Exceedingly basic. 
+    
+    Args:
+        path (str): the path to the raster
+        filename (str): the name of the file
+        axis (int): if 0, swath along x-axis, if not swath along y-axis
+        
+    Returns:
+        A plot of the swath
+        
+    Author:
+        SMM
+    """
 
     # get the path to the raster file
     NewPath = LSDOst.AppendSepToDirectoryPath(path)    
@@ -1229,11 +1258,11 @@ def round_to_n(x, n):
     """A rounding function
     
     Args: 
-        param1: x The number to be rounded
-        param2: n the number of difits to be rounded to 
+        x (float): The number to be rounded
+        n (int): The number of digits to be rounded to. 
     
     Returns:
-        A float of the rounded number
+        Rounded (float): The rounded number
         
     Author:
         SMM
@@ -1248,7 +1277,7 @@ def round_to_n(x, n):
 #==============================================================================
 
 def init_plotting_DV():
-    """Initial plotting params.
+    """Initial plotting parameterss.
     
     Author:
         DAV
