@@ -1,2 +1,4 @@
 numpy
 mock
+matplotlib
+scipy
