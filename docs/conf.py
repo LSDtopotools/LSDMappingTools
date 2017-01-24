@@ -22,6 +22,19 @@ import sys
 #sys.path.insert(0, os.path.abspath('../LSDPlottingTools/'))
 sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
 
+from mock import Mock as MagicMock
+#from unittest.mock import MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return MagicMock()
+
+MOCK_MODULES = ['scipy','pyproj', 'LSDOSystemTools', 'numpy', 'numpy.ma', 'gdal', 'osgeo', 'osgeo.gdal', 
+                'osgeo.gdalconst', 'osgeo.gdal_array', 'matplotlib', 'matplotlib.pyplot', 'matplotlib.rcParams',
+               'matplotlib.colors', 'matplotlib.image', 'matplotlib.cm']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 
 
 # -- General configuration ------------------------------------------------
