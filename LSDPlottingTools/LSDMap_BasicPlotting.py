@@ -25,6 +25,22 @@ import matplotlib.pyplot as plt
 # This formats ticks if you want to convert metres to km
 #==============================================================================
 def TickConverter(x_min,x_max,n_target_tics):
+    """This function is used to convert ticks in metres to ticks in kilometres
+    
+    Args:
+        param1: x_min The minimum value on the axis (in metres)
+        param2: x_max The maximum value on the axis (in metres)
+        param3: n_target_ticks the number of ticks you want on the axis (this is optimised so you may not get exactly this number)
+    
+    Returns:
+        new_xlocs,x_labels Two lists, one with the new x locations (in metres) and one with the strings of the locations in kilometres for use with tick labelling
+        
+    Author:
+        Simon M Mudd
+    
+    """
+    
+    
     dx_fig = x_max-x_min
     dx_spacing = dx_fig/n_target_tics
     #print("spacing: "+str(dx_spacing))
@@ -106,7 +122,22 @@ def TickConverter(x_min,x_max,n_target_tics):
 # n_target ticks are the number of ticks for plotting
 #------------------------------------------------------------------------------
 def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):  
-   
+    """This fuction is used to set tick locations for UTM maps. It tries to optimise the spacing of these ticks.
+    
+    Args:
+        param1: FileName the name of the raster (with full path and extension)        
+        param2: x_min The minimum value on the x axis (in metres)
+        param3: x_max The maximum value on the x axis (in metres)
+        param4: y_min The minimum value on the y axis (in metres)
+        param5: y_max The maximum value on the y axis (in metres)        
+        param6: n_target_ticks the number of ticks you want on the axis (this is optimised so you may not get exactly this number)
+    
+    Returns:
+        new_xlocs,new_ylocs,x_labels,y_labels Four lists, with the locations of the ticks and the strings for labelling.
+        
+    Author:
+        Simon M Mudd  
+    """   
     
     CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(FileName)
     NDV, xsize, ysize, GeoT, Projection, DataType = LSDMap_IO.GetGeoInfo(FileName)    
@@ -251,7 +282,20 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
 
 #==============================================================================
 def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters',clim_val = (0,0)):
+    """This creates a plot of a raster where the colours are streched over log space
     
+    Args:
+        param1: FileName the name of the raster (with full path and extension)        
+        param2: thiscmap The colourmap to be used
+        param3: colorbarlabel a string for the label of the colourbar
+        param4: clim_val The colour limits. If (0,0) then the min and max raster values are used. 
+
+    Returns:
+        A density plot of the raster
+        
+    Author:
+        Simon M Mudd  
+    """     
     import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
 
@@ -351,7 +395,20 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
 
 #==============================================================================
 def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters',clim_val = (0,0)):
+    """This creates a plot of a raster. The most basic plotting function
     
+    Args:
+        param1: FileName the name of the raster (with full path and extension)        
+        param2: thiscmap The colourmap to be used
+        param3: colorbarlabel a string for the label of the colourbar
+        param4: clim_val The colour limits. If (0,0) then the min and max raster values are used. 
+
+    Returns:
+        A density plot of the raster
+        
+    Author:
+        Simon M Mudd  
+    """     
     import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
 
@@ -449,7 +506,22 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
 #==============================================================================
 def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters',
                              clim_val = (0,0),FigFileName = 'Image.pdf', FigFormat = 'show'):
+    """This creates a plot of a raster. The most basic plotting function. It uses AxisGrid to ensure proper placment of the raster.
     
+    Args:
+        param1: FileName the name of the raster (with full path and extension)        
+        param2: thiscmap The colourmap to be used
+        param3: colorbarlabel a string for the label of the colourbar
+        param4: clim_val The colour limits. If (0,0) then the min and max raster values are used. 
+        param5: FigFilename the name of the figure
+        param6: FigFormat: the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen. 
+    
+    Returns:
+        A density plot of the raster
+        
+    Author:
+        Simon M Mudd  
+    """      
 
     print "======================================"
     print "Yo, I'm doing a draped plot"
