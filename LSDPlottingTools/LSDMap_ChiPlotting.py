@@ -183,7 +183,7 @@ def FindSourceInformation(thisPointData):
         param1: thisPointData A LSDMap_PointData object
 
     Returns:
-        A dict with key of the soirce node that returns a dict that has the FlowDistance, Chi, and Elevation of each source.
+        A dict with key of the source node that returns a dict that has the FlowDistance, Chi, and Elevation of each source.
         Used for plotting source numbers on profile plots. 
         
     Author: 
@@ -200,17 +200,22 @@ def FindSourceInformation(thisPointData):
     fdist = [float(x) for x in fdist]        
     source = thisPointData.QueryData('source_key')
     source = [int(x) for x in source]
+    latitude = thisPointData.GetLatitude()
+    longitude = thisPointData.GetLongitude()
+   
+  
     
-
+    
     Chi = np.asarray(chi)
     Elevation = np.asarray(elevation)
     Fdist = np.asarray(fdist)
     Source = np.asarray(source)
+    Latitude = np.asarray(latitude)
+    Longitude = np.asarray(longitude)
 
     n_sources = Source.max()+1
     print("N sources is: "+str(n_sources))
  
-
     # This loops through all the source indices, and then picks out the
     # Elevation, chi coordinate and flow distance of each node
     # Then it returns a dictionary containing the elements of the node
@@ -222,6 +227,8 @@ def FindSourceInformation(thisPointData):
         maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
         maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
         maskFlowDistance = np.ma.masked_where(np.ma.getmask(m), Fdist)
+        maskLatitude = np.ma.masked_where(np.ma.getmask(m), Latitude)
+        maskLongitude= np.ma.masked_where(np.ma.getmask(m), Longitude)
         
         # get the locations of the source         
         this_dict = {}
@@ -229,6 +236,8 @@ def FindSourceInformation(thisPointData):
         this_dict["FlowDistance"]=maskFlowDistance[idx_of_max_FD]
         this_dict["Chi"]=maskX[idx_of_max_FD]
         this_dict["Elevation"]=maskElevation[idx_of_max_FD]
+        this_dict["Latitude"]=maskLatitude[idx_of_max_FD]
+        this_dict["Longitude"]=maskLongitude[idx_of_max_FD]
         
         # get the minimum of the source
         idx_of_min_Chi = maskX.argmin()

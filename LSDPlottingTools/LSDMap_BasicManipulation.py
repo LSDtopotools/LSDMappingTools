@@ -17,7 +17,54 @@ import LSDOSystemTools as LSDOst
 import LSDMap_GDALIO as LSDMap_IO
 import LSDMap_BasicPlotting as LSDMBP
 import LSDMap_PointData as LSDMPD
+from pyproj import Proj, transform
 
+
+def GetUTMEastingNorthing(EPSG_string,latitude,longitude):
+    """This returns the easting and northing for a given latitude and longitide
+
+    Args:
+        param1: ESPG_string the ESPG code. 326XX is for UTM north and 327XX is for UTM south
+        param2: The latitude in WGS84
+        param3: The longitude in WGS84
+
+    Returns:
+        easting,northing The easting and northing in the UTM zone of your selection
+
+    Author:
+        Simon M Mudd
+    """
+        
+    print "Yo, getting this stuff: "+EPSG_string
+    # The lat long are in epsg 4326 which is WGS84
+    inProj = Proj(init='epsg:4326')
+    outProj = Proj(init=EPSG_string)
+    ea,no = transform(inProj,outProj,longitude,latitude)
+        
+    return ea,no
+
+
+def ConvertNorthingForImshow(RasterName,Northing):
+    """This returns a northing that is inverted using the minimum and maximum values from the raster for use in imshow (because imshow inverts the raster)
+
+    Args:
+        param1: RasterName The raster's name with full path and extension
+        param2: The Northing coordinate
+
+    Returns:
+        ConvertedNorthing The northing inverted from top to bottom
+
+    Author:
+        Simon M Mudd
+    """
+
+    extent_raster = LSDMap_IO.GetRasterExtent(RasterName)
+
+    
+    Northing_converted = extent_raster[3]-Northing
+    Northing_converted = Northing_converted+extent_raster[2]       
+
+    return Northing_converted
 
 #==============================================================================
 # THis function takes a raster an writes a new raster where everything below a
