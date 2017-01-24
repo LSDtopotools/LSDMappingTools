@@ -19,11 +19,9 @@
 import os
 import sys
 
-thispath = os.path.abspath('../LSDPlottingTools/')
-print "This path is: "
-print thispath
+#sys.path.insert(0, os.path.abspath('../LSDPlottingTools/'))
+sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
 
-sys.path.append(os.path.abspath('../LSDPlottingTools'))
 
 
 # -- General configuration ------------------------------------------------
