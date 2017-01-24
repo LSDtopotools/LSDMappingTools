@@ -44,7 +44,10 @@ def ChiMappingToolsTest():
 
     #======================================
     # This tests the basin sorting
-    Junction_list = [[3,0,2,1],[4],[6,7,8,9,10]]
+    #Junction_list = [[3,0,2,1],[4],[6,7,8,9,10]]
+    Junction_list = [[3,0,1,2],[4,5,6],[7,10,9,12,8,11,13]]
+    
+    
     #LSDP.BasinKeyToJunction(Junction_list,BasinInfoName)
     #LSDP.BasinOrderer(BasinInfoName, DEMname, "outlet_longitude",reverse=True) 
     threshold_length = 12
