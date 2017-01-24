@@ -147,9 +147,7 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
       
     ymax_UTM = YMax
     ymin_UTM = YMin
-    
-    #print "now UTM, xmax: " +str(xmax_UTM)+" x_min: " +str(xmin_UTM)+" y_maxb: " +str(ymax_UTM)+" y_minb: " +str(ymin_UTM)
-    
+ 
     dy_fig = ymax_UTM-ymin_UTM
     dx_fig = xmax_UTM-xmin_UTM
     
@@ -166,26 +164,19 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
         
     first_digit = float(str_dy[0])
     
-    #print "str_dy: " +str_dy+ " n_digits: " +str(nd)+" first_digit: " + str(first_digit)    
-    
     dy_spacing_rounded = first_digit*pow(10,(nd-1))
-    #print "n_digits: "+str(n_digits)+" dy_spacing: " +str(dy_spacing) + " and rounded: "+str(dy_spacing_rounded)
  
     str_xmin = str(xmin_UTM)
     str_ymin = str(ymin_UTM)
-    #print "before split str_xmin: "+ str_xmin + " str ymin: " + str_ymin
     str_xmin = str_xmin.split('.')[0]
     str_ymin = str_ymin.split('.')[0]
-    #print "after split str_xmin: "+ str_xmin + " str ymin: " + str_ymin
     xmin_UTM = float(str_xmin)
     ymin_UTM = float(str_ymin)
-    #print "UTM: "+ str(xmin_UTM) + " str ymin: " + str(ymin_UTM)
-    
+   
     n_digx = str_xmin.__len__() 
     n_digy = str_ymin.__len__() 
     
-    #print "n_dig_x: " + str(n_digx)+ " nd: " + str(nd)  
-       
+    
     if (n_digx-nd+1) >= 1:
         front_x = str_xmin[:(n_digx-nd+1)]
     else:
@@ -195,17 +186,10 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
         front_y = str_ymin[:(n_digy-nd+1)]
     else:
         front_y = str_ymin
-    
-    
-      
-    #print "xmin: " + str_xmin + " ymin: " + str_ymin + " n_digx: " + str(n_digx)+ " n_digy: " + str(n_digy)
-    #print "frontx: " +front_x+" and fronty: "+ front_y
      
     round_xmin = float(front_x)*pow(10,nd-1)
     round_ymin = float(front_y)*pow(10,nd-1)
-    
-    #print "x_min: " +str(xmin_UTM)+ " round xmin: " +str(round_xmin)+ " y_min: " +str(ymin_UTM)+" round y_min: " + str(round_ymin)
-    
+   
     # now we need to figure out where the xllocs and ylocs are
     xUTMlocs = np.zeros(2*n_target_tics)
     yUTMlocs = np.zeros(2*n_target_tics)
@@ -216,31 +200,19 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     new_y_labels = []
     
     round_ymax = round_ymin+dy_spacing_rounded*(2*n_target_tics-1)
-    #print "n_target_tics: " + str(n_target_tics) + " round_ymax: " +str(round_ymax)
+
     
     for i in range(0,2*n_target_tics):
         xUTMlocs[i] = round_xmin+(i)*dy_spacing_rounded
         yUTMlocs[i] = round_ymin+(i)*dy_spacing_rounded
-        
-                          
-        #xlocs[i] = (xUTMlocs[i]-XMin)
         xlocs[i] = xUTMlocs[i]
         
         # need to account for the rows starting at the upper boundary
         ylocs[i] = round_ymax-(yUTMlocs[i]-round_ymin)
-        
-        #print "i: " + str(i) +" yUTM: " + str(yUTMlocs[i])+ " rounded, reversed: " +str( ylocs[i])
-        
-        
+      
         new_x_labels.append( str(xUTMlocs[i]).split(".")[0] )
         new_y_labels.append( str(yUTMlocs[i]).split(".")[0] )
 
-    #print xUTMlocs
-    #print xlocs
-    #print yUTMlocs
-    #print ylocs
-    #print new_x_labels
-    #print new_y_labels
 
     new_xlocs = []
     new_xUTMlocs = []
@@ -248,7 +220,6 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
 
     # Now loop through these to get rid of those not in range
     for index,xloc in enumerate(xlocs):
-        #print xloc
         if (xloc < XMax and xloc > XMin):
             new_xlocs.append(xloc)
             new_xUTMlocs.append(xUTMlocs[index])
@@ -260,21 +231,11 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
 
     # Now loop through these to get rid of those not in range
     for index,yloc in enumerate(ylocs):
-        #print yloc
         if (yloc < YMax and yloc > YMin):
             new_ylocs.append(yloc)
             new_yUTMlocs.append(yUTMlocs[index])
             y_labels.append(new_y_labels[index])    
-            
-    #print "======================================="
-    #print "I am getting the tick marks now"    
-    #print "X extent: " + str(XMin)+ " " +str(XMax)
-    #print "Y extent: " + str(YMin)+ " " +str(YMax)
-    #print "x ticks: "
-    #print new_xlocs
-    #print "y ticks: "
-    #print new_ylocs
-    
+
    
     #return xlocs,ylocs,new_x_labels,new_y_labels
     return new_xlocs,new_ylocs,x_labels,y_labels
@@ -300,7 +261,6 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     import matplotlib.lines as mpllines
 
     label_size = 20
-    #title_size = 30
     axis_size = 28
 
     # Set up fonts for plots
@@ -328,20 +288,9 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     # make room for the colorbar
     fig.subplots_adjust(bottom=0.2)
     fig.subplots_adjust(top=0.9)
-    #fig.subplots_adjust(left=0.2)
-    #fig.subplots_adjust(right=0.8)
-    
+
     ax1 =  fig.add_subplot(1,1,1)
     im = ax1.imshow(raster[::-1], thiscmap, extent = extent_raster)
-    
-    print "The is the extent raster data element"
-    print extent_raster
-
-    print "now I am in the mapping routine"
-    print "x_min: " + str(x_min)
-    print "x_max: " + str(x_max)
-    print "y_min: " + str(y_min)
-    print "y_max: " + str(y_max)
 
     # now get the tick marks    
     n_target_tics = 5
@@ -359,15 +308,10 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     # some formatting to make some of the ticks point outward    
     for line in ax1.get_xticklines():
         line.set_marker(mpllines.TICKDOWN)
-        #line.set_markeredgewidth(3)
 
     for line in ax1.get_yticklines():
         line.set_marker(mpllines.TICKLEFT)
-        #line.set_markeredgewidth(3)  
-    
-    #plt.xlim(x_min,x_max)    
-    #plt.ylim(y_max,y_min)   
-   
+
     plt.xlabel('Easting (m)',fontsize = axis_size)
     plt.ylabel('Northing (m)', fontsize = axis_size)  
 
@@ -386,8 +330,6 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     
     cbar = fig.colorbar(im, orientation='horizontal')
     cbar.set_label(colorbarlabel)  
-    
-    #plt.tight_layout()
 
     plt.show()
 
@@ -434,12 +376,6 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
 
     # make a figure, sized for a ppt slide
     fig = plt.figure(1, facecolor='white',figsize=(10,7.5))
-
-    # make room for the colorbar
-    #fig.subplots_adjust(bottom=0.1)
-    #fig.subplots_adjust(top=0.9)
-    #fig.subplots_adjust(left=0.2)
-    #fig.subplots_adjust(right=0.8)
     
     ax1 =  fig.add_subplot(1,1,1)
     im = ax1.imshow(raster[::-1], thiscmap, extent = extent_raster)
@@ -496,9 +432,6 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     
     cbar = fig.colorbar(im, orientation='vertical')
     cbar.set_label(colorbarlabel)  
-    
-    #plt.tight_layout()
-
     plt.show()
 
 #==============================================================================
@@ -523,21 +456,11 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
         Simon M Mudd  
     """      
 
-    print "======================================"
-    print "Yo, I'm doing a draped plot"
-    print FigFileName
-    print FigFormat
-    print "======================================"
-
-    import matplotlib.pyplot as plt
-    import matplotlib.lines as mpllines
-    from mpl_toolkits.axes_grid1 import AxesGrid
-
-    label_size = 20
-    #title_size = 30
-    axis_size = 28
+    import matplotlib.pyplot as plt  
 
     # Set up fonts for plots
+    label_size = 20
+
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size 
@@ -617,24 +540,31 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
 def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show'):
+    """This creates a draped plot of a raster. It uses AxisGrid to ensure proper placment of the raster.
     
+    Args:
+        param1: FileName the name of the raster (with full path and extension)    
+        param2: DrapeName the name of the raster drape (with full path and extension) 
+        param3: thiscmap The colourmap to be used
+        param4: drape_cmap The colourmap of the drape
+        param5: colorbarlabel a string for the label of the colourbar
+        param6: clim_val The colour limits. If (0,0) then the min and max raster values are used.
+        param7: The alpha value (transparency) of the drape
+        param8: FigFilename the name of the figure
+        param9: FigFormat: the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen. 
     
-    print "======================================"
-    print "Yo, I'm doing a draped plot"
-    print FigFileName
-    print FigFormat
-    print "======================================"
-    
+    Returns:
+        A density plot of the draped raster
+        
+    Author:
+        Simon M Mudd  
+    """       
+
     
     import matplotlib.pyplot as plt
-    import matplotlib.lines as mpllines
-    from mpl_toolkits.axes_grid1 import AxesGrid
-
-    label_size = 20
-    #title_size = 30
-    axis_size = 28
-
+    
     # Set up fonts for plots
+    label_size = 20
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size 
@@ -678,7 +608,6 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     plt.hold(True)
    
     # Now for the drape: it is in grayscale
-    #print "drape_cmap is: "+drape_cmap
     im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
 
     # Set the colour limits of the drape
@@ -689,11 +618,6 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     ax.spines['left'].set_linewidth(1.5)
     ax.spines['right'].set_linewidth(1.5)
     ax.spines['bottom'].set_linewidth(1.5) 
-     
-    #ax.spines['bottom'].set_capstyle('projecting')
-
-    #for spine in ax.spines.values():
-    #    spine.set_capstyle('projecting')
 
     # This affects all axes because we set share_all = True.
     ax.set_xlim(x_min,x_max)    
@@ -730,14 +654,34 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6, ShowColorbar = False, 
                             ShowDrapeColorbar=False, drape_cbarlabel=None):
+    """This creates a draped plot of a raster. It uses AxisGrid to ensure proper placment of the raster. It also includes a hillshde to make the figure look nicer (so there are three raster layers)
+    
+    Args:
+        param1: FileName the name of the raster (with full path and extension)    
+        param2: DrapeName the name of the raster drape (with full path and extension) 
+        param3: thiscmap The colourmap to be used
+        param4: drape_cmap The colourmap of the drape
+        param5: colorbarlabel a string for the label of the colourbar
+        param6: clim_val The colour limits. If (0,0) then the min and max raster values are used.
+        param7: The alpha value (transparency) of the drape
+        param8: ShowColorbar A boolean that shows or not the colorbar
+        param8: ShowDrapeColorbar A boolean that shows or not the colorbar of the drape       
+        param9: drape_cbarlabel A string for the draped colourbar
+
+    Returns:
+        A density plot of the draped raster
+        
+    Author:
+        SMM and DAV
+        
+    """     
+
     
     import matplotlib.pyplot as plt
-    import matplotlib.lines as mpllines
-    from mpl_toolkits.axes_grid1 import AxesGrid, make_axes_locatable
+    from mpl_toolkits.axes_grid1 import AxesGrid
 
     label_size = 20
-    #title_size = 30
-    axis_size = 28
+
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
@@ -745,8 +689,7 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
     rcParams['font.size'] = label_size 
 
     hillshade = Hillshade(FileName) 
-    #hillshade = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
-    
+
     # DAV - option to supply array directly (after masking for example, rather
     # than reading directly from a file. Should not break anyone's code)
     # (You can't overload functions in Python...)
@@ -758,8 +701,7 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
       print "DrapeName supplied is of type: ", type(DrapeName)
       raise ValueError('DrapeName must either be a string to a filename, \
       or a numpy ndarray type. Please try again.')
-    
-    
+        
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
     
@@ -782,12 +724,7 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
                         cbar_size="7%",
                         cbar_pad="2%",
                         )
-                        
-    #ShowDrapeColorbar = True                    
-    #if ShowDrapeColorbar and ShowColorbar:
-      #divider = make_axes_locatable(fig)
-      #cax = divider.append_axes("right", size = "5%", pad=0.05)
-      
+    
     else:
         grid = AxesGrid(fig, 111, 
                         nrows_ncols=(1, 1),
@@ -796,17 +733,9 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
                         share_all=True,
                         )        
 
-
     # now get the tick marks    
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
-
-
-    print "xmax: " + str(x_max)
-    print "xmin: " + str(x_min)
-    print "ymax: " + str(y_max)
-    print "ymin: " + str(y_min)
-
 
     im = grid[0].imshow(hillshade[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     #im = grid[0].imshow(raster, thiscmap, interpolation="nearest")
@@ -829,8 +758,7 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
     if ShowDrapeColorbar:
       cbar2 = grid.cbar_axes[0].colorbar(im2)
       cbar2.set_label_text(drape_cbarlabel)
-      
-      #plt.colorbar(im)
+
 
     # This affects all axes because we set share_all = True.
     grid.axes_llc.set_xlim(x_min,x_max)    
@@ -849,13 +777,32 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
 
 #==============================================================================
 
-##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-## This function plots the chi slope on a shaded relief map
+
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Basin number',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0):
+    """This creates a draped plot of a raster. It uses AxisGrid to ensure proper placment of the raster. It also includes a hillshde to make the figure look nicer (so there are three raster layers). In this case you need to tell it the name of the hillshade raster. 
+    
+    Args:
+        param1: FileName the name of the raster (with full path and extension)  
+        param2: HSName the name of the hillshade raster (with full path and extension)
+        param3: DrapeName the name of the raster drape (with full path and extension) 
+        param4: thiscmap The colourmap to be used
+        param5: drape_cmap The colourmap of the drape
+        param6: colorbarlabel a string for the label of the colourbar
+        param7: clim_val The colour limits. If (0,0) then the min and max raster values are used.
+        param8: The alpha value (transparency) of the drape
+        param9: elevation_threshold Turns data elements to nodata if below the threshold
+
+    Returns:
+        A density plot of the draped raster
+        
+    Author:
+        SMM
+        
+    """                                 
     label_size = 10
 
     # Set up fonts for plots
@@ -959,7 +906,26 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
                              clim_val = (0,0), drape_alpha = 0.6,FigFileName = 'Image.pdf',
                              FigFormat = 'show',elevation_threshold = 0, 
                              grouped_basin_list = [], basin_rename_list = [],spread  = 20,chan_net_csv = "None"):
+    """This creates a draped plot of a raster. It also plots basins, and labels them. 
+    
+    Args:
+        param1: FileName the name of the raster (with full path and extension)  
+        param2: HSName the name of the hillshade raster (with full path and extension)
+        param3: DrapeName the name of the raster drape (with full path and extension) 
+        param4: thiscmap The colourmap to be used
+        param5: drape_cmap The colourmap of the drape
+        param6: colorbarlabel a string for the label of the colourbar
+        param7: clim_val The colour limits. If (0,0) then the min and max raster values are used.
+        param8: The alpha value (transparency) of the drape
+        param9: elevation_threshold Turns data elements to nodata if below the threshold
 
+    Returns:
+        A density plot of the draped raster
+        
+    Author:
+        SMM
+        
+    """    
     label_size = 10
 
     # Set up fonts for plots
@@ -1245,6 +1211,19 @@ def SwathPlot(path, filename, axis):
 
 #==============================================================================
 def round_to_n(x, n):
+    """A rounding function
+    
+    Args: 
+        param1: x The number to be rounded
+        param2: n the number of difits to be rounded to 
+    
+    Returns:
+        A float of the rounded number
+        
+    Author:
+        SMM
+    """
+    
     if n < 1:
         raise ValueError("number of significant digits must be >= 1")
     # Use %e format to get the n most significant digits, as a string.
@@ -1254,6 +1233,12 @@ def round_to_n(x, n):
 #==============================================================================
 
 def init_plotting_DV():
+    """Initial plotting params.
+    
+    Author:
+        DAV
+    """
+    
     plt.rcParams['figure.figsize'] = (8, 8)
     plt.rcParams['font.size'] = 17
     plt.rcParams['font.family'] = 'Times New Roman'

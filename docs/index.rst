@@ -6,12 +6,16 @@
 Welcome to LSDPlottingTools's documentation!
 ============================================
 
+This is the basic documentation that simply repeats information sored within the python files themselves.  
+
 .. toctree::
    :maxdepth: 4
    :caption: Contents:
 
    LSDPlottingTools
 
+
+automodule:: app
 
 Indices and tables
 ==================
