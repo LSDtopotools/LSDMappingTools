@@ -19,7 +19,8 @@ import LSDMap_GDALIO as LSDMap_IO
 import LSDMap_BasicManipulation as LSDMap_BM
 import LSDMap_OSystemTools as LSDOst
 from scipy import misc
-import LSDMap_PointData as LSDMap_PD 
+import LSDMap_PointData as LSDMap_PD
+import LSDMap_ChiPlotting as LSDMap_CP 
 import matplotlib.pyplot as plt
 
 #==============================================================================
@@ -908,7 +909,10 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
 def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscmap='gray',drape_cmap='gray',
                              clim_val = (0,0), drape_alpha = 0.6,FigFileName = 'Image.pdf',
                              FigFormat = 'show',elevation_threshold = 0, 
-                             grouped_basin_list = [], basin_rename_list = [],spread  = 20,chan_net_csv = "None"):
+                             grouped_basin_list = [], basin_rename_list = [],spread  = 20,
+                             chan_net_csv = "None",
+                             label_sources = False, source_chi_threshold = 10,
+                             Big = False):
     """This creates a plot with a hillshade draped over elevation (or any other raster) with the basins on them. 
     
     Args:
@@ -926,7 +930,10 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         grouped_basin_list (int list): A list of lists with basins to be grouped.
         basin_rename_list (int list): A list of updated names for the basins. So if you wanted basin 4 to be renamed basin 6 the fourth element in this list would be 6. 
         spread (float): Basins get a different number each, this is the spread between groups that controls how different the grouped basins are. 
-        chan_net_csv (str) = The name of the channel network file.
+        chan_net_csv (str): The name of the channel network file.
+        label_sources (bool): Wheteher or not to label the sources
+        source_chi_threshold (float): Sources with length less than this will be plotted.
+        Big (bool): If you want a big figure
         
     Returns:
         A density plot of the draped raster
@@ -959,7 +966,10 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     y_range = y_max-y_min
     
     # make a figure, sized for a ppt slide
-    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+    if Big:
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
 
     gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
@@ -1076,8 +1086,47 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         else:
             texts.append(ax.text(this_easting,this_northing, str(index),fontsize = 8, color= "r",alpha=0.7,bbox=bbox_props))
     
-    
+
+            
+    # Now for sources labelling
+    texts2 = []
+    if label_sources:
+        
+        # Format the bounding box
+        bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec="b", lw=0.5,alpha = 0.5)
+        
+        # First get the source node information 
+        source_nodes = LSDMap_CP.FindSourceInformation(chanPointData)
+        
+        # Find all the channels with chi greater than a threshold
+        selected_sources = LSDMap_CP.FindShortSourceChannels(source_nodes,source_chi_threshold)
+        
+        # Now loop through these sources and get their eaasting and northing
+        for source in selected_sources:
+            
+            # Get the latitude and longitude
+            latitude = source_nodes[source]["Latitude"]
+            longitude = source_nodes[source]["Longitude"]
+            
+            # Convert to UTM
+            [this_easting,this_northing] = LSDMap_BM.GetUTMEastingNorthing(EPSG_string,latitude,longitude)
+            
+            # convert the northing for imshow
+            this_NCoord = LSDMap_BM.ConvertNorthingForImshow(FileName,this_northing)
+            
+            # now append the text
+            texts2.append(ax.text(this_easting,this_NCoord, str(source),fontsize = 8, color= "b",alpha=0.7,bbox=bbox_props))
+            
+            
+
+                
+            
+            
     adjust_text(texts,x=buffered_east,y=buffered_north,autoalign='xy',ax=ax)
+    adjust_text(texts2, arrowprops=dict(arrowstyle="->", color='r', lw=0.5),expand_points=(3, 3),
+            force_points=1)
+    
+    
  
     # Now to fix up the axes 
     ax.spines['top'].set_linewidth(1)

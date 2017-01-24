@@ -86,12 +86,12 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a very rudimentary plot of the chi profiles
-    FigName3 =  DataDirectory+'ChiProfiles.png'
-    this_basins_list = [3,0,2,1]
-    basin_rename_list = []
+    #FigName3 =  DataDirectory+'ChiProfiles.png'
+    #this_basins_list = [3,0,2,1]
+    #basin_rename_list = []
     #basin_rename_list =[1,3,2,0,4,5,8,6,7,9,10]    
-    LSDP.ChiProfiles(ChiName, FigName3,'png',this_basins_list,
-                            basin_rename_list,True,elevation_threshold,threshold_length) 
+    #LSDP.ChiProfiles(ChiName, FigName3,'png',this_basins_list,
+    #                        basin_rename_list,True,elevation_threshold,threshold_length) 
     #======================================
     
     #======================================
@@ -131,10 +131,12 @@ def ChiMappingToolsTest():
     # with the basins annotated onto the figure
     FigName9 = DataDirectory+'NumberedBasinPlot.png'
     spread = 15
+    basin_rename_list = []
     #basin_rename_list = [1,3,2,0,4,5,8,6,7,9,10]
     LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
                             (0,0), 0.4 ,FigName9,'png',
-                            elevation_threshold,Junction_list,basin_rename_list,spread,ChiName)  
+                            elevation_threshold,Junction_list,basin_rename_list,spread,ChiName,
+                            True, threshold_length,True)  
     #======================================    
     
     
