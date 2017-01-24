@@ -31,7 +31,7 @@ class Mock(MagicMock):
 
 MOCK_MODULES = ['scipy','pyproj', 'LSDOSystemTools', 'numpy', 'numpy.ma', 'gdal', 'osgeo', 'osgeo.gdal', 
                 'osgeo.gdalconst', 'osgeo.gdal_array', 'matplotlib', 'matplotlib.pyplot', 'matplotlib.rcParams',
-               'matplotlib.colors']
+               'matplotlib.colors', 'matplotlib.image']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
