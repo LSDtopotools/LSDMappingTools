@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import LSDMap_GDALIO as LSDMap_IO
 import LSDMap_BasicManipulation as LSDMap_BM
-import LSDOSystemTools as LSDOst
+import LSDMap_OSystemTools as LSDOst
 import LSDMap_BasicPlotting as LSDMap_BP
 import LSDMap_PointData as LSDMap_PD
 

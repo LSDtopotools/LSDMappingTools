@@ -17,6 +17,7 @@ from matplotlib import rcParams
 from adjust_text import adjust_text
 import LSDMap_GDALIO as LSDMap_IO
 import LSDMap_BasicManipulation as LSDMap_BM
+import LSDMap_OSystemTools as LSDOst
 from scipy import misc
 import LSDMap_PointData as LSDMap_PD 
 import matplotlib.pyplot as plt
@@ -1238,7 +1239,6 @@ def init_plotting_DV():
     Author:
         DAV
     """
-    
     plt.rcParams['figure.figsize'] = (8, 8)
     plt.rcParams['font.size'] = 17
     plt.rcParams['font.family'] = 'Times New Roman'

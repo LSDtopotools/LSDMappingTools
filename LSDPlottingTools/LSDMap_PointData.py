@@ -14,7 +14,7 @@ from osgeo import osr
 from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
-import LSDOSystemTools as LSDOst
+import LSDMap_OSystemTools as LSDOst
 import os
 from pyproj import Proj, transform
 

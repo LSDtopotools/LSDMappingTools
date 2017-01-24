@@ -13,7 +13,7 @@ from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
 from glob import glob
-import LSDOSystemTools as LSDOst
+import LSDMap_OSystemTools as LSDOst
 import LSDMap_GDALIO as LSDMap_IO
 import LSDMap_BasicPlotting as LSDMBP
 import LSDMap_PointData as LSDMPD
