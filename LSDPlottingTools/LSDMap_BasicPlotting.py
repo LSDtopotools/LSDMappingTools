@@ -26,19 +26,24 @@ import matplotlib.pyplot as plt
 # This formats ticks if you want to convert metres to km
 #==============================================================================
 def TickConverter(x_min,x_max,n_target_tics):
-    """This function is used to convert ticks in metres to ticks in kilometres
+    """This function is used to convert ticks in metres to ticks in kilometres.
+       
+    Parameters
+    ----------
+        x_min : float
+            The minimum value on the axis (in metres).
+        x_max: float
+            The maximum value on the axis (in metres)
+        n_target_ticks: int 
+            The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
     
-    Args:
-        param1: x_min The minimum value on the axis (in metres)
-        param2: x_max The maximum value on the axis (in metres)
-        param3: n_target_ticks the number of ticks you want on the axis (this is optimised so you may not get exactly this number)
-    
-    Returns:
+    Returns
+    -------
         new_xlocs,x_labels Two lists, one with the new x locations (in metres) and one with the strings of the locations in kilometres for use with tick labelling
         
-    Author:
-        Simon M Mudd
-    
+    Author
+    ------
+        Simon M Mudd  
     """
     
     
@@ -125,18 +130,27 @@ def TickConverter(x_min,x_max,n_target_tics):
 def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):  
     """This fuction is used to set tick locations for UTM maps. It tries to optimise the spacing of these ticks.
     
-    Args:
-        param1: FileName the name of the raster (with full path and extension)        
-        param2: x_min The minimum value on the x axis (in metres)
-        param3: x_max The maximum value on the x axis (in metres)
-        param4: y_min The minimum value on the y axis (in metres)
-        param5: y_max The maximum value on the y axis (in metres)        
-        param6: n_target_ticks the number of ticks you want on the axis (this is optimised so you may not get exactly this number)
+    Parameters
+    ----------
+        FileName : str 
+            The name of the raster (with full path and extension)        
+        x_min : float 
+            The minimum value on the x axis (in metres)
+        x_max : float
+            The maximum value on the x axis (in metres)
+        y_min : float
+            The minimum value on the y axis (in metres)
+        y_max : float
+            The maximum value on the y axis (in metres)        
+        n_target_ticks: int
+            The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
     
-    Returns:
+    Returns
+    -------
         new_xlocs,new_ylocs,x_labels,y_labels Four lists, with the locations of the ticks and the strings for labelling.
         
-    Author:
+    Author
+    ------
         Simon M Mudd  
     """   
     
