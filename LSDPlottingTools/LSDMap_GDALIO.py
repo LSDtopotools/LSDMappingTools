@@ -17,6 +17,17 @@ from numpy import uint8
 
 #==============================================================================
 def getNoDataValue(rasterfn):
+    """This gets the nodata value from the raster
+    
+    Args:
+        rasterfn (str): The filename (with path and extension) of the raster
+        
+    Returns:
+        nodatavalue: the nodata value
+        
+    Author: SMM
+    """
+    
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
     return band.GetNoDataValue()
@@ -24,6 +35,17 @@ def getNoDataValue(rasterfn):
 
 #==============================================================================
 def setNoDataValue(rasterfn):
+    """This sets the nodata value from the raster
+    
+    Args:
+        rasterfn (str): The filename (with path and extension) of the raster
+        
+    Returns:
+        None
+        
+    Author: SMM
+    """
+
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
     return band.SetNoDataValue()
@@ -50,7 +72,17 @@ def GetUTMMaxMin(FileName):
 # Gets the pixel area, assumes units are projected
 #============================================================================== 
 def GetPixelArea(FileName):
-
+    """Gets the area in m^2 of the pixels
+    
+    Args:
+        rasterfn (str): The filename (with path and extension) of the raster
+        
+    Returns:
+        Pixel_area (float): The area of each pixel
+        
+    Author: SMM
+    """
+    
     if exists(FileName) is False:
             raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')    
     
