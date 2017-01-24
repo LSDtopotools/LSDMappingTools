@@ -28,22 +28,17 @@ import matplotlib.pyplot as plt
 def TickConverter(x_min,x_max,n_target_tics):
     """This function is used to convert ticks in metres to ticks in kilometres.
        
-    Parameters
-    ----------
-    x_min : float
-        The minimum value on the axis (in metres).
-    x_max: float
-        The maximum value on the axis (in metres)
-    n_target_ticks: int 
-        The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
+    Args:
+        x_min (float): The minimum value on the axis (in metres).
+        x_max (float): The maximum value on the axis (in metres)
+        n_target_ticks (int): The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
     
-    Returns
-    -------
-    new_xlocs,x_labels Two lists, one with the new x locations (in metres) and one with the strings of the locations in kilometres for use with tick labelling
+    Returns: 
+        new_xlocs (float list): List of locations of the ticks in metres.
+        new_x_labels (str list): List of strings for ticks, will be location in kilometres. 
         
-    Author
-    ------
-    Simon M Mudd  
+    Author:
+        Simon M Mudd  
     """
     
     
@@ -130,28 +125,20 @@ def TickConverter(x_min,x_max,n_target_tics):
 def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):  
     """This fuction is used to set tick locations for UTM maps. It tries to optimise the spacing of these ticks.
     
-    Parameters
-    ----------
-    FileName : str 
-        The name of the raster (with full path and extension)        
-    x_min : float 
-        The minimum value on the x axis (in metres)
-    x_max : float
-        The maximum value on the x axis (in metres)
-    y_min : float
-        The minimum value on the y axis (in metres)
-    y_max : float
-        The maximum value on the y axis (in metres)        
-    n_target_ticks: int
-        The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
+    Args:
+        x_min (float): The minimum value on the x axis (in metres).
+        x_max (float): The maximum value on the x axis (in metres).
+        y_min (float): The minimum value on the y axis (in metres).
+        y_max (float): The maximum value on the y axis (in metres).        
+        n_target_ticks (int): The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
     
-    Returns
-    -------
-    new_xlocs,new_ylocs,x_labels,y_labels Four lists, with the locations of the ticks and the strings for labelling.
-        
-    Author
-    ------
-    Simon M Mudd  
+    Returns: 
+        new_xlocs (float list): List of locations of the ticks in metres.
+        new_x_labels (str list): List of strings for ticks, will be location in kilometres.         
+        new_ylocs (float list): List of locations of the ticks in metres.
+        new_y_labels (str list): List of strings for ticks, will be location in kilometres.      
+    
+    Author: SMM 
     """   
     
     CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(FileName)
@@ -922,21 +909,25 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
                              clim_val = (0,0), drape_alpha = 0.6,FigFileName = 'Image.pdf',
                              FigFormat = 'show',elevation_threshold = 0, 
                              grouped_basin_list = [], basin_rename_list = [],spread  = 20,chan_net_csv = "None"):
-    """This creates a draped plot of a raster. It also plots basins, and labels them. 
+    """This creates a plot with a hillshade draped over elevation (or any other raster) with the basins on them. 
     
     Args:
         FileName (str): The name of the raster (with full path and extension).   
         HSName (str): The name of the hillshade raster (with full path and extension).   
-        DrapeName (str): The name of the drape raster (with full path and extension).   
+        BasinName (str): The name of the basin raster (with full path and extension).
+        Basin_csv_name (str): The name of the basin csv file (this is produced by chi tools)
         thiscmap (colormap): The colourmap to be used.
         drape_cmap (colormap): The colourmap to be used for the drape.
-        colorbarlabel (str): The label of the colourbar
         clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
         drape_alpha (float): The alpha value (transparency) of the drape
         FigFilename (str): The name of the figure (with extension)
         FigFormat (str): the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen. 
         elevation_threshold (float): If raster values are less than this threshold they become nodata.
-
+        grouped_basin_list (int list): A list of lists with basins to be grouped.
+        basin_rename_list (int list): A list of updated names for the basins. So if you wanted basin 4 to be renamed basin 6 the fourth element in this list would be 6. 
+        spread (float): Basins get a different number each, this is the spread between groups that controls how different the grouped basins are. 
+        chan_net_csv (str) = The name of the channel network file.
+        
     Returns:
         A density plot of the draped raster
         
