@@ -50,7 +50,7 @@ def ChiMappingToolsTest():
     
     #LSDP.BasinKeyToJunction(Junction_list,BasinInfoName)
     #LSDP.BasinOrderer(BasinInfoName, DEMname, "outlet_longitude",reverse=True) 
-    threshold_length = 12
+    threshold_length = 5
     #thisPointData = LSDP.LSDMap_PointData(ChiName)
     #these_source_nodes = LSDP.FindSourceInformation(thisPointData)
     #remaining_sources = LSDP.FindShortSourceChannels(these_source_nodes,threshold_length)

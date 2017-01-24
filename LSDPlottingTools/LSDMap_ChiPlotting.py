@@ -35,24 +35,22 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
     """This function plots the chi slope on a shaded relief map. It uses the Kirby and Whipple colour scheme.
 
     Args:
-        param1: FileName The name (with full path and extension) of the DEM
-        param2: DrapenName The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
-        param3: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
-        param4: thiscmap The colourmap for the elevation raster
-        param5: drape_cmap The colourmap for the drape raster
-        param6: colorbarlabel the text label on the colourbar. 
-        param7: clim_val The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
-        param8: drape_alpha The alpha value of the drape
-        param9: FigFileName The name of the figure file
-        param10: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
-        param11: elevation_threshold chi points below this elevation are removed from plotting. 
+        FileName (str): The name (with full path and extension) of the DEM.
+        DrapenName (str): The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
+        chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        thiscmap (colormap): The colourmap for the elevation raster
+        drape_cmap (colormap):  The colourmap for the drape raster
+        colorbarlabel (str): the text label on the colourbar. 
+        clim_val  (float,float): The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
+        drape_alpha (float): The alpha value of the drape
+        FigFileName (str): The name of the figure file
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting. 
 
     Returns:
         Does not return anything but makes a plot.
         
-    Author: 
-        Simon M. Mudd
-
+    Author: SMM
     """
     
     from matplotlib import colors
@@ -180,15 +178,13 @@ def FindSourceInformation(thisPointData):
     """This function finds the source locations, with chi elevation, flow distance, etc.
 
     Args:
-        param1: thisPointData A LSDMap_PointData object
+        thisPointData (LSDMap_PointData) A LSDMap_PointData object that is derived from the Chi_mapping_tool component of *LSDTopoTools*.
 
     Returns:
         A dict with key of the source node that returns a dict that has the FlowDistance, Chi, and Elevation of each source.
         Used for plotting source numbers on profile plots. 
         
-    Author: 
-        Simon M. Mudd
-
+    Author: SMM 
     """    
     
     # Get the chi, m_chi, basin number, and source ID code
@@ -253,13 +249,13 @@ def FindShortSourceChannels(these_source_nodes,threshold_length):
     """This function gets the list of sources that are shorter than a threshold value
     
     Args: 
-        param1: these_source_nodes a dict from the FindSourceInformation module
+        these_source_nodes (dict): A dict from the FindSourceInformation module
+        threshold_length (float): The threshold of chi lenght of the source segment
     
     Return:
-        A list of integers of source with the appropriate length
+        long_sources: A list of integers of source with the appropriate length
     
-    Author:
-        Simon M Mudd
+    Author: SMM
     """
     long_sources = []
     for key in these_source_nodes:
@@ -281,17 +277,17 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     """This is the main chi plotting script that prints a chi steepness map over the hillshade. Note that the colour scale for the chi slope values are always cubehelix
 
     Args:
-        param1: FileName The name (with full path and extension) of the DEM
-        param2: DrapenName The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
-        param3: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
-        param4: thiscmap The colourmap for the elevation raster
-        param5: thiscmap The colourmap for the drape raster
-        param6: colorbarlabel the text label on the colourbar. 
-        param7: clim_val The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
-        param8: drape_alpha The alpha value of the drape
-        param9: FigFileName The name of the figure file
-        param10: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
-        param11: elevation_threshold chi points below this elevation are removed from plotting. 
+        FileName (str): The name (with full path and extension) of the DEM.
+        DrapenName (str): The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
+        chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        thiscmap (colormap): The colourmap for the elevation raster
+        drape_cmap (colormap):  The colourmap for the drape raster
+        colorbarlabel (str): the text label on the colourbar. 
+        clim_val  (float,float): The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
+        drape_alpha (float): The alpha value of the drape
+        FigFileName (str): The name of the figure file
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
         
     Returns:
         Prints a plot to file.
@@ -402,11 +398,8 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     # This is the axis for the colorbar   
     ax2 = fig.add_subplot(gs[10:15,15:70])
     cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)   
-    #cbar.set_label(colorbarlabel, fontsize=10)
     ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)       
     
-    
-
     # This affects all axes because we set share_all = True.
     ax.set_xlim(x_min,x_max)    
     ax.set_ylim(y_max,y_min)     
@@ -436,18 +429,18 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     """This plots the channels over a draped plot, colour coded by source
 
     Args:
-        param1: FileName The name (with full path and extension) of the DEM
-        param2: DrapenName The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
-        param3: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
-        param4: thiscmap The colourmap for the elevation raster
-        param5: thiscmap The colourmap for the drape raster
-        param6: colorbarlabel the text label on the colourbar. 
-        param7: clim_val The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
-        param8: drape_alpha The alpha value of the drape
-        param9: FigFileName The name of the figure file
-        param10: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
-        param11: elevation_threshold chi points below this elevation are removed from plotting. 
-        param12: data_name Doesn't do anything at the moment
+        FileName (str): The name (with full path and extension) of the DEM.
+        DrapenName (str): The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
+        chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        thiscmap (colormap): The colourmap for the elevation raster
+        drape_cmap (colormap):  The colourmap for the drape raster
+        colorbarlabel (str): the text label on the colourbar. 
+        clim_val  (float,float): The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
+        drape_alpha (float): The alpha value of the drape
+        FigFileName (str): The name of the figure file
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
+        data_name (str) = The name of the sources csv
         
     Returns:
         Prints a plot to file.
@@ -581,17 +574,19 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     """This function plots the chi vs elevation: lumps everything onto the same axis. This tends to make a mess. 
  
      Args:
-         param1: chi_csv_fname The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
-         param2: FigFileName The name of the figure file
-         param3: The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
-         param4: elevation_threshold chi points below this elevation are removed from plotting. 
+        chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        FigFileName (str): The name of the figure file
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        basin_order_list (int list): The basins to plot
+        basin_rename_list (int list): A list for naming substitutions
+        label_sources (bool): If tru, label the sources.
+        elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
+        source_thinning_threshold (float) = Minimum chi lenght of a source segment
  
     Returns:
          Does not return anything but makes a plot.
          
-    Author: 
-         Simon M. Mudd
- 
+    Author: SMM
     """
 
     from matplotlib import colors
@@ -620,8 +615,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
         source_info = FindSourceInformation(thisPointData)
         remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
         thisPointData.ThinDataSelection("source_key",remaining_sources)
-        
-        
+               
     # Logic for stacked labels. You need to run this after source thinning to 
     # get an updated source dict
     if label_sources:

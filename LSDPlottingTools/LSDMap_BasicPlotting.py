@@ -1093,7 +1093,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     if label_sources:
         
         # Format the bounding box
-        bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec="b", lw=0.5,alpha = 0.5)
+        bbox_props = dict(boxstyle="round,pad=0.1", fc="w", ec="b", lw=0.5,alpha = 0.5)
         
         # First get the source node information 
         source_nodes = LSDMap_CP.FindSourceInformation(chanPointData)
@@ -1115,7 +1115,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
             this_NCoord = LSDMap_BM.ConvertNorthingForImshow(FileName,this_northing)
             
             # now append the text
-            texts2.append(ax.text(this_easting,this_NCoord, str(source),fontsize = 8, color= "b",alpha=0.7,bbox=bbox_props))
+            texts2.append(ax.text(this_easting,this_NCoord, str(source),fontsize = 6, color= "b",alpha=0.7,bbox=bbox_props))
             
             
 
