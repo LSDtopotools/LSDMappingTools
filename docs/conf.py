@@ -19,7 +19,7 @@
 import os
 import sys
 #sys.path.insert(0, os.path.abspath('../LSDPlottingTools/'))
-sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__name__), '../LSDPlottingTools'))
 
 from mock import Mock as MagicMock
 #from unittest.mock import MagicMock
@@ -29,7 +29,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return MagicMock()
 
-MOCK_MODULES = ['numpy', 'gdal', 'osgeo', 'osgeo.gdal']
+MOCK_MODULES = ['numpy', 'numpy.ma', 'gdal', 'osgeo', 'osgeo.gdal']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
