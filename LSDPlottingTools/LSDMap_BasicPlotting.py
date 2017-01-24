@@ -30,20 +30,20 @@ def TickConverter(x_min,x_max,n_target_tics):
        
     Parameters
     ----------
-        x_min : float
-            The minimum value on the axis (in metres).
-        x_max: float
-            The maximum value on the axis (in metres)
-        n_target_ticks: int 
-            The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
+    x_min : float
+        The minimum value on the axis (in metres).
+    x_max: float
+        The maximum value on the axis (in metres)
+    n_target_ticks: int 
+        The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
     
     Returns
     -------
-        new_xlocs,x_labels Two lists, one with the new x locations (in metres) and one with the strings of the locations in kilometres for use with tick labelling
+    new_xlocs,x_labels Two lists, one with the new x locations (in metres) and one with the strings of the locations in kilometres for use with tick labelling
         
     Author
     ------
-        Simon M Mudd  
+    Simon M Mudd  
     """
     
     
@@ -132,26 +132,26 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     
     Parameters
     ----------
-        FileName : str 
-            The name of the raster (with full path and extension)        
-        x_min : float 
-            The minimum value on the x axis (in metres)
-        x_max : float
-            The maximum value on the x axis (in metres)
-        y_min : float
-            The minimum value on the y axis (in metres)
-        y_max : float
-            The maximum value on the y axis (in metres)        
-        n_target_ticks: int
-            The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
+    FileName : str 
+        The name of the raster (with full path and extension)        
+    x_min : float 
+        The minimum value on the x axis (in metres)
+    x_max : float
+        The maximum value on the x axis (in metres)
+    y_min : float
+        The minimum value on the y axis (in metres)
+    y_max : float
+        The maximum value on the y axis (in metres)        
+    n_target_ticks: int
+        The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
     
     Returns
     -------
-        new_xlocs,new_ylocs,x_labels,y_labels Four lists, with the locations of the ticks and the strings for labelling.
+    new_xlocs,new_ylocs,x_labels,y_labels Four lists, with the locations of the ticks and the strings for labelling.
         
     Author
     ------
-        Simon M Mudd  
+    Simon M Mudd  
     """   
     
     CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(FileName)
@@ -261,13 +261,13 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     """This creates a plot of a raster where the colours are streched over log space
     
     Args:
-        param1: FileName the name of the raster (with full path and extension)        
-        param2: thiscmap The colourmap to be used
-        param3: colorbarlabel a string for the label of the colourbar
-        param4: clim_val The colour limits. If (0,0) then the min and max raster values are used. 
+        FileName (str): The name of the raster (with full path and extension).        
+        thiscmap (colormap): The colourmap to be used.
+        colorbarlabel (str): The label of the colourbar
+        clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
 
     Returns:
-        A density plot of the raster
+        A density plot of the raster.
         
     Author:
         Simon M Mudd  

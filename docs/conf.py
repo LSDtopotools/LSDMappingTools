@@ -48,7 +48,7 @@ sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 # ones.
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.todo',
-    'sphinx.ext.viewcode']
+    'sphinx.ext.viewcode','sphinx.ext.napoleon']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -64,7 +64,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'LSDPlottingTools'
-copyright = u'2017, Simon M Mudd'
+copyright = u'2017, Simon M Mudd and the LSDTopoHackers team'
 author = u'Simon M Mudd and the LSDTopoHackers team'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -100,7 +100,7 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = 'classic'
+html_theme = 'sphinxdoc'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
