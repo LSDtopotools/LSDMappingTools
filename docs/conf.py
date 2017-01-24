@@ -21,7 +21,8 @@ import sys
 #sys.path.insert(0, os.path.abspath('../LSDPlottingTools/'))
 sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
 
-from unittest.mock import MagicMock
+from mock import Mock as MagicMock
+#from unittest.mock import MagicMock
 
 class Mock(MagicMock):
     @classmethod
