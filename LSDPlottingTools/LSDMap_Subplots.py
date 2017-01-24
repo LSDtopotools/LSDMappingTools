@@ -320,9 +320,8 @@ def findmaxval_multirasters(FileList):
 
 def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, 
                         drape_min_threshold=None, drape_max=None, cbar_label=None):
-    """
-    @author DV, after FJC's function above
-    
+    """Creates a figure with multiple drape maps over a hillshade.
+      
     Plots flood extents from water depth rasters
     draped over the catchment elevation raster
     in a series of subplots
@@ -330,14 +329,34 @@ def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     Takes a wildcard for the drapes
     Expexts a fixed elevation raster, but this could be
     modified in future.
+ 
+    Parameters:
+	DataDir (str): Path to the directory containing the data files
+	ElevationRaster (str): Name of the elevation raster used to create the hillshade
+	DrapeRasterWild (str): Wildcard string used to find all the drape files in the
+				directory.
+	cmap: Can be the string name of a colourmap, or a Colourmap object
+	drape_min (float, optional): Minimum value for the drape raster, i.e. values
+		below this threshold will be masked and not plotted.
+	drape_max (float, optional): Maximum value for the drape raster, i.e. values
+		above this value will be masked and not plotted.
+	cbar_label (str, optional): Label for the colourbar on the figure. This
+		is the colourbar for the drape colourmap.   
+
+    Notes:
+        Consider, if plotting multiple datasets, how you
+        are going to deal with min a max values in the colur range.
+        imshow will automatically set vmin and vmax and stretch the colour bar 
+        over this - which can be visually misleading. Ideally, you
+        want to have the same colour map used for *all* subplots, and 
+        this is not default behaviour.
     
-    Thought: consider, if plotting multiple datasets, how you
-    are going to deal with min a max values in the colur range.
-    imshow will automatically set vmin and vmax and stretch the colour bar 
-    over this - which can be visually misleading. Ideally, you
-    want to have the same colour map used for *all* subplots, and 
-    this is not default behaviour.
-    
+    Note: If `drape_max` is not set, the function searches for the maximum value
+	in the range of rasters found by expanding the `DrapeRasterWild` argument
+	and searching for the maximum value out of all rasters found.
+
+    Raises:
+	Exception: If the maximum value in the drape maps could not be found.
     
     """
     import lsdmatplotlibextensions as mplext
