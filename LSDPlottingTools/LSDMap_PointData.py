@@ -22,6 +22,15 @@ class LSDMap_PointData(object):
     
     # The constructor: it needs a filename to read    
     def __init__(self,FileName):
+        """This is the LSDMap_pointdata object. It loads csv files that have latitude and longitude data (in WGS84) and keeps other data records. 
+        
+        The object can convert to UTM, and it also can print data to other file formats like GeoJSON and shapefiles. 
+        
+        Args:
+            Filename (str): The name of the csv file (with path and extension) that contains the point data. It should have columns labelled "latitude" and "longitude". 
+
+        Author: SMM
+        """
         
         # This gets the filename without the .csv
         file_prefix = LSDOst.GetFilePrefix(FileName)
@@ -110,6 +119,16 @@ class LSDMap_PointData(object):
 ##==============================================================================       
     # Get data elements
     def GetParameterNames(self,PrintToScreen = False):
+        """Gets the list of parameter names.
+        
+        Args:
+            PrintToScreen (bool): If true, prints to screen
+        
+        Return:
+            str: A list of the variable names
+            
+        Author: SMM
+        """
         
         if PrintToScreen:        
             print self.VariableList
@@ -118,6 +137,16 @@ class LSDMap_PointData(object):
 
     # Get data types
     def GetParameterTypes(self,PrintToScreen = False):
+        """Gets the tyes of each names.
+        
+        Args:
+            PrintToScreen (bool): If true, prints to screen
+        
+        Return:
+            str: A list of the variable types
+            
+        Author: SMM
+        """
         
         if PrintToScreen:        
             print self.DataTypes
@@ -127,6 +156,17 @@ class LSDMap_PointData(object):
         
     # Get data elements
     def GetLatitude(self,PrintToScreen = False):
+        """Gets the latitude list.
+        
+        Args:
+            PrintToScreen (bool): If true, prints to screen
+        
+        Return:
+            float: A list of the latitudes
+            
+        Author: SMM
+        """
+
         
         if PrintToScreen:        
             print self.Latitude
@@ -135,6 +175,17 @@ class LSDMap_PointData(object):
         
     # Get data elements
     def GetLongitude(self,PrintToScreen = False):
+        """Gets the longitude list.
+        
+        Args:
+            PrintToScreen (bool): If true, prints to screen
+        
+        Return:
+            float: A list of the longitudes
+            
+        Author: SMM
+        """
+
         
         if PrintToScreen:        
             print self.Longitude
@@ -142,7 +193,18 @@ class LSDMap_PointData(object):
         return self.Longitude 
 
     def QueryData(self,data_name,PrintToScreen = False):
-
+        
+        """Returns the list of the data that has the column header data_name
+        
+        Args:
+            PrintToScreen (bool): If true, prints to screen.
+            data_name (str): The header of the column you want
+        
+        Return:
+            float: A list of the data
+            
+        Author: SMM
+        """
         if data_name not in self.VariableList:
             print "The data " + data_name + " is not one of the data elements in this point data"
         else:
@@ -154,7 +216,17 @@ class LSDMap_PointData(object):
             return self.PointData[data_name]   
  
     def GetUTMEastingNorthing(self,EPSG_string):
+        """Returns two lists: the latitude and longitude converted to northing and easting. 
         
+        Args:
+            PrintToScreen (bool): If true, prints to screen.
+            EPSG_string (str): The EPSG code of the UTM coordinates you want (326XX) with zone XX is for north, 327XX is for south. 
+        
+        Return:
+            float: Two lists containing easting and northing
+            
+        Author: SMM
+        """        
         print "Yo, getting this stuff: "+EPSG_string
         # The lat long are in epsg 4326 which is WGS84
         inProj = Proj(init='epsg:4326')
@@ -178,7 +250,21 @@ class LSDMap_PointData(object):
         return easting,northing
 
     def GetUTMEastingNorthingFromQuery(self,EPSG_string,Latitude_string,Longitude_string):
+        """Returns two lists: the latitude and longitude converted to northing and easting. But you can define the columns if there are more than one latitude and longitude columns. 
         
+        Note: 
+            This is used mainly if there are multple lat-long coordinates in the csv file. For example when you have basin centroids and basin outlets in the same file. 
+        Args:
+            PrintToScreen (bool): If true, prints to screen.
+            EPSG_string (str): The EPSG code of the UTM coordinates you want (326XX) with zone XX is for north, 327XX is for south. 
+            Latitude_string (str): The name of the latitude column you want
+            Longitude_string (str): The name of the longitude column you want. 
+            
+        Return:
+            float: Two lists containing easting and northing
+            
+        Author: SMM
+        """          
         print "Yo, getting this stuff: "+EPSG_string
         # The lat long are in epsg 4326 which is WGS84
         inProj = Proj(init='epsg:4326')
@@ -208,7 +294,18 @@ class LSDMap_PointData(object):
 ##==============================================================================
 ##==============================================================================    
     def ThinData(self,data_name,Threshold_value):
+        """This removes data from a point function that is below a threshold value
+
+        Args:
+            data_name (str): The name of the data member to select
+            Threshold_value (float): Below this threshold points will be removed. 
         
+        Returns:
+            None removes data from the object (not reversible!!)
+            
+        Author: SMM
+    
+        """        
         print "I am thinning the data for you!"
         
         # Get the data for thinning
@@ -254,14 +351,13 @@ class LSDMap_PointData(object):
         """This function takes a list of values and retains the members in data name corresponding to that selection
 
         Args:
-            param1: data_name the name of the data member to select
-            param2: data_for_selection_list a name of the data 
+            data_name (str): The name of the data member to select
+            data_for_selection_list (int): A list of values to retain. Useful for things like selecting basins or sources.  
         
-            Returns:
-                removes data from the object (not reversible!!)
+        Returns:
+            None removes data from the object (not reversible!!)
             
-                Author:
-                    Simon M. Mudd
+        Author: SMM
     
         """
     
@@ -309,7 +405,17 @@ class LSDMap_PointData(object):
 ##==============================================================================         
     # This translates the CRNData object to an Esri shapefile
     def TranslateToReducedShapefile(self,FileName):
+        """This converts the point data to a shapefile
+        
+        Args:
+            FileName (str): the name of the file to be printed. The code strips the extension and turns it into .shp, so you can give it the name of the csv file and ti will still work. 
 
+        Return:
+            None, but prints a new shapefile
+            
+        Author: SMM
+        """
+            
         import osgeo.ogr as ogr
 
         #  set up the shapefile driver
@@ -385,6 +491,17 @@ class LSDMap_PointData(object):
         
     # This translates the CRNData object to an GeoJSON
     def TranslateToReducedGeoJSON(self,FileName):
+        """This converts the point data to a GeoJSON
+        
+        Args:
+            FileName (str): the name of the file to be printed. The code strips the extension and turns it into .geojson, so you can give it the name of the csv file and ti will still work. 
+
+        Return:
+            None, but prints a new GeoJSON
+            
+        Author: SMM
+        """
+
         # Parse a delimited text file of volcano data and create a shapefile
 
         import osgeo.ogr as ogr

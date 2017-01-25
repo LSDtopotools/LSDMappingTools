@@ -208,14 +208,12 @@ def GetRasterExtent(FileName):
         FileName (str): The filename (with path and extension) of the raster.
         
     Return:
-        float: A vector that contains::
-            
-            {
-                 extent[0]: XMin
-                 extent[1]: XMax
-                 extent[2]: YMin
-                 extent[3]: YMax           
-            }
+        float: A vector that contains
+        
+            * extent[0]: XMin
+            * extent[1]: XMax
+            * extent[2]: YMin
+            * extent[3]: YMax           
     
     Author: SMM
     """    
