@@ -749,6 +749,28 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                        first_basin = 0, last_basin = 0,
                        basin_order_list = [],basin_rename_list = [],
                        X_offset = 5,label_sources = False):
+    """This function plots the chi vs elevation: It stacks profiles (so the basins are spaced out) and colours them by the source number.
+ 
+     Args:
+        chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        FigFileName (str): The name of the figure file
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
+        first_basin (int): The basin to start with (but overridden by the basin list)
+        last_basin (int): The basin to end with (but overridden by the basin list)       
+        basin_order_list (int list): The basins to plot
+        basin_rename_list (int list): A list for naming substitutions. Useful because LSDTopoTools might number basins in a way a human wouldn't, so a user can intervene in the names. 
+        X_offset (float): The offest in chi between the basins along the x-axis. Used to space out the profiles so you can see each of them.        
+        label_sources (bool): If true, label the sources.
+        source_thinning_threshold (float) = Minimum chi lenght of a source segment
+ 
+    Returns:
+         Does not return anything but makes a plot.
+         
+    Author: SMM
+    """
+
+
 
     from adjust_text import adjust_text
     from matplotlib import colors
@@ -961,6 +983,31 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        this_cmap = plt.cm.cubehelix,data_name = 'chi', X_offset = 5,
                        plotting_data_format = 'log',
                        label_sources = False):
+    """This function plots the chi vs elevation or flow distance vs elevation.
+    
+    It stacks profiles (so the basins are spaced out).
+    It colours the plots by the chi steepness (which is equal to the normalised channel steepness if A_0 is set to 1).
+ 
+     Args:
+        chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
+        FigFileName (str): The name of the figure file
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
+        first_basin (int): The basin to start with (but overridden by the basin list)
+        last_basin (int): The basin to end with (but overridden by the basin list)       
+        basin_order_list (int list): The basins to plot
+        basin_rename_list (int list): A list for naming substitutions. Useful because LSDTopoTools might number basins in a way a human wouldn't, so a user can intervene in the names. 
+        this_cmap (colormap): NOT USED! We now use a default colourmap but this may change.
+        data_name (str): 'chi' or 'flow_distance' What to plot along the x-axis.
+        X_offset (float): The offest in chi between the basins along the x-axis. Used to space out the profiles so you can see each of them.        
+        plotting_data_format: NOT USED previously if 'log' use logarithm scale, but we now automatically do this. Might change later. 
+        label_sources (bool): If true, label the sources.
+ 
+    Returns:
+         Does not return anything but makes a plot.
+         
+    Author: SMM
+    """
 
     import math
     import matplotlib.patches as patches
