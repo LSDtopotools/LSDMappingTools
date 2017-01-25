@@ -567,7 +567,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
                 source_thinning_threshold = 0):
     """This function plots the chi vs elevation: lumps everything onto the same axis. This tends to make a mess. 
  
-     Args:
+    Args:
         chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
         FigFileName (str): The name of the figure file
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
@@ -745,7 +745,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                        X_offset = 5,label_sources = False):
     """This function plots the chi vs elevation: It stacks profiles (so the basins are spaced out) and colours them by the source number.
  
-     Args:
+    Args:
         chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
         FigFileName (str): The name of the figure file
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
@@ -979,7 +979,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     It stacks profiles (so the basins are spaced out).
     It colours the plots by the chi steepness (which is equal to the normalised channel steepness if A_0 is set to 1).
  
-     Args:
+    Args:
         chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. 
         FigFileName (str): The name of the figure file
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 

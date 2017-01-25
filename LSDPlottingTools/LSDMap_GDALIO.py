@@ -115,7 +115,8 @@ def GetPixelArea(FileName):
 def GetUTMMaxMinFromRowsCol(FileName,x_max_col,x_min_col,y_max_row,y_min_row):
     """This gets the minimum and maximum UTM values but you give it the row and column numbers. 
        
-    *WARNING* it assumes raster is already projected into UTM, and is in ENVI format! It reads from an ENVI header file. 
+    Note:
+        This assumes raster is already projected into UTM, and is in ENVI format! It reads from an ENVI header file. 
     
     Args:
         FileName (str): The filename (with path and extension) of the raster
@@ -167,9 +168,9 @@ def GetUTMMaxMinFromRowsCol(FileName,x_max_col,x_min_col,y_max_row,y_min_row):
 def GetLocationVectors(FileName):
     """This gets a vector of the x and y locations of the coordinates
 
-    *WARNING* it assumes raster is already projected into UTM, and is in ENVI format! It reads from an ENVI header file. 
- 
-    
+    Note: 
+        This assumes raster is already projected into UTM, and is in ENVI format! It reads from an ENVI header file. 
+     
     Args:
         FileName (str): The filename (with path and extension) of the raster.
         
@@ -202,8 +203,9 @@ def GetLocationVectors(FileName):
 def GetRasterExtent(FileName):
     """This gets a vector of the minimums and maximums of the coordinates
 
-    *WARNING* it assumes raster is already projected into UTM, and is in ENVI format! It reads from an ENVI header file. 
-     
+    Note: 
+        This assumes raster is already projected into UTM, and is in ENVI format! It reads from an ENVI header file. 
+      
     Args:
         FileName (str): The filename (with path and extension) of the raster.
         
@@ -230,16 +232,13 @@ def GetGeoInfo(FileName):
         FileName (str): The filename (with path and extension) of the raster.
         
     Return:
-        float: A vector that contains::
-            
-            {
-                 NDV: the nodata values
-                 xsize: cellsize in x direction
-                 ysize: cellsize in y direction
-                 GeoT: the tranform (a string)  
-                 Projection: the Projection (a string)
-                 DataType: The type of data (an int explaing the bits of each data element)
-            }
+        float: A vector that contains:
+            * NDV: the nodata values
+            * xsize: cellsize in x direction
+            * ysize: cellsize in y direction
+            * GeoT: the tranform (a string)  
+            * Projection: the Projection (a string)
+            * DataType: The type of data (an int explaing the bits of each data element)
     
     Author: SMM
     """ 

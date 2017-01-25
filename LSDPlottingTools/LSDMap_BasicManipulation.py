@@ -170,7 +170,8 @@ def ConvertAllCSVToGeoJSON(path):
     
     This is handy if, for example, you want to display data on the web using leaflet or D3.js
     
-    Warning: This assumes your csv files have latitude and longitude columns. If the LSDMap_PointData object will not be able to read them. 
+    Note:
+        This assumes your csv files have latitude and longitude columns. If the LSDMap_PointData object will not be able to read them. 
     
     Args:
         path (str): The path in which you want to convert the csv files
@@ -203,7 +204,8 @@ def ConvertAllCSVToShapefile(path):
     
     This is handy if, for example, you want to display data using ArcMap of QGIS
     
-    Warning: This assumes your csv files have latitude and longitude columns. If the LSDMap_PointData object will not be able to read them. 
+    Note: 
+        This assumes your csv files have latitude and longitude columns. If the LSDMap_PointData object will not be able to read them. 
     
     Args:
         path (str): The path in which you want to convert the csv files
@@ -311,6 +313,20 @@ def BasinOrderer(Basin_csv_name, FileName, criteria_string,reverse=False,
 # raster to mimic these values
 #============================================================================== 
 def RedefineIntRaster(rasterArray,grouped_data_list,spread):
+    """This function takes values from an integer raster and renames them based on a list. 
+    
+    It is useful for renaming basin numbers. 
+    
+    Args:
+        rasterArray (np.array): The raster array
+        grouped_data_list (int): A list of lists containing groups to be redefined
+        spread (int): How big of a difference between groups. For plotting this helps to generate differenc colours. 
+    
+    Returns:
+        np.array: The new array
+        
+    Author: SMM
+    """
     
     counter = 0
     if not grouped_data_list:
@@ -362,7 +378,27 @@ def RasterMeanValue(path, file1):
 # otherwise will throw error
 #==============================================================================         
 def SimpleSwath(path, file1, axis):
-   
+    """This function averages all the data along one of the directions
+    
+    Args:
+        path (str): The path to the files
+        file1 (str): The name of the first raster.
+        axis (int): Either 0 (rows) or 1 (cols)
+        
+    Returns:
+        float: A load of information about the swath.
+        
+        * means
+        * medians
+        * std_deviations
+        * twentyfifth_percentile
+        * seventyfifth_percentile
+        
+        at each node across the axis of the swath. 
+    
+    Author: SMM
+    """
+    
     # make sure names are in correct format
     NewPath = LSDOst.AppendSepToDirectoryPath(path)
     
@@ -415,6 +451,18 @@ def SimpleSwath(path, file1, axis):
 # Assumes all units are metres
 #==============================================================================         
 def BasicMassBalance(path, file1, file2):
+    """This function checks the difference in "volume" between two rasters.
+    
+    Args:
+        path (str): The path to the files
+        file1 (str): The name of the first raster.
+        file2 (str): The name of the second raster
+        
+    Returns:
+        float: The differnece in the volume betweeen the two rasters
+    
+    Author: SMM
+    """
     
     # make sure names are in correct format
     NewPath = LSDOst.AppendSepToDirectoryPath(path)
