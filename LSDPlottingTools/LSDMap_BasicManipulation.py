@@ -48,14 +48,13 @@ def ConvertNorthingForImshow(RasterName,Northing):
     """This returns a northing that is inverted using the minimum and maximum values from the raster for use in imshow (because imshow inverts the raster)
 
     Args:
-        RasterName (str): RasterName The raster's name with full path and extension
-        Northing (float): The Northing coordinate in metres (from UTM WHS84)
+        RasterName (str): The raster's name with full path and extension
+        Northing (float): The northing coordinate in metres (from UTM WGS84)
 
     Returns:
         ConvertedNorthing The northing inverted from top to bottom
 
-    Author:
-        Simon M Mudd
+    Author: SMM
     """
 
     extent_raster = LSDMap_IO.GetRasterExtent(RasterName)
@@ -71,6 +70,22 @@ def ConvertNorthingForImshow(RasterName,Northing):
 # threshold is set to nodata
 #==============================================================================
 def SetNoDataBelowThreshold(raster_filename,new_raster_filename, threshold = 0, driver_name = "ENVI", NoDataValue = -9999):
+    """This takes a raster an then converts all data below a threshold to nodata, it then prints the resulting raster.
+    
+    Args:
+        raster_filename (str): The raster's name with full path and extension
+        new_raster_filename (str): The name of the raster to be printed
+        threshold (float): Data below this in the original raster will be converted to nodata.
+        driver_name (str): The raster format (see gdal documentation for options. LSDTopoTools used "ENVI" format.)
+        NoDataValue (float): The nodata value. Usually set to -9999.
+
+    Returns:
+        None, but prints a new raster to file
+
+    Author: SMM
+    """
+
+
     
     # read the data
     rasterArray = LSDMap_IO.ReadRasterArrayBlocks(raster_filename)
@@ -89,6 +104,22 @@ def SetNoDataBelowThreshold(raster_filename,new_raster_filename, threshold = 0, 
 # This function sets all nodata values to a constant value
 #==============================================================================
 def SetToConstantValue(raster_filename,new_raster_filename, constant_value, driver_name = "ENVI"):
+    """This takes a raster an then converts all non-nodata to a constant value.
+    
+    This is useful if you want to make masks, for example to have blocks of single erosion rates for cosmogenic calculations. 
+    
+    Args:
+        raster_filename (str): The raster's name with full path and extension
+        new_raster_filename (str): The name of the raster to be printed
+        constant_value (float): All non-nodata will be converted to this value in a new raster. 
+        driver_name (str): The raster format (see gdal documentation for options. LSDTopoTools used "ENVI" format.)
+        NoDataValue (float): The nodata value. Usually set to -9999.
+
+    Returns:
+        None, but prints a new raster to file
+
+    Author: SMM
+    """
 
     # get the nodata value
     NoDataValue =  LSDMap_IO.getNoDataValue(raster_filename)
@@ -109,7 +140,21 @@ def SetToConstantValue(raster_filename,new_raster_filename, constant_value, driv
 # This function calcualtes a hillshade and writes to file
 #==============================================================================    
 def GetHillshade(raster_filename,new_raster_filename, azimuth = 315, angle_altitude = 45, driver_name = "ENVI", NoDataValue = -9999):
+    """This calls the hillshade function from the basic manipulation package, but then prints the resulting raster to file.  
+   
+   Args:
+        raster_filename (str): The raster's name with full path and extension
+        new_raster_filename (str): The name of the raster to be printed
+        azimuth (float): Azimuth angle (compass direction) of the sun (in degrees). 
+        angle_altitude (float):Altitude angle of the sun. 
+        driver_name (str): The raster format (see gdal documentation for options. LSDTopoTools used "ENVI" format.)
+        NoDataValue (float): The nodata value. Usually set to -9999.
 
+    Returns:
+        None, but prints a new raster to file.
+
+    Author: SMM
+    """
     # get the hillshade
     hillshade_raster = LSDMBP.Hillshade(raster_filename, azimuth, angle_altitude)
 
@@ -121,6 +166,20 @@ def GetHillshade(raster_filename,new_raster_filename, azimuth = 315, angle_altit
 # GeoJSON files
 #==============================================================================     
 def ConvertAllCSVToGeoJSON(path):
+    """This looks in a directory and converts all .csv files to GeoJSON.
+    
+    This is handy if, for example, you want to display data on the web using leaflet or D3.js
+    
+    Warning: This assumes your csv files have latitude and longitude columns. If the LSDMap_PointData object will not be able to read them. 
+    
+    Args:
+        path (str): The path in which you want to convert the csv files
+        
+    Returns:
+        None, but you will get a load of GeoJSON files.
+        
+    Author: SMM
+    """
     
     # make sure names are in correct format
     NewPath = LSDOst.AppendSepToDirectoryPath(path)
@@ -137,10 +196,23 @@ def ConvertAllCSVToGeoJSON(path):
         
 #==============================================================================
 # This function takes all the csv files in a directory and converts to 
-# GeoJSON files
+# Shapefiles files
 #==============================================================================     
 def ConvertAllCSVToShapefile(path):
+    """This looks in a directory and converts all .csv files to shapefiles
     
+    This is handy if, for example, you want to display data using ArcMap of QGIS
+    
+    Warning: This assumes your csv files have latitude and longitude columns. If the LSDMap_PointData object will not be able to read them. 
+    
+    Args:
+        path (str): The path in which you want to convert the csv files
+        
+    Returns:
+        None, but you will get a load of GeoJSON files.
+        
+    Author: SMM
+    """    
     # make sure names are in correct format
     NewPath = LSDOst.AppendSepToDirectoryPath(path)
     
@@ -158,6 +230,19 @@ def ConvertAllCSVToShapefile(path):
 # of junction names
 #==============================================================================
 def BasinKeyToJunction(grouped_data_list,basin_info_csv):
+    """This takes a basin_info_csv file (produced by several LSDTopoTools routies) and spits out lists of the junction numbers (it converts basin numbers to junction numbers).
+    
+ 
+    Args:
+        grouped_data_list (int list): A list of list of basin numbers
+        basin_info_csv (str): The name, includug path and extension, of the basin key name (derived from LSDTopoTools).
+        
+    Returns:
+        Junction_grouped_list: the junction numbers of the basins.
+        
+    Author: SMM
+    """   
+
     
     thisPointData = LSDMPD.LSDMap_PointData(basin_info_csv)
     
@@ -239,12 +324,6 @@ def RedefineIntRaster(rasterArray,grouped_data_list,spread):
             counter = counter+spread
     return rasterArray
             
-            
-    
-    
-
-    # You need to manipulate the groupings 
-
 
 
 #==============================================================================
@@ -252,6 +331,17 @@ def RedefineIntRaster(rasterArray,grouped_data_list,spread):
 # Assumes all units are metres
 #==============================================================================         
 def RasterMeanValue(path, file1):
+    """This takes the average of a raster.
+    
+    Args:
+        path (str): The path to the raster
+        file1 (str): The name of the file
+        
+    Returns:
+        mean_value: The mean
+        
+    Author: SMM
+    """
     
     # make sure names are in correct format
     NewPath = LSDOst.AppendSepToDirectoryPath(path)
