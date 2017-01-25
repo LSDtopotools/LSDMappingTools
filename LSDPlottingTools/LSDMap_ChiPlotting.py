@@ -6,20 +6,14 @@
 ## 14/12/2016
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-import osgeo.gdal as gdal
 import numpy as np
 import cubehelix
-import numpy.ma as ma
-from osgeo import osr
-from os.path import exists
-from osgeo.gdalconst import GA_ReadOnly
-from numpy import uint8
 import matplotlib.pyplot as plt
 #from cycler import cycler
 from matplotlib import rcParams
 import LSDMap_GDALIO as LSDMap_IO
-import LSDMap_BasicManipulation as LSDMap_BM
-import LSDMap_OSystemTools as LSDOst
+#import LSDMap_BasicManipulation as LSDMap_BM
+#import LSDMap_OSystemTools as LSDOst
 import LSDMap_BasicPlotting as LSDMap_BP
 import LSDMap_PointData as LSDMap_PD
 
@@ -397,7 +391,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
 
     # This is the axis for the colorbar   
     ax2 = fig.add_subplot(gs[10:15,15:70])
-    cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)   
+    plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)   
     ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)       
     
     # This affects all axes because we set share_all = True.
@@ -541,10 +535,10 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
 
     this_cmap = plt.cm.Set1
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
-    scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+    plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
     channel_data = [x % NUM_COLORS for x in these_data]
 
-    sc = ax.scatter(easting,Ncoord,s=0.5, c=channel_data,norm=cNorm,cmap=this_cmap,edgecolors='none')
+    ax.scatter(easting,Ncoord,s=0.5, c=channel_data,norm=cNorm,cmap=this_cmap,edgecolors='none')
 
     # This affects all axes because we set share_all = True.
     ax.set_xlim(x_min,x_max)    
@@ -639,15 +633,15 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     # need to convert everything into arrays so we can mask different basins
     Chi = np.asarray(chi)
     Elevation = np.asarray(elevation)
-    Fdist = np.asarray(fdist)
-    M_chi = np.asarray(m_chi)
+    #Fdist = np.asarray(fdist)
+    #M_chi = np.asarray(m_chi)
     Basin = np.asarray(basin)
     Source = np.asarray(source)
     
-    max_basin = np.amax(Basin)
+    #max_basin = np.amax(Basin)
     max_chi = np.amax(Chi)
     max_Elevation = np.amax(Elevation)
-    max_M_chi = np.amax(M_chi)
+    #max_M_chi = np.amax(M_chi)
     min_Elevation = np.amin(Elevation)
     
     z_axis_min = int(min_Elevation/10)*10 
@@ -770,8 +764,6 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     Author: SMM
     """
 
-
-
     from adjust_text import adjust_text
     from matplotlib import colors
     import matplotlib.patches as patches
@@ -810,15 +802,15 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     # need to convert everything into arrays so we can mask different basins
     Chi = np.asarray(chi)
     Elevation = np.asarray(elevation)
-    Fdist = np.asarray(fdist)
-    M_chi = np.asarray(m_chi)
+    #Fdist = np.asarray(fdist)
+    #M_chi = np.asarray(m_chi)
     Basin = np.asarray(basin)
     Source = np.asarray(source)
     
     max_basin = np.amax(Basin)
     max_chi = np.amax(Chi)
     max_Elevation = np.amax(Elevation)
-    max_M_chi = np.amax(M_chi)
+    #max_M_chi = np.amax(M_chi)
     min_Elevation = np.amin(Elevation)
 
     # determine the maximum and minimum elevations    
@@ -833,7 +825,6 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     # Logic for stacked labels
     if label_sources:
         source_info = FindSourceInformation(thisPointData)
-
 
 
     # Now calculate the spacing of the stacks
@@ -940,7 +931,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                         verticalalignment='bottom', horizontalalignment='left',fontsize=8))
                 
         
-        sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskSource,norm=cNorm,cmap=this_cmap,edgecolors='none')
+        ax.scatter(maskX,maskElevation,s=2.0, c=maskSource,norm=cNorm,cmap=this_cmap,edgecolors='none')
         this_X_offset = this_X_offset+X_offset
      
     
@@ -1070,7 +1061,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     Elevation = np.asarray(elevation)
     M_chi = np.asarray(m_chi)
     Basin = np.asarray(basin)
-    Source = np.asarray(source)  
+    #Source = np.asarray(source)  
     
     max_basin = np.amax(Basin)
     max_X = np.amax(Xdata)
@@ -1087,10 +1078,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     
     elevation_range = z_axis_max-z_axis_min
     z_axis_min = z_axis_min - 0.075*elevation_range    
-    
-    
-
-     
+         
     plt.hold(True)
 
 
@@ -1119,7 +1107,6 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         print("The nex max is: "+str(X_axis_max))
  
     
-
     # Now start looping through the basins   
     dot_pos = FigFileName.rindex('.')
     newFilename = FigFileName[:dot_pos]+'_GradientStack'+str(first_basin)+FigFileName[dot_pos:]
@@ -1167,7 +1154,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
  
     # set the colour limits
     sc.set_clim(0, M_chi_axis_max)
-    bounds = (0, M_chi_axis_max)
+    #bounds = (0, M_chi_axis_max)
 
     # This is the axis for the colorbar
     

@@ -962,8 +962,8 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     y_min = extent_raster[2]
     y_max = extent_raster[3]
     
-    x_range = x_max-x_min
-    y_range = y_max-y_min
+    #x_range = x_max-x_min
+    #y_range = y_max-y_min
     
     # make a figure, sized for a ppt slide
     if Big:
@@ -1033,7 +1033,6 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         # plot the rivers
         ax.scatter(easting_c,Ncoord_c,s=0.2, marker='.',color= 'b',alpha=0.2)        
 
-
    
     thisPointData = LSDMap_PD.LSDMap_PointData(Basin_csv_name) 
     
@@ -1070,9 +1069,8 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         buffered_north.append(loc) 
         buffered_north.append(loc) 
         
-    
-    
-    # add text
+        
+    # add text for basins
     texts = []
     bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec="k", lw=0.5,alpha = 0.5)
     for index, datum in enumerate(these_data):
@@ -1117,17 +1115,15 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
             # now append the text
             texts2.append(ax.text(this_easting,this_NCoord, str(source),fontsize = 6, color= "b",alpha=0.7,bbox=bbox_props))
             
-            
-
-                
-            
-            
+    
+    # Adjust the basin text
     adjust_text(texts,x=buffered_east,y=buffered_north,autoalign='xy',ax=ax)
+    
+    # Adjust the sources texts 
     adjust_text(texts2, arrowprops=dict(arrowstyle="->", color='r', lw=0.5),expand_points=(3, 3),
             force_points=1)
     
     
- 
     # Now to fix up the axes 
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
@@ -1253,14 +1249,9 @@ def SwathPlot(path, filename, axis):
     print y_vec.shape
     
     import matplotlib.pyplot as plt
-    import matplotlib.lines as mpllines
-    from mpl_toolkits.axes_grid1 import AxesGrid
-
-    label_size = 20
-    #title_size = 30
-    axis_size = 28
-
+    
     # Set up fonts for plots
+    label_size = 20
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size

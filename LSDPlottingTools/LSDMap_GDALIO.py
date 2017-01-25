@@ -12,7 +12,6 @@ import numpy as np
 from osgeo import osr
 from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
-from numpy import uint8
 
 
 #==============================================================================
@@ -23,7 +22,7 @@ def getNoDataValue(rasterfn):
         rasterfn (str): The filename (with path and extension) of the raster
         
     Returns:
-        nodatavalue: the nodata value
+        float: nodatavalue; the nodata value
         
     Author: SMM
     """
@@ -53,7 +52,24 @@ def setNoDataValue(rasterfn):
 
 #==============================================================================
 def GetUTMMaxMin(FileName):
-
+    """This gets the minimum and maximum UTM values. 
+    
+    *WARNING* it assumes raster is already projected into UTM, and is in ENVI format! It reads from an ENVI header file. 
+    
+    Args:
+        FileName (str): The filename (with path and extension) of the raster
+        
+    Returns:
+        float: The cell size in metres
+        float: The X minimum (easting) in metres
+        float: The X maximum (easting) in metres
+        float: The Y minimum (northing) in metres
+        float: The Y maximum (northing) in metres
+        
+    Author: SMM
+    """
+    
+    
     if exists(FileName) is False:
             raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')    
     
@@ -78,7 +94,7 @@ def GetPixelArea(FileName):
         rasterfn (str): The filename (with path and extension) of the raster
         
     Returns:
-        Pixel_area (float): The area of each pixel
+        float: Pixel_area (float): The area of each pixel
         
     Author: SMM
     """
@@ -97,7 +113,28 @@ def GetPixelArea(FileName):
 # this takes rows and columns of minium and maximum values and converts them
 # to UTM
 def GetUTMMaxMinFromRowsCol(FileName,x_max_col,x_min_col,y_max_row,y_min_row):
-
+    """This gets the minimum and maximum UTM values but you give it the row and column numbers. 
+       
+    *WARNING* it assumes raster is already projected into UTM, and is in ENVI format! It reads from an ENVI header file. 
+    
+    Args:
+        FileName (str): The filename (with path and extension) of the raster
+        x_max_col (int): The column to use as the maximum
+        x_min_col (int): The column to use as the minimum
+        y_max_row (int): The row to use as the maximum
+        y_min_row (int): The row to use as the minimum        
+        
+    Returns:
+        
+        float: The X maximum (easting) in metres
+        float: The X minimum (easting) in metres        
+        float: The Y maximum (northing) in metres
+        float: The Y minimum (northing) in metres
+        
+    Author: SMM
+    """
+    
+    
     if exists(FileName) is False:
             raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')    
    
@@ -128,6 +165,22 @@ def GetUTMMaxMinFromRowsCol(FileName,x_max_col,x_min_col,y_max_row,y_min_row):
 # This gets the x and y vectors of the data
 #==============================================================================
 def GetLocationVectors(FileName):
+    """This gets a vector of the x and y locations of the coordinates
+
+    *WARNING* it assumes raster is already projected into UTM, and is in ENVI format! It reads from an ENVI header file. 
+ 
+    
+    Args:
+        FileName (str): The filename (with path and extension) of the raster.
+        
+    Return:
+        float: A vector of the x locations (eastings)
+        float: A vector of the y locations (northings)
+    
+    Author: SMM
+    """
+    
+
     
     NDV, xsize, ysize, GeoT, Projection, DataType = GetGeoInfo(FileName)
     
@@ -147,7 +200,25 @@ def GetLocationVectors(FileName):
 #==============================================================================
 # This gets the extent of the raster
 def GetRasterExtent(FileName):
+    """This gets a vector of the minimums and maximums of the coordinates
+
+    *WARNING* it assumes raster is already projected into UTM, and is in ENVI format! It reads from an ENVI header file. 
+     
+    Args:
+        FileName (str): The filename (with path and extension) of the raster.
+        
+    Return:
+        float: A vector that contains::
+            
+            {
+                 extent[0]: XMin
+                 extent[1]: XMax
+                 extent[2]: YMin
+                 extent[3]: YMax           
+            }
     
+    Author: SMM
+    """    
     CellSize,XMin,XMax,YMin,YMax = GetUTMMaxMin(FileName)
     extent = [XMin,XMax,YMin,YMax]
     return extent    
@@ -155,7 +226,27 @@ def GetRasterExtent(FileName):
 #==============================================================================
 # Function to read the original file's projection:
 def GetGeoInfo(FileName):
+    """This gets information from the raster file using gdal
 
+    Args:
+        FileName (str): The filename (with path and extension) of the raster.
+        
+    Return:
+        float: A vector that contains::
+            
+            {
+                 NDV: the nodata values
+                 xsize: cellsize in x direction
+                 ysize: cellsize in y direction
+                 GeoT: the tranform (a string)  
+                 Projection: the Projection (a string)
+                 DataType: The type of data (an int explaing the bits of each data element)
+            }
+    
+    Author: SMM
+    """ 
+    
+    
     if exists(FileName) is False:
             raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')    
     
@@ -179,7 +270,16 @@ def GetGeoInfo(FileName):
 #==============================================================================
 # This gets the UTM zone, if it exists
 def GetUTMEPSG(FileName):
+    """Uses GDAL to get the EPSG string from the raster. 
+
+    Args:
+        FileName (str): The filename (with path and extension) of the raster.
+        
+    Return:
+        str: The EPSG string
     
+    Author: SMM
+    """     
     if exists(FileName) is False:
             raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')    
     
@@ -222,7 +322,17 @@ def GetUTMEPSG(FileName):
 #==============================================================================
 # Function to read the original file's projection:
 def GetNPixelsInRaster(FileName):
+    """This gets the total number of pixels in the raster
 
+    Args:
+        FileName (str): The filename (with path and extension) of the raster.
+        
+    Return:
+        int: The total number of pixels
+    
+    Author: SMM
+    """  
+    
     NDV, xsize, ysize, GeoT, Projection, DataType = GetGeoInfo(FileName)
     
     return xsize*ysize
@@ -232,7 +342,18 @@ def GetNPixelsInRaster(FileName):
 #==============================================================================
 # Function to read the original file's projection:
 def CheckNoData(FileName):
+    """This looks through the head file of an ENVI raster and if it doesn't find the nodata line it rewrites the file to include the nodata line. 
 
+    Args:
+        FileName (str): The filename (with path and extension) of the raster.
+        
+    Return:
+        int: The total number of pixels (although what it is really doing is updating the header file. The return is just to check if it is working and yes I know this is stupid. )
+    
+    Author: SMM
+    """  
+    
+    
     if exists(FileName) is False:
         raise Exception('[Errno 2] No such file or directory: \'' + FileName + '\'')   
 
@@ -274,6 +395,17 @@ def CheckNoData(FileName):
 
 #==============================================================================
 def ReadRasterArrayBlocks(raster_file,raster_band=1):
+    """This reads a raster file (from GDAL) into an array. The "blocks" bit makes it efficient. 
+    Args:
+        FileName (str): The filename (with path and extension) of the raster.
+        raster_band (int): the band of the raster (almost all uses with LSDTopoTools will have a 1 band raster)
+        
+    Return:
+        np.array: A numpy array with the data from the raster. 
+    
+    Author: SMM
+    """  
+
     
     if exists(raster_file) is False:
             raise Exception('[Errno 2] No such file or directory: \'' + raster_file + '\'')    
@@ -340,6 +472,21 @@ def ReadRasterArrayBlocks(raster_file,raster_band=1):
 
 #==============================================================================
 def array2raster(rasterfn,newRasterfn,array,driver_name = "ENVI", noDataValue = -9999):
+    """Takes an array and writes to a GDAL compatible raster. It needs another raster to map the dimensions. 
+    
+    Args:
+        FileName (str): The filename (with path and extension) of a raster that has the same dimensions as the raster to be written.
+        newRasterfn (str): The filename (with path and extension) of the new raster.
+        array (np.array): The array to be written
+        driver_name (str): The type of raster to write. Default is ENVI since that is the LSDTOpoTools format
+        noDataValue (float): The no data value
+        
+    Return:
+        np.array: A numpy array with the data from the raster. 
+    
+    Author: SMM
+    """  
+
     raster = gdal.Open(rasterfn)
     geotransform = raster.GetGeoTransform()
     originX = geotransform[0]
