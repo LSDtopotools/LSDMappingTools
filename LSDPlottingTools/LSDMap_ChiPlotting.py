@@ -24,7 +24,7 @@ import LSDMap_PointData as LSDMap_PD
 def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
-                            elevation_threshold = 0):
+                            elevation_threshold = 0, size_format = "ESURF"):
 
     """This function plots the chi slope on a shaded relief map. It uses the Kirby and Whipple colour scheme.
 
@@ -40,7 +40,8 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
         FigFileName (str): The name of the figure file
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
         elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting. 
-
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
+ 
     Returns:
         Does not return anything but makes a plot.
         
@@ -69,8 +70,19 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
     y_min = extent_raster[2]
     y_max = extent_raster[3]
 
-    # make a figure, sized for a ppt slide
-    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+    # make a figure, 
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
 
     gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
@@ -155,7 +167,7 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
     
     cbar = plt.colorbar(sc,cmap=this_cmap,norm=norm,spacing='uniform', ticks=bounds, boundaries=bounds,orientation='horizontal',cax=ax2)
     cbar.set_label(colorbarlabel, fontsize=10)
-    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)    
+    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=l_pad)    
 
     print "The figure format is: " + FigFormat
     if FigFormat == 'show':    
@@ -266,7 +278,7 @@ def FindShortSourceChannels(these_source_nodes,threshold_length):
 def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='log$_{10}k_{sn}$',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
-                            elevation_threshold = 0):
+                            elevation_threshold = 0, size_format = "ESURF"):
 
     """This is the main chi plotting script that prints a chi steepness map over the hillshade. Note that the colour scale for the chi slope values are always cubehelix
 
@@ -282,7 +294,8 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
         FigFileName (str): The name of the figure file
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
         elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
-        
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
+       
     Returns:
         Prints a plot to file.
         
@@ -310,9 +323,17 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     y_min = extent_raster[2]
     y_max = extent_raster[3]
     
-    # make a figure, sized for a ppt slide
-    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
-
+    # make a figure, 
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+        
     gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
 
@@ -392,7 +413,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     # This is the axis for the colorbar   
     ax2 = fig.add_subplot(gs[10:15,15:70])
     plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)   
-    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)       
+    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=l_pad)       
     
     # This affects all axes because we set share_all = True.
     ax.set_xlim(x_min,x_max)    
@@ -419,7 +440,8 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
 def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
-                            elevation_threshold = 0, data_name = 'source_key'):
+                            elevation_threshold = 0, data_name = 'source_key',
+                            size_format = "ESURF"):
     """This plots the channels over a draped plot, colour coded by source
 
     Args:
@@ -435,6 +457,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
         elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
         data_name (str) = The name of the sources csv
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
         
     Returns:
         Prints a plot to file.
@@ -464,9 +487,14 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     y_min = extent_raster[2]
     y_max = extent_raster[3]
 
-    # make a figure, sized for a ppt slide
-    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
-
+    # make a figure, 
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        
     gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
 
@@ -564,7 +592,8 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
                 basin_order_list = [],basin_rename_list = [],
                 label_sources = False,
                 elevation_threshold = 0,
-                source_thinning_threshold = 0):
+                source_thinning_threshold = 0,
+                size_format = "ESURF"):
     """This function plots the chi vs elevation: lumps everything onto the same axis. This tends to make a mess. 
  
     Args:
@@ -576,6 +605,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
         label_sources (bool): If tru, label the sources.
         elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
         source_thinning_threshold (float) = Minimum chi lenght of a source segment
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
  
     Returns:
          Does not return anything but makes a plot.
@@ -593,9 +623,14 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size     
    
-    # make a figure, sized for a ppt slide
-    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
-
+    # make a figure, 
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        
     gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
  
@@ -742,7 +777,8 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                        FigFormat = 'show',elevation_threshold = 0, 
                        first_basin = 0, last_basin = 0,
                        basin_order_list = [],basin_rename_list = [],
-                       X_offset = 5,label_sources = False):
+                       X_offset = 5,label_sources = False,
+                       size_format = "ESURF"):
     """This function plots the chi vs elevation: It stacks profiles (so the basins are spaced out) and colours them by the source number.
  
     Args:
@@ -757,6 +793,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
         X_offset (float): The offest in chi between the basins along the x-axis. Used to space out the profiles so you can see each of them.        
         label_sources (bool): If true, label the sources.
         source_thinning_threshold (float) = Minimum chi lenght of a source segment
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
  
     Returns:
          Does not return anything but makes a plot.
@@ -776,8 +813,13 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     rcParams['font.size'] = label_size     
    
 
-    # make a figure, sized for a ppt slide
-    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+    # make a figure 
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
 
     gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
@@ -973,7 +1015,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        basin_rename_list = [],
                        this_cmap = plt.cm.cubehelix,data_name = 'chi', X_offset = 5,
                        plotting_data_format = 'log',
-                       label_sources = False):
+                       label_sources = False,
+                       size_format = "ESURF"):
     """This function plots the chi vs elevation or flow distance vs elevation.
     
     It stacks profiles (so the basins are spaced out).
@@ -993,6 +1036,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         X_offset (float): The offest in chi between the basins along the x-axis. Used to space out the profiles so you can see each of them.        
         plotting_data_format: NOT USED previously if 'log' use logarithm scale, but we now automatically do this. Might change later. 
         label_sources (bool): If true, label the sources.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
  
     Returns:
          Does not return anything but makes a plot.
@@ -1010,9 +1054,13 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size     
    
-
-    # make a figure, sized for a ppt slide
-    fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+    # make a figure 
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
 
     gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
