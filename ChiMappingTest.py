@@ -132,17 +132,21 @@ def ChiMappingToolsTest():
     #======================================    
     # Uncomment this for a plot of the basins draped over a fancy hillshde map
     # with the basins annotated onto the figure
-    FigName9 = DataDirectory+'NumberedBasinPlot.png'
+    FigName9 = DataDirectory+'MeghalayaBasins.png'
     spread = 15
-    basin_rename_list = []
-    #basin_rename_list = [1,3,2,0,4,5,8,6,7,9,10]
+    basin_rename_order = [7,10,9,12,8,11,13,4,2,1,0,3,5,6]
+    basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
+    
+    print basin_rename_list
+    
     LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
                             (0,0), 0.4 ,FigName9,'png',
-                            elevation_threshold,Junction_list,basin_rename_list,spread,ChiName,
-                            True, threshold_length,True)  
+                            elevation_threshold,
+                            Junction_list, basin_rename_list,spread,
+                            ChiName,
+                            False, threshold_length,"geomorphology")  
     #======================================    
-    
-    
+
     
     
     

@@ -912,7 +912,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
                              grouped_basin_list = [], basin_rename_list = [],spread  = 20,
                              chan_net_csv = "None",
                              label_sources = False, source_chi_threshold = 10,
-                             Big = False):
+                             SizeFormat = "esurf"):
     """This creates a plot with a hillshade draped over elevation (or any other raster) with the basins on them. 
     
     Args:
@@ -933,7 +933,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         chan_net_csv (str): The name of the channel network file.
         label_sources (bool): Wheteher or not to label the sources
         source_chi_threshold (float): Sources with length less than this will be plotted.
-        Big (bool): If you want a big figure
+        SizeFormat (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
         
     Returns:
         A density plot of the draped raster
@@ -966,7 +966,9 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     #y_range = y_max-y_min
     
     # make a figure, sized for a ppt slide
-    if Big:
+    if SizeFormat == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+    elif SizeFormat == "big":
         fig = plt.figure(1, facecolor='white',figsize=(16,9))
     else:
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))

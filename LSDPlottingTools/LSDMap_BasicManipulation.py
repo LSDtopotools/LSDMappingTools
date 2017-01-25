@@ -263,6 +263,47 @@ def BasinKeyToJunction(grouped_data_list,basin_info_csv):
 
     print junction_grouped_list 
     return junction_grouped_list
+
+
+def BasinOrderToBasinRenameList(basin_order_list):
+    """When we take data from the basins they will be numbered accoring to their junction rank, which is controlled by flow routing. 
+    
+    The result is often numbered basins that have something that appears random to human eyes. 
+    We have developed a routine to renumber these basins. 
+    However, the way this works is to find a basin number and rename in the profile plots, 
+    such that when it finds a basin number it will rename that. 
+    So if you want to rename the seventh basin 0, you need to give a list where the seventh element is 0. 
+    
+    This is a pain because how one would normally order basins would be to look at the image of the basin numbers, 
+    and then write the order in which you want those basins to appear. 
+    
+    This function converts between these two lists. You give the function the order you want the basins to appear, 
+    and it gives a renaming list. 
+    
+    Args:
+        basin_order_list (int): the list of basins in which you want them to appear in the numbering scheme
+        
+    Return:
+        The index into the returned basins
+        
+    Author: SMM
+    """
+    
+    #basin_dict = {}
+    max_basin = max(basin_order_list)
+    basin_rename_list = [0] * max_basin
+    basin_rename_list.append(0)
+    
+    print("length is: "+str(len(basin_rename_list)))
+       
+    # Swap the keys
+    for idx,basin in enumerate(basin_order_list):
+        print("Index: "+str(idx)+", basin: "+str(basin))
+        basin_rename_list[basin] = idx
+    
+    #print basin_rename_list
+    return basin_rename_list 
+    
     
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## This function orders basins in a sequence, so that plots can be made
