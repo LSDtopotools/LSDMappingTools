@@ -17,6 +17,99 @@ import LSDMap_GDALIO as LSDMap_IO
 import LSDMap_BasicPlotting as LSDMap_BP
 import LSDMap_PointData as LSDMap_PD
 
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def FindSourceInformation(thisPointData):    
+    """This function finds the source locations, with chi elevation, flow distance, etc.
+
+    Args:
+        thisPointData (LSDMap_PointData) A LSDMap_PointData object that is derived from the Chi_mapping_tool component of *LSDTopoTools*.
+
+    Returns:
+        A dict with key of the source node that returns a dict that has the FlowDistance, Chi, and Elevation of each source.
+        Used for plotting source numbers on profile plots. 
+        
+    Author: SMM 
+    """    
+    
+    # Get the chi, m_chi, basin number, and source ID code
+    chi = thisPointData.QueryData('chi')
+    chi = [float(x) for x in chi]
+    elevation = thisPointData.QueryData('elevation')
+    elevation = [float(x) for x in elevation]
+    fdist = thisPointData.QueryData('flow distance')
+    fdist = [float(x) for x in fdist]        
+    source = thisPointData.QueryData('source_key')
+    source = [int(x) for x in source]
+    latitude = thisPointData.GetLatitude()
+    longitude = thisPointData.GetLongitude()
+   
+  
+    
+    
+    Chi = np.asarray(chi)
+    Elevation = np.asarray(elevation)
+    Fdist = np.asarray(fdist)
+    Source = np.asarray(source)
+    Latitude = np.asarray(latitude)
+    Longitude = np.asarray(longitude)
+
+    n_sources = Source.max()+1
+    print("N sources is: "+str(n_sources))
+ 
+    # This loops through all the source indices, and then picks out the
+    # Elevation, chi coordinate and flow distance of each node
+    # Then it returns a dictionary containing the elements of the node
+    these_source_nodes = {}
+    for src_idx in range(0,n_sources-1):
+        m = np.ma.masked_where(Source!=src_idx, Source)
+        
+        # Mask the unwanted values
+        maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
+        maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+        maskFlowDistance = np.ma.masked_where(np.ma.getmask(m), Fdist)
+        maskLatitude = np.ma.masked_where(np.ma.getmask(m), Latitude)
+        maskLongitude= np.ma.masked_where(np.ma.getmask(m), Longitude)
+        
+        # get the locations of the source         
+        this_dict = {}
+        idx_of_max_FD = maskX.argmax()
+        this_dict["FlowDistance"]=maskFlowDistance[idx_of_max_FD]
+        this_dict["Chi"]=maskX[idx_of_max_FD]
+        this_dict["Elevation"]=maskElevation[idx_of_max_FD]
+        this_dict["Latitude"]=maskLatitude[idx_of_max_FD]
+        this_dict["Longitude"]=maskLongitude[idx_of_max_FD]
+        
+        # get the minimum of the source
+        idx_of_min_Chi = maskX.argmin()
+        chi_length = maskX[idx_of_max_FD]-maskX[idx_of_min_Chi]
+        this_dict["SourceLength"]=chi_length
+
+        these_source_nodes[src_idx] = this_dict
+        
+    return these_source_nodes
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
+def FindShortSourceChannels(these_source_nodes,threshold_length):         
+    """This function gets the list of sources that are shorter than a threshold value
+    
+    Args: 
+        these_source_nodes (dict): A dict from the FindSourceInformation module
+        threshold_length (float): The threshold of chi lenght of the source segment
+    
+    Return:
+        long_sources: A list of integers of source with the appropriate length
+    
+    Author: SMM
+    """
+    long_sources = []
+    for key in these_source_nodes:
+        if these_source_nodes[key]["SourceLength"] > threshold_length:
+            long_sources.append(key)
+    
+    return long_sources   
+
+
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## This function plots the chi slope on a shaded relief map
 ## It uses the Kirby and Whipple colour scheme
@@ -179,96 +272,7 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
         fig.clf()
 
 
-##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-def FindSourceInformation(thisPointData):    
-    """This function finds the source locations, with chi elevation, flow distance, etc.
-
-    Args:
-        thisPointData (LSDMap_PointData) A LSDMap_PointData object that is derived from the Chi_mapping_tool component of *LSDTopoTools*.
-
-    Returns:
-        A dict with key of the source node that returns a dict that has the FlowDistance, Chi, and Elevation of each source.
-        Used for plotting source numbers on profile plots. 
-        
-    Author: SMM 
-    """    
-    
-    # Get the chi, m_chi, basin number, and source ID code
-    chi = thisPointData.QueryData('chi')
-    chi = [float(x) for x in chi]
-    elevation = thisPointData.QueryData('elevation')
-    elevation = [float(x) for x in elevation]
-    fdist = thisPointData.QueryData('flow distance')
-    fdist = [float(x) for x in fdist]        
-    source = thisPointData.QueryData('source_key')
-    source = [int(x) for x in source]
-    latitude = thisPointData.GetLatitude()
-    longitude = thisPointData.GetLongitude()
-   
-  
-    
-    
-    Chi = np.asarray(chi)
-    Elevation = np.asarray(elevation)
-    Fdist = np.asarray(fdist)
-    Source = np.asarray(source)
-    Latitude = np.asarray(latitude)
-    Longitude = np.asarray(longitude)
-
-    n_sources = Source.max()+1
-    print("N sources is: "+str(n_sources))
- 
-    # This loops through all the source indices, and then picks out the
-    # Elevation, chi coordinate and flow distance of each node
-    # Then it returns a dictionary containing the elements of the node
-    these_source_nodes = {}
-    for src_idx in range(0,n_sources-1):
-        m = np.ma.masked_where(Source!=src_idx, Source)
-        
-        # Mask the unwanted values
-        maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
-        maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
-        maskFlowDistance = np.ma.masked_where(np.ma.getmask(m), Fdist)
-        maskLatitude = np.ma.masked_where(np.ma.getmask(m), Latitude)
-        maskLongitude= np.ma.masked_where(np.ma.getmask(m), Longitude)
-        
-        # get the locations of the source         
-        this_dict = {}
-        idx_of_max_FD = maskX.argmax()
-        this_dict["FlowDistance"]=maskFlowDistance[idx_of_max_FD]
-        this_dict["Chi"]=maskX[idx_of_max_FD]
-        this_dict["Elevation"]=maskElevation[idx_of_max_FD]
-        this_dict["Latitude"]=maskLatitude[idx_of_max_FD]
-        this_dict["Longitude"]=maskLongitude[idx_of_max_FD]
-        
-        # get the minimum of the source
-        idx_of_min_Chi = maskX.argmin()
-        chi_length = maskX[idx_of_max_FD]-maskX[idx_of_min_Chi]
-        this_dict["SourceLength"]=chi_length
-
-        these_source_nodes[src_idx] = this_dict
-        
-    return these_source_nodes
-
-##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
-def FindShortSourceChannels(these_source_nodes,threshold_length):         
-    """This function gets the list of sources that are shorter than a threshold value
-    
-    Args: 
-        these_source_nodes (dict): A dict from the FindSourceInformation module
-        threshold_length (float): The threshold of chi lenght of the source segment
-    
-    Return:
-        long_sources: A list of integers of source with the appropriate length
-    
-    Author: SMM
-    """
-    long_sources = []
-    for key in these_source_nodes:
-        if these_source_nodes[key]["SourceLength"] > threshold_length:
-            long_sources.append(key)
-    
-    return long_sources        
+     
     
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -814,9 +818,10 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     rcParams['font.size'] = label_size     
    
 
-    # make a figure 
+    # make a figure, 
     if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+        print("I am plotting for geomorphology")
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,4))
     elif size_format == "big":
         fig = plt.figure(1, facecolor='white',figsize=(16,9))
     else:
@@ -1069,15 +1074,18 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size     
    
-    # make a figure 
+    # make a figure, 
     if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
     elif size_format == "big":
         fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
     else:
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
 
-    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
 
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
@@ -1285,7 +1293,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     ax2 = fig.add_subplot(gs[10:15,15:70])
     cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)   
     cbar.set_label(colorbarlabel, fontsize=10)
-    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)        
+    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=l_pad)        
 
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
