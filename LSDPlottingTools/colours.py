@@ -60,13 +60,13 @@ def discrete_colourmap(N, base_cmap=None):
             e.g. "jet" or a matplotlib Colormap object
     """
 
-    print type(base_cmap)
+    print(type(base_cmap))
     if isinstance(base_cmap, _mcolors.Colormap):
         base = base_cmap
     elif isinstance(base_cmap, str):
         base = _plt.cm.get_cmap(base_cmap)
     else:
-        print "DrapeName supplied is of type: ", type(base_cmap)
+        print("DrapeName supplied is of type: ", type(base_cmap))
         raise ValueError('DrapeName must either be a string name of a colormap, \
                          or a Colormap. Please try again.')
         
@@ -95,7 +95,7 @@ def cmap_discretize(N, cmap):
     cdict = {}
     for ki,key in enumerate(('red','green','blue')):
         cdict[key] = [ (indices[i], colors_rgba[i-1,ki], colors_rgba[i,ki])
-                       for i in xrange(N+1) ]
+                       for i in range(N+1) ]
     # Return colormap object.
     return _mcolors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
     
@@ -124,12 +124,12 @@ def colorbar_index(fig, cax, ncolors, cmap, drape_min_threshold, drape_max):
     #mappable.set_clim(-0.5, ncolors + 0.5)
     mappable.set_clim(drape_min_threshold, drape_max)
     
-    print type(fig)
-    print type(mappable)
-    print type(cax)
-    print 
+    print(type(fig))
+    print(type(mappable))
+    print(type(cax))
+    print() 
     cbar = fig.colorbar(mappable, cax=cax)
-    print type(cbar)
+    print(type(cbar))
     #cbar.set_ticks(_np.linspace(0, ncolors, ncolors))
     cbar.set_ticks(_np.linspace(drape_min_threshold, drape_max, ncolors+1))
     #cbar.set_ticklabels(range(ncolors))

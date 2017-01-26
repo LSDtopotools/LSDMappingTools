@@ -138,5 +138,5 @@ def make_line_label(fname):
     part3 = _re.split("[_.]", fname)[2]
 
     part = part2 + '_' + part3
-    print part
+    print(part)
     return part

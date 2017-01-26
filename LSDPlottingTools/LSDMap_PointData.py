@@ -14,7 +14,7 @@ from osgeo import osr
 from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
-import LSDMap_OSystemTools as LSDOst
+from . import LSDMap_OSystemTools as LSDOst
 import os
 from pyproj import Proj, transform
 
@@ -36,7 +36,7 @@ class LSDMap_PointData(object):
         file_prefix = LSDOst.GetFilePrefix(FileName)
         
         self.FilePrefix = file_prefix        
-        print "The object file prefix is: " + self.FilePrefix
+        print("The object file prefix is: " + self.FilePrefix)
         
         #See if the parameter files exist
         if os.access(FileName,os.F_OK):
@@ -55,8 +55,8 @@ class LSDMap_PointData(object):
                 self.VariableList.append(this_name.lower())
                 
             
-            print "Variable list is: "
-            print self.VariableList
+            print("Variable list is: ")
+            print(self.VariableList)
             
             # get rid of the names
             del lines[0]             
@@ -90,20 +90,20 @@ class LSDMap_PointData(object):
             self.PointData = DataDictTyped
             self.DataTypes = TypeList
         else:
-            print "Uh oh I could not open that file"
+            print("Uh oh I could not open that file")
             self.VariableList = []
             self.DataTypes = []
             self.PointData = {}
             
         # now make sure the data has latitude and longitude entries
         if "latitude" not in self.VariableList:
-            print "Something has gone wrong, latitude is not in the variable list"
-            print "Here is the variable list: "
-            print self.VariableList
+            print("Something has gone wrong, latitude is not in the variable list")
+            print("Here is the variable list: ")
+            print(self.VariableList)
         if "longitude" not in self.VariableList:
-            print "Something has gone wrong, longitude is not in the variable list"
-            print "Here is the variable list: "
-            print self.VariableList            
+            print("Something has gone wrong, longitude is not in the variable list")
+            print("Here is the variable list: ")
+            print(self.VariableList)            
 
         # Add the latitude and longitude to their own data members and get rid 
         # of those from the VariableList        
@@ -131,7 +131,7 @@ class LSDMap_PointData(object):
         """
         
         if PrintToScreen:        
-            print self.VariableList
+            print(self.VariableList)
             
         return self.VariableList 
 
@@ -149,7 +149,7 @@ class LSDMap_PointData(object):
         """
         
         if PrintToScreen:        
-            print self.DataTypes
+            print(self.DataTypes)
             
         return self.DataTypes 
 
@@ -169,7 +169,7 @@ class LSDMap_PointData(object):
 
         
         if PrintToScreen:        
-            print self.Latitude
+            print(self.Latitude)
             
         return self.Latitude     
         
@@ -188,7 +188,7 @@ class LSDMap_PointData(object):
 
         
         if PrintToScreen:        
-            print self.Longitude
+            print(self.Longitude)
             
         return self.Longitude 
 
@@ -206,12 +206,12 @@ class LSDMap_PointData(object):
         Author: SMM
         """
         if data_name not in self.VariableList:
-            print "The data " + data_name + " is not one of the data elements in this point data"
+            print("The data " + data_name + " is not one of the data elements in this point data")
         else:
         
             if PrintToScreen:
-                print "The " + data_name + "data is: "
-                print self.PointData[data_name]  
+                print("The " + data_name + "data is: ")
+                print(self.PointData[data_name])  
                 
             return self.PointData[data_name]   
  
@@ -227,16 +227,16 @@ class LSDMap_PointData(object):
             
         Author: SMM
         """        
-        print "Yo, getting this stuff: "+EPSG_string
+        print("Yo, getting this stuff: "+EPSG_string)
         # The lat long are in epsg 4326 which is WGS84
         inProj = Proj(init='epsg:4326')
         outProj = Proj(init=EPSG_string)
         this_Lat = self.Latitude[0]
         this_Lon = self.Longitude[0]
         
-        print "Lat-long: "
-        print this_Lat
-        print this_Lon
+        print("Lat-long: ")
+        print(this_Lat)
+        print(this_Lon)
         
         easting =[]
         northing = []
@@ -265,7 +265,7 @@ class LSDMap_PointData(object):
             
         Author: SMM
         """          
-        print "Yo, getting this stuff: "+EPSG_string
+        print("Yo, getting this stuff: "+EPSG_string)
         # The lat long are in epsg 4326 which is WGS84
         inProj = Proj(init='epsg:4326')
         outProj = Proj(init=EPSG_string)
@@ -306,11 +306,11 @@ class LSDMap_PointData(object):
         Author: SMM
     
         """        
-        print "I am thinning the data for you!"
+        print("I am thinning the data for you!")
         
         # Get the data for thinning
         if data_name not in self.VariableList:
-            print "The data " + data_name + " is not one of the data elements in this point data"
+            print("The data " + data_name + " is not one of the data elements in this point data")
         else:       
             this_data = self.PointData[data_name]
         
@@ -362,11 +362,11 @@ class LSDMap_PointData(object):
         """
     
     
-        print "I am thinning the data for you from a list!"
+        print("I am thinning the data for you from a list!")
         
         # Get the data for thinning
         if data_name not in self.VariableList:
-            print "The data " + data_name + " is not one of the data elements in this point data"
+            print("The data " + data_name + " is not one of the data elements in this point data")
         else:       
             this_data = self.PointData[data_name]
         
@@ -427,14 +427,14 @@ class LSDMap_PointData(object):
         
         FileOut = this_path+DataName+".shp"
         
-        print "The filename will be: " + FileOut
+        print("The filename will be: " + FileOut)
 
         # delete the existing file
         if os.path.exists(FileOut):
             driver.DeleteDataSource(FileOut)
-            print "That file exists, I am deleting it in order to start again."
+            print("That file exists, I am deleting it in order to start again.")
         else:
-            print "I am making a new shapefile for you"
+            print("I am making a new shapefile for you")
 
         # create the data source
         data_source = driver.CreateDataSource(FileOut)
@@ -443,14 +443,14 @@ class LSDMap_PointData(object):
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(4326)
 
-        print "Creating the layer"
+        print("Creating the layer")
 
         # create the layer
         layer = data_source.CreateLayer(DataName, srs, ogr.wkbPoint)
 
         # Add the field names
         for index,name in enumerate(self.VariableList):
-            print "The variable name is " + name + " and the type is: " + str(self.DataTypes[index])           
+            print("The variable name is " + name + " and the type is: " + str(self.DataTypes[index]))           
             
             
             if self.DataTypes[index] is int:           
@@ -458,7 +458,7 @@ class LSDMap_PointData(object):
             elif self.DataTypes[index] is float:
                 layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
             elif self.DataTypes[index] is str:
-                print "Making a sting layer for layer " + name
+                print("Making a sting layer for layer " + name)
                 layer.CreateField(ogr.FieldDefn(name, ogr.OFTString))
             else:
                 layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
@@ -517,7 +517,7 @@ class LSDMap_PointData(object):
         
         FileOut = this_path+DataName+".geojson"
         
-        print "The filename will be: " + FileOut
+        print("The filename will be: " + FileOut)
 
         # delete the existing file
         if os.path.exists(FileOut):
@@ -530,7 +530,7 @@ class LSDMap_PointData(object):
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(4326)
 
-        print "Creating the layer"
+        print("Creating the layer")
         
         # create the layer
         layer = data_source.CreateLayer("PointData", srs, ogr.wkbPoint)
@@ -539,7 +539,7 @@ class LSDMap_PointData(object):
         
         # Add the field names
         for index,name in enumerate(self.VariableList):
-            print "The variable name is " + name + " and the type is: " + str(self.DataTypes[index])           
+            print("The variable name is " + name + " and the type is: " + str(self.DataTypes[index]))           
             
             
             if self.DataTypes[index] is int:           
@@ -547,7 +547,7 @@ class LSDMap_PointData(object):
             elif self.DataTypes[index] is float:
                 layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
             elif self.DataTypes[index] is str:
-                print "Making a sting layer for layer " + name
+                print("Making a sting layer for layer " + name)
                 layer.CreateField(ogr.FieldDefn(name, ogr.OFTString))
             else:
                 layer.CreateField(ogr.FieldDefn(name, ogr.OFTReal))
