@@ -161,8 +161,8 @@ def ChiMappingToolsTest():
     first_basin = 0
     last_basin = 6
     
-    source_thinning_threshold = 0
-    label_sources = False
+    source_thinning_threshold = 6
+    label_sources = True
     this_basins_list = [3,0,1,2]
     #basin_rename_list = [1,3,2,0,4,5,8,6,7,9,10]
     

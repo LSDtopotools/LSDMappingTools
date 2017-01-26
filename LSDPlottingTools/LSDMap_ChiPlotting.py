@@ -61,7 +61,7 @@ def FindSourceInformation(thisPointData):
     # Elevation, chi coordinate and flow distance of each node
     # Then it returns a dictionary containing the elements of the node
     these_source_nodes = {}
-    for src_idx in range(0,n_sources-1):
+    for src_idx in range(0,n_sources):
         m = np.ma.masked_where(Source!=src_idx, Source)
         
         # Mask the unwanted values
@@ -833,7 +833,15 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
     thisPointData.ThinData('chi',0)
-    
+
+    # Thin the sources. 
+    if source_thinning_threshold > 0:
+        print("I am going to thin some sources out for you")
+        source_info = FindSourceInformation(thisPointData)
+        remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
+        print("The remaining number of sources are: "+str(len(remaining_sources)))
+        thisPointData.ThinDataSelection("source_key",remaining_sources)  
+   
     # Get the chi, m_chi, basin number, and source ID code
     chi = thisPointData.QueryData('chi')
     chi = [float(x) for x in chi]
@@ -903,15 +911,6 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     #scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
     Source_colors = [x % NUM_COLORS for x in Source]
     plt.hold(True) 
-
-    
-    # Thin the sources. Do this after the colouring so that thinned source colours
-    # will be the same as unthinned source colours. 
-    if source_thinning_threshold > 0:
-        print("I am going to thin some sources out for you")
-        source_info = FindSourceInformation(thisPointData)
-        remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
-        thisPointData.ThinDataSelection("source_key",remaining_sources)    
 
     # Logic for stacked labels. You need to run this after source thinning to 
     # get an updated source dict
@@ -1091,6 +1090,17 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
     thisPointData.ThinData('chi',0)
+
+    # Thin the sources. Do this after the colouring so that thinned source colours
+    # will be the same as unthinned source colours. 
+    if source_thinning_threshold > 0:
+        print("I am going to thin some sources out for you")
+        source_info = FindSourceInformation(thisPointData)
+        remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
+        print("The remaining number of sources are: "+str(len(remaining_sources)))
+        print("The remaining sources are: ")
+        print(remaining_sources)
+        thisPointData.ThinDataSelection("source_key",remaining_sources)  
     
     # Get the chi, m_chi, basin number, and source ID code
     if data_name  == 'chi':
@@ -1177,15 +1187,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         X_axis_max = X_axis_max+added_X
         print("The nex max is: "+str(X_axis_max))
  
-
-    # Thin the sources. Do this after the colouring so that thinned source colours
-    # will be the same as unthinned source colours. 
-    if source_thinning_threshold > 0:
-        print("I am going to thin some sources out for you")
-        source_info = FindSourceInformation(thisPointData)
-        remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
-        thisPointData.ThinDataSelection("source_key",remaining_sources)          
-        
+                
     # Logic for stacked labels. You need to run this after source thinning to 
     # get an updated source dict
     if label_sources:
@@ -1260,8 +1262,11 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
             # Now we have to get rid of stupid non values
             list_source = [x for x in list_source if x is not None]
 
-            print("these sources are: ")
-            print list_source            
+            #print("these sources are: ")
+            #print list_source 
+            
+            #print("the source info is: ")
+            #print source_info
             
             for this_source in list_source:
                 
