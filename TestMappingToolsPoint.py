@@ -27,10 +27,10 @@ def TestMappingToolsPoints():
     thisPointData.GetParameterNames(True)
     thisPointData.GetLongitude(True)
     
-    print "Hey buddy, the province is: "
+    print("Hey buddy, the province is: ")
     thisPointData.QueryData("province",True)
     
-    print "Hey buddy, the gma is: "
+    print("Hey buddy, the gma is: ")
     thisPointData.QueryData("gma",True)    
     
     thisPointData.TranslateToReducedShapefile(fname)

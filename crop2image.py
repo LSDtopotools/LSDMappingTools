@@ -13,15 +13,15 @@ import sys, os
 
 # =============================================================================
 def Usage():
-    print '*** Crop and project an image in the same grid as a reference image ***'
-    print
-    print 'Usage : crop2image.py im_ref im2crop outfile'
-    print
-    print 'input parameters :'
-    print '  im_ref : str, path to the reference image'
-    print '  im2crop : str, path to the image to crop'
-    print '  outfile : str, name of the output file'
-    print 
+    print('*** Crop and project an image in the same grid as a reference image ***')
+    print()
+    print('Usage : crop2image.py im_ref im2crop outfile')
+    print()
+    print('input parameters :')
+    print('  im_ref : str, path to the reference image')
+    print('  im2crop : str, path to the image to crop')
+    print('  outfile : str, name of the output file')
+    print() 
 # =============================================================================
    
 # example of command line :
@@ -58,4 +58,4 @@ ymax = trans[3]
 
 #Crop and reproject
 cmd = "gdalwarp -te %.8f %.8f %.8f %.8f -tr %.8f %.8f -t_srs '%s' %s %s -overwrite" %(xmin,ymin,xmax,ymax,pixelWidth,pixelHeight,proj,im2crop,outfile)
-print cmd; os.system(cmd)
+print(cmd); os.system(cmd)

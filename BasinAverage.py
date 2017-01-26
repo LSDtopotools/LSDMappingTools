@@ -31,7 +31,7 @@ paramch = 'seism'
 #--------------------------------------------------------------------------
 
 DataDirectory ="/exports/csce/datastore/geos/users/mharel/Topo_Data/general/New_zone_ref/zone"+str(zonenb)+"/"
-print DataDirectory
+print(DataDirectory)
 
 def proc():
                 
@@ -104,7 +104,7 @@ def proc():
         # Calculate statistics of zonal raster
         value = numpy.mean(zoneraster)
 
-        print value
+        print(value)
         return value
 
 
@@ -117,7 +117,7 @@ datazon = data[(data.zone == newzonenb)].copy()
 
 for junct in datazon['Junction']: 
     junction = int(junct)
-    print "Junctin is " +str(junction)
+    print("Junctin is " +str(junction))
     
     # Raster dataset
     if paramch == 'eleva':
@@ -130,7 +130,7 @@ for junct in datazon['Junction']:
      
     # Open data
     rast = gdal.Open(input_value_raster)
-    print rast.RasterXSize, rast.RasterYSize
+    print(rast.RasterXSize, rast.RasterYSize)
     shp = ogr.Open(input_zone_polygon)
 
     if shp is None:
@@ -145,17 +145,17 @@ for junct in datazon['Junction']:
              
     # Start the processes
     layer = shp.GetLayer()
-    featList = range(layer.GetFeatureCount())
+    featList = list(range(layer.GetFeatureCount()))
     #print "Number of features = " +str(featList)
                
     #pool = Pool(processes=24)   
     #value = pool.map(proc,0,8)
     value = proc()
     resu.append([value])
-    print "value = " +str(value)
+    print("value = " +str(value))
     
 with open ('/exports/csce/datastore/geos/users/mharel/Topo_Data/general/'+'zone'+str(newzonenb)+'_resufile_'+paramch+'.csv', 'w') as csvfile:
     g = csv.writer(csvfile, delimiter = ',')
     g.writerows(resu)
     
-print "Done."
+print("Done.")

@@ -428,7 +428,7 @@ def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
         plt.savefig(save_prefix+'0b.'+save_format, format=save_format)
     texts = repel_text_from_axes(texts, ax, renderer=r, expand=expand_points)
     history = [np.inf]*5
-    for i in xrange(lim):
+    for i in range(lim):
         q1, q2 = np.inf, np.inf
 
         if text_from_text:

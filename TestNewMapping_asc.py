@@ -22,8 +22,8 @@ def TestNewMappingTools_asc():
 
     yo = LSDP.GetRasterExtent(ThisFile)
     
-    print "raster extent is: " 
-    print yo
+    print("raster extent is: ") 
+    print(yo)
     
     
         

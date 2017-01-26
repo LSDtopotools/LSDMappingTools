@@ -29,7 +29,7 @@ def ReformatSeperators(path):
         else:
             splitpath = path.split("/")
     else:
-        print "I did not find a valid seperator"
+        print("I did not find a valid seperator")
         splitpath = "NULL"
 
     # Now reconstitute the path using the operating system seperator
