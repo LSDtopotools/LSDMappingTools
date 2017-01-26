@@ -46,7 +46,7 @@ def ChiMappingToolsTest():
     #======================================
     # This tests the basin sorting
     #Junction_list = [[3,0,2,1],[4],[6,7,8,9,10]]
-    Junction_list = [[3,0,1,2],[4,5,6],[7,10,9,12,8,11,13]]
+    
     
     
     #LSDP.BasinKeyToJunction(Junction_list,BasinInfoName)
@@ -82,13 +82,13 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a plot of channels color coded by their sources
-    FigName2 = DataDirectory+'Meghalaya_ChannelMap.png'    
-    source_thinning_threshold = 10
-    LSDP.BasicChannelPlotGridPlotCategories(DEMname,HSname,ChiName, 'gray','gray',
-                            '$Channel$',(0,0),
-                            0.4,FigName2,'png',elevation_threshold,'source_key',
-                            source_thinning_threshold,
-                            size_format)      
+    #FigName2 = DataDirectory+'Meghalaya_ChannelMap.png'    
+    #source_thinning_threshold = 10
+    #LSDP.BasicChannelPlotGridPlotCategories(DEMname,HSname,ChiName, 'gray','gray',
+    #                        '$Channel$',(0,0),
+    #                        0.4,FigName2,'png',elevation_threshold,'source_key',
+    #                        source_thinning_threshold,
+    #                        size_format)      
     #======================================
     
     #======================================
@@ -112,18 +112,18 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a stack of chi plots
-    FigName4 =  DataDirectory+'Meghalaya_SWbasins_chi.png'  
-    first_basin = 0
-    last_basin = 10
-    chi_offset = 15
-    this_basins_list = [7,10]    
-    basin_rename_order = [7,10,9,12,8,11,13,4,2,1,0,3,5,6]
-    basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
-    LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,
-                            first_basin,last_basin,this_basins_list,
-                            basin_rename_list,chi_offset,False,
-                            source_thinning_threshold,
-                            size_format)  
+    #FigName4 =  DataDirectory+'Meghalaya_SWbasins_chi.png'  
+    #first_basin = 0
+    #last_basin = 10
+    #chi_offset = 15
+    #this_basins_list = [7,10]    
+    #basin_rename_order = [7,10,9,12,8,11,13,4,2,1,0,3,5,6]
+    #basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
+    #LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,
+    #                        first_basin,last_basin,this_basins_list,
+    #                        basin_rename_list,chi_offset,False,
+    #                        source_thinning_threshold,
+    #                        size_format)  
     #======================================
     
     
@@ -148,19 +148,19 @@ def ChiMappingToolsTest():
     #======================================    
     # Uncomment this for a plot of the basins draped over a fancy hillshde map
     # with the basins annotated onto the figure
-    #FigName9 = DataDirectory+'MeghalayaBasins.png'
-    #spread = 15
-    #basin_rename_order = [7,10,9,12,8,11,13,4,2,1,0,3,5,6]
-    #basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
-    
+    FigName9 = DataDirectory+'MeghalayaBasins.png'
+    spread = 15
+    basin_rename_order = [7,10,9,12,8,11,13,4,2,1,0,3,5,6]
+    basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
+    Junction_list = [[3,0,1,2],[4,5,6,7],[10,9,12,8,11,13]] 
     #print basin_rename_list
     
-    #LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','cubehelix',
-    #                        (0,0), 0.4 ,FigName9,'png',
-    #                        elevation_threshold,
-    #                        Junction_list, basin_rename_list,spread,
-    #                        ChiName,
-    #                        False, threshold_length,size_format)  
+    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','gist_earth',
+                            (0,0), 0.4 ,FigName9,'png',
+                            elevation_threshold,
+                            Junction_list, basin_rename_list,spread,
+                            ChiName,
+                            False, threshold_length,size_format)  
     #======================================    
 
     
