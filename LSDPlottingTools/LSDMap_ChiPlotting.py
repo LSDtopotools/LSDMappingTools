@@ -1170,23 +1170,35 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         #maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
         
         print("adding an offset of: "+str(this_X_offset))
+
+        # Get the minimum and maximum
+        this_min_x = np.nanmin(maskX)
+        if this_min_x < 0:
+            this_min_x = 0
+        this_max_x =np.nanmax(maskX)
+        width_box = this_max_x-this_min_x
         
+        # Now add the offset to the minimum and maximum
+        this_min_x = this_min_x+this_X_offset
+        this_max_x = this_max_x+this_X_offset
+        
+        # Now add the offset to the data
         maskX = np.add(maskX,this_X_offset)
         this_X_offset = this_X_offset+X_offset
         
-        this_min_x = np.nanmin(maskX)
-        this_max_x =np.nanmax(maskX)
-        width_box = this_max_x-this_min_x
+        
         
         print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
         ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))      
         
         # some logic for the basin rename
         if basin_rename_list:
+            #print("Checking length, "+str(len(basin_rename_list))+" , "+str(max_basin+1))
             if len(basin_rename_list) == max_basin+1:
                 this_basin_text = "Basin "+str(basin_rename_list[basin_number])
+                print("This basin text is: "+this_basin_text)
         else:
-            this_basin_text = "Basin "+str(basin_number)      
+            this_basin_text = "Basin "+str(basin_number) 
         
           
         ax.text(this_min_x+0.1*width_box, z_axis_min+0.025*elevation_range, this_basin_text, style='italic',
