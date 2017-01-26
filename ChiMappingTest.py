@@ -166,12 +166,12 @@ def ChiMappingToolsTest():
     basin_rename_order = [7,10,9,12,8,11,13,4,2,1,0,3,5,6]
     basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
     
-    LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',10,'log',size_format)  
-    LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',100000,'log',size_format)
+    LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',15,'log',size_format)  
+    #LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',100000,'log',size_format)
 
     this_basins_list = [10,9,12,8,11,13]
-    LSDP.StackedProfilesGradient(ChiName,FigName55,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',5,'log',size_format)  
-    LSDP.StackedProfilesGradient(ChiName,FigName66,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',50000,'log',size_format)  
+    LSDP.StackedProfilesGradient(ChiName,FigName55,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',10,'log',size_format)  
+    #LSDP.StackedProfilesGradient(ChiName,FigName66,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',50000,'log',size_format)  
 
 
     #======================================
