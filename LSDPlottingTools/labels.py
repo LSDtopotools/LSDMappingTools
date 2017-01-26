@@ -2,7 +2,10 @@
 """
 Created on Mon Oct 10 16:09:29 2016
 
-@author: NauticalMile
+A series of functions to provide extra functionality to matplotlib 
+involving the creation of labels for plots.
+
+    Author: DAV
 @stackoverflow: http://stackoverflow.com/questions/16992038/inline-labels-in-matplotlib
 """
 
@@ -12,6 +15,20 @@ import re as _re
 
 #Label line with line2D label data
 def labelLine(line,x,label=None,align=True,**kwargs):
+    """Places a label on a line plot and orients it to run parallel with the line.
+
+    Given a matplotlib Line instance and x-coordinate, places `label` at the x-coord
+    on the given line and orientates it parallel to the line. 
+
+    Author: http://stackoverflow.com/questions/16992038/inline-labels-in-matplotlib
+
+    Arguments:
+        line: Matplotlib Line instance
+        x: x-coordinate on the line at which the label will be positioned.
+        label (str): The label to be added to the line.
+        align (bool): whether or not to align the label parallel to the line
+
+    """
 
     ax = line.get_axes()
     xdata = line.get_xdata()
@@ -68,6 +85,17 @@ def labelLine(line,x,label=None,align=True,**kwargs):
     ax.text(x,y,label,rotation=trans_angle,**kwargs)
 
 def labelLines(lines,align=True,xvals=None,**kwargs):
+    """Version of labelLine that assigns labels for all lines
+       in a plot.
+
+    Similar to labelLine, except a list of lines is passed.
+
+    Argumnets: 
+        lines (list): A list of the lines to be labeled.
+        xvals: A list of x-coordinates where the labels should be anchored.
+    """
+
+       
 
     ax = lines[0].get_axes()
     labLines = []
@@ -88,8 +116,21 @@ def labelLines(lines,align=True,xvals=None,**kwargs):
         labelLine(line,x,label,align,**kwargs)
 
 def make_line_label(fname):
-    """
-    Makes a string by splitting a file name. 
+    """Makes a string (label) by splitting a file name. 
+
+    Warning:
+       A lot of this is hard coded to split according to certain filenaming
+       conventions, separated by underscored. e.g. MyFile_part1_part2_part3.file
+       So you should modify this to fit your own file naming
+       convention. 
+
+    Todo: Rewrite this as a more generic function.
+
+    Arguments:
+        fname (str): Filename to create labels from.
+
+    Author: DAV
+
     """
     # Passing a list of delimiters to the re.split function
     part1 = _re.split("[_.]", fname)[0]
