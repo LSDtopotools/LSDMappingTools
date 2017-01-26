@@ -2,7 +2,7 @@
 # see examples here:  https://github.com/Phlya/adjustText/blob/master/examples/Examples.ipynb
 
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 from matplotlib import pyplot as plt
 from itertools import product
