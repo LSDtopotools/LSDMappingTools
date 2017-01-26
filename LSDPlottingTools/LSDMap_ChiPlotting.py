@@ -1170,9 +1170,6 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         maskMChi = np.ma.masked_where(np.ma.getmask(m), M_chi)
         #maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
         
-<<<<<<< HEAD
-        print(("adding an offset of: "+str(this_X_offset)))
-=======
         print("adding an offset of: "+str(this_X_offset))
 
         # Get the minimum and maximum
@@ -1184,8 +1181,6 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         
         # Now add the offset to the minimum and maximum
         this_min_x = this_min_x+this_X_offset
-        this_max_x = this_max_x+this_X_offset
->>>>>>> master
         
         # Now add the offset to the data
         maskX = np.add(maskX,this_X_offset)
