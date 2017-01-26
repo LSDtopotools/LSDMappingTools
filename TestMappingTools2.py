@@ -48,19 +48,19 @@ def TestMappingTools():
     #print data.shape
     
     NDV, xsize, ysize, GeoT, Projection, DataType = LSDmt.GetGeoInfo(ThisFile)
-    print("NDV: " + str(NDV))
-    print("xsize: " + str(xsize))
-    print("ysize: " + str(ysize))
-    print("GeoT: " + str(GeoT))
-    print("Projection: " + str(Projection))
-    print("DataType: " + str(DataType))
+    print "NDV: " + str(NDV)
+    print "xsize: " + str(xsize)
+    print "ysize: " + str(ysize)
+    print "GeoT: " + str(GeoT)
+    print "Projection: " + str(Projection)
+    print "DataType: " + str(DataType)
     
     CellSize,XMin,XMax,YMin,YMax = LSDmt.GetUTMMaxMin(ThisFile)
-    print("CellSize: " + str(CellSize))
-    print("XMin: " + str(XMin))
-    print("XMax: " + str(XMax))
-    print("YMin: " + str(YMin))
-    print("YMax: " + str(YMax))    
+    print "CellSize: " + str(CellSize)
+    print "XMin: " + str(XMin)
+    print "XMax: " + str(XMax)
+    print "YMin: " + str(YMin)
+    print "YMax: " + str(YMax)    
     
     
     tcmap = 'autumn'

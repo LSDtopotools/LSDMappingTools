@@ -22,7 +22,7 @@ def BedPlotAutomator(Dirname):
         # first we need the filename without the path
         NoDirFname = LSDOst.GetFileNameNoPath(fname)
         
-        print("fname is: "+ NoDirFname)       
+        print "fname is: "+ NoDirFname       
         
         # Now get the prefix of the file
         splitfname = NoDirFname.split('_BedElev.asc')
@@ -36,7 +36,7 @@ def BedPlotAutomator(Dirname):
         # first we need the filename without the path
         NoDirFname = LSDOst.GetFileNameNoPath(fname)
         
-        print("fname is: "+ NoDirFname)          
+        print "fname is: "+ NoDirFname          
         
         # Now get the prefix of the file
         splitfname = NoDirFname.split('_BedThick.asc')
@@ -58,17 +58,17 @@ def ElevationSwaths(path, filename, axis, fprefix):
     # get the data vectors
     means,medians,std_deviations,twentyfifth_percentile,seventyfifth_percentile = LSDP.SimpleSwath(path, filename, axis)
     
-    print("Means shape is: ")
-    print(means.shape)    
+    print "Means shape is: "
+    print means.shape    
     
     x_vec,y_vec = LSDP.GetLocationVectors(FileName)
     
     
-    print("X shape is: ")
-    print(x_vec.shape)
+    print "X shape is: "
+    print x_vec.shape
     
-    print("Y shape is: ")
-    print(y_vec.shape)
+    print "Y shape is: "
+    print y_vec.shape
     
     import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines
@@ -146,17 +146,17 @@ def BedThickSwaths(path, filename, axis, fprefix):
     # get the data vectors
     means,medians,std_deviations,twentyfifth_percentile,seventyfifth_percentile = LSDP.SimpleSwath(path, filename, axis)
     
-    print("Means shape is: ")
-    print(means.shape)    
+    print "Means shape is: "
+    print means.shape    
     
     x_vec,y_vec = LSDP.GetLocationVectors(FileName)
     
     
-    print("X shape is: ")
-    print(x_vec.shape)
+    print "X shape is: "
+    print x_vec.shape
     
-    print("Y shape is: ")
-    print(y_vec.shape)
+    print "Y shape is: "
+    print y_vec.shape
     
     import matplotlib.pyplot as plt
     import matplotlib.lines as mpllines

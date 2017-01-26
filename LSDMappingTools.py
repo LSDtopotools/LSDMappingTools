@@ -53,7 +53,7 @@ def GetUTMMaxMinFromRowsCol(FileName,x_max_col,x_min_col,y_max_row,y_min_row):
     # need to be careful with the ymax_UTM since the rows go from the top
     # but the header index is to bottom corner    
     
-    print("yll: "+str(YMin)+" and nrows: " +str(ysize) + " dx: "+str(CellSize))   
+    print "yll: "+str(YMin)+" and nrows: " +str(ysize) + " dx: "+str(CellSize)   
     
     ymax_from_bottom = ysize-y_min_row
     ymin_from_bottom = ysize-y_max_row
@@ -130,7 +130,7 @@ def ReadRasterArrayBlocks(raster_file,raster_band=1):
     xsize = band.XSize
     ysize = band.YSize
     
-    print("xsize: " +str(xsize)+" and y size: " + str(ysize))
+    print "xsize: " +str(xsize)+" and y size: " + str(ysize)
 
     max_value = band.GetMaximum()
     min_value = band.GetMinimum()
@@ -185,7 +185,7 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     ymax_UTM = YMax
     ymin_UTM = YMin
     
-    print("now UTM, xmax: " +str(xmax_UTM)+" x_min: " +str(xmin_UTM)+" y_maxb: " +str(ymax_UTM)+" y_minb: " +str(ymin_UTM))
+    print "now UTM, xmax: " +str(xmax_UTM)+" x_min: " +str(xmin_UTM)+" y_maxb: " +str(ymax_UTM)+" y_minb: " +str(ymin_UTM)
     
     dy_fig = ymax_UTM-ymin_UTM
     dx_fig = xmax_UTM-xmin_UTM
@@ -203,25 +203,25 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
         
     first_digit = float(str_dy[0])
     
-    print("str_dy: " +str_dy+ " n_digits: " +str(nd)+" first_digit: " + str(first_digit))    
+    print "str_dy: " +str_dy+ " n_digits: " +str(nd)+" first_digit: " + str(first_digit)    
     
     dy_spacing_rounded = first_digit*pow(10,(nd-1))
-    print("n_digits: "+str(n_digits)+" dy_spacing: " +str(dy_spacing) + " and rounded: "+str(dy_spacing_rounded))
+    print "n_digits: "+str(n_digits)+" dy_spacing: " +str(dy_spacing) + " and rounded: "+str(dy_spacing_rounded)
  
     str_xmin = str(xmin_UTM)
     str_ymin = str(ymin_UTM)
-    print("before split str_xmin: "+ str_xmin + " str ymin: " + str_ymin)
+    print "before split str_xmin: "+ str_xmin + " str ymin: " + str_ymin
     str_xmin = str_xmin.split('.')[0]
     str_ymin = str_ymin.split('.')[0]
-    print("after split str_xmin: "+ str_xmin + " str ymin: " + str_ymin)
+    print "after split str_xmin: "+ str_xmin + " str ymin: " + str_ymin
     xmin_UTM = float(str_xmin)
     ymin_UTM = float(str_ymin)
-    print("UTM: "+ str(xmin_UTM) + " str ymin: " + str(ymin_UTM))
+    print "UTM: "+ str(xmin_UTM) + " str ymin: " + str(ymin_UTM)
     
     n_digx = str_xmin.__len__() 
     n_digy = str_ymin.__len__() 
     
-    print("n_dig_x: " + str(n_digx)+ " nd: " + str(nd))  
+    print "n_dig_x: " + str(n_digx)+ " nd: " + str(nd)  
        
     if (n_digx-nd+1) >= 1:
         front_x = str_xmin[:(n_digx-nd+1)]
@@ -235,13 +235,13 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     
     
       
-    print("xmin: " + str_xmin + " ymin: " + str_ymin + " n_digx: " + str(n_digx)+ " n_digy: " + str(n_digy))
-    print("frontx: " +front_x+" and fronty: "+ front_y)
+    print "xmin: " + str_xmin + " ymin: " + str_ymin + " n_digx: " + str(n_digx)+ " n_digy: " + str(n_digy)
+    print "frontx: " +front_x+" and fronty: "+ front_y
      
     round_xmin = float(front_x)*pow(10,nd-1)
     round_ymin = float(front_y)*pow(10,nd-1)
     
-    print("x_min: " +str(xmin_UTM)+ " round xmin: " +str(round_xmin)+ " y_min: " +str(ymin_UTM)+" round y_min: " + str(round_ymin))
+    print "x_min: " +str(xmin_UTM)+ " round xmin: " +str(round_xmin)+ " y_min: " +str(ymin_UTM)+" round y_min: " + str(round_ymin)
     
     # now we need to figure out where the xllocs and ylocs are
     xUTMlocs = np.zeros(2*n_target_tics)
@@ -266,12 +266,12 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
         new_x_labels.append( str(xUTMlocs[i]).split(".")[0] )
         new_y_labels.append( str(yUTMlocs[i]).split(".")[0] )
 
-    print(xUTMlocs)
-    print(xlocs)
-    print(yUTMlocs)
-    print(ylocs)
-    print(new_x_labels)
-    print(new_y_labels)
+    print xUTMlocs
+    print xlocs
+    print yUTMlocs
+    print ylocs
+    print new_x_labels
+    print new_y_labels
    
     return xlocs,ylocs,new_x_labels,new_y_labels
 #==============================================================================
@@ -317,14 +317,14 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     ax1 =  fig.add_subplot(1,1,1)
     im = ax1.imshow(raster, thiscmap, extent = extent_raster)
     
-    print("The is the extent raster data element")
-    print(extent_raster)
+    print "The is the extent raster data element"
+    print extent_raster
 
-    print("now I am in the mapping routine")
-    print("x_min: " + str(x_min))
-    print("x_max: " + str(x_max))
-    print("y_min: " + str(y_min))
-    print("y_max: " + str(y_max))
+    print "now I am in the mapping routine"
+    print "x_min: " + str(x_min)
+    print "x_max: " + str(x_max)
+    print "y_min: " + str(y_min)
+    print "y_max: " + str(y_max)
 
     # now get the tick marks    
     n_target_tics = 5
@@ -333,11 +333,11 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     plt.xticks(xlocs, new_x_labels, rotation=60)  #[1:-1] skips ticks where we have no data
     plt.yticks(ylocs, new_y_labels) 
     
-    print("The x locs are: ") 
-    print(xlocs)
+    print "The x locs are: " 
+    print xlocs
     
-    print("The x labels are: ")
-    print(new_x_labels)
+    print "The x labels are: "
+    print new_x_labels
     
     # some formatting to make some of the ticks point outward    
     for line in ax1.get_xticklines():
@@ -358,12 +358,12 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     ax1.set_ylabel("Northing (m)")
     
     # set the colour limits
-    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
+    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
-        print("I don't think I should be here")
+        print "I don't think I should be here"
         im.set_clim(0, np.max(raster))
     else:
-        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
+        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im.set_clim(clim_val[0],clim_val[1])
     
     
@@ -415,14 +415,14 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     ax1 =  fig.add_subplot(1,1,1)
     im = ax1.imshow(raster, thiscmap, extent = extent_raster)
     
-    print("The is the extent raster data element")
-    print(extent_raster)
+    print "The is the extent raster data element"
+    print extent_raster
 
-    print("now I am in the mapping routine")
-    print("x_min: " + str(x_min))
-    print("x_max: " + str(x_max))
-    print("y_min: " + str(y_min))
-    print("y_max: " + str(y_max))
+    print "now I am in the mapping routine"
+    print "x_min: " + str(x_min)
+    print "x_max: " + str(x_max)
+    print "y_min: " + str(y_min)
+    print "y_max: " + str(y_max)
 
     # now get the tick marks    
     n_target_tics = 5
@@ -431,11 +431,11 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     plt.xticks(xlocs, new_x_labels, rotation=60)  #[1:-1] skips ticks where we have no data
     plt.yticks(ylocs, new_y_labels) 
     
-    print("The x locs are: ") 
-    print(xlocs)
+    print "The x locs are: " 
+    print xlocs
     
-    print("The x labels are: ")
-    print(new_x_labels)
+    print "The x labels are: "
+    print new_x_labels
     
     # some formatting to make some of the ticks point outward    
     for line in ax1.get_xticklines():
@@ -456,12 +456,12 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     ax1.set_ylabel("Northing (m)")
     
     # set the colour limits
-    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
+    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
     if (clim_val == (0,0)):
-        print("I don't think I should be here")
+        print "I don't think I should be here"
         im.set_clim(0, np.max(raster))
     else:
-        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
+        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
         im.set_clim(clim_val[0],clim_val[1])
     
     
@@ -600,7 +600,7 @@ def read_flt(input_file):
     if input_file.endswith('.flt') or input_file.endswith('.hdr'):
         input_file = input_file[:-4]    
     else:
-        print('Incorrect filename')
+        print 'Incorrect filename'
         return 0,0 #exits module gracefully
     
     headers = read_headers(input_file)
@@ -615,7 +615,7 @@ def read_ascii_raster(ascii_raster_file):
     import numpy as np
     
     with open(ascii_raster_file) as f:
-        header_data = [float(f.next().split()[1]) for x in range(6)] #read the first 6 lines
+        header_data = [float(f.next().split()[1]) for x in xrange(6)] #read the first 6 lines
          
     raster_data = np.genfromtxt(ascii_raster_file, delimiter=' ', skip_header=6)
     raster_data = raster_data.reshape(header_data[1], header_data[0]) #rows, columns
@@ -686,14 +686,14 @@ def format_ticks_for_UTM_imshow(hillshade_header,x_max,x_min,y_max,y_min,n_targe
     # need to be careful with the ymax_UTM since the rows go from the top
     # but the header index is to bottom corner    
     
-    print("yll: "+str(hillshade_header[3])+" and nrows: " +str(hillshade_header[1]) + " dx: "+str(hillshade_header[4]))   
+    print "yll: "+str(hillshade_header[3])+" and nrows: " +str(hillshade_header[1]) + " dx: "+str(hillshade_header[4])   
     
     ymax_from_bottom = hillshade_header[1]-y_min
     ymin_from_bottom = hillshade_header[1]-y_max
     ymax_UTM = hillshade_header[3]+ymax_from_bottom*hillshade_header[4]
     ymin_UTM = hillshade_header[3]+ymin_from_bottom*hillshade_header[4]
     
-    print("now UTM, xmax: " +str(xmax_UTM)+" x_min: " +str(xmin_UTM)+" y_maxb: " +str(ymax_UTM)+" y_minb: " +str(ymin_UTM))
+    print "now UTM, xmax: " +str(xmax_UTM)+" x_min: " +str(xmin_UTM)+" y_maxb: " +str(ymax_UTM)+" y_minb: " +str(ymin_UTM)
     
     dy_fig = ymax_UTM-ymin_UTM
     dx_fig = xmax_UTM-xmin_UTM
@@ -711,10 +711,10 @@ def format_ticks_for_UTM_imshow(hillshade_header,x_max,x_min,y_max,y_min,n_targe
         
     first_digit = float(str_dy[0])
     
-    print("str_dy: " +str_dy+ " n_digits: " +str(nd)+" first_digit: " + str(first_digit))    
+    print "str_dy: " +str_dy+ " n_digits: " +str(nd)+" first_digit: " + str(first_digit)    
     
     dy_spacing_rounded = first_digit*pow(10,(nd-1))
-    print("n_digits: "+str(n_digits)+" dy_spacing: " +str(dy_spacing) + " and rounded: "+str(dy_spacing_rounded))
+    print "n_digits: "+str(n_digits)+" dy_spacing: " +str(dy_spacing) + " and rounded: "+str(dy_spacing_rounded)
  
     str_xmin = str(xmin_UTM)
     str_ymin = str(ymin_UTM)
@@ -729,13 +729,13 @@ def format_ticks_for_UTM_imshow(hillshade_header,x_max,x_min,y_max,y_min,n_targe
     front_x = str_xmin[:(n_digx-nd+1)]
     front_y = str_ymin[:(n_digy-nd+1)]
       
-    print("xmin: " + str_xmin + " ymin: " + str_ymin + " n_digx: " + str(n_digx)+ " n_digy: " + str(n_digy))
-    print("frontx: " +front_x+" and fronty: "+ front_y)
+    print "xmin: " + str_xmin + " ymin: " + str_ymin + " n_digx: " + str(n_digx)+ " n_digy: " + str(n_digy)
+    print "frontx: " +front_x+" and fronty: "+ front_y
      
     round_xmin = float(front_x)*pow(10,nd-1)
     round_ymin = float(front_y)*pow(10,nd-1)
     
-    print("x_min: " +str(xmin_UTM)+ " round xmin: " +str(round_xmin)+ " y_min: " +str(ymin_UTM)+" round y_min: " + str(round_ymin))
+    print "x_min: " +str(xmin_UTM)+ " round xmin: " +str(round_xmin)+ " y_min: " +str(ymin_UTM)+" round y_min: " + str(round_ymin)
     
     # now we need to figure out where the xllocs and ylocs are
     xUTMlocs = np.zeros(2*n_target_tics)
@@ -818,8 +818,8 @@ def vectorize(hillshade_file, m_value_file):
     cNorm_m_values  = colors.Normalize(vmin=m_MIN, vmax=m_MAX)
     scalarMap_m_values = cmx.ScalarMappable(norm=cNorm_m_values, cmap=jet)    
     
-    for i in range(len(m_values)):
-        for j in range(len(m_values[0])):
+    for i in xrange(len(m_values)):
+        for j in xrange(len(m_values[0])):
             if m_values[i][j] > 0:
                 colorVal = scalarMap_m_values.to_rgba(m_values[i][j])
                 pp.scatter(j + corrected_x, i + corrected_y, marker=".", color=colorVal,edgecolors='none')               

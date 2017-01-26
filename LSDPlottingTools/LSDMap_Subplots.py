@@ -15,8 +15,8 @@ import string
 import matplotlib.image as mpimg
 import matplotlib.cm as cmx
 from matplotlib import rcParams
-from . import LSDMap_GDALIO as LSDMap_IO
-from . import LSDMap_BasicPlotting as LSDMap_BP
+import LSDMap_GDALIO as LSDMap_IO
+import LSDMap_BasicPlotting as LSDMap_BP
 
 #==============================================================================
 # Convert cm to inch for figure sizing
@@ -43,10 +43,10 @@ def field_sites(DataDirectory, N_HSFiles, NRows, NCols, n_target_ticks):
     # Read in the files for each site
     HSFiles = sorted(glob(DataDirectory+'*_HS.bil'), key=str)
     MapFiles = sorted(glob(DataDirectory+'*_map.eps'), key=str)
-    print(MapFiles)
+    print MapFiles
       
     n_files = len(HSFiles)+len(MapFiles)
-    print("Number of files = ", n_files)
+    print "Number of files = ", n_files
     
     # Now make the subplots
     fig, ax = pp.subplots(NRows,NCols, figsize=(cm2inch(12),cm2inch(15)), frameon=False)
@@ -61,7 +61,7 @@ def field_sites(DataDirectory, N_HSFiles, NRows, NCols, n_target_ticks):
         if i < N_HSFiles:
         # first deal with the hillshade files. If there are more hillshade files simply
         # change the value of N_HSFiles
-            print("The hillshade file name is: ", HSFiles[i])
+            print "The hillshade file name is: ", HSFiles[i]
              
             hillshade_raster = LSDMap_IO.ReadRasterArrayBlocks(HSFiles[i])
             hillshade_raster = np.ma.masked_where(hillshade_raster == -9999, hillshade_raster)
@@ -71,7 +71,7 @@ def field_sites(DataDirectory, N_HSFiles, NRows, NCols, n_target_ticks):
         
             # get DEM info
             CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(HSFiles[i])
-            print(YMin, YMax)
+            print YMin, YMax
             
             #plot the rasters
             ax[i].imshow(hillshade_raster, extent = extent_raster, cmap=cmx.gray)
@@ -95,7 +95,7 @@ def field_sites(DataDirectory, N_HSFiles, NRows, NCols, n_target_ticks):
             ax[i].tick_params(axis='y', pad=7)
         
         if i >= N_HSFiles:
-            print("The map file name is: ", MapFiles[file_counter])
+            print "The map file name is: ", MapFiles[file_counter]
             # add in the location maps for the sites (e.g. USA, UK)
             img = mpimg.imread(MapFiles[file_counter])
             ax[i].imshow(img)
@@ -142,7 +142,7 @@ def multiple_flood_maps(DataDirectory):
     FPFiles = sorted(glob(DataDirectory+'*_FP*.bil'), key=str)
       
     n_files = len(FPFiles)
-    print("Number of files = ", n_files)
+    print "Number of files = ", n_files
     
     # Now make the subplots
     fig, ax = pp.subplots(2,3, figsize=(cm2inch(15),cm2inch(11)))
@@ -155,15 +155,15 @@ def multiple_flood_maps(DataDirectory):
     alphabet = list(string.ascii_lowercase)
     
     for i in range (n_files):
-        print("The floodplain file name is: ", FPFiles[i])
+        print "The floodplain file name is: ", FPFiles[i]
         
         # get the name of the field site
         fname = FPFiles[i].split('/')
-        print(fname)
+        print fname
         split_fname = fname[-1].split('_')
-        print(split_fname)
+        print split_fname
         HSFile = DataDirectory+split_fname[1]+'_'+split_fname[2]+"_HS.bil"
-        print(HSFile)
+        print HSFile
          
         hillshade_raster = LSDMap_IO.ReadRasterArrayBlocks(HSFile)
         FP_raster = LSDMap_IO.ReadRasterArrayBlocks(FPFiles[i])
@@ -174,7 +174,7 @@ def multiple_flood_maps(DataDirectory):
     
         # get DEM info
         CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(HSFile)
-        print(YMin, YMax)
+        print YMin, YMax
         
         #plot the rasters
         ax[i].imshow(hillshade_raster, extent = extent_raster, cmap=cmx.gray)
@@ -224,7 +224,7 @@ def flood_maps_with_shapefile(DataDirectory):
     PointFiles = sorted(glob(DataDirectory+'*_FIPs.shp'), key=str)
       
     n_files = len(FPFiles)
-    print("Number of files = ", n_files)
+    print "Number of files = ", n_files
     
     # Now make the subplots
     fig, ax = pp.subplots(1,2, figsize=(cm2inch(12),cm2inch(7)))
@@ -235,13 +235,13 @@ def flood_maps_with_shapefile(DataDirectory):
     
     for i in range (n_files):
         
-        print("The hillshade file name is: ", HSFiles[i])
-        print("The floodplain file name is: ", FPFiles[i])
-        print("The shapefile name is: ", PointFiles[i])
+        print "The hillshade file name is: ", HSFiles[i]
+        print "The floodplain file name is: ", FPFiles[i]
+        print "The shapefile name is: ", PointFiles[i]
         
         # get the name of the field site
         split_fname = FPFiles[i].split('_FP')
-        print(split_fname[0])
+        print split_fname[0]
          
         hillshade_raster = LSDMap_IO.ReadRasterArrayBlocks(HSFiles[i])
         
@@ -250,7 +250,7 @@ def flood_maps_with_shapefile(DataDirectory):
 
         # get DEM info
         CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(HSFiles[i])
-        print(YMin, YMax)
+        print YMin, YMax
         
         # plot the raster
         ax[i].imshow(hillshade_raster, extent = extent_raster, cmap=cmx.gray)
@@ -313,7 +313,7 @@ def findmaxval_multirasters(FileList):
         
         if this_max_val > overall_max_val:
             overall_max_val = this_max_val
-            print(overall_max_val)
+            print overall_max_val
             
     return overall_max_val
     
@@ -366,7 +366,7 @@ def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     
     FPFiles = sorted(glob(DataDir+DrapeRasterWild), key=str)
     n_files = len(FPFiles)
-    print("Number of files = ", n_files)
+    print "Number of files = ", n_files
     
     elev_raster_file = DataDir + ElevationRaster
     
@@ -385,10 +385,10 @@ def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(elev_raster_file,x_max,x_min,y_max,y_min,n_target_tics)  
 
-    print("xmax: " + str(x_max))
-    print("xmin: " + str(x_min))
-    print("ymax: " + str(y_max))
-    print("ymin: " + str(y_min))
+    print "xmax: " + str(x_max)
+    print "xmin: " + str(x_min)
+    print "ymax: " + str(y_max)
+    print "ymin: " + str(y_min)
     
     """
     Find the maximum water depth in all rasters.
@@ -397,28 +397,28 @@ def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     """
 
     try:
-        print("Calculating max drape raster value by scanning rasters...")
+        print "Calculating max drape raster value by scanning rasters..."
         max_water_depth = findmaxval_multirasters(FPFiles)
         drape_max = max_water_depth
         
     except:
-        print("Something went wrong trying to obtain the max value in \
-                your drape raster file list.")
+        print "Something went wrong trying to obtain the max value in \
+                your drape raster file list."
     finally:
-        print("The drape(s) max value is set to: ", drape_max) 
+        print "The drape(s) max value is set to: ", drape_max 
     
     
     #im = mpimg.AxesImage()   
     
     for i in range(n_files):
         
-        print("The floodplain file name is: ", FPFiles[i])
+        print "The floodplain file name is: ", FPFiles[i]
         FP_raster = LSDMap_IO.ReadRasterArrayBlocks(FPFiles[i])
         #FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
         
         filename = os.path.basename(FPFiles[i])
         title = mplext.labels.make_line_label(filename)
-        print(title)
+        print title
         
         low_values_index = FP_raster < drape_min_threshold
         FP_raster[low_values_index] = np.nan
@@ -482,7 +482,7 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     
     FPFiles = sorted(glob(DataDir+DrapeRasterWild), key=str)
     n_files = len(FPFiles)
-    print("Number of files = ", n_files)
+    print "Number of files = ", n_files
     
     elev_raster_file = DataDir + ElevationRaster
     
@@ -501,10 +501,10 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(elev_raster_file,x_max,x_min,y_max,y_min,n_target_tics)  
 
-    print("xmax: " + str(x_max))
-    print("xmin: " + str(x_min))
-    print("ymax: " + str(y_max))
-    print("ymin: " + str(y_min))
+    print "xmax: " + str(x_max)
+    print "xmin: " + str(x_min)
+    print "ymax: " + str(y_max)
+    print "ymin: " + str(y_min)
     
     """
     Find the maximum water depth in all rasters.
@@ -513,28 +513,28 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     """
 
     try:
-        print("Calculating max drape raster value by scanning rasters...")
+        print "Calculating max drape raster value by scanning rasters..."
         max_water_depth = findmaxval_multirasters(FPFiles)
         drape_max = max_water_depth
         
     except:
-        print("Something went wrong trying to obtain the max value in \
-                your drape raster file list.")
+        print "Something went wrong trying to obtain the max value in \
+                your drape raster file list."
     finally:
-        print("The drape(s) max value is set to: ", drape_max) 
+        print "The drape(s) max value is set to: ", drape_max 
     
     
     #im = mpimg.AxesImage()   
     
     for i in range(n_files):
         
-        print("The floodplain file name is: ", FPFiles[i])
+        print "The floodplain file name is: ", FPFiles[i]
         FP_raster = LSDMap_IO.ReadRasterArrayBlocks(FPFiles[i])
         #FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
         
         filename = os.path.basename(FPFiles[i])
         title = mplext.labels.make_line_label(filename)
-        print(title)
+        print title
         
         low_values_index = FP_raster > drape_max_threshold
         FP_raster[low_values_index] = np.nan

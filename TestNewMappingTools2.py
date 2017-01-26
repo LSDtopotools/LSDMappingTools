@@ -37,7 +37,7 @@ def TestNewMappingTools2():
     #get the nodata values
     NData = LSDP.getNoDataValue(ThisFile)
     
-    print("NoData is: " + str(NData))
+    print "NoData is: " + str(NData)
     
     # get the data as an array
     array = LSDP.ReadRasterArrayBlocks(ThisFile)

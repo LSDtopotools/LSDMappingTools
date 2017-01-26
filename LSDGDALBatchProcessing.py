@@ -28,8 +28,8 @@ def GDALBatchConvert(DataDirectory,raster_format,target_format):
     elif target_format == "GTiff":
         target_extension = ".tiff"
     else:
-        print("You have not selcted a valid raster format!")
-        print("Options are ENVI, EHdr and GTiff")
+        print "You have not selcted a valid raster format!"
+        print "Options are ENVI, EHdr and GTiff"
         target_extension = "NULL"   
 
     # now make a directory   
@@ -38,11 +38,11 @@ def GDALBatchConvert(DataDirectory,raster_format,target_format):
         target_directory = DataDirectory+target_format
 
         if not os.access(target_directory,os.F_OK):
-            print("Making path: ")
+            print "Making path: "
             os.mkdir(target_directory)
-            print("I made a directory: " + target_directory)
+            print "I made a directory: " + target_directory
         else:
-            print("Path: " +target_directory+" already exists.")     
+            print "Path: " +target_directory+" already exists."     
 
     # Now check the source format   
     if raster_format == "ENVI":
@@ -52,16 +52,16 @@ def GDALBatchConvert(DataDirectory,raster_format,target_format):
     elif raster_format == "GTiff":
         raster_extension = ".tif"
     else:
-        print("You have not selcted a valid raster format!")
-        print("Options are ENVI, EHdr and GTiff")
+        print "You have not selcted a valid raster format!"
+        print "Options are ENVI, EHdr and GTiff"
         raster_extension = "NULL"
 
     # find all the dataset of the source format  
-    print("The data directory is: " + DataDirectory)
-    print("The raster extension is: " + raster_extension)
+    print "The data directory is: " + DataDirectory
+    print "The raster extension is: " + raster_extension
     if raster_extension != "NULL":
         for FileName in glob(DataDirectory+"*"+raster_extension):
-            print("found file: " + FileName)
+            print "found file: " + FileName
             subprocess.call(['gdalinfo',FileName])
         
 def GDALBatchMerge(DataDirectory,merge_subfolder_name,merge_filename,raster_format,target_format):
@@ -75,11 +75,11 @@ def GDALBatchMerge(DataDirectory,merge_subfolder_name,merge_filename,raster_form
 
     # make the directory
     if not os.access(mDataDriectory,os.F_OK):
-        print("Making path: ")
+        print "Making path: "
         os.mkdir(mDataDriectory)
-        print("I made a directory: " + mDataDriectory)
+        print "I made a directory: " + mDataDriectory
     else:
-        print("Path: " +mDataDriectory+" already exists.")             
+        print "Path: " +mDataDriectory+" already exists."             
 
     # Check the source format   
     if raster_format == "ENVI":
@@ -89,8 +89,8 @@ def GDALBatchMerge(DataDirectory,merge_subfolder_name,merge_filename,raster_form
     elif raster_format == "GTiff":
         raster_extension = ".tif"
     else:
-        print("You have not selcted a valid raster format!")
-        print("Options are ENVI, EHdr and GTiff")
+        print "You have not selcted a valid raster format!"
+        print "Options are ENVI, EHdr and GTiff"
         raster_extension = "NULL"
 
     # Check the target format. Default is geotiff  
@@ -101,8 +101,8 @@ def GDALBatchMerge(DataDirectory,merge_subfolder_name,merge_filename,raster_form
     elif target_format == "GTiff":
         target_extension = ".tif"
     else:
-        print("You have not selcted a valid raster format!")
-        print("Defaulting to GTiff")
+        print "You have not selcted a valid raster format!"
+        print "Defaulting to GTiff"
         target_format == "GTiff"        
         target_extension = ".tif"
     
@@ -110,8 +110,8 @@ def GDALBatchMerge(DataDirectory,merge_subfolder_name,merge_filename,raster_form
     target_FileName = mDataDriectory+merge_filename+target_extension
 
     # find all the dataset of the source format  
-    print("The data directory is: " + DataDirectory)
-    print("The raster extension is: " + raster_extension)
+    print "The data directory is: " + DataDirectory
+    print "The raster extension is: " + raster_extension
     if raster_extension != "NULL":
         
         # Set up the list for holding command prompt commands        
@@ -124,9 +124,9 @@ def GDALBatchMerge(DataDirectory,merge_subfolder_name,merge_filename,raster_form
                 
         
         for FileName in glob(DataDirectory+"*"+raster_extension):
-            print("found file: " + FileName)
+            print "found file: " + FileName
             command_prompt.append(FileName)            
             
-        print("The subprocess call is: ")
-        print(command_prompt)         
+        print "The subprocess call is: "
+        print command_prompt         
         subprocess.call(command_prompt)
