@@ -82,10 +82,13 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a plot of channels color coded by their sources
-    #FigName2 = DataDirectory+'TestChannelMap.png'    
-    #LSDP.BasicChannelPlotGridPlotCategories(DEMname,HSname,ChiName, 'gray','gray',
-    #                        '$Channel$',(0,0),
-    #                        0.4,FigName2,'png',elevation_threshold,'source_key')      
+    FigName2 = DataDirectory+'Meghalaya_ChannelMap.png'    
+    source_thinning_threshold = 10
+    LSDP.BasicChannelPlotGridPlotCategories(DEMname,HSname,ChiName, 'gray','gray',
+                            '$Channel$',(0,0),
+                            0.4,FigName2,'png',elevation_threshold,'source_key',
+                            source_thinning_threshold,
+                            size_format)      
     #======================================
     
     #======================================
@@ -93,22 +96,34 @@ def ChiMappingToolsTest():
     #FigName3 =  DataDirectory+'ChiProfiles.png'
     #this_basins_list = [3,0,2,1]
     #basin_rename_list = []
-    #basin_rename_list =[1,3,2,0,4,5,8,6,7,9,10]    
+    #basin_rename_list =[1,3,2,0,4,5,8,6,7,9,10]  
+    
+    #source_thinning_threshold = 7
+    #label_sources = False
+    #this_basins_list = [7,10]    
+    #basin_rename_order = [7,10,9,12,8,11,13,4,2,1,0,3,5,6]
+    #basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
+
+    
     #LSDP.ChiProfiles(ChiName, FigName3,'png',this_basins_list,
-    #                        basin_rename_list,True,elevation_threshold,threshold_length) 
+    #                        basin_rename_list,False,elevation_threshold,source_thinning_threshold,
+    #                        size_format) 
     #======================================
     
     #======================================
     # Uncomment this for a stack of chi plots
-    #FigName4 =  DataDirectory+'ChiStackProfiles_Coloured.png'  
-    #first_basin = 0
-    #last_basin = 10
-    #chi_offset = 10
-    #this_basins_list = [3,0,2,1]
-    #basin_rename_list =[1,3,2,0,4,5,8,6,7,9,10]
-    #LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,
-    #                        first_basin,last_basin,this_basins_list,
-    #                        basin_rename_list,chi_offset,True)  
+    FigName4 =  DataDirectory+'Meghalaya_SWbasins_chi.png'  
+    first_basin = 0
+    last_basin = 10
+    chi_offset = 15
+    this_basins_list = [7,10]    
+    basin_rename_order = [7,10,9,12,8,11,13,4,2,1,0,3,5,6]
+    basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
+    LSDP.StackedChiProfiles(ChiName, FigName4,'png',elevation_threshold,
+                            first_basin,last_basin,this_basins_list,
+                            basin_rename_list,chi_offset,False,
+                            source_thinning_threshold,
+                            size_format)  
     #======================================
     
     
@@ -153,30 +168,38 @@ def ChiMappingToolsTest():
     
     #======================================
     # Uncomment this for a stack of gradient profiles 
-    FigName5 =  DataDirectory+'Meghalaya_ChiGradientProfilesNorth.png'
-    FigName6 =  DataDirectory+'Meghalaya_FDGradientProfilesNorth.png'
+    #FigName5 =  DataDirectory+'Meghalaya_ChiGradientProfilesNorth.png'
+    #FigName6 =  DataDirectory+'Meghalaya_FDGradientProfilesNorth.png'
     
-    FigName55 =  DataDirectory+'Meghalaya_ChiGradientProfilesSouth.png'
-    FigName66 =  DataDirectory+'Meghalaya_FDGradientProfilesSouth.png'    
-    first_basin = 0
-    last_basin = 6
+    #FigName55 =  DataDirectory+'Meghalaya_ChiGradientProfilesSouth.png'
+    #FigName66 =  DataDirectory+'Meghalaya_FDGradientProfilesSouth.png'
+
+    #FigName555 =  DataDirectory+'Meghalaya_ChiGradientProfilesSouth_Funny.png'
     
-    source_thinning_threshold = 6
-    label_sources = True
-    this_basins_list = [3,0,1,2]
+    #first_basin = 0
+    #last_basin = 6
+    
+    #source_thinning_threshold = 4
+    #label_sources = False
+    #this_basins_list = [3,0,1,2]
     #basin_rename_list = [1,3,2,0,4,5,8,6,7,9,10]
     
-    basin_rename_order = [7,10,9,12,8,11,13,4,2,1,0,3,5,6]
-    basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
+    #basin_rename_order = [7,10,9,12,8,11,13,4,2,1,0,3,5,6]
+    #basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
     
-    LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',15,'log',label_sources,source_thinning_threshold,size_format)  
-    LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',100000,'log',label_sources,source_thinning_threshold,size_format)
+    #LSDP.StackedProfilesGradient(ChiName,FigName5,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',15,'log',label_sources,source_thinning_threshold,size_format)  
+    #LSDP.StackedProfilesGradient(ChiName,FigName6,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',100000,'log',label_sources,source_thinning_threshold,size_format)
 
-    this_basins_list = [10,9,12,8,11,13]
-    LSDP.StackedProfilesGradient(ChiName,FigName55,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',10,'log',label_sources,source_thinning_threshold,size_format)  
-    LSDP.StackedProfilesGradient(ChiName,FigName66,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',50000,'log',label_sources,source_thinning_threshold,size_format)  
+    #this_basins_list = [10,9,12,8,11,13]
+    #LSDP.StackedProfilesGradient(ChiName,FigName55,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',10,'log',label_sources,source_thinning_threshold,size_format)  
+    #LSDP.StackedProfilesGradient(ChiName,FigName66,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',50000,'log',label_sources,source_thinning_threshold,size_format)  
 
+    #this_basins_list = [7,10]
+    #LSDP.StackedProfilesGradient(ChiName,FigName555,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'chi',10,'log',label_sources,source_thinning_threshold,size_format)  
+    #LSDP.StackedProfilesGradient(ChiName,FigName66,'png',elevation_threshold,first_basin,last_basin,this_basins_list,basin_rename_list,plt.cm.afmhot,'flow_distance',50000,'log',label_sources,source_thinning_threshold,size_format)  
 
+    
+    
     #======================================
     
     #EPSG_string = LSDP.GetUTMEPSG(DEMname)

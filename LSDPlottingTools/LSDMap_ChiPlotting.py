@@ -445,6 +445,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0, data_name = 'source_key',
+                            source_thinning_threshold = 0,
                             size_format = "ESURF"):
     """This plots the channels over a draped plot, colour coded by source
 
@@ -461,6 +462,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
         elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
         data_name (str) = The name of the sources csv
+        source_thinning_threshold (float) = Minimum chi length of a source segment. No thinning if 0.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
         
     Returns:
@@ -482,7 +484,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
-   
+
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
     
@@ -549,6 +551,13 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
+
+    # Logic for thinning the sources    
+    if source_thinning_threshold > 0:
+        print("I am going to thin some sources out for you")
+        source_info = FindSourceInformation(thisPointData)
+        remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
+        thisPointData.ThinDataSelection("source_key",remaining_sources)
     
     # convert to easting and northing
     [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
@@ -688,7 +697,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     chi_axis_max = int(max_chi/5)*5+5
     
     # make a color map of fixed colors
-    NUM_COLORS = 15
+    NUM_COLORS = 2
 
     this_cmap = plt.cm.Set1
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)    
