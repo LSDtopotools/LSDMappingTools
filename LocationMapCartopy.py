@@ -14,7 +14,7 @@ Author: DAV
 
 """
 
-import LSDPlottingTools as LSDPT
+import LSDPlottingTools.locationmap as locmap
 
 extent = [-7.5, 2, 50, 59]
 # Placename1 : (LATITUDE, LONGITUDE), Placename2...
@@ -22,4 +22,4 @@ gazetter = { 'Boscastle' : (50.686, -4.692),
             'Helmsley'  : (54.246, -1.056)
            }
 
-LSDPT.location_map.location_map(extent, gazetter, offset = 0.1)
+locmap.location_map(extent, gazetter, offset = 0.1)
