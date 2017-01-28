@@ -19,7 +19,9 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
+
 from shapely.geometry.polygon import LinearRing
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 
 def location_map(extent, gazetter, offset=0.):
     """Plots a series of points marking towns/sample sites/locations etc 
@@ -45,7 +47,7 @@ def location_map(extent, gazetter, offset=0.):
     Author: DAV
         
     """
-    ax = plt.axes(projection=ccrs.Robinson())
+    ax = plt.axes(projection=ccrs.PlateCarree())
 
     # Put a background image on for nice sea rendering.
 
@@ -66,7 +68,18 @@ def location_map(extent, gazetter, offset=0.):
                                         facecolor=cfeature.COLORS['land'])
     
     ax.add_feature(states_provinces, edgecolor='gray')
-
+    #ax.xaxis.set_visible(True)
+    #ax.yaxis.set_visible(True)
+    
+    ax.set_yticks([50,54,58], crs=ccrs.PlateCarree())
+    ax.set_xticks([-6, -4, -2, 0], crs=ccrs.PlateCarree())
+    
+    lon_formatter = LongitudeFormatter(zero_direction_label=True)
+    lat_formatter = LatitudeFormatter()
+    
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    
     #ax.add_feature(land_50m, edgecolor='gray')
     
     for location in gazetter:
