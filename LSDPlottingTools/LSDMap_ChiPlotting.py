@@ -18,6 +18,99 @@ from . import LSDMap_GDALIO as LSDMap_IO
 from . import LSDMap_BasicPlotting as LSDMap_BP
 from . import LSDMap_PointData as LSDMap_PD
 
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def FindSourceInformation(thisPointData):    
+    """This function finds the source locations, with chi elevation, flow distance, etc.
+
+    Args:
+        thisPointData (LSDMap_PointData) A LSDMap_PointData object that is derived from the Chi_mapping_tool component of *LSDTopoTools*.
+
+    Returns:
+        A dict with key of the source node that returns a dict that has the FlowDistance, Chi, and Elevation of each source.
+        Used for plotting source numbers on profile plots. 
+        
+    Author: SMM 
+    """    
+    
+    # Get the chi, m_chi, basin number, and source ID code
+    chi = thisPointData.QueryData('chi')
+    chi = [float(x) for x in chi]
+    elevation = thisPointData.QueryData('elevation')
+    elevation = [float(x) for x in elevation]
+    fdist = thisPointData.QueryData('flow distance')
+    fdist = [float(x) for x in fdist]        
+    source = thisPointData.QueryData('source_key')
+    source = [int(x) for x in source]
+    latitude = thisPointData.GetLatitude()
+    longitude = thisPointData.GetLongitude()
+   
+  
+    
+    
+    Chi = np.asarray(chi)
+    Elevation = np.asarray(elevation)
+    Fdist = np.asarray(fdist)
+    Source = np.asarray(source)
+    Latitude = np.asarray(latitude)
+    Longitude = np.asarray(longitude)
+
+    n_sources = Source.max()+1
+    print("N sources is: "+str(n_sources))
+ 
+    # This loops through all the source indices, and then picks out the
+    # Elevation, chi coordinate and flow distance of each node
+    # Then it returns a dictionary containing the elements of the node
+    these_source_nodes = {}
+    for src_idx in range(0,n_sources):
+        m = np.ma.masked_where(Source!=src_idx, Source)
+        
+        # Mask the unwanted values
+        maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
+        maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+        maskFlowDistance = np.ma.masked_where(np.ma.getmask(m), Fdist)
+        maskLatitude = np.ma.masked_where(np.ma.getmask(m), Latitude)
+        maskLongitude= np.ma.masked_where(np.ma.getmask(m), Longitude)
+        
+        # get the locations of the source         
+        this_dict = {}
+        idx_of_max_FD = maskX.argmax()
+        this_dict["FlowDistance"]=maskFlowDistance[idx_of_max_FD]
+        this_dict["Chi"]=maskX[idx_of_max_FD]
+        this_dict["Elevation"]=maskElevation[idx_of_max_FD]
+        this_dict["Latitude"]=maskLatitude[idx_of_max_FD]
+        this_dict["Longitude"]=maskLongitude[idx_of_max_FD]
+        
+        # get the minimum of the source
+        idx_of_min_Chi = maskX.argmin()
+        chi_length = maskX[idx_of_max_FD]-maskX[idx_of_min_Chi]
+        this_dict["SourceLength"]=chi_length
+
+        these_source_nodes[src_idx] = this_dict
+        
+    return these_source_nodes
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
+def FindShortSourceChannels(these_source_nodes,threshold_length):         
+    """This function gets the list of sources that are shorter than a threshold value
+    
+    Args: 
+        these_source_nodes (dict): A dict from the FindSourceInformation module
+        threshold_length (float): The threshold of chi lenght of the source segment
+    
+    Return:
+        long_sources: A list of integers of source with the appropriate length
+    
+    Author: SMM
+    """
+    long_sources = []
+    for key in these_source_nodes:
+        if these_source_nodes[key]["SourceLength"] > threshold_length:
+            long_sources.append(key)
+    
+    return long_sources   
+
+
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## This function plots the chi slope on a shaded relief map
 ## It uses the Kirby and Whipple colour scheme
@@ -442,6 +535,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0, data_name = 'source_key',
+                            source_thinning_threshold = 0,
                             size_format = "ESURF"):
     """This plots the channels over a draped plot, colour coded by source
 
@@ -458,6 +552,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
         elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
         data_name (str) = The name of the sources csv
+        source_thinning_threshold (float) = Minimum chi length of a source segment. No thinning if 0.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
         
     Returns:
@@ -479,7 +574,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
-   
+
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
     
@@ -546,6 +641,13 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
+
+    # Logic for thinning the sources    
+    if source_thinning_threshold > 0:
+        print("I am going to thin some sources out for you")
+        source_info = FindSourceInformation(thisPointData)
+        remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
+        thisPointData.ThinDataSelection("source_key",remaining_sources)
     
     # convert to easting and northing
     [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
@@ -605,7 +707,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
         basin_rename_list (int list): A list for naming substitutions
         label_sources (bool): If tru, label the sources.
         elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
-        source_thinning_threshold (float) = Minimum chi lenght of a source segment
+        source_thinning_threshold (float) = Minimum chi length of a source segment. No thinning if 0
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
  
     Returns:
@@ -638,7 +740,6 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
 
-    
     # Logic for thinning the sources    
     if source_thinning_threshold > 0:
         print("I am going to thin some sources out for you")
@@ -651,7 +752,8 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     if label_sources:
         source_info = FindSourceInformation(thisPointData)
 
-    
+      
+
     # Get the chi, m_chi, basin number, and source ID code
     chi = thisPointData.QueryData('chi')
     chi = [float(x) for x in chi]
@@ -685,13 +787,13 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     chi_axis_max = int(max_chi/5)*5+5
     
     # make a color map of fixed colors
-    NUM_COLORS = 15
+    NUM_COLORS = 2
 
     this_cmap = plt.cm.Set1
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)    
     Basin_colors = [x % NUM_COLORS for x in Basin]
 
-    
+
     dot_pos = FigFileName.rindex('.')
     newFilename = FigFileName[:dot_pos]+FigFileName[dot_pos:]
     print("newFilename: "+newFilename)
@@ -779,6 +881,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                        first_basin = 0, last_basin = 0,
                        basin_order_list = [],basin_rename_list = [],
                        X_offset = 5,label_sources = False,
+                       source_thinning_threshold = 0,
                        size_format = "ESURF"):
     """This function plots the chi vs elevation: It stacks profiles (so the basins are spaced out) and colours them by the source number.
  
@@ -793,7 +896,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
         basin_rename_list (int list): A list for naming substitutions. Useful because LSDTopoTools might number basins in a way a human wouldn't, so a user can intervene in the names. 
         X_offset (float): The offest in chi between the basins along the x-axis. Used to space out the profiles so you can see each of them.        
         label_sources (bool): If true, label the sources.
-        source_thinning_threshold (float) = Minimum chi lenght of a source segment
+        source_thinning_threshold (float) = Minimum chi length of a source segment. No thinning if 0.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
  
     Returns:
@@ -814,9 +917,10 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     rcParams['font.size'] = label_size     
    
 
-    # make a figure 
+    # make a figure, 
     if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+        print("I am plotting for geomorphology")
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,4))
     elif size_format == "big":
         fig = plt.figure(1, facecolor='white',figsize=(16,9))
     else:
@@ -827,7 +931,16 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
 
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
-    
+    thisPointData.ThinData('chi',0)
+
+    # Thin the sources. 
+    if source_thinning_threshold > 0:
+        print("I am going to thin some sources out for you")
+        source_info = FindSourceInformation(thisPointData)
+        remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
+        print("The remaining number of sources are: "+str(len(remaining_sources)))
+        thisPointData.ThinDataSelection("source_key",remaining_sources)  
+   
     # Get the chi, m_chi, basin number, and source ID code
     chi = thisPointData.QueryData('chi')
     chi = [float(x) for x in chi]
@@ -864,12 +977,6 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     elevation_range = z_axis_max-z_axis_min
     z_axis_min = z_axis_min - 0.075*elevation_range 
 
-
-    # Logic for stacked labels
-    if label_sources:
-        source_info = FindSourceInformation(thisPointData)
-
-
     # Now calculate the spacing of the stacks
     this_X_offset = 0
     if basin_order_list:
@@ -903,11 +1010,19 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     #scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)      
     Source_colors = [x % NUM_COLORS for x in Source]
     plt.hold(True) 
-   
+
+    # Logic for stacked labels. You need to run this after source thinning to 
+    # get an updated source dict
+    if label_sources:
+        source_info = FindSourceInformation(thisPointData)
+        
     dot_pos = FigFileName.rindex('.')
     newFilename = FigFileName[:dot_pos]+'_Stack'+str(first_basin)+FigFileName[dot_pos:]
     
-    texts = []  
+    texts = []
+    # Format the bounding box of source labels
+    bbox_props = dict(boxstyle="round,pad=0.1", fc="w", ec="b", lw=0.5,alpha = 0.5)
+    
     for basin_number in basins_list:
         
         print(("This basin is: " +str(basin_number)))
@@ -971,7 +1086,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
                 #print("FlowDistance is is: "+str(source_info[this_source]["FlowDistance"]))
                 #print("Elevation is: "+str(source_info[this_source]["Elevation"]))
                 texts.append(ax.text(source_Chi+this_X_offset, source_Elevation, str(this_source), style='italic',
-                        verticalalignment='bottom', horizontalalignment='left',fontsize=8))
+                        verticalalignment='bottom', horizontalalignment='left',fontsize=8,bbox=bbox_props))
                 
         
         ax.scatter(maskX,maskElevation,s=2.0, c=maskSource,norm=cNorm,cmap=this_cmap,edgecolors='none')
@@ -1016,7 +1131,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        basin_rename_list = [],
                        this_cmap = plt.cm.cubehelix,data_name = 'chi', X_offset = 5,
                        plotting_data_format = 'log',
-                       label_sources = False,
+                       label_sources = False, source_thinning_threshold = 0,
                        size_format = "ESURF"):
     """This function plots the chi vs elevation or flow distance vs elevation.
     
@@ -1037,6 +1152,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         X_offset (float): The offest in chi between the basins along the x-axis. Used to space out the profiles so you can see each of them.        
         plotting_data_format: NOT USED previously if 'log' use logarithm scale, but we now automatically do this. Might change later. 
         label_sources (bool): If true, label the sources.
+        source_thinning_threshold (float) = Minimum chi length of a source segment. No thinning if 0.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
  
     Returns:
@@ -1047,7 +1163,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
 
     import math
     import matplotlib.patches as patches
-
+    from adjust_text import adjust_text
+    
     label_size = 10
 
     # Set up fonts for plots
@@ -1055,20 +1172,34 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size     
    
-    # make a figure 
+    # make a figure, 
     if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
     elif size_format == "big":
         fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
     else:
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
 
-    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
 
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
-    
+    thisPointData.ThinData('chi',0)
+
+    # Thin the sources. Do this after the colouring so that thinned source colours
+    # will be the same as unthinned source colours. 
+    if source_thinning_threshold > 0:
+        print("I am going to thin some sources out for you")
+        source_info = FindSourceInformation(thisPointData)
+        remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
+        print("The remaining number of sources are: "+str(len(remaining_sources)))
+        print("The remaining sources are: ")
+        print(remaining_sources)
+        thisPointData.ThinDataSelection("source_key",remaining_sources)  
     
     # Get the chi, m_chi, basin number, and source ID code
     if data_name  == 'chi':
@@ -1110,7 +1241,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     Elevation = np.asarray(elevation)
     M_chi = np.asarray(m_chi)
     Basin = np.asarray(basin)
-    #Source = np.asarray(source)  
+    Source = np.asarray(source)  
     
     max_basin = np.amax(Basin)
     max_X = np.amax(Xdata)
@@ -1155,11 +1286,21 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         X_axis_max = X_axis_max+added_X
         print(("The nex max is: "+str(X_axis_max)))
  
-    
+                
+    # Logic for stacked labels. You need to run this after source thinning to 
+    # get an updated source dict
+    if label_sources:
+        source_info = FindSourceInformation(thisPointData)
+
     # Now start looping through the basins   
     dot_pos = FigFileName.rindex('.')
     newFilename = FigFileName[:dot_pos]+'_GradientStack'+str(first_basin)+FigFileName[dot_pos:]
-  
+
+    
+    texts = []
+    # Format the bounding box of source labels
+    bbox_props = dict(boxstyle="round,pad=0.1", fc="w", ec="b", lw=0.5,alpha = 0.5)    
+    
     for basin_number in basins_list:
         
         print(("This basin is: " +str(basin_number)))
@@ -1168,7 +1309,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         maskX = np.ma.masked_where(np.ma.getmask(m), Xdata)
         maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
         maskMChi = np.ma.masked_where(np.ma.getmask(m), M_chi)
-        #maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
+        maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
         
         print("adding an offset of: "+str(this_X_offset))
 
@@ -1185,10 +1326,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         # Now add the offset to the data
         maskX = np.add(maskX,this_X_offset)
         this_X_offset = this_X_offset+X_offset
-        
-        
-        
-        print(("Min: "+str(this_min_x)+" Max: "+str(this_max_x)))
+                
+        print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
         ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))      
         
         # some logic for the basin rename
@@ -1209,25 +1348,63 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
             this_max = int(this_max/5)*5+5
             print(("The rounded maximum is: "+str(this_max)))
             X_axis_max = this_max
-        
+
+        # logic for source labeling
+        if label_sources:
+                      
+            # Convert the masked data to a list and then that list to a set and
+            # back to a list (phew!)            
+            list_source = maskSource.tolist()
+            set_source = set(list_source)
+            list_source = list(set_source)
+            
+            # Now we have to get rid of stupid non values
+            list_source = [x for x in list_source if x is not None]
+
+            #print("these sources are: ")
+            #print list_source 
+            
+            #print("the source info is: ")
+            #print source_info
+            
+            for this_source in list_source:
+                
+                if data_name == 'chi':
+                    source_X = source_info[this_source]["Chi"]
+                elif data_name == 'flow_distance':
+                    source_X = source_info[this_source]["FlowDistance"]
+                else:
+                    source_X = source_info[this_source]["Chi"]
+
+                source_Elevation = source_info[this_source]["Elevation"]
+                #print("Source is: "+str(this_source))
+                #print("Chi is: "+str(source_info[this_source]["Chi"]))
+                #print("FlowDistance is is: "+str(source_info[this_source]["FlowDistance"]))
+                #print("Elevation is: "+str(source_info[this_source]["Elevation"]))
+                texts.append(ax.text(source_X+this_X_offset, source_Elevation, str(this_source), style='italic',
+                        verticalalignment='bottom', horizontalalignment='left',fontsize=8,bbox=bbox_props))            
+                        
         sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskMChi,cmap=this_cmap,edgecolors='none')
+        
+        # increment the offset
+        this_X_offset = this_X_offset+X_offset
  
     # set the colour limits
     sc.set_clim(0, M_chi_axis_max)
     #bounds = (0, M_chi_axis_max)
 
-    # This is the axis for the colorbar
-    
+    # This is the axis for the colorbar    
     ax2 = fig.add_subplot(gs[10:15,15:70])
     cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)   
     cbar.set_label(colorbarlabel, fontsize=10)
-    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)        
+    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=l_pad)        
 
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
     ax.spines['bottom'].set_linewidth(1) 
 
+    
     
     ax.set_ylabel("Elevation (m)") 
  
@@ -1245,12 +1422,14 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         ax.set_xlabel("Flow distance (km)")        
     else:
         ax.set_xlabel("$\chi$ (m)")
-
-   
+  
     # This affects all axes because we set share_all = True.
     ax.set_ylim(z_axis_min,z_axis_max)    
     ax.set_xlim(0,X_axis_max)      
 
+    # adjust the text
+    adjust_text(texts)   
+    
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
     ax.tick_params(axis='both', width=1, pad = 2)
     for tick in ax.xaxis.get_major_ticks():
