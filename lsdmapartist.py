@@ -97,10 +97,30 @@ class DrapeRaster(BaseRaster):
     def _render_drape(self, fullpath_to_raster):
         pass
 
-class DrapeMap:
-    pass
+class DrapePlot(object):
+	"""
+	Class DrapeMap contains the methods for creating a drape map, i.e
+	a BackgroundRaster overlain with a DrapeRaster.
+	"""
+    def __init__(self, DrapeRasterName, BackgroundRasterName, Directory):
+		
+		self._backgroundRaster = BackgroundRaster(BackgroundRasterName, Directory)
+		self._drapeRaster = DrapeRaster(DrapeRasterName, Directory)
+		
+	def make_drape_plot():
+		"""Creates a matplotlib Axes object with the drape map.
+		
+		Returns:
+		    A matplotlib.Axes instance containing the drape plot.
+		"""
+		return drape_plot_axes
 
-class MultiDrapeMap:
+class MultiDrapePlot(object):
+	"""
+	Class MultiDrapeMap creates multiplot drape maps.
+	
+	Composed of multiple DrapePlot
+	"""
     pass
 
 
