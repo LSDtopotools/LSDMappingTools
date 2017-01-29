@@ -8,6 +8,7 @@ involving the creation of labels for plots.
     Author: DAV
 @stackoverflow: http://stackoverflow.com/questions/16992038/inline-labels-in-matplotlib
 """
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from math import atan2 as _atan2, degrees as _degrees
 import numpy as _np
@@ -138,5 +139,5 @@ def make_line_label(fname):
     part3 = _re.split("[_.]", fname)[2]
 
     part = part2 + '_' + part3
-    print part
+    print(part)
     return part

@@ -5,7 +5,7 @@ Created on Fri Oct 30 10:37:16 2015
 @author: smudd
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .LSDMap_BasicPlotting import *
 from .LSDMap_GDALIO import *

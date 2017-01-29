@@ -5,6 +5,7 @@
 ## SMM
 ## 26/07/2014
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import osgeo.gdal as gdal
 import osgeo.gdal_array as gdal_array
@@ -152,7 +153,7 @@ def GetUTMMaxMinFromRowsCol(FileName,x_max_col,x_min_col,y_max_row,y_min_row):
     # need to be careful with the ymax_UTM since the rows go from the top
     # but the header index is to bottom corner    
     
-    print "yll: "+str(YMin)+" and nrows: " +str(ysize) + " dx: "+str(CellSize)   
+    print("yll: "+str(YMin)+" and nrows: " +str(ysize) + " dx: "+str(CellSize))   
     
     ymax_from_bottom = ysize-y_min_row
     ymin_from_bottom = ysize-y_max_row
@@ -291,7 +292,7 @@ def GetUTMEPSG(FileName):
     prj=SourceDS.GetProjection()
     srs=osr.SpatialReference(wkt=prj)
     if srs.IsProjected:
-        print srs.GetAttrValue('projcs')
+        print(srs.GetAttrValue('projcs'))
         proj_str = srs.GetAttrValue('projcs')
         
         # extract the UTM information
@@ -312,7 +313,7 @@ def GetUTMEPSG(FileName):
     
 
     
-    print EPSG_string
+    print(EPSG_string)
     return EPSG_string
 
 
@@ -360,11 +361,11 @@ def CheckNoData(FileName):
         raise Exception("Unable to read the data file")
     NoDataValue = SourceDS.GetRasterBand(1).GetNoDataValue()
     
-    print "In the check nodata routine. Nodata is: "
-    print NoDataValue
+    print("In the check nodata routine. Nodata is: ")
+    print(NoDataValue)
 
     if NoDataValue == None:
-        print "This raster does not have no data. Updating the header file"
+        print("This raster does not have no data. Updating the header file")
         header_name = FileName[:-4]
         header_name = header_name+".hdr"
         
@@ -427,7 +428,7 @@ def ReadRasterArrayBlocks(raster_file,raster_band=1):
     xsize = band.XSize
     ysize = band.YSize
     
-    print "xsize: " +str(xsize)+" and y size: " + str(ysize)
+    print("xsize: " +str(xsize)+" and y size: " + str(ysize))
 
     max_value = band.GetMaximum()
     min_value = band.GetMinimum()
@@ -516,25 +517,25 @@ def RasterDifference(RasterFile1, RasterFile2, raster_band=1, OutFileName="Test.
     Raster1 = gdal.Open(RasterFile1)
     Raster2 = gdal.Open(RasterFile2)
     
-    print "RASTER 1: "
-    print Raster1.GetGeoTransform()
-    print Raster1.RasterCount
-    print Raster1.GetRasterBand(1).XSize
-    print Raster1.GetRasterBand(1).YSize
-    print Raster1.GetRasterBand(1).DataType
+    print("RASTER 1: ")
+    print(Raster1.GetGeoTransform())
+    print(Raster1.RasterCount)
+    print(Raster1.GetRasterBand(1).XSize)
+    print(Raster1.GetRasterBand(1).YSize)
+    print(Raster1.GetRasterBand(1).DataType)
     
-    print "RASTER 2: "
-    print Raster2.GetGeoTransform()
-    print Raster2.RasterCount
-    print Raster2.GetRasterBand(1).XSize
-    print Raster2.GetRasterBand(1).YSize
-    print Raster2.GetRasterBand(1).DataType
+    print("RASTER 2: ")
+    print(Raster2.GetGeoTransform())
+    print(Raster2.RasterCount)
+    print(Raster2.GetRasterBand(1).XSize)
+    print(Raster2.GetRasterBand(1).YSize)
+    print(Raster2.GetRasterBand(1).DataType)
     
     raster_array1 = np.array(Raster1.GetRasterBand(raster_band).ReadAsArray())
     raster_array2 = np.array(Raster2.GetRasterBand(raster_band).ReadAsArray())
     
     assert(raster_array1.shape == raster_array2.shape )
-    print "Shapes: ", raster_array1.shape, raster_array2.shape
+    print("Shapes: ", raster_array1.shape, raster_array2.shape)
     
     difference_raster_array = raster_array1 - raster_array2
     

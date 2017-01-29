@@ -4,7 +4,7 @@ Created on Thu Jul 09 11:16:42 2015
 
 @author: smudd
 """
-
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 
@@ -29,7 +29,7 @@ def ReformatSeperators(path):
         else:
             splitpath = path.split("/")
     else:
-        print "I did not find a valid seperator"
+        print("I did not find a valid seperator")
         splitpath = "NULL"
 
     # Now reconstitute the path using the operating system seperator

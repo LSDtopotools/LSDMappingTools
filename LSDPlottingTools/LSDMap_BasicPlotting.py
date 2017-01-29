@@ -5,6 +5,7 @@
 ## SMM
 ## 26/07/2014
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import osgeo.gdal as gdal
 import numpy as np
@@ -14,13 +15,13 @@ from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 from numpy import uint8
 from matplotlib import rcParams
-from adjust_text import adjust_text
-import LSDMap_GDALIO as LSDMap_IO
-import LSDMap_BasicManipulation as LSDMap_BM
-import LSDMap_OSystemTools as LSDOst
+from .adjust_text import adjust_text
+from . import LSDMap_GDALIO as LSDMap_IO
+from . import LSDMap_BasicManipulation as LSDMap_BM
+from . import LSDMap_OSystemTools as LSDOst
 from scipy import misc
-import LSDMap_PointData as LSDMap_PD
-import LSDMap_ChiPlotting as LSDMap_CP 
+from . import LSDMap_PointData as LSDMap_PD
+#from . import LSDMap_ChiPlotting as LSDMap_CP 
 import matplotlib.pyplot as plt
 
 #==============================================================================
@@ -302,11 +303,11 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     plt.xticks(xlocs, new_x_labels, rotation=60)  #[1:-1] skips ticks where we have no data
     plt.yticks(ylocs, new_y_labels) 
     
-    print "The x locs are: " 
-    print xlocs
+    print("The x locs are: ") 
+    print(xlocs)
     
-    print "The x labels are: "
-    print new_x_labels
+    print("The x labels are: ")
+    print(new_x_labels)
     
     # some formatting to make some of the ticks point outward    
     for line in ax1.get_xticklines():
@@ -322,12 +323,12 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
     ax1.set_ylabel("Northing (m)")
     
     # set the colour limits
-    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
     if (clim_val == (0,0)):
-        print "I don't think I should be here"
+        print("I don't think I should be here")
         im.set_clim(0, np.nanmax(raster))
     else:
-        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im.set_clim(clim_val[0],clim_val[1])
     
     
@@ -383,14 +384,14 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     ax1 =  fig.add_subplot(1,1,1)
     im = ax1.imshow(raster[::-1], thiscmap, extent = extent_raster)
     
-    print "The is the extent raster data element"
-    print extent_raster
+    print("The is the extent raster data element")
+    print(extent_raster)
 
-    print "now I am in the mapping routine"
-    print "x_min: " + str(x_min)
-    print "x_max: " + str(x_max)
-    print "y_min: " + str(y_min)
-    print "y_max: " + str(y_max)
+    print("now I am in the mapping routine")
+    print("x_min: " + str(x_min))
+    print("x_max: " + str(x_max))
+    print("y_min: " + str(y_min))
+    print("y_max: " + str(y_max))
 
     # now get the tick marks    
     n_target_tics = 5
@@ -399,11 +400,11 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     plt.xticks(xlocs, new_x_labels, rotation=60)  #[1:-1] skips ticks where we have no data
     plt.yticks(ylocs, new_y_labels) 
     
-    print "The x locs are: " 
-    print xlocs
+    print("The x locs are: ") 
+    print(xlocs)
     
-    print "The x labels are: "
-    print new_x_labels
+    print("The x labels are: ")
+    print(new_x_labels)
     
     # some formatting to make some of the ticks point outward    
     for line in ax1.get_xticklines():
@@ -424,12 +425,12 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     ax1.set_ylabel("Northing (m)")
     
     # set the colour limits
-    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
     if (clim_val == (0,0)):
-        print "I don't think I should be here"
+        print("I don't think I should be here")
         im.set_clim(0, np.nanmax(raster))
     else:
-        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im.set_clim(clim_val[0],clim_val[1])
     
     
@@ -500,7 +501,7 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
         #print "I don't think I should be here"
         im.set_clim(0, np.nanmax(raster))
     else:
-        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im.set_clim(clim_val[0],clim_val[1])
     
     # go through the ticks     
@@ -527,7 +528,7 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(10)        
 
-    print "The figure format is: " + FigFormat
+    print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
@@ -600,12 +601,12 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     cbar.set_label(colorbarlabel) 
 
     # set the colour limits
-    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
     if (clim_val == (0,0)):
-        print "Im setting colour limits based on minimum and maximum values"
+        print("Im setting colour limits based on minimum and maximum values")
         im1.set_clim(0, np.nanmax(raster))
     else:
-        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
    
     plt.hold(True)
@@ -640,7 +641,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(10)    
 
-    print "The figure format is: " + FigFormat
+    print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
@@ -700,7 +701,7 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
     elif isinstance(DrapeName, np.ndarray):
       raster_drape = DrapeName
     else:
-      print "DrapeName supplied is of type: ", type(DrapeName)
+      print("DrapeName supplied is of type: ", type(DrapeName))
       raise ValueError('DrapeName must either be a string to a filename, \
       or a numpy ndarray type. Please try again.')
         
@@ -746,12 +747,12 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
         cbar.set_label_text(colorbarlabel)
     
     # set the colour limits
-    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
     if (clim_val == (0,0)):
-        print "I don't think I should be here"
+        print("I don't think I should be here")
         im.set_clim(0, np.nanmax(hillshade))
     else:
-        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im.set_clim(clim_val[0],clim_val[1])
     
     # Now for the drape: it is in grayscape
@@ -842,12 +843,12 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
     im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     
     # set the colour limits
-    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
     if (clim_val == (0,0)):
-        print "Im setting colour limits based on minimum and maximum values"
+        print("Im setting colour limits based on minimum and maximum values")
         im1.set_clim(0, np.nanmax(raster))
     else:
-        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
    
     plt.hold(True)
@@ -894,7 +895,7 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
     cbar.set_label(colorbarlabel, fontsize=10)
     ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)        
     
-    print "The figure format is: " + FigFormat
+    print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
@@ -942,6 +943,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         SMM
         
     """    
+    from . import LSDMap_ChiPlotting as LSDMap_CP
     label_size = 10
 
     # Set up fonts for plots
@@ -982,12 +984,12 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     
     # set the colour limits
-    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
     if (clim_val == (0,0)):
-        print "Im setting colour limits based on minimum and maximum values"
+        print("Im setting colour limits based on minimum and maximum values")
         im1.set_clim(0, np.nanmax(raster))
     else:
-        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
    
     plt.hold(True)
@@ -1018,7 +1020,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     # now we need to label the basins
     # Now we get the chi points
     EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
-    print "EPSG string is: " + EPSG_string
+    print("EPSG string is: " + EPSG_string)
  
     # Now plot channel data
     if chan_net_csv != "None":
@@ -1155,7 +1157,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     ax.set_xticks(xlocs)
     ax.set_yticks(ylocs)   
     
-    print "The figure format is: " + FigFormat
+    print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
@@ -1191,7 +1193,7 @@ def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -99
     elif isinstance(raster_file, np.ndarray):
       array = raster_file
     else:
-        print "raster_file must be either a filepath (string) or a numpy array. Try again."
+        print("raster_file must be either a filepath (string) or a numpy array. Try again.")
     
     # DAV attempting mask nodata vals
     nodata_mask = array == NoDataValue
@@ -1238,17 +1240,17 @@ def SwathPlot(path, filename, axis):
     # get the data vectors
     means,medians,std_deviations,twentyfifth_percentile,seventyfifth_percentile = LSDMap_BM.SimpleSwath(path, filename, axis)
     
-    print "Means shape is: "
-    print means.shape    
+    print("Means shape is: ")
+    print(means.shape)    
     
     x_vec,y_vec = LSDMap_IO.GetLocationVectors(FileName)
     
     
-    print "X shape is: "
-    print x_vec.shape
+    print("X shape is: ")
+    print(x_vec.shape)
     
-    print "Y shape is: "
-    print y_vec.shape
+    print("Y shape is: ")
+    print(y_vec.shape)
     
     import matplotlib.pyplot as plt
     

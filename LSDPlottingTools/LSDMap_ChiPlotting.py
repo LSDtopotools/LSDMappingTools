@@ -5,17 +5,18 @@
 ## SMM
 ## 14/12/2016
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
-import cubehelix
+from . import cubehelix
 import matplotlib.pyplot as plt
 #from cycler import cycler
 from matplotlib import rcParams
-import LSDMap_GDALIO as LSDMap_IO
+from . import LSDMap_GDALIO as LSDMap_IO
 #import LSDMap_BasicManipulation as LSDMap_BM
 #import LSDMap_OSystemTools as LSDOst
-import LSDMap_BasicPlotting as LSDMap_BP
-import LSDMap_PointData as LSDMap_PD
+from . import LSDMap_BasicPlotting as LSDMap_BP
+from . import LSDMap_PointData as LSDMap_PD
 
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -190,12 +191,12 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
     im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     
     # set the colour limits
-    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
     if (clim_val == (0,0)):
-        print "Im setting colour limits based on minimum and maximum values"
+        print("Im setting colour limits based on minimum and maximum values")
         im1.set_clim(0, np.nanmax(raster))
     else:
-        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
    
     plt.hold(True)
@@ -225,7 +226,7 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
 
     # Now we get the chi points
     EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
-    print "EPSG string is: " + EPSG_string
+    print("EPSG string is: " + EPSG_string)
     
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
@@ -262,7 +263,7 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
     cbar.set_label(colorbarlabel, fontsize=10)
     ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=l_pad)    
 
-    print "The figure format is: " + FigFormat
+    print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
@@ -272,7 +273,96 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
         fig.clf()
 
 
-     
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def FindSourceInformation(thisPointData):    
+    """This function finds the source locations, with chi elevation, flow distance, etc.
+
+    Args:
+        thisPointData (LSDMap_PointData) A LSDMap_PointData object that is derived from the Chi_mapping_tool component of *LSDTopoTools*.
+
+    Returns:
+        A dict with key of the source node that returns a dict that has the FlowDistance, Chi, and Elevation of each source.
+        Used for plotting source numbers on profile plots. 
+        
+    Author: SMM 
+    """    
+    
+    # Get the chi, m_chi, basin number, and source ID code
+    chi = thisPointData.QueryData('chi')
+    chi = [float(x) for x in chi]
+    elevation = thisPointData.QueryData('elevation')
+    elevation = [float(x) for x in elevation]
+    fdist = thisPointData.QueryData('flow distance')
+    fdist = [float(x) for x in fdist]        
+    source = thisPointData.QueryData('source_key')
+    source = [int(x) for x in source]
+    latitude = thisPointData.GetLatitude()
+    longitude = thisPointData.GetLongitude()
+   
+  
+    
+    
+    Chi = np.asarray(chi)
+    Elevation = np.asarray(elevation)
+    Fdist = np.asarray(fdist)
+    Source = np.asarray(source)
+    Latitude = np.asarray(latitude)
+    Longitude = np.asarray(longitude)
+
+    n_sources = Source.max()+1
+    print(("N sources is: "+str(n_sources)))
+ 
+    # This loops through all the source indices, and then picks out the
+    # Elevation, chi coordinate and flow distance of each node
+    # Then it returns a dictionary containing the elements of the node
+    these_source_nodes = {}
+    for src_idx in range(0,n_sources-1):
+        m = np.ma.masked_where(Source!=src_idx, Source)
+        
+        # Mask the unwanted values
+        maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
+        maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+        maskFlowDistance = np.ma.masked_where(np.ma.getmask(m), Fdist)
+        maskLatitude = np.ma.masked_where(np.ma.getmask(m), Latitude)
+        maskLongitude= np.ma.masked_where(np.ma.getmask(m), Longitude)
+        
+        # get the locations of the source         
+        this_dict = {}
+        idx_of_max_FD = maskX.argmax()
+        this_dict["FlowDistance"]=maskFlowDistance[idx_of_max_FD]
+        this_dict["Chi"]=maskX[idx_of_max_FD]
+        this_dict["Elevation"]=maskElevation[idx_of_max_FD]
+        this_dict["Latitude"]=maskLatitude[idx_of_max_FD]
+        this_dict["Longitude"]=maskLongitude[idx_of_max_FD]
+        
+        # get the minimum of the source
+        idx_of_min_Chi = maskX.argmin()
+        chi_length = maskX[idx_of_max_FD]-maskX[idx_of_min_Chi]
+        this_dict["SourceLength"]=chi_length
+
+        these_source_nodes[src_idx] = this_dict
+        
+    return these_source_nodes
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
+def FindShortSourceChannels(these_source_nodes,threshold_length):         
+    """This function gets the list of sources that are shorter than a threshold value
+    
+    Args: 
+        these_source_nodes (dict): A dict from the FindSourceInformation module
+        threshold_length (float): The threshold of chi lenght of the source segment
+    
+    Return:
+        long_sources: A list of integers of source with the appropriate length
+    
+    Author: SMM
+    """
+    long_sources = []
+    for key in these_source_nodes:
+        if these_source_nodes[key]["SourceLength"] > threshold_length:
+            long_sources.append(key)
+    
+    return long_sources        
     
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -348,12 +438,12 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     
     # set the colour limits
-    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
     if (clim_val == (0,0)):
-        print "Im setting colour limits based on minimum and maximum values"
+        print("Im setting colour limits based on minimum and maximum values")
         im1.set_clim(0, np.nanmax(raster))
     else:
-        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
    
     plt.hold(True)
@@ -382,7 +472,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
 
     # Now we get the chi points
     EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
-    print "EPSG string is: " + EPSG_string
+    print("EPSG string is: " + EPSG_string)
     
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
@@ -426,7 +516,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     ax.set_xticks(xlocs)
     ax.set_yticks(ylocs)   
 
-    print "The figure format is: " + FigFormat
+    print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
@@ -511,12 +601,12 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")  
 
     # set the colour limits
-    print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
     if (clim_val == (0,0)):
-        print "Im setting colour limits based on minimum and maximum values"
+        print("Im setting colour limits based on minimum and maximum values")
         im1.set_clim(0, np.nanmax(raster))
     else:
-        print "Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
    
     plt.hold(True)
@@ -547,7 +637,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
 
     # Now we get the chi points
     EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
-    print "EPSG string is: " + EPSG_string
+    print("EPSG string is: " + EPSG_string)
     
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
@@ -589,7 +679,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     ax.set_yticks(ylocs)   
     ax.set_title('Channels colored by source number')
 
-    print "The figure format is: " + FigFormat
+    print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
@@ -627,7 +717,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     """
 
     from matplotlib import colors
-    from adjust_text import adjust_text
+    from .adjust_text import adjust_text
     
     label_size = 10
 
@@ -706,13 +796,13 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
 
     dot_pos = FigFileName.rindex('.')
     newFilename = FigFileName[:dot_pos]+FigFileName[dot_pos:]
-    print "newFilename: "+newFilename
+    print("newFilename: "+newFilename)
 
     texts = []
     bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec="k", lw=0.5,alpha = 0.25)
     for basin_number in basin_order_list:
         
-        print ("This basin is: " +str(basin_number))
+        print(("This basin is: " +str(basin_number)))
 
         m = np.ma.masked_where(Basin!=basin_number, Basin)
         maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
@@ -733,7 +823,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
             list_source = [x for x in list_source if x is not None]
 
             print("these sources are: ")
-            print list_source            
+            print(list_source)            
             
             for this_source in list_source:
                 source_Chi= source_info[this_source]["Chi"]
@@ -773,7 +863,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(2)       
 
-    print "The figure format is: " + FigFormat
+    print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
@@ -815,7 +905,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     Author: SMM
     """
 
-    from adjust_text import adjust_text
+    from .adjust_text import adjust_text
     from matplotlib import colors
     import matplotlib.patches as patches
 
@@ -907,9 +997,9 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
  
         n_stacks = last_basin-first_basin+1
         added_X = X_offset*n_stacks
-        print("The number of stacks is: "+str(n_stacks)+" the old max: "+str(X_axis_max))    
+        print(("The number of stacks is: "+str(n_stacks)+" the old max: "+str(X_axis_max)))    
         X_axis_max = X_axis_max+added_X
-        print("The nex max is: "+str(X_axis_max))
+        print(("The nex max is: "+str(X_axis_max)))
  
    
     # make a color map of fixed colors
@@ -935,14 +1025,14 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     
     for basin_number in basins_list:
         
-        print ("This basin is: " +str(basin_number))
+        print(("This basin is: " +str(basin_number)))
 
         m = np.ma.masked_where(Basin!=basin_number, Basin)
         maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
         maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
         maskSource = np.ma.masked_where(np.ma.getmask(m), Source_colors)
 
-        print("adding an offset of: "+str(this_X_offset))
+        print(("adding an offset of: "+str(this_X_offset)))
         
         maskX = np.add(maskX,this_X_offset)
         
@@ -950,14 +1040,14 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
         this_max_x =np.nanmax(maskX)
         width_box = this_max_x-this_min_x
         
-        print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
+        print(("Min: "+str(this_min_x)+" Max: "+str(this_max_x)))
         ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))      
         
         if basin_number == basins_list[-1]:
-            print("last basin, geting maximum value,basin is: "+str(basin_number))
+            print(("last basin, geting maximum value,basin is: "+str(basin_number)))
             this_max = np.amax(maskX)
             this_max = int(this_max/5)*5+5
-            print("The rounded maximum is: "+str(this_max))
+            print(("The rounded maximum is: "+str(this_max)))
             chi_axis_max = this_max
         
         #Source_colors = [x % NUM_COLORS for x in maskSource]
@@ -986,12 +1076,12 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
             list_source = [x for x in list_source if x is not None]
 
             print("these sources are: ")
-            print list_source            
+            print(list_source)            
             
             for this_source in list_source:
                 source_Chi= source_info[this_source]["Chi"]
                 source_Elevation = source_info[this_source]["Elevation"]
-                print("Source is: "+str(this_source))
+                print(("Source is: "+str(this_source)))
                 #print("Chi is: "+str(source_info[this_source]["Chi"]))
                 #print("FlowDistance is is: "+str(source_info[this_source]["FlowDistance"]))
                 #print("Elevation is: "+str(source_info[this_source]["Elevation"]))
@@ -1023,7 +1113,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(2)       
 
-    print "The figure format is: " + FigFormat
+    print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
@@ -1159,7 +1249,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     max_M_chi = np.amax(M_chi)
     min_Elevation = np.amin(Elevation)
     
-    print("Max M_chi is: "+str(max_M_chi))
+    print(("Max M_chi is: "+str(max_M_chi)))
     
     z_axis_min = int(min_Elevation/10)*10 
     z_axis_max = int(max_Elevation/10)*10+10
@@ -1192,9 +1282,9 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
  
         n_stacks = last_basin-first_basin+1
         added_X = X_offset*n_stacks
-        print("The number of stacks is: "+str(n_stacks)+" the old max: "+str(X_axis_max))    
+        print(("The number of stacks is: "+str(n_stacks)+" the old max: "+str(X_axis_max)))    
         X_axis_max = X_axis_max+added_X
-        print("The nex max is: "+str(X_axis_max))
+        print(("The nex max is: "+str(X_axis_max)))
  
                 
     # Logic for stacked labels. You need to run this after source thinning to 
@@ -1213,7 +1303,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     
     for basin_number in basins_list:
         
-        print ("This basin is: " +str(basin_number))
+        print(("This basin is: " +str(basin_number)))
 
         m = np.ma.masked_where(Basin!=basin_number, Basin)
         maskX = np.ma.masked_where(np.ma.getmask(m), Xdata)
@@ -1232,10 +1322,10 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         
         # Now add the offset to the minimum and maximum
         this_min_x = this_min_x+this_X_offset
-        this_max_x = this_max_x+this_X_offset
         
         # Now add the offset to the data
         maskX = np.add(maskX,this_X_offset)
+        this_X_offset = this_X_offset+X_offset
                 
         print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
         ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))      
@@ -1253,10 +1343,10 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         ax.text(this_min_x+0.1*width_box, z_axis_min+0.025*elevation_range, this_basin_text, style='italic',
                 verticalalignment='bottom', horizontalalignment='left',fontsize=8)
         if basin_number == basins_list[-1]:
-            print("last basin, geting maximum value,basin is: "+str(basin_number))
+            print(("last basin, geting maximum value,basin is: "+str(basin_number)))
             this_max = np.amax(maskX)
             this_max = int(this_max/5)*5+5
-            print("The rounded maximum is: "+str(this_max))
+            print(("The rounded maximum is: "+str(this_max)))
             X_axis_max = this_max
 
         # logic for source labeling
@@ -1345,7 +1435,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(2)       
 
-    print "The figure format is: " + FigFormat
+    print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    
         plt.show()
     elif FigFormat == 'return':
