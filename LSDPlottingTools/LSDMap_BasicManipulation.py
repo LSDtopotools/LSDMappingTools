@@ -16,7 +16,7 @@ from numpy import uint8
 from glob import glob
 from . import LSDMap_OSystemTools as LSDOst
 from . import LSDMap_GDALIO as LSDMap_IO
-from . import LSDMap_BasicPlotting as LSDMBP
+#from . import LSDMap_BasicPlotting as LSDMBP
 from . import LSDMap_PointData as LSDMPD
 from pyproj import Proj, transform
 
@@ -156,6 +156,8 @@ def GetHillshade(raster_filename,new_raster_filename, azimuth = 315, angle_altit
 
     Author: SMM
     """
+    # avoid circular import
+    from . import LSDMap_BasicPlotting as LSDMBP
     # get the hillshade
     hillshade_raster = LSDMBP.Hillshade(raster_filename, azimuth, angle_altitude)
 

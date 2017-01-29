@@ -21,7 +21,7 @@ from . import LSDMap_BasicManipulation as LSDMap_BM
 from . import LSDMap_OSystemTools as LSDOst
 from scipy import misc
 from . import LSDMap_PointData as LSDMap_PD
-from . import LSDMap_ChiPlotting as LSDMap_CP 
+#from . import LSDMap_ChiPlotting as LSDMap_CP 
 import matplotlib.pyplot as plt
 
 #==============================================================================
@@ -943,6 +943,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         SMM
         
     """    
+    from . import LSDMap_ChiPlotting as LSDMap_CP
     label_size = 10
 
     # Set up fonts for plots
