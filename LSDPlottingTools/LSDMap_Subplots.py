@@ -18,6 +18,7 @@ import matplotlib.cm as cmx
 from matplotlib import rcParams
 from . import LSDMap_GDALIO as LSDMap_IO
 from . import LSDMap_BasicPlotting as LSDMap_BP
+from . import labels as lsdlabels
 
 #==============================================================================
 # Convert cm to inch for figure sizing
@@ -360,7 +361,7 @@ def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
 	Exception: If the maximum value in the drape maps could not be found.
     
     """
-    import lsdmatplotlibextensions as mplext
+    
     
     f, ax_arr = pp.subplots(2, 2, figsize=(10, 5), sharex=True, sharey=True)
     ax_arr = ax_arr.ravel()
@@ -418,7 +419,7 @@ def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
         #FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
         
         filename = os.path.basename(FPFiles[i])
-        title = mplext.labels.make_line_label(filename)
+        title = lsdlabels.make_line_label(filename)
         print(title)
         
         low_values_index = FP_raster < drape_min_threshold
@@ -442,7 +443,7 @@ def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     cbar = f.colorbar(im, cax=cax) 
     cbar.set_label(cbar_label)
     #cbar.set_ticks(np.linspace(0, 8, 8))
-    #cbar = mplext.colours.colorbar_index(f, cax, 8, cmap, 
+    #cbar = LSDP.colours.colorbar_index(f, cax, 8, cmap, 
     #                                     drape_min_threshold, drape_max)
 
     #tick_locator = ticker.MaxNLocator(nbins=8)
@@ -476,7 +477,7 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     
     
     """
-    import lsdmatplotlibextensions as mplext
+    #import lsdmatplotlibextensions as mplext
     
     f, ax_arr = pp.subplots(2, 2, figsize=(10, 5), sharex=True, sharey=True)
     ax_arr = ax_arr.ravel()
@@ -534,7 +535,7 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
         #FP_raster = np.ma.masked_where(FP_raster <= 0, FP_raster)
         
         filename = os.path.basename(FPFiles[i])
-        title = mplext.labels.make_line_label(filename)
+        title = lsdlabels.make_line_label(filename)
         print(title)
         
         low_values_index = FP_raster > drape_max_threshold

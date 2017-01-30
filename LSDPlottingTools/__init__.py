@@ -15,3 +15,6 @@ from .LSDMap_ChiPlotting import *
 from .LSDMap_Subplots import *
 from .LSDMap_OSystemTools import *
 from .LSDMap_PlottingDriver import *
+
+from . import colours as lsdcolours
+from . import labels as lsdlabels
