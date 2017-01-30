@@ -455,24 +455,49 @@ def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
 
 
 def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, 
-                        drape_min_threshold=None, drape_max=None, cbar_label=None,
+                        drape_min_threshold=None, cbar_label=None,
                         drape_max_threshold=None, 
                         middle_mask_range=None):
-    """
-    Plots flood extents from water depth rasters
-    draped over the catchment elevation raster
-    in a series of subplots
+    """Plots multiple drape maps of erosion/deposition (a DEM of difference)
+       over a hillshade raster of the basin.
     
     Takes a wildcard for the drapes
-    Expexts a fixed elevation raster, but this could be
-    modified in future.
+    Expexts a single elevation raster for the background hillshade, 
+    but this could be modified in future.
     
-    Warning: consider, if plotting multiple datasets, how you
-    are going to deal with min a max values in the colur range.
-    imshow will automatically set vmin and vmax and stretch the colour bar 
-    over this - which can be visually misleading. Ideally, you
-    want to have the same colour map used for *all* subplots, and 
-    this is not default behaviour.
+    Parameters:
+	DataDir (str): Path to the directory containing the data files
+	ElevationRaster (str): Name of the elevation raster used to create the hillshade
+	DrapeRasterWild (str): Wildcard string used to find all the drape files in the
+				directory.
+	cmap: Can be the string name of a colourmap, or a Colourmap object
+	drape_min_threshold (float, optional): Minimum value for the drape raster, i.e. values
+		below this threshold will be masked and not plotted.
+	drape_max_threshold (float, optional): Maximum value for the drape raster, i.e. values
+		above this value will be masked and not plotted.
+	cbar_label (str, optional): Label for the colourbar on the figure. This
+		is the colourbar for the drape colourmap.   
+     middle_mask_range (tuple, optional): A tuple or list of two values, used 
+                       to mask an inner range of values in the drape raster.
+                       e.g. if you pass `(-0.1, 0.1)` then all the values 
+                       in the range -0.1 to 0.1 will be masked and not plotted
+                       on the final map. Use for masking very small values
+                       either side of zero.
+
+    Notes:
+        Consider, if plotting multiple datasets, how you
+        are going to deal with min a max values in the colur range.
+        imshow will automatically set vmin and vmax and stretch the colour bar 
+        over this - which can be visually misleading. Ideally, you
+        want to have the same colour map used for *all* subplots, and 
+        this is not default behaviour.
+    
+    Note: If `drape_max_threshold` is not set, the function searches for the maximum value
+	in the range of rasters found by expanding the `DrapeRasterWild` argument
+	and searching for the maximum value out of all rasters found.
+
+    Raises:
+	Exception: If the maximum value in the drape maps could not be found.
     
     Author: DAV & FJC
     """
@@ -518,20 +543,18 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     You need this to normalize the colourscale accross
     all plots when teh imshow is done later.
     """
+    if drape_max_threshold is None:
+        try:
+            print("Calculating max drape raster value by scanning rasters...")
+            max_water_depth = findmaxval_multirasters(FPFiles)
+            drape_max_threshold = max_water_depth
+            
+        except ValueError:
+            print("Something went wrong trying to obtain the max value in \
+                    your drape raster file list.")
+        finally:
+            print("The drape(s) max value is set to: ", drape_max_threshold) 
 
-    try:
-        print("Calculating max drape raster value by scanning rasters...")
-        max_water_depth = findmaxval_multirasters(FPFiles)
-        drape_max = max_water_depth
-        
-    except:
-        print("Something went wrong trying to obtain the max value in \
-                your drape raster file list.")
-    finally:
-        print("The drape(s) max value is set to: ", drape_max) 
-    
-    
-    #im = mpimg.AxesImage()   
     
     for i in range(n_files):
         
