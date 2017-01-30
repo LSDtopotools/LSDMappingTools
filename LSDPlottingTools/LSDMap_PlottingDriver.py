@@ -120,7 +120,10 @@ class LSDMap_PlottingDriver(object):
         default_parameters["base_cmap"] = 'gray'
         default_parameters["cbar_label"] = 'Elevation in metres'
         default_parameters["clim_val"] = (0,0)
+        
         default_parameters["FigFormat"] = "png"
+        default_parameters["DrapeName"] = "None"
+        default_parameters["drape_cmap"] = 'gray'
         default_parameters["drape_alpha"] = 0.6
         default_parameters["size_format"] = "esurf"
         default_parameters["source_chi_threshold"] = 10
@@ -184,4 +187,19 @@ class LSDMap_PlottingDriver(object):
                                        self.default_parameters["FigFileName"],
                                        self.default_parameters["FigFormat"])
                 
-                
+            
+        if self.plotting_switches["BasicDrapedPlotGridPlot"]:
+            # Check to see if there is a filename. If not set a default file name
+            if self.default_parameters["FigFileName"] == "None":
+                self.default_parameters["FigFileName"] = self.FilePath+os.sep+self.FilePrefix+"BDPDPG."+self.default_parameters["FigFormat"]     
+ 
+            LSDMap_BP.BasicDrapedPlotGridPlot(self.base_faster_fname, 
+                                       self.default_parameters["DrapeName"],
+                                       self.default_parameters["base_cmap"],
+                                       self.default_parameters["drape_cmap"],                                
+                                       self.default_parameters["cbar_label"],
+                                       self.default_parameters["clim_val"],
+                                       self.default_parameters["drape_alpha"],
+                                       self.default_parameters["FigFileName"],
+                                       self.default_parameters["FigFormat"])
+                                              

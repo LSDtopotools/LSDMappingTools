@@ -576,7 +576,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     
     Args:
         FileName (str): The name of the raster (with full path and extension).   
-        DrapeName (str): The name of the drape raster (with full path and extension).   
+        DrapeName (str): The name of the drape raster (with full path and extension). If the DrapeName is "None" it will calculate the hillshade.    
         thiscmap (colormap): The colourmap to be used.
         drape_cmap (colormap): The colourmap to be used for the drape.
         colorbarlabel (str): The label of the colourbar
@@ -603,7 +603,11 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
 
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
-    raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
+    
+    if DrapeName == "None":
+        raster_drape = Hillshade(raster)
+    else:
+        raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
     
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
@@ -1212,7 +1216,10 @@ def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -99
         
     Author:
         DAV and SWDG
-    """    
+    """ 
+    
+    #print("The raster file is: "+raster_file)
+    
     # You have passed a filepath to be read in as a raster
     if isinstance(raster_file, str):
       array = LSDMap_IO.ReadRasterArrayBlocks(raster_file,raster_band=1)  
