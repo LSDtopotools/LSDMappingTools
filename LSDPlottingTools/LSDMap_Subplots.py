@@ -311,13 +311,31 @@ def findmaxval_multirasters(FileList):
     for i in range (len(FileList)):
         
         raster_as_array = LSDMap_IO.ReadRasterArrayBlocks(FileList[i])
-        this_max_val = np.max(raster_as_array)
+        this_max_val = np.nanmax(raster_as_array)
         
         if this_max_val > overall_max_val:
             overall_max_val = this_max_val
             print(overall_max_val)
             
     return overall_max_val
+
+def findminval_multirasters(FileList):
+    """
+    Loops through a list or array of rasters (np arrays)
+    and finds the minimum single value in the set of arrays.
+    """
+    overall_min_val = 0
+    
+    for i in range (len(FileList)):
+        
+        raster_as_array = LSDMap_IO.ReadRasterArrayBlocks(FileList[i])
+        this_min_val = np.nanmin(raster_as_array)
+        
+        if this_min_val > overall_min_val:
+            overall_min_val = this_min_val
+            print(overall_min_val)
+            
+    return overall_min_val
     
 
 def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, 
@@ -554,6 +572,18 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
                     your drape raster file list.")
         finally:
             print("The drape(s) max value is set to: ", drape_max_threshold) 
+            
+    if drape_min_threshold is None:        
+        try:
+            print("Calculating min drape raster value by scanning rasters...")
+            min_water_depth = findminval_multirasters(FPFiles)
+            drape_min_threshold = min_water_depth
+            
+        except ValueError:
+            print("Something went wrong trying to obtain the min value in \
+                    your drape raster file list.")
+        finally:
+            print("The drape(s) min value is set to: ", drape_min_threshold) 
 
     
     for i in range(n_files):
