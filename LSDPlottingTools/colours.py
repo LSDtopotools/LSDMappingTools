@@ -152,30 +152,33 @@ class nonlinear_colourmap(LinearSegmentedColormap):
     from matplotlib.
     
     Author: DAV from http://protracted-matter.blogspot.ie/2012/08/nonlinear-colormap-in-matplotlib.html
+    
+    Todo: This still doesn't appear to work well with negative numbers supplied for levels?
     """
     
     name = 'nlcmap'
     
     def __init__(self, cmap, levels):
+        
+        levels.sort()
+        self.levels = levels
+        
         self.cmap = cmap
-        # @MRR: Need to add N for backend
         self.N = cmap.N
         self.monochrome = self.cmap.monochrome
-        self.levels = _np.asarray(levels, dtype='float64')
-        self._x = self.levels / self.levels.max()
-        self._y = _np.linspace(0.0, 1.0, len(self.levels))
-    
-    #@MRR Need to add **kw for 'bytes'
+        self.levels = _np.asarray(self.levels, dtype='float64')
+        self._x = self.levels
+        self.levmax = self.levels.max()
+        self.transformed_levels = _np.linspace(0.0, self.levmax, len(self.levels))
+
     def __call__(self, xi, alpha=1.0, **kw):
-        """docstring for fname"""
-        # @MRR: Appears broken? 
-        # It appears something's wrong with the
-        # dimensionality of a calculation intermediate
-        #yi = stineman_interp(xi, self._x, self._y)
-        yi = _np.interp(xi, self._x, self._y)
-        return self.cmap(yi, alpha)
+        yi = _np.interp(xi, self._x, self.transformed_levels)
+        return self.cmap(yi / self.levmax, alpha)
     
-    
+    def sort_levels(self, levels):
+        levels = levels[levels <= -4.5] # Should check levels are not gt max value in data.
+        return levels.sort()
+
     
     
     
