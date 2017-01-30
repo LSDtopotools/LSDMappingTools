@@ -157,29 +157,46 @@ class nonlinear_colourmap(LinearSegmentedColormap):
     """
     
     name = 'nlcmap'
-    
+        
     def __init__(self, cmap, levels):
-        
-        levels.sort()
-        self.levels = levels
-        
         self.cmap = cmap
         self.N = cmap.N
         self.monochrome = self.cmap.monochrome
-        self.levels = _np.asarray(self.levels, dtype='float64')
+        self.levels = _np.asarray(levels, dtype='float64')
         self._x = self.levels
         self.levmax = self.levels.max()
-        self.transformed_levels = _np.linspace(0.0, self.levmax, len(self.levels))
+        self.levmin = self.levels.min()
+        self.transformed_levels = _np.linspace(self.levmin, self.levmax,
+             len(self.levels))
 
     def __call__(self, xi, alpha=1.0, **kw):
         yi = _np.interp(xi, self._x, self.transformed_levels)
-        return self.cmap(yi / self.levmax, alpha)
+        return self.cmap(yi / (self.levmax-self.levmin) + 0.5, alpha)
+
+#    def __call__(self, xi, alpha=1.0, **kw):
+#        yi = _np.interp(xi, self._x, self.transformed_levels)
+#        return self.cmap(yi / self.levmax, alpha)
     
     def sort_levels(self, levels):
         #levels = levels[levels <= 4.5] # Should check levels are not gt max value in data.
         return levels.sort()
 
+
+class MidpointNormalize(_mcolors.Normalize):
+    """Custom normalise option to normalise data in non-linear ways.
     
+    Pass the object returned from this function to the norm= argument in 
+    plotting functions like imshow or pcolormesh.
+    """
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        _mcolors.Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        # I'm ignoring masked values and all kinds of edge cases to make a
+        # simple example...
+        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return _np.ma.masked_array(_np.interp(value, x, y))    
     
     
     
