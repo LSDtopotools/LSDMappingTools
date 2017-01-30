@@ -176,7 +176,7 @@ class nonlinear_colourmap(LinearSegmentedColormap):
         return self.cmap(yi / self.levmax, alpha)
     
     def sort_levels(self, levels):
-        levels = levels[levels <= -4.5] # Should check levels are not gt max value in data.
+        #levels = levels[levels <= 4.5] # Should check levels are not gt max value in data.
         return levels.sort()
 
     

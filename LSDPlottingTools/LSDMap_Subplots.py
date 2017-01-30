@@ -456,10 +456,9 @@ def MultiDrapeFloodMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
 
 def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap, 
                         drape_min_threshold=None, drape_max=None, cbar_label=None,
-                        drape_max_threshold=None):
+                        drape_max_threshold=None, 
+                        middle_mask_range=None):
     """
-    @author DV, after FJC's function above
-    
     Plots flood extents from water depth rasters
     draped over the catchment elevation raster
     in a series of subplots
@@ -468,14 +467,14 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
     Expexts a fixed elevation raster, but this could be
     modified in future.
     
-    Thought: consider, if plotting multiple datasets, how you
+    Warning: consider, if plotting multiple datasets, how you
     are going to deal with min a max values in the colur range.
     imshow will automatically set vmin and vmax and stretch the colour bar 
     over this - which can be visually misleading. Ideally, you
     want to have the same colour map used for *all* subplots, and 
     this is not default behaviour.
     
-    
+    Author: DAV & FJC
     """
     #import lsdmatplotlibextensions as mplext
     
@@ -501,7 +500,13 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
 
     # now get the tick marks    
     n_target_tics = 5
-    xlocs,ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(elev_raster_file,x_max,x_min,y_max,y_min,n_target_tics)  
+    xlocs, ylocs, new_x_labels, new_y_labels = LSDMap_BP.GetTicksForUTM(
+                                                            elev_raster_file,
+                                                            x_max,
+                                                            x_min,
+                                                            y_max,
+                                                            y_min,
+                                                            n_target_tics)  
 
     print("xmax: " + str(x_max))
     print("xmin: " + str(x_min))
@@ -538,8 +543,21 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
         title = lsdlabels.make_line_label(filename)
         print(title)
         
-        low_values_index = FP_raster > drape_max_threshold
-        FP_raster[low_values_index] = np.nan
+        # Mask the extreme high values
+        hi_values_index = FP_raster > drape_max_threshold
+        FP_raster[hi_values_index] = np.nan
+                
+        # Mask the extreme low values
+        lo_values_index = FP_raster < drape_min_threshold
+        FP_raster[lo_values_index] = np.nan
+                 
+        # Mask the middle values that are really close to zero (i.e. if you
+        # have negative and positive values in the raster, such as in a DEM
+        # of difference with both erosion and deposition.)
+        if middle_mask_range is not None:
+            masked_mid_values_index = (np.logical_and(FP_raster > middle_mask_range[0], 
+                                                      FP_raster < middle_mask_range[1]))
+            FP_raster[masked_mid_values_index] = np.nan
         
         im = ax_arr[i].imshow(hillshade, "gray", extent=extent_raster, interpolation="nearest")
         """
