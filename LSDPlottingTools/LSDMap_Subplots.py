@@ -549,7 +549,7 @@ def MultiDrapeErodeDiffMaps(DataDir, ElevationRaster, DrapeRasterWild, cmap,
         im = ax_arr[i].imshow(FP_raster, cmap, extent=extent_raster, 
                                 alpha=1.0, interpolation="nearest", 
                                 vmin=drape_min_threshold, 
-                                vmax=drape_max)
+                                vmax=drape_max_threshold)
         ax_arr[i].set_title(title)
         pp.setp( ax_arr[i].xaxis.get_majorticklabels(), rotation=70 )
  
