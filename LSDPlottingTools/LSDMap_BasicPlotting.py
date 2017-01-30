@@ -146,7 +146,7 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(FileName)
     NDV, xsize, ysize, GeoT, Projection, DataType = LSDMap_IO.GetGeoInfo(FileName) 
     
-    print("Getting ticks. YMin: "+str(YMin)+" and YMax: "+str(YMax))
+    #print("Getting ticks. YMin: "+str(YMin)+" and YMax: "+str(YMax))
    
     xmax_UTM = XMax
     xmin_UTM = XMin
@@ -269,16 +269,6 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
             y_labels.append(new_y_labels[index]) 
     
 
-
-        
-    print("Y locs are: ")
-    print(new_ylocs)
-    print("UTM locs are: ")
-    print(new_yUTMlocs)
-    print("And labels are: ")
-    print(y_labels)
-
-   
     #return xlocs,ylocs,new_x_labels,new_y_labels
     return new_xlocs,new_ylocs,x_labels,y_labels
 #==============================================================================
@@ -422,14 +412,14 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     ax1 =  fig.add_subplot(1,1,1)
     im = ax1.imshow(raster[::-1], thiscmap, extent = extent_raster)
     
-    print("The is the extent raster data element")
-    print(extent_raster)
+    #print("The is the extent raster data element")
+    #print(extent_raster)
 
-    print("now I am in the mapping routine")
-    print("x_min: " + str(x_min))
-    print("x_max: " + str(x_max))
-    print("y_min: " + str(y_min))
-    print("y_max: " + str(y_max))
+    #print("now I am in the mapping routine")
+    #print("x_min: " + str(x_min))
+    #print("x_max: " + str(x_max))
+    #print("y_min: " + str(y_min))
+    #print("y_max: " + str(y_max))
 
     # now get the tick marks    
     n_target_tics = 5
@@ -438,11 +428,11 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     plt.xticks(xlocs, new_x_labels, rotation=60)  #[1:-1] skips ticks where we have no data
     plt.yticks(ylocs, new_y_labels) 
     
-    print("The x locs are: ") 
-    print(xlocs)
+    #print("The x locs are: ") 
+    #print(xlocs)
     
-    print("The x labels are: ")
-    print(new_x_labels)
+    #print("The x labels are: ")
+    #print(new_x_labels)
     
     # some formatting to make some of the ticks point outward    
     for line in ax1.get_xticklines():

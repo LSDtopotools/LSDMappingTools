@@ -48,8 +48,12 @@ class LSDMap_PlottingDriver(object):
 
                 # get the parameters
                 split_line = this_line.split(':')
+                
+                # get rid of the spaces
+                remove_spaces = LSDOst.RemoveWhitespace(split_line[1])
             
-                param_dict[split_line[0]]=split_line[1] 
+                # add this to the dict
+                param_dict[split_line[0]]=remove_spaces 
 
             self.parameter_dict = param_dict
         else:
@@ -67,10 +71,10 @@ class LSDMap_PlottingDriver(object):
             print("Parameter file does does not contain the keyword 'file_prefix': Check your parameter file. I must exit now.")
             sys.exit()            
         
-        self.base_faster_fname = file_path+os.sep+self.FilePrefix+".bil"
-        self.hs_fname = file_path+os.sep+self.FilePrefix+"_hs.bil"
-        self.chi_csv_fname = file_path+os.sep+self.FilePrefix+"_MChi_segmented.csv"
-        self.basin_csv_fname = file_path+os.sep+self.FilePrefix+"_AllBasinsInfo.csv"
+        self.base_faster_fname = self.FilePath+os.sep+self.FilePrefix+".bil"
+        self.hs_fname = self.FilePath+os.sep+self.FilePrefix+"_hs.bil"
+        self.chi_csv_fname = self.FilePath+os.sep+self.FilePrefix+"_MChi_segmented.csv"
+        self.basin_csv_fname = self.FilePath+os.sep+self.FilePrefix+"_AllBasinsInfo.csv"
         
         
         # Now load and parse parameters
@@ -123,6 +127,7 @@ class LSDMap_PlottingDriver(object):
         default_parameters["grouped_basin_list"] = []
         default_parameters["spread"] = 10
         default_parameters["label_sources"] = False
+        default_parameters["FigFileName"] = "None"
         
         
         self.default_parameters = default_parameters
@@ -139,8 +144,14 @@ class LSDMap_PlottingDriver(object):
         # First we find the switches        
         for key in self.plotting_switches:
             if key in self.parameter_dict:
-                print("I found the switch: "+str(key)+ " in the parameter file.")
-                self.plotting_switches[key] = self.parameter_dict[key] 
+                print("I found the switch: "+str(key)+ " in the parameter file, the value is:"+self.parameter_dict[key])
+                
+                
+                
+                # check to see if the string is true
+                if self.parameter_dict[key] in ["True","true","t","T"]: 
+                    self.plotting_switches[key] = True
+                
                 
         # now the parameters
         for key in self.default_parameters:
@@ -158,6 +169,19 @@ class LSDMap_PlottingDriver(object):
                                        self.default_parameters["base_cmap"],
                                        self.default_parameters["cbar_label"],
                                        self.default_parameters["clim_val"])
-
+            
+        if self.plotting_switches["BasicDensityPlotGridPlot"]: 
+            
+            # Check to see if there is a filename. If not set a default file name
+            if self.default_parameters["FigFileName"] == "None":
+                self.default_parameters["FigFileName"] = self.FilePath+os.sep+self.FilePrefix+"BDPG."+self.default_parameters["FigFormat"]     
+            
+            print("Hey there partner, I am making a grid plot.")
+            LSDMap_BP.BasicDensityPlotGridPlot(self.base_faster_fname, 
+                                       self.default_parameters["base_cmap"],
+                                       self.default_parameters["cbar_label"],
+                                       self.default_parameters["clim_val"],
+                                       self.default_parameters["FigFileName"],
+                                       self.default_parameters["FigFormat"])
                 
                 
