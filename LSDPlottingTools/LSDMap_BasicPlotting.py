@@ -194,11 +194,12 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
         front_y = str_ymin[:(n_digy-nd+1)]
     else:
         front_y = str_ymin
-     
+    
+            
     round_xmin = float(front_x)*pow(10,nd-1)
     round_ymin = float(front_y)*pow(10,nd-1)
     
-    
+    #print("UTM y in: "+str(ymin_UTM)+" and rounded min: "+str(round_ymin))
     
    
     # now we need to figure out where the xllocs and ylocs are
@@ -210,23 +211,21 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     new_x_labels = []
     new_y_labels = []
     
-    round_ymax = round_ymin+dy_spacing_rounded*(2*n_target_tics-1)
-
-    
-    print("Rounded ymin: "+str(ymin_UTM)+ " and rounded YMax: "+str(round_ymax))
-    
     for i in range(0,2*n_target_tics):
+        
+        # Note we use dy spacing here in both x and y directions since we want
+        # Ticks spaced the same in each direction
         xUTMlocs[i] = round_xmin+(i)*dy_spacing_rounded
         yUTMlocs[i] = round_ymin+(i)*dy_spacing_rounded
         xlocs[i] = xUTMlocs[i]
         
         # need to account for the rows starting at the upper boundary
-        ylocs[i] = round_ymax-(yUTMlocs[i]-round_ymin)
+        ylocs[i] = YMax-(yUTMlocs[i]-YMin)
       
         new_x_labels.append( str(xUTMlocs[i]).split(".")[0] )
         new_y_labels.append( str(yUTMlocs[i]).split(".")[0] )
 
-
+        
     new_xlocs = []
     new_xUTMlocs = []
     x_labels = []
@@ -243,14 +242,39 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     y_labels = []
 
     # Now loop through these to get rid of those not in range
-    for index,yloc in enumerate(ylocs):
-        if (yloc < YMax and yloc > YMin):
+    #you have to reverse the order of the lists. 
+    
+    #print("before reverse: ")
+    #print(ylocs)
+    ylocs = ylocs[::-1]
+    #print("After")
+    #print(ylocs)
+    yUTMlocs = yUTMlocs[::-1]
+    new_y_labels = new_y_labels[::-1]
+    
+    #print("UTM y: ")
+    #print(yUTMlocs) 
+    #print("and y locs:")
+    #print(ylocs)
+    #print("And labels:")
+    #print(new_y_labels)
+    
+    
+    for index,yloc in enumerate(ylocs):     
+        UTMloc = yUTMlocs[index]
+        if (UTMloc < YMax and UTMloc > YMin):
+            #print("UTMloc: "+str(UTMloc)+" yloc: "+str(yloc)+" label: "+new_y_labels[index])
             new_ylocs.append(yloc)
             new_yUTMlocs.append(yUTMlocs[index])
             y_labels.append(new_y_labels[index]) 
-            
+    
+
+
+        
     print("Y locs are: ")
     print(new_ylocs)
+    print("UTM locs are: ")
+    print(new_yUTMlocs)
     print("And labels are: ")
     print(y_labels)
 
