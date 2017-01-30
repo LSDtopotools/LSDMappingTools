@@ -5,8 +5,8 @@ Created on Sun Jan 29 10:20:18 2017
 @author: smudd
 """
 
-
-import LSDMap_OSystemTools as LSDOst
+from . import LSDMap_BasicPlotting as LSDMap_BP
+from . import LSDMap_OSystemTools as LSDOst
 import os
 import sys
 
@@ -67,6 +67,97 @@ class LSDMap_PlottingDriver(object):
             print("Parameter file does does not contain the keyword 'file_prefix': Check your parameter file. I must exit now.")
             sys.exit()            
         
+        self.base_faster_fname = file_path+os.sep+self.FilePrefix+".bil"
         self.hs_fname = file_path+os.sep+self.FilePrefix+"_hs.bil"
         self.chi_csv_fname = file_path+os.sep+self.FilePrefix+"_MChi_segmented.csv"
-        self.basin_csv_fname = file_path+os.sep+self.FilePrefix+"_AllBasinsInfo.csv"        
+        self.basin_csv_fname = file_path+os.sep+self.FilePrefix+"_AllBasinsInfo.csv"
+        
+        
+        # Now load and parse parameters
+        self.create_plotting_switches()
+        self.create_default_parameters()
+        self.parse_parameter_dict()
+
+        
+    def create_plotting_switches(self):
+        """This creates a dict containing plotting switches. It is later read to decide which plots to make
+        
+        Author: SMM
+        """
+        plotting_switches = {}
+        
+        # Basic plots
+        plotting_switches["BasicDensityPlot"] = False
+        plotting_switches["BasicDensityPlotGridPlot"] = False
+        plotting_switches["BasicDrapedPlotGridPlot"] = False
+        plotting_switches["DrapedOverHillshade"] = False
+        plotting_switches["DrapedOverFancyHillshade"] = False
+        plotting_switches["BasinsOverFancyHillshade"] = False
+        
+        # Chi plots
+        plotting_switches["BasicChiPlotGridPlot"] = False
+        plotting_switches["BasicChannelPlotGridPlotCategories"] = False
+        plotting_switches["ChiProfiles"] = False
+        plotting_switches["StackedChiProfiles"] = False
+        plotting_switches["StackedProfilesGradient"] = False 
+        
+        self.plotting_switches = plotting_switches
+
+
+    def create_default_parameters(self):
+        """This creates a dict containing plotting parameters. 
+        It contains all the default parameters and is used to parse the parameter dict that is read from file. 
+        
+        Author: SMM
+        """
+        default_parameters = {}
+        
+        # Add parameters for plotting here. 
+        default_parameters["base_cmap"] = 'gray'
+        default_parameters["cbar_label"] = 'Elevation in metres'
+        default_parameters["clim_val"] = (0,0)
+        default_parameters["FigFormat"] = "png"
+        default_parameters["drape_alpha"] = 0.6
+        default_parameters["size_format"] = "esurf"
+        default_parameters["source_chi_threshold"] = 10
+        default_parameters["grouped_basin_list"] = []
+        default_parameters["spread"] = 10
+        default_parameters["label_sources"] = False
+        
+        
+        self.default_parameters = default_parameters
+        
+        
+    def parse_parameter_dict(self):
+        """This parses the parameter dict. 
+        
+        Its purpose is to read both settings and switches for what sort of plots to be made.
+        
+        Author: SMM
+        """
+        
+        # First we find the switches        
+        for key in self.plotting_switches:
+            if key in self.parameter_dict:
+                print("I found the switch: "+str(key)+ " in the parameter file.")
+                self.plotting_switches[key] = self.parameter_dict[key] 
+                
+        # now the parameters
+        for key in self.default_parameters:
+            if key in self.parameter_dict:
+                print("I found the parameter: "+str(key)+ " in the parameter file.")
+                self.default_parameters[key] = self.parameter_dict[key] 
+                
+    def plot_data(self):
+        """This is the bit that actually plots the data.
+        
+        """
+        
+        if self.plotting_switches["BasicDensityPlot"]:
+            LSDMap_BP.BasicDensityPlot(self.base_faster_fname, 
+                                       self.default_parameters["base_cmap"],
+                                       self.default_parameters["cbar_label"],
+                                       self.default_parameters["clim_val"])
+
+                
+                

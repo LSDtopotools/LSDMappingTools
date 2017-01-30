@@ -41,6 +41,12 @@ def main(argv):
     print(PD.FilePrefix)
     print(PD.FilePath)
     
+    print("The plotting switches are: ")
+    print(PD.plotting_switches)
+    
+    # Now make some plots!!
+    PD.plot_data()
+    
 #=============================================================================
     
     
@@ -52,7 +58,8 @@ def print_welcome():
     print("\n\n=======================================================================")
     print("Hello there, I am the going to help you plot LSDTopoTools data!")
     print("You will need to tell me where the parameter file is.")
-    print("Use the -wd flag to define the working directory. If you dont do this I will assume the data is in the same directory as this script.")
+    print("Use the -wd flag to define the working directory.")
+    print("If you dont do this I will assume the data is in the same directory as this script.")
     print("=======================================================================\n\n ")
 
     from Tkinter import Tk

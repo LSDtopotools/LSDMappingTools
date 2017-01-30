@@ -144,7 +144,9 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     """   
     
     CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(FileName)
-    NDV, xsize, ysize, GeoT, Projection, DataType = LSDMap_IO.GetGeoInfo(FileName)    
+    NDV, xsize, ysize, GeoT, Projection, DataType = LSDMap_IO.GetGeoInfo(FileName) 
+    
+    print("Getting ticks. YMin: "+str(YMin)+" and YMax: "+str(YMax))
    
     xmax_UTM = XMax
     xmin_UTM = XMin
@@ -176,7 +178,9 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     str_ymin = str_ymin.split('.')[0]
     xmin_UTM = float(str_xmin)
     ymin_UTM = float(str_ymin)
-   
+    
+    
+    
     n_digx = str_xmin.__len__() 
     n_digy = str_ymin.__len__() 
     
@@ -193,6 +197,9 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
      
     round_xmin = float(front_x)*pow(10,nd-1)
     round_ymin = float(front_y)*pow(10,nd-1)
+    
+    
+    
    
     # now we need to figure out where the xllocs and ylocs are
     xUTMlocs = np.zeros(2*n_target_tics)
@@ -205,6 +212,8 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     
     round_ymax = round_ymin+dy_spacing_rounded*(2*n_target_tics-1)
 
+    
+    print("Rounded ymin: "+str(ymin_UTM)+ " and rounded YMax: "+str(round_ymax))
     
     for i in range(0,2*n_target_tics):
         xUTMlocs[i] = round_xmin+(i)*dy_spacing_rounded
@@ -238,7 +247,12 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
         if (yloc < YMax and yloc > YMin):
             new_ylocs.append(yloc)
             new_yUTMlocs.append(yUTMlocs[index])
-            y_labels.append(new_y_labels[index])    
+            y_labels.append(new_y_labels[index]) 
+            
+    print("Y locs are: ")
+    print(new_ylocs)
+    print("And labels are: ")
+    print(y_labels)
 
    
     #return xlocs,ylocs,new_x_labels,new_y_labels
