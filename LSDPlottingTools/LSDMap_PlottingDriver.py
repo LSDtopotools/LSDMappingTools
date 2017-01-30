@@ -9,7 +9,7 @@ from . import LSDMap_BasicPlotting as LSDMap_BP
 from . import LSDMap_OSystemTools as LSDOst
 import os
 import sys
-
+import ast
 
 class LSDMap_PlottingDriver(object):
     
@@ -114,27 +114,34 @@ class LSDMap_PlottingDriver(object):
         
         Author: SMM
         """
-        default_parameters = {}
+        str_default_parameters = {}
+        num_default_parameters = {}
+        bool_default_parameters = {}
+        
         
         # Add parameters for plotting here. 
-        default_parameters["base_cmap"] = 'gray'
-        default_parameters["cbar_label"] = 'Elevation in metres'
-        default_parameters["clim_val"] = (0,0)
+        str_default_parameters["base_cmap"] = 'gray'
+        str_default_parameters["cbar_label"] = 'Elevation in metres'
+        str_default_parameters["FigFormat"] = "png"
+        str_default_parameters["DrapeName"] = "None"
+        str_default_parameters["drape_cmap"] = 'gray'        
+        str_default_parameters["size_format"] = "esurf"        
+        str_default_parameters["FigFileName"] = "None"        
+ 
+
+        num_default_parameters["clim_val"] = (0,0)
+        num_default_parameters["drape_alpha"] = 0.6
+        num_default_parameters["source_chi_threshold"] = 10
+        num_default_parameters["grouped_basin_list"] = []
+        num_default_parameters["spread"] = 10
         
-        default_parameters["FigFormat"] = "png"
-        default_parameters["DrapeName"] = "None"
-        default_parameters["drape_cmap"] = 'gray'
-        default_parameters["drape_alpha"] = 0.6
-        default_parameters["size_format"] = "esurf"
-        default_parameters["source_chi_threshold"] = 10
-        default_parameters["grouped_basin_list"] = []
-        default_parameters["spread"] = 10
-        default_parameters["label_sources"] = False
-        default_parameters["FigFileName"] = "None"
+        bool_default_parameters["label_sources"] = False
+
         
         
-        self.default_parameters = default_parameters
-        
+        self.num_default_parameters = num_default_parameters
+        self.str_default_parameters = str_default_parameters
+        self.bool_default_parameters = bool_default_parameters        
         
     def parse_parameter_dict(self):
         """This parses the parameter dict. 
@@ -149,18 +156,43 @@ class LSDMap_PlottingDriver(object):
             if key in self.parameter_dict:
                 print("I found the switch: "+str(key)+ " in the parameter file, the value is:"+self.parameter_dict[key])
                 
-                
-                
                 # check to see if the string is true
                 if self.parameter_dict[key] in ["True","true","t","T"]: 
                     self.plotting_switches[key] = True
                 
                 
-        # now the parameters
-        for key in self.default_parameters:
+        # now the boolean parameters
+        for key in self.bool_default_parameters:
             if key in self.parameter_dict:
                 print("I found the parameter: "+str(key)+ " in the parameter file.")
-                self.default_parameters[key] = self.parameter_dict[key] 
+                
+                if self.parameter_dict[key] in ["True","true","t","T"]:
+                    self.bool_default_parameters[key] = True
+                else:
+                    self.bool_default_parameters[key] = False
+
+        # now the parameters that are numbers (this can include lists)
+        for key in self.num_default_parameters:
+            if key in self.parameter_dict:
+                print("I found the parameter: "+str(key)+ " in the parameter file.")
+                self.num_default_parameters[key]  = ast.literal_eval(self.parameter_dict[key])               
+                print("The value is: "+str(self.num_default_parameters[key]))
+
+        # now the parameters that are strings
+        for key in self.str_default_parameters:
+            if key in self.parameter_dict:
+                print("I found the parameter: "+str(key)+ " in the parameter file.")
+                self.str_default_parameters[key]  = self.parameter_dict[key] 
+                print("The string is: "+self.str_default_parameters[key])
+                
+        # now concatenate the dicts
+        self.plotting_parameters = {}
+        self.plotting_parameters.update(self.bool_default_parameters)
+        self.plotting_parameters.update(self.str_default_parameters)
+        self.plotting_parameters.update(self.num_default_parameters)
+        
+        # reset the defaults, just to be safe
+        self.create_default_parameters()
                 
     def plot_data(self):
         """This is the bit that actually plots the data.
@@ -169,37 +201,37 @@ class LSDMap_PlottingDriver(object):
         
         if self.plotting_switches["BasicDensityPlot"]:
             LSDMap_BP.BasicDensityPlot(self.base_faster_fname, 
-                                       self.default_parameters["base_cmap"],
-                                       self.default_parameters["cbar_label"],
-                                       self.default_parameters["clim_val"])
+                                       self.plotting_parameters["base_cmap"],
+                                       self.plotting_parameters["cbar_label"],
+                                       self.plotting_parameters["clim_val"])
             
         if self.plotting_switches["BasicDensityPlotGridPlot"]: 
             
             # Check to see if there is a filename. If not set a default file name
-            if self.default_parameters["FigFileName"] == "None":
-                self.default_parameters["FigFileName"] = self.FilePath+os.sep+self.FilePrefix+"BDPG."+self.default_parameters["FigFormat"]     
+            if self.plotting_parameters["FigFileName"] == "None":
+                self.plotting_parameters["FigFileName"] = self.FilePath+os.sep+self.FilePrefix+"BDPG."+self.plotting_parameters["FigFormat"]     
             
             print("Hey there partner, I am making a grid plot.")
             LSDMap_BP.BasicDensityPlotGridPlot(self.base_faster_fname, 
-                                       self.default_parameters["base_cmap"],
-                                       self.default_parameters["cbar_label"],
-                                       self.default_parameters["clim_val"],
-                                       self.default_parameters["FigFileName"],
-                                       self.default_parameters["FigFormat"])
+                                       self.plotting_parameters["base_cmap"],
+                                       self.plotting_parameters["cbar_label"],
+                                       self.plotting_parameters["clim_val"],
+                                       self.plotting_parameters["FigFileName"],
+                                       self.plotting_parameters["FigFormat"])
                 
             
         if self.plotting_switches["BasicDrapedPlotGridPlot"]:
             # Check to see if there is a filename. If not set a default file name
-            if self.default_parameters["FigFileName"] == "None":
-                self.default_parameters["FigFileName"] = self.FilePath+os.sep+self.FilePrefix+"BDPDPG."+self.default_parameters["FigFormat"]     
+            if self.plotting_parameters["FigFileName"] == "None":
+                self.plotting_parameters["FigFileName"] = self.FilePath+os.sep+self.FilePrefix+"BDPDPG."+self.plotting_parameters["FigFormat"]     
  
             LSDMap_BP.BasicDrapedPlotGridPlot(self.base_faster_fname, 
-                                       self.default_parameters["DrapeName"],
-                                       self.default_parameters["base_cmap"],
-                                       self.default_parameters["drape_cmap"],                                
-                                       self.default_parameters["cbar_label"],
-                                       self.default_parameters["clim_val"],
-                                       self.default_parameters["drape_alpha"],
-                                       self.default_parameters["FigFileName"],
-                                       self.default_parameters["FigFormat"])
+                                       self.plotting_parameters["DrapeName"],
+                                       self.plotting_parameters["base_cmap"],
+                                       self.plotting_parameters["drape_cmap"],                                
+                                       self.plotting_parameters["cbar_label"],
+                                       self.plotting_parameters["clim_val"],
+                                       self.plotting_parameters["drape_alpha"],
+                                       self.plotting_parameters["FigFileName"],
+                                       self.plotting_parameters["FigFormat"])
                                               
