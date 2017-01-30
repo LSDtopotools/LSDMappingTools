@@ -15,6 +15,9 @@ import matplotlib.gridspec as _gridspec
 import matplotlib.colors as _mcolors
 import matplotlib.cm as _cm
 
+from matplotlib.colors import LinearSegmentedColormap
+
+
 def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=-1):
     """
     Truncates a standard matplotlib colourmap so
@@ -137,3 +140,46 @@ def colorbar_index(fig, cax, ncolors, cmap, drape_min_threshold, drape_max):
     
     return cbar
 
+def nonlinear_colormap():
+    """Creates a non-linear colourmap from an existing colourmap.
+    """
+    pass
+
+class nonlinear_colourmap(LinearSegmentedColormap):
+    """Creates a non-linear colourmap from an existing colourmap.
+    
+    Creates a superclass based on the LinearSegmentedColormap class
+    from matplotlib.
+    
+    Author: DAV from http://protracted-matter.blogspot.ie/2012/08/nonlinear-colormap-in-matplotlib.html
+    """
+    
+    name = 'nlcmap'
+    
+    def __init__(self, cmap, levels):
+        self.cmap = cmap
+        # @MRR: Need to add N for backend
+        self.N = cmap.N
+        self.monochrome = self.cmap.monochrome
+        self.levels = _np.asarray(levels, dtype='float64')
+        self._x = self.levels / self.levels.max()
+        self._y = _np.linspace(0.0, 1.0, len(self.levels))
+    
+    #@MRR Need to add **kw for 'bytes'
+    def __call__(self, xi, alpha=1.0, **kw):
+        """docstring for fname"""
+        # @MRR: Appears broken? 
+        # It appears something's wrong with the
+        # dimensionality of a calculation intermediate
+        #yi = stineman_interp(xi, self._x, self._y)
+        yi = _np.interp(xi, self._x, self._y)
+        return self.cmap(yi, alpha)
+    
+    
+    
+    
+    
+    
+    
+    
+    
