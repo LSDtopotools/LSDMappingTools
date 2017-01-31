@@ -171,19 +171,36 @@ class DrapePlot(object):
 	    A matplotlib.Axes instance containing the drape plot.
 	"""
         self.fig, self.ax = plt.subplots()
+        
+        # Plot the background
         self.im = self.ax.imshow(self.Background.Hillshade,
                                  "gray",
                                  extent=self.Background.extents,
                                  interpolation="nearest")
-
+        # Plot the drape (overlay data) on top.
         self.im = self.ax.imshow(self.Drape._RasterArray,
                                  self._drape_colourmap,
                                  extent=self.Drape.extents,
                                  interpolation="nearest")
+
+    def make_drape_colourbar(self, cbar_label="Test"):
+        """Adds a colourbar for the drape"""
+        self.fig.subplots_adjust(right=0.85)
+        self.cax = self.fig.add_axes([0.9, 0.1, 0.03, 0.8])
         
-#    def mask_low_values(self):
-#    """Masks extreme high or small values."""
-#        self._drapeRaster.mask_low_values()
+        self.cbar = self.fig.colorbar(self.im, cax=self.cax) 
+        self.cbar.set_label(cbar_label)
+        # This is needed to update the canvas figure with the colour bar.
+        self.fig.canvas.draw()
+        
+    def set_coordinate_labels_axis(self, x_axis_label='Easting (m)',
+                                   y_axis_label='Northing (m)'):
+        """Sets the x and y axis labels for the entire figure"""
+        self.fig.text(0.5, 0.04, x_axis_label, ha='center')
+        self.fig.text(0.04, 0.5, y_axis_label, va='center', rotation='vertical')
+        self.fig.canvas.draw()
+        
+
     def show_plot(self):
         self.fig.show()
         
