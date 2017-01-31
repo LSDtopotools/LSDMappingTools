@@ -45,7 +45,22 @@ class BaseRaster(object):
     @property
     def fullpath_to_raster(self):
         return self._FullPathRaster
+    
+    @property
+    def xmin(self):
+        self.x_min = self._RasterExtents[0]
 
+    @property
+    def ymin(self):
+        self.y_min = self._RasterExtents[1]
+        
+    @property
+    def xmax(self):
+        self.x_max = self._RasterExtents[2]
+        
+    @property
+    def ymax(self):
+        self.x_max = self._RasterExtents[3]
 
         
 class BackgroundRaster(BaseRaster):
@@ -147,6 +162,7 @@ class DrapePlot(object):
         if drape_max_threshold is not None:
             self.Drape.mask_high_values()
         
+        self.make_drape_plot()
 		
     def make_drape_plot(self):
 	"""Creates a matplotlib Axes object with the drape map.
@@ -154,14 +170,22 @@ class DrapePlot(object):
 	Returns:
 	    A matplotlib.Axes instance containing the drape plot.
 	"""
-        fig, ax = plt.subplots()
-        self.im = ax.imshow(self.Background.Hillshade, "gray", interpolation="nearest")
-        self.im = ax.imshow(self.Drape._RasterArray, self._drape_colourmap, interpolation="nearest")
+        self.fig, self.ax = plt.subplots()
+        self.im = self.ax.imshow(self.Background.Hillshade,
+                                 "gray",
+                                 extent=self.Background.extents,
+                                 interpolation="nearest")
+
+        self.im = self.ax.imshow(self.Drape._RasterArray,
+                                 self._drape_colourmap,
+                                 extent=self.Drape.extents,
+                                 interpolation="nearest")
         
 #    def mask_low_values(self):
 #    """Masks extreme high or small values."""
 #        self._drapeRaster.mask_low_values()
-        
+    def show_plot(self):
+        self.fig.show()
         
 
 class MultiDrapePlot(object):
@@ -173,11 +197,5 @@ class MultiDrapePlot(object):
     pass
 
 
-#Directory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"
-Directory = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/peak_flood/"
-BackgroundRasterName = "Elevations0.asc"
-DrapeRasterName = "WaterDepths2400_GRID_HYDRO.asc"
 
-#raster = BaseRaster(RasterName, DataDirectory)
-dp = DrapePlot(DrapeRasterName, BackgroundRasterName, Directory, "Blues", drape_min_threshold=0.05)
 
