@@ -45,15 +45,19 @@ class LSDMap_PlottingDriver(object):
             param_dict = {}
             for line in lines:            
                 this_line =LSDOst.RemoveEscapeCharacters(line)
+                print("This line is: "+ this_line)
 
                 # get the parameters
                 split_line = this_line.split(':')
                 
-                # get rid of the spaces
-                remove_spaces = LSDOst.RemoveWhitespace(split_line[1])
+                if len(split_line) == 2:
+                    # get rid of the spaces
+                    remove_spaces = LSDOst.RemoveWhitespace(split_line[1])
             
-                # add this to the dict
-                param_dict[split_line[0]]=remove_spaces 
+                    # add this to the dict
+                    param_dict[split_line[0]]=remove_spaces 
+                else:
+                    print("This line, "+this_line+", isn't formatted properly, you need a colon after the parameter. Ignoring.")
 
             self.parameter_dict = param_dict
         else:
@@ -71,10 +75,11 @@ class LSDMap_PlottingDriver(object):
             print("Parameter file does does not contain the keyword 'file_prefix': Check your parameter file. I must exit now.")
             sys.exit()            
         
-        self.base_faster_fname = self.FilePath+os.sep+self.FilePrefix+".bil"
-        self.hs_fname = self.FilePath+os.sep+self.FilePrefix+"_hs.bil"
-        self.chi_csv_fname = self.FilePath+os.sep+self.FilePrefix+"_MChi_segmented.csv"
-        self.basin_csv_fname = self.FilePath+os.sep+self.FilePrefix+"_AllBasinsInfo.csv"
+        self.base_faster_fname = str(self.FilePath+os.sep+self.FilePrefix+".bil")
+        self.hs_fname = str(self.FilePath+os.sep+self.FilePrefix+"_hs.bil")
+        self.basin_fname = str(self.FilePath+os.sep+self.FilePrefix+"_AllBasins.bil")
+        self.chi_csv_fname = str(self.FilePath+os.sep+self.FilePrefix+"_MChi_segmented.csv")
+        self.basin_csv_fname = str(self.FilePath+os.sep+self.FilePrefix+"_AllBasinsInfo.csv")
         
         
         # Now load and parse parameters
@@ -126,7 +131,8 @@ class LSDMap_PlottingDriver(object):
         str_default_parameters["DrapeName"] = "None"
         str_default_parameters["drape_cmap"] = 'gray'        
         str_default_parameters["size_format"] = "esurf"        
-        str_default_parameters["FigFileName"] = "None"        
+        str_default_parameters["FigFileName"] = "None"  
+        str_default_parameters["chan_net_csv"] = "None"
  
 
         num_default_parameters["clim_val"] = (0,0)
@@ -134,6 +140,8 @@ class LSDMap_PlottingDriver(object):
         num_default_parameters["source_chi_threshold"] = 10
         num_default_parameters["grouped_basin_list"] = []
         num_default_parameters["spread"] = 10
+        num_default_parameters["basin_rename_list"] = []
+        num_default_parameters["elevation_threshold"] = 0
         
         bool_default_parameters["label_sources"] = False
 
@@ -235,3 +243,30 @@ class LSDMap_PlottingDriver(object):
                                        self.plotting_parameters["FigFileName"],
                                        self.plotting_parameters["FigFormat"])
                                               
+        if self.plotting_switches["BasinsOverFancyHillshade"]:
+            # Check to see if there is a filename. If not set a default file name
+            if self.plotting_parameters["FigFileName"] == "None":
+                self.plotting_parameters["FigFileName"] = self.FilePath+os.sep+self.FilePrefix+"Basins."+self.plotting_parameters["FigFormat"]     
+            
+            print("Type of base raster is: "+str(type(self.base_faster_fname)))
+            print("The chan net csv is: " +str(self.plotting_parameters["chan_net_csv"]))
+            print("The drape cmap is: "+self.plotting_parameters["drape_cmap"])
+            LSDMap_BP.BasinsOverFancyHillshade(self.base_faster_fname, 
+                                       self.hs_fname,
+                                       self.basin_fname,
+                                       self.basin_csv_fname,                                      
+                                       self.plotting_parameters["base_cmap"],
+                                       self.plotting_parameters["drape_cmap"],                                
+                                       self.plotting_parameters["clim_val"],
+                                       self.plotting_parameters["drape_alpha"],
+                                       self.plotting_parameters["FigFileName"],
+                                       self.plotting_parameters["FigFormat"],
+                                       self.plotting_parameters["elevation_threshold"],
+                                       self.plotting_parameters["grouped_basin_list"], 
+                                       self.plotting_parameters["basin_rename_list"],
+                                       self.plotting_parameters["spread"],
+                                       self.plotting_parameters["chan_net_csv"],
+                                       self.plotting_parameters["label_sources"],
+                                       self.plotting_parameters["source_chi_threshold"],
+                                       self.plotting_parameters["size_format"])
+        

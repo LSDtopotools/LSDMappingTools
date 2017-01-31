@@ -289,11 +289,16 @@ def GetUTMEPSG(FileName):
     EPSG_string = 'NULL'
     
     # get the projection
+    print("Let me get that projection for you")
     prj=SourceDS.GetProjection()
     srs=osr.SpatialReference(wkt=prj)
+
     if srs.IsProjected:
-        print(srs.GetAttrValue('projcs'))
-        proj_str = srs.GetAttrValue('projcs')
+        #print("Trying projcs")
+        #print(str(srs.GetAttrValue(str('PROJCS'),0)))
+        
+        print(srs.GetAttrValue(str('projcs')))
+        proj_str = srs.GetAttrValue(str('projcs'))
         
         # extract the UTM information
         proj_split = proj_str.split('_')

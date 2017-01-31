@@ -693,7 +693,13 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
                             drape_alpha = 0.6, ShowColorbar = False, 
                             ShowDrapeColorbar=False, drape_cbarlabel=None):
-    """This creates a draped plot of a raster. It uses AxisGrid to ensure proper placment of the raster. It also includes a hillshde to make the figure look nicer (so there are three raster layers)
+    """This creates a draped plot of a raster. 
+    
+    It uses AxisGrid to ensure proper placment of the raster. 
+    It also includes a hillshde to make the figure look nicer (so there are three raster layers).
+    
+    Note:
+        Remember, this has THREE layers: a base layer, a hillshade and a drape. 
     
     Args:
         FileName (str): The name of the raster (with full path and extension).   
@@ -1054,10 +1060,15 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     #========================================================
     # now we need to label the basins
     # Now we get the chi points
+    #print("Getting the EPSG string from: "+FileName)
+    #print("Type of fname: "+str(type(FileName)))
+    FileName= str(FileName)
+    #print("Now the type is: "+str(type(FileName)))
     EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
-    print("EPSG string is: " + EPSG_string)
+    #print("EPSG string is: " + EPSG_string)
  
     # Now plot channel data
+    print("Chan net csv is: "+chan_net_csv)
     if chan_net_csv != "None":
         chanPointData = LSDMap_PD.LSDMap_PointData(chan_net_csv) 
     
