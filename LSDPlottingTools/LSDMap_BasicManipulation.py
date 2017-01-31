@@ -7,17 +7,9 @@
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import osgeo.gdal as gdal
 import numpy as np
-from osgeo import osr
-from os.path import exists
-from osgeo.gdalconst import GA_ReadOnly
-from numpy import uint8
-from glob import glob
 from . import LSDMap_OSystemTools as LSDOst
 from . import LSDMap_GDALIO as LSDMap_IO
-#from . import LSDMap_BasicPlotting as LSDMBP
-from . import LSDMap_PointData as LSDMPD
 from pyproj import Proj, transform
 
 
@@ -164,83 +156,19 @@ def GetHillshade(raster_filename,new_raster_filename, azimuth = 315, angle_altit
     # write to file
     LSDMap_IO.array2raster(raster_filename,new_raster_filename,hillshade_raster,driver_name, NoDataValue)         
     
-#==============================================================================
-# This function takes all the csv files in a directory and converts to 
-# GeoJSON files
-#==============================================================================     
-def ConvertAllCSVToGeoJSON(path):
-    """This looks in a directory and converts all .csv files to GeoJSON.
-    
-    This is handy if, for example, you want to display data on the web using leaflet or D3.js
-    
-    Note:
-        This assumes your csv files have latitude and longitude columns. If the LSDMap_PointData object will not be able to read them. 
-    
-    Args:
-        path (str): The path in which you want to convert the csv files
-        
-    Returns:
-        None, but you will get a load of GeoJSON files.
-        
-    Author: SMM
-    """
-    
-    # make sure names are in correct format
-    NewPath = LSDOst.AppendSepToDirectoryPath(path)
-    
-    print("The formatted path is: " + NewPath)
-    
-        
-    for FileName in glob(NewPath+"*.csv"): 
-        print("filename is: " + FileName)
-        
-        thisPointData = LSDMPD.LSDMap_PointData(FileName)
-        thisPointData.TranslateToReducedGeoJSON(FileName)
-        
-        
-#==============================================================================
-# This function takes all the csv files in a directory and converts to 
-# Shapefiles files
-#==============================================================================     
-def ConvertAllCSVToShapefile(path):
-    """This looks in a directory and converts all .csv files to shapefiles
-    
-    This is handy if, for example, you want to display data using ArcMap of QGIS
-    
-    Note: 
-        This assumes your csv files have latitude and longitude columns. If the LSDMap_PointData object will not be able to read them. 
-    
-    Args:
-        path (str): The path in which you want to convert the csv files
-        
-    Returns:
-        None, but you will get a load of GeoJSON files.
-        
-    Author: SMM
-    """    
-    # make sure names are in correct format
-    NewPath = LSDOst.AppendSepToDirectoryPath(path)
-    
-    print("The formatted path is: " + NewPath)
-    
-        
-    for FileName in glob(NewPath+"*.csv"): 
-        print("filename is: " + FileName)
-        
-        thisPointData = LSDMPD.LSDMap_PointData(FileName)
-        thisPointData.TranslateToReducedShapefile(FileName)   
+ 
 
 #==============================================================================
 # This takes a grouping list of basin keys and transforms it into a list
 # of junction names
 #==============================================================================
-def BasinKeyToJunction(grouped_data_list,basin_info_csv):
+def BasinKeyToJunction(grouped_data_list,thisPointData):
     """This takes a basin_info_csv file (produced by several LSDTopoTools routies) and spits out lists of the junction numbers (it converts basin numbers to junction numbers).
     
  
     Args:
         grouped_data_list (int list): A list of list of basin numbers
-        basin_info_csv (str): The name, includug path and extension, of the basin key name (derived from LSDTopoTools).
+        thisPointData (str): A point data object with the basins
         
     Returns:
         Junction_grouped_list: the junction numbers of the basins.
@@ -248,9 +176,6 @@ def BasinKeyToJunction(grouped_data_list,basin_info_csv):
     Author: SMM
     """   
 
-    
-    thisPointData = LSDMPD.LSDMap_PointData(basin_info_csv)
-    
     thisJunctionData = thisPointData.QueryData("outlet_junction")
     
     junction_grouped_list = []
@@ -312,7 +237,7 @@ def BasinOrderToBasinRenameList(basin_order_list):
 ## This function orders basins in a sequence, so that plots can be made
 ## as a function of distance, for example
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=        
-def BasinOrderer(Basin_csv_name, FileName, criteria_string,reverse=False, 
+def BasinOrderer(thisPointData, FileName, criteria_string,reverse=False, 
                  exclude_criteria_string = "None", exlude_criteria_greater = False, 
                  exclude_criteria_value = 0 ):        
 
@@ -321,8 +246,6 @@ def BasinOrderer(Basin_csv_name, FileName, criteria_string,reverse=False,
     # Now we get the chi points
     EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
     print("EPSG string is: " + EPSG_string)
-    
-    thisPointData = LSDMPD.LSDMap_PointData(Basin_csv_name) 
     
     # convert to easting and northing
     [easting,northing] = thisPointData.GetUTMEastingNorthingFromQuery(EPSG_string,"outlet_latitude","outlet_longitude")

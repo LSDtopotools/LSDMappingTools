@@ -7,21 +7,13 @@
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import osgeo.gdal as gdal
 import numpy as np
-import numpy.ma as ma
-from osgeo import osr
-from os.path import exists
-from osgeo.gdalconst import GA_ReadOnly
-from numpy import uint8
 from matplotlib import rcParams
 from .adjust_text import adjust_text
-from . import LSDMap_GDALIO as LSDMap_IO
-from . import LSDMap_BasicManipulation as LSDMap_BM
-from . import LSDMap_OSystemTools as LSDOst
+import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
+import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
+import LSDPlottingTools.LSDMap_OSystemTools as LSDOst
 from scipy import signal
-from . import LSDMap_PointData as LSDMap_PD
-#from . import LSDMap_ChiPlotting as LSDMap_CP 
 import matplotlib.pyplot as plt
 
 #==============================================================================
@@ -948,11 +940,11 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## This function plots the chi slope on a shaded relief map
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscmap='gray',drape_cmap='gray',
+def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, basin_point_data, thiscmap='gray',drape_cmap='gray',
                              clim_val = (0,0), drape_alpha = 0.6,FigFileName = 'Image.pdf',
                              FigFormat = 'show',elevation_threshold = 0, 
                              grouped_basin_list = [], basin_rename_list = [],spread  = 20,
-                             chan_net_csv = "None",
+                             chanPointData = "None",
                              label_sources = False, source_chi_threshold = 10,
                              size_format = "esurf"):
     """This creates a plot with a hillshade draped over elevation (or any other raster) with the basins on them. 
@@ -961,7 +953,8 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         FileName (str): The name of the raster (with full path and extension).   
         HSName (str): The name of the hillshade raster (with full path and extension).   
         BasinName (str): The name of the basin raster (with full path and extension).
-        Basin_csv_name (str): The name of the basin csv file (this is produced by chi tools)
+        Basin_csv_name (str): The name of the csv file where basin info is stored
+        basin_point_data (LSDMap_PointData): The basin point data
         thiscmap (colormap): The colourmap to be used.
         drape_cmap (colormap): The colourmap to be used for the drape.
         clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
@@ -972,7 +965,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         grouped_basin_list (int list): A list of lists with basins to be grouped.
         basin_rename_list (int list): A list of updated names for the basins. So if you wanted basin 4 to be renamed basin 6 the fourth element in this list would be 6. 
         spread (float): Basins get a different number each, this is the spread between groups that controls how different the grouped basins are. 
-        chan_net_csv (str): The name of the channel network file.
+        chanPointData (str ir LSDMap_PointData): Either "none" or a point data object with the channel network
         label_sources (bool): Wheteher or not to label the sources
         source_chi_threshold (float): Sources with length less than this will be plotted.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
@@ -1046,7 +1039,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     # now we need to update the basin colours
     # this groups basins
     if grouped_basin_list:       
-        key_groups = LSDMap_BM.BasinKeyToJunction(grouped_basin_list,Basin_csv_name)
+        key_groups = LSDMap_BM.BasinKeyToJunction(grouped_basin_list,basin_point_data)
         raster_drape = LSDMap_BM.RedefineIntRaster(raster_drape,key_groups,spread)
         
 
@@ -1068,9 +1061,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
     #print("EPSG string is: " + EPSG_string)
  
     # Now plot channel data
-    print("Chan net csv is: "+chan_net_csv)
-    if chan_net_csv != "None":
-        chanPointData = LSDMap_PD.LSDMap_PointData(chan_net_csv) 
+    if chanPointData != "None":
     
         # convert to easting and northing
         [easting_c,northing_c] = chanPointData.GetUTMEastingNorthing(EPSG_string)
@@ -1084,7 +1075,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         ax.scatter(easting_c,Ncoord_c,s=0.2, marker='.',color= 'b',alpha=0.2)        
 
    
-    thisPointData = LSDMap_PD.LSDMap_PointData(Basin_csv_name) 
+    thisPointData = basin_point_data
     
     # convert to easting and northing
     [easting,northing] = thisPointData.GetUTMEastingNorthingFromQuery(EPSG_string,"outlet_latitude","outlet_longitude")

@@ -12,11 +12,12 @@ from . import cubehelix
 import matplotlib.pyplot as plt
 #from cycler import cycler
 from matplotlib import rcParams
-from . import LSDMap_GDALIO as LSDMap_IO
+import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
 #import LSDMap_BasicManipulation as LSDMap_BM
 #import LSDMap_OSystemTools as LSDOst
-from . import LSDMap_BasicPlotting as LSDMap_BP
-from . import LSDMap_PointData as LSDMap_PD
+import LSDPlottingTools.LSDMap_BasicPlotting as LSDMap_BP
+import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
+
 
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -279,7 +280,7 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
 ## This function plots the chi slope on a shaded relief map
 ## It uses a cubehelix colourmap over the log 10 of the channel steepness
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',drape_cmap='gray',
+def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thisPointData, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='log$_{10}k_{sn}$',clim_val = (0,0),
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             elevation_threshold = 0, size_format = "ESURF"):
@@ -384,7 +385,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
     EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
     print("EPSG string is: " + EPSG_string)
     
-    thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
+    #thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname) 
     thisPointData.ThinData('elevation',elevation_threshold)
     
     # convert to easting and northing
@@ -435,6 +436,162 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thiscmap='gray',dra
         plt.savefig(FigFileName,format=FigFormat,dpi=750)
         fig.clf()
 
+
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function plots the chi slope on a shaded relief map
+## It uses a cubehelix colourmap over the log 10 of the channel steepness
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_cmap='gray',
+                            colorbarlabel='$\chi (m)$',clim_val = (0,0),
+                            basin_order_list = [],
+                            drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
+                            size_format = "ESURF"):
+
+    """This plots the chi coordinate, mimicking Sean Willet et al's plots
+        
+    Args:
+        FileName (str): The name (with full path and extension) of the DEM.
+        DrapenName (str): The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
+        thisPointData (LSDMap_PointData): The point data object with the basic chi points
+        thiscmap (colormap): The colourmap for the elevation raster
+        drape_cmap (colormap):  The colourmap for the drape raster
+        colorbarlabel (str): the text label on the colourbar. 
+        clim_val  (float,float): The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
+        drape_alpha (float): The alpha value of the drape
+        FigFileName (str): The name of the figure file
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
+       
+    Returns:
+        Prints a plot to file.
+        
+    Author: 
+        Simon M. Mudd
+
+    """       
+
+    label_size = 10
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size 
+
+    # get the data
+    raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
+    raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
+
+    # now get the extent
+    extent_raster = LSDMap_IO.GetRasterExtent(FileName)
+    x_min = extent_raster[0]
+    x_max = extent_raster[1]
+    y_min = extent_raster[2]
+    y_max = extent_raster[3]
+    
+    # make a figure, 
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+        
+    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+
+    # now get the tick marks    
+    n_target_tics = 5
+    xlocs,ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
+
+    im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
+    
+    # set the colour limits
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
+    if (clim_val == (0,0)):
+        print("Im setting colour limits based on minimum and maximum values")
+        im1.set_clim(0, np.nanmax(raster))
+    else:
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
+        im1.set_clim(clim_val[0],clim_val[1])
+   
+    plt.hold(True)
+   
+    # Now for the drape: it is in grayscale
+    #print "drape_cmap is: "+drape_cmap
+    im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
+
+    # Set the colour limits of the drape
+    im3.set_clim(0,np.nanmax(raster_drape))
+
+    # Set up axes and ticks   
+    ax.spines['top'].set_linewidth(1)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['right'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1) 
+    ax.set_xticklabels(new_x_labels,rotation=60)
+    ax.set_yticklabels(new_y_labels)  
+    ax.set_xlabel("Easting (m)")
+    ax.set_ylabel("Northing (m)")  
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)    
+
+    # Now we get the chi points
+    EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
+    print("EPSG string is: " + EPSG_string)
+
+    print("The file is: "+ csvfile)
+    thisPointData = LSDMap_PD.LSDMap_PointData(csvfile)
+    
+    
+    
+    if not len(basin_order_list) == 0:
+        thisPointData.ThinDataSelection('basin_junction',basin_order_list)
+    
+    # convert to easting and northing
+    [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+       
+    # The image is inverted so we have to invert the northing coordinate
+    Ncoord = np.asarray(northing)
+    Ncoord = np.subtract(extent_raster[3],Ncoord)
+    Ncoord = np.add(Ncoord,extent_raster[2])
+    
+    chi = thisPointData.QueryData('chi')
+    chi = [float(x) for x in chi]
+ 
+    this_cmap = 'CMRmap'
+    sc = ax.scatter(easting,Ncoord,s=0.5, c=chi,cmap=this_cmap,edgecolors='none')
+    
+    # set the colour limits
+    sc.set_clim(0, np.nanmax(chi))
+
+
+    # This is the axis for the colorbar   
+    ax2 = fig.add_subplot(gs[10:15,15:70])
+    plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)   
+    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=l_pad)       
+    
+    # This affects all axes because we set share_all = True.
+    ax.set_xlim(x_min,x_max)    
+    ax.set_ylim(y_max,y_min)     
+
+    ax.set_xticks(xlocs)
+    ax.set_yticks(ylocs)   
+
+    print("The figure format is: " + FigFormat)
+    if FigFormat == 'show':    
+        plt.show()
+    elif FigFormat == 'return':
+        return fig 
+    else:
+        plt.savefig(FigFileName,format=FigFormat,dpi=750)
+        fig.clf()
 
         
         

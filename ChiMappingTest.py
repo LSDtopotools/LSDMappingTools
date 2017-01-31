@@ -52,22 +52,22 @@ def ChiMappingToolsTest():
     #LSDP.BasinKeyToJunction(Junction_list,BasinInfoName)
     #LSDP.BasinOrderer(BasinInfoName, DEMname, "outlet_longitude",reverse=True) 
     threshold_length = 5
-    #thisPointData = LSDP.LSDMap_PointData(ChiName)
-    #these_source_nodes = LSDP.FindSourceInformation(thisPointData)
-    #remaining_sources = LSDP.FindShortSourceChannels(these_source_nodes,threshold_length)
-    #print("The remaining sources are: ")
-    #print(remaining_sources)
-    #print("The number of remaining sources are: "+str(len(remaining_sources)))
+    thisPointData = LSDP.LSDMap_PointData(ChiName)
+    these_source_nodes = LSDP.FindSourceInformation(thisPointData)
+    remaining_sources = LSDP.FindShortSourceChannels(these_source_nodes,threshold_length)
+    print("The remaining sources are: ")
+    print(remaining_sources)
+    print("The number of remaining sources are: "+str(len(remaining_sources)))
     #======================================
     
     
     #======================================
     # Uncomment this for a basic plot of the hillshade draped over the elevation, 
     # With chi on top, using the cubehelix colour scheme
-    #FigName = DataDirectory+'Meghalaya_Ksn_plot_CubeHelix.png'
-    #LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName, 'gray','gray',
-    #                        '$k_{sn}$',(0,0),
-    #                        0.4,FigName,'png',elevation_threshold,size_format)  
+    FigName = DataDirectory+'Meghalaya_Ksn_plot_CubeHelix.png'
+    LSDP.BasicChiPlotGridPlot(DEMname,HSname,ChiName,thisPointData,'gray','gray',
+                            '$k_{sn}$',(0,0),
+                            0.4,FigName,'png',elevation_threshold,size_format)  
     #======================================
 
     #======================================
@@ -154,12 +154,14 @@ def ChiMappingToolsTest():
     basin_rename_list = LSDP.BasinOrderToBasinRenameList(basin_rename_order)
     Junction_list = [[3,0,1,2],[4,5,6,7],[10,9,12,8,11,13]] 
     #print basin_rename_list
-    
-    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName, 'gray','gist_earth',
+    basin_point_data = LSDP.LSDMap_PointData(BasinInfoName)
+    channel_point_data = LSDP.LSDMap_PointData(ChiName)
+    LSDP.BasinsOverFancyHillshade(DEMname,HSname,Basinname, BasinInfoName,basin_point_data,
+                                  'gray','gist_earth',
                             (0,0), 0.4 ,FigName9,'png',
                             elevation_threshold,
                             Junction_list, basin_rename_list,spread,
-                            ChiName,
+                            channel_point_data,
                             False, threshold_length,size_format)  
     #======================================    
 

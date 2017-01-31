@@ -9,15 +9,80 @@
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import osgeo.gdal as gdal
-import numpy as np
 from osgeo import osr
-from os.path import exists
-from osgeo.gdalconst import GA_ReadOnly
-from numpy import uint8
 from . import LSDMap_OSystemTools as LSDOst
 import os
+import glob
 from pyproj import Proj, transform
+
+
+#==============================================================================
+# This function takes all the csv files in a directory and converts to 
+# GeoJSON files
+#==============================================================================     
+def ConvertAllCSVToGeoJSON(path):
+    """This looks in a directory and converts all .csv files to GeoJSON.
+    
+    This is handy if, for example, you want to display data on the web using leaflet or D3.js
+    
+    Note:
+        This assumes your csv files have latitude and longitude columns. If the LSDMap_PointData object will not be able to read them. 
+    
+    Args:
+        path (str): The path in which you want to convert the csv files
+        
+    Returns:
+        None, but you will get a load of GeoJSON files.
+        
+    Author: SMM
+    """
+   
+    # make sure names are in correct format
+    NewPath = LSDOst.AppendSepToDirectoryPath(path)
+    
+    print("The formatted path is: " + NewPath)
+    
+        
+    for FileName in glob(NewPath+"*.csv"): 
+        print("filename is: " + FileName)
+        
+        thisPointData = LSDMap_PointData(FileName)
+        thisPointData.TranslateToReducedGeoJSON(FileName)
+        
+        
+#==============================================================================
+# This function takes all the csv files in a directory and converts to 
+# Shapefiles files
+#==============================================================================     
+def ConvertAllCSVToShapefile(path):
+    """This looks in a directory and converts all .csv files to shapefiles
+    
+    This is handy if, for example, you want to display data using ArcMap of QGIS
+    
+    Note: 
+        This assumes your csv files have latitude and longitude columns. If the LSDMap_PointData object will not be able to read them. 
+    
+    Args:
+        path (str): The path in which you want to convert the csv files
+        
+    Returns:
+        None, but you will get a load of GeoJSON files.
+        
+    Author: SMM
+    """    
+    
+    # make sure names are in correct format
+    NewPath = LSDOst.AppendSepToDirectoryPath(path)
+    
+    print("The formatted path is: " + NewPath)
+    
+        
+    for FileName in glob(NewPath+"*.csv"): 
+        print("filename is: " + FileName)
+        
+        thisPointData = LSDMap_PointData(FileName)
+        thisPointData.TranslateToReducedShapefile(FileName)  
+
 
 class LSDMap_PointData(object):
     
