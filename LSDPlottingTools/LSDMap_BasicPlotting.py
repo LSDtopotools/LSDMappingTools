@@ -19,7 +19,7 @@ from .adjust_text import adjust_text
 from . import LSDMap_GDALIO as LSDMap_IO
 from . import LSDMap_BasicManipulation as LSDMap_BM
 from . import LSDMap_OSystemTools as LSDOst
-from scipy import misc
+from scipy import signal
 from . import LSDMap_PointData as LSDMap_PD
 #from . import LSDMap_ChiPlotting as LSDMap_CP 
 import matplotlib.pyplot as plt
@@ -604,7 +604,10 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     
+    from scipy import ndimage
     if DrapeName == "None":
+        #filtered = ndimage.filters.gaussian_filter(raster, 3)
+        #filtered = signal.wiener(raster)
         raster_drape = Hillshade(raster)
     else:
         raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
@@ -1202,7 +1205,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, thiscm
         
 #==============================================================================
 # Make a simple hillshade plot
-def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -9999): 
+def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -9999,z_factor = 1): 
     """Creates a hillshade raster
     
     Args:
@@ -1235,7 +1238,7 @@ def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -99
     array[nodata_mask] = np.nan
     
     x, y = np.gradient(array)
-    slope = np.pi/2. - np.arctan(np.sqrt(x*x + y*y))
+    slope = np.pi/2. - np.arctan(np.multiply(z_factor,np.sqrt(x*x + y*y)))
     aspect = np.arctan2(-x, y)
     azimuthrad = azimuth*np.pi / 180.
     altituderad = angle_altitude*np.pi / 180.
