@@ -1365,7 +1365,7 @@ def init_plotting_DV():
     plt.rcParams['legend.fontsize'] = plt.rcParams['font.size']
     plt.rcParams['xtick.labelsize'] = plt.rcParams['font.size']
     plt.rcParams['ytick.labelsize'] = plt.rcParams['font.size']
-    plt.rcParams['savefig.dpi'] = 2*plt.rcParams['savefig.dpi']
+#    plt.rcParams['savefig.dpi'] = 2*plt.rcParams['savefig.dpi']
     plt.rcParams['xtick.major.size'] = 3
     plt.rcParams['xtick.minor.size'] = 3
     plt.rcParams['xtick.major.width'] = 1

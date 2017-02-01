@@ -7,6 +7,7 @@ Created on Tue May 05 14:08:16 2015
 
 @author: smudd
 """
+from __future__ import print_function
 import glob as glob
 import os.path
 import numpy as np
@@ -16,7 +17,7 @@ import lsdmatplotlibextensions as mplext
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 
-from __future__ import print_function
+
 
 def findmaxval_multirasters(FileList):
     """

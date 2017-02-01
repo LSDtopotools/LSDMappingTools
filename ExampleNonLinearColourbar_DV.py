@@ -30,19 +30,18 @@ LSDP.init_plotting_DV()
 # Non-linear colourmap
 levels = [-2.5, -1.5 -0.5, -0.25, 0, 0.25, 0.5, 1.5, 2.5 ]
 #levels = levels[levels <= tmax]
-print levels
+print (levels)
 levels.sort()
-print levels
-
+print (levels)
 cmap_lin = cm.jet
 
 nonlincmap = LSDP.colours.nonlinear_colourmap(cmap_lin, levels)
-print type(nonlincmap)
+print (type(nonlincmap))
 
 #DataDirectory = "/run/media/dav/SHETLAND/Analyses/Ryedale_storms_simulation/Gridded/DetachLim/"
 #DataDirectory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/erode_diff/"
-#DataDirectory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/erode_diff/test_raster_diff_func/"
-DataDirectory = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
+DataDirectory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
+#DataDirectory = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
 
 LSDP.MultiDrapeErodeDiffMaps(DataDirectory, "BoscastleElevations0.asc", "Boscastle*.bil", 
                cmap=nonlincmap, 
