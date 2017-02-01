@@ -15,7 +15,7 @@ This is the basic documentation that simply repeats information sored within the
    LSDPlottingTools
 
 
-automodule:: app
+automodule:: LSDMappingTools
 
 Indices and tables
 ==================
