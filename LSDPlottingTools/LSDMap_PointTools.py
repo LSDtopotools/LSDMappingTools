@@ -372,7 +372,7 @@ class LSDMap_PointData(object):
         Author: SMM
     
         """        
-        print("I am thinning the data for you!")
+        print("Hey friend, I am thinning the data for you!")
         
         # Get the data for thinning
         if data_name not in self.VariableList:
@@ -381,6 +381,7 @@ class LSDMap_PointData(object):
             this_data = self.PointData[data_name]
         
         this_data = [float(x) for x in this_data]
+
         
         # Start a new data dict
         NewDataDict = {}
@@ -401,7 +402,8 @@ class LSDMap_PointData(object):
                 for name in self.VariableList:
                     this_element = self.PointData[name][index]
                     NewDataDict[name].append(this_element)    
-                
+
+
         # Now reset the data dict
         self.PointData = NewDataDict
         self.Latitude = NewLat
@@ -428,7 +430,7 @@ class LSDMap_PointData(object):
         """
     
     
-        print("I am thinning the data for you from a list!")
+        print("Hey, frined, I am thinning the data for you from a list!")
         
         # Get the data for thinning
         if data_name not in self.VariableList:
@@ -437,6 +439,9 @@ class LSDMap_PointData(object):
             this_data = self.PointData[data_name]
         
         this_data = [int(x) for x in this_data]
+        #print("The original data I need to thin is: ")
+        #print(this_data) 
+
         
         # Start a new data dict
         NewDataDict = {}
@@ -447,21 +452,30 @@ class LSDMap_PointData(object):
 
         
         # Get all the data to be deleted
+        print("The data I am keeping is: ")
+        print(data_for_selection_list)
         delete_indices = []
         for index, data in enumerate(this_data):
+            #print("Data: "+str(data))
             if data not in data_for_selection_list:
+                #print("I'm not keeping it")
                 delete_indices.append(index)
             else:
+                #print("I'll have that one. ")
                 NewLat.append(self.Latitude[index])
                 NewLon.append(self.Longitude[index])
                 for name in self.VariableList:
                     this_element = self.PointData[name][index]
                     NewDataDict[name].append(this_element)    
-                
+
+                    
         # Now reset the data dict
         self.PointData = NewDataDict
         self.Latitude = NewLat
         self.Longitude = NewLon        
+
+        #print("The updated data is:")
+        #print(self.PointData[data_name])   
         
         
 ##==============================================================================

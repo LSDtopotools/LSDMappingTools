@@ -19,6 +19,38 @@ import LSDPlottingTools.LSDMap_BasicPlotting as LSDMap_BP
 import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
 
 
+def ConvertBasinIndexToJunction(BasinPointData,BasinIndexList):
+    """This transforms a basin index list (simply the order of the basins, starting from low to high junction number) to a junction list. 
+    
+    This allows users to go between basin rasters (with junctions listed) and the simpler basin indexing system (which is sequential)
+    
+    Args:
+        BasinPointData (LSDMap_PointData): a point data object
+        BasinIndexList (list of ints): The basin indices to be converted to junctions
+        
+    Returns: 
+        A list on ints with the basin junctions 
+        
+    Author: SMM
+    """
+    
+
+    
+    these_data = BasinPointData.QueryData("outlet_junction")
+    these_data = [int(x) for x in these_data]
+                  
+    #print("The junctions are: ")
+                  
+        
+                  
+                  
+    basin_junction_list = []
+    for basinindex in BasinIndexList:
+        basin_junction_list.append(these_data[basinindex])
+        
+    
+    return basin_junction_list
+    
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def FindSourceInformation(thisPointData):    
@@ -444,7 +476,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thisPointData, this
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='$\chi (m)$',clim_val = (0,0),
-                            basin_order_list = [],
+                            basin_order_list = [], basin_point_data = "None",
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             size_format = "ESURF"):
 
@@ -458,6 +490,8 @@ def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_c
         drape_cmap (colormap):  The colourmap for the drape raster
         colorbarlabel (str): the text label on the colourbar. 
         clim_val  (float,float): The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
+        basin_order_list (list of int): The basin indices to be selected
+        basin_point_data (LSDM_PointData): The mapping between junctions and indices
         drape_alpha (float): The alpha value of the drape
         FigFileName (str): The name of the figure file
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
@@ -550,9 +584,14 @@ def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_c
     thisPointData = LSDMap_PD.LSDMap_PointData(csvfile)
     
     
-    
+    # Check if there are basins
     if not len(basin_order_list) == 0:
-        thisPointData.ThinDataSelection('basin_junction',basin_order_list)
+        # check if there is a point data object
+        if basin_point_data != "None":
+            basin_junction_list = ConvertBasinIndexToJunction(basin_point_data,basin_order_list)
+            print("I am thinning to the following basins: ")
+            print(basin_junction_list)
+            thisPointData.ThinDataSelection('basin_junction',basin_junction_list)
     
     # convert to easting and northing
     [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)

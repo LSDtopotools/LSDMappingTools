@@ -86,6 +86,7 @@ class LSDMap_PlottingDriver(object):
         self.base_faster_fname = str(self.FilePath+os.sep+self.FilePrefix+".bil")
         self.hs_fname = str(self.FilePath+os.sep+self.FilePrefix+"_hs.bil")
         self.basin_fname = str(self.FilePath+os.sep+self.FilePrefix+"_AllBasins.bil")
+        self.chi_raster_fname = str(self.FilePath+os.sep+self.FilePrefix+"_chi_coord.bil")
         self.chi_csv_fname = str(self.FilePath+os.sep+self.FilePrefix+"_MChi_segmented.csv")
         self.basic_chi_csv_fname = str(self.FilePath+os.sep+self.FilePrefix+"_chi_coord_basins.csv")
         self.basin_csv_fname = str(self.FilePath+os.sep+self.FilePrefix+"_AllBasinsInfo.csv")
@@ -301,16 +302,19 @@ class LSDMap_PlottingDriver(object):
 
                 
                 
-            #thisPointData = LSDMap_PD.LSDMap_PointData(self.basic_chi_csv_fname)
+            thisBasinData = LSDMap_PD.LSDMap_PointData(self.basin_csv_fname)
+            chi_drape_cname = 'CMRmap'
+            cbar_lablel = "$\chi$ (m)"
                 
-            LSDMap_CP.BasicChiCoordinatePlot(self.base_faster_fname, 
-                                       self.hs_fname,
+            LSDMap_CP.BasicChiCoordinatePlot(self.hs_fname, 
+                                       self.chi_raster_fname,
                                        self.basic_chi_csv_fname,                                      
                                        self.plotting_parameters["base_cmap"],
-                                       self.plotting_parameters["drape_cmap"],
-                                       self.plotting_parameters["cbar_label"],
+                                       chi_drape_cname,
+                                       cbar_lablel,
                                        self.plotting_parameters["clim_val"],
-                                       self.plotting_parameters["basin_order_list"],                                                                       
+                                       self.plotting_parameters["basin_order_list"],
+                                       thisBasinData,
                                        self.plotting_parameters["drape_alpha"],
                                        self.plotting_parameters["FigFileName"],
                                        self.plotting_parameters["FigFormat"],
