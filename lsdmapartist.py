@@ -106,7 +106,8 @@ class DrapeRaster(BaseRaster):
     top of the BackgroundRaster
     """
     def __init__(self, RasterName, Directory,
-                 drape_min_threshold=None, drape_max_threshold=None):
+                 drape_min_threshold, drape_max_threshold,
+                 middle_mask_range):
         
         # Initialise the super-class
         super(DrapeRaster, self).__init__(RasterName, Directory)
@@ -115,11 +116,17 @@ class DrapeRaster(BaseRaster):
 
         self._drapeminthreshold = drape_min_threshold
         self._drapemaxthreshold = drape_max_threshold
+        self._middlemaskrange = middle_mask_range
         
-        if drape_min_threshold is not None:
+        self._initialise_masks()
+        
+    def _initialise_masks(self):
+        if self._drapeminthreshold is not None:
             self.mask_low_values()
-        if drape_max_threshold is not None:
+        if self._drapemaxthreshold is not None:
             self.mask_high_values()
+        if self._middlemaskrange is not None:
+            self.mask_middle_values()
         
     def mask_low_values(self):
         low_values_index = self._RasterArray < self._drapeminthreshold
@@ -128,6 +135,12 @@ class DrapeRaster(BaseRaster):
     def mask_high_values(self):
         high_values_index = self._RasterArray < self._drapemaxthreshold
         self._RasterArray[high_values_index] = np.nan
+                         
+    def mask_middle_values(self):
+        """Masks a centre range of values."""
+        masked_mid_values_index = (np.logical_and(self._RasterArray > self._middlemaskrange[0], 
+                                   self._RasterArray < self._middlemaskrange[1]))
+        self._RasterArray[masked_mid_values_index] = np.nan
         
     def _render_drape(self, fullpath_to_raster):
         pass
@@ -146,30 +159,23 @@ class DrapePlot(object):
     def __init__(self, DrapeRasterName, BackgroundRasterName, Directory,
                  drape_colourmap,
                  drape_min_threshold=None, drape_max_threshold=None,
-                 vmin=None, vmax = None):	
+                 vmin=None, vmax = None, middle_mask_range=None):	
         
         self.Background = BackgroundRaster(BackgroundRasterName, Directory)
         self.Drape = DrapeRaster(DrapeRasterName, Directory,
-                                 drape_min_threshold,
-                                 drape_max_threshold)
+                                 drape_min_threshold=drape_min_threshold,
+                                 drape_max_threshold=drape_max_threshold,
+                                 middle_mask_range=middle_mask_range)
         self._drape_colourmap = drape_colourmap
         
         self._vmin = vmin
         self._vmax = vmax
-        
-        if drape_min_threshold is not None:
-            self.Drape.mask_low_values()
-        if drape_max_threshold is not None:
-            self.Drape.mask_high_values()
+
         
         self.make_drape_plot()
 		
     def make_drape_plot(self):
-	"""Creates a matplotlib Axes object with the drape map.
-		
-	Returns:
-	    A matplotlib.Axes instance containing the drape plot.
-	"""
+        """Creates a matplotlib Axes object with the drape map."""
         self.fig, self.ax = plt.subplots()
         
         # Plot the background
@@ -181,7 +187,8 @@ class DrapePlot(object):
         self.im = self.ax.imshow(self.Drape._RasterArray,
                                  self._drape_colourmap,
                                  extent=self.Drape.extents,
-                                 interpolation="nearest")
+                                 interpolation="nearest",
+                                 vmin=self._vmin, vmax=self._vmax)
 
     def make_drape_colourbar(self, cbar_label="Test"):
         """Adds a colourbar for the drape"""

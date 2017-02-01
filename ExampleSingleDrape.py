@@ -11,16 +11,19 @@ An example of using the LSDMapArtist to create drape plots
 import lsdmapartist as lsdmap
 
 #Directory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"
-Directory = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/peak_flood/"
-BackgroundRasterName = "Elevations0.asc"
-DrapeRasterName = "WaterDepths2400_GRID_HYDRO.asc"
-Colourmap = "Blues"
-drape_min_threshold = 0.05
-colourbar_label = "Water Depths (m)"
+Directory = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
+BackgroundRasterName = "RyedaleElevations0.asc"
+DrapeRasterName = "RyedaleErodeDiff_GRID_UNI_TLIMM.bil"
+#DrapeRasterName = "BoscastleErodeDiff_GRID_UNI_TLIMM.bil"
+Colourmap = "seismic"
+drape_min_threshold = None
+drape_max_threshold = None
+colourbar_label = "Erosion/Deposition (m)"
 
 #raster = BaseRaster(RasterName, DataDirectory)
 dp = lsdmap.DrapePlot(DrapeRasterName, BackgroundRasterName, Directory,
-                      Colourmap, drape_min_threshold=drape_min_threshold)
+                      Colourmap, 
+                      vmin=-3, vmax=3, middle_mask_range=(-0.01,0.01))
 
 # Customise the DrapePlot
 dp.make_drape_colourbar(cbar_label=colourbar_label)
