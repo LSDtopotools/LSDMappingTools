@@ -19,6 +19,26 @@ import matplotlib.pyplot as plt
 #==============================================================================
 # This formats ticks if you want to convert metres to km
 #==============================================================================
+def TickLabelShortenizer(labels,n_hacked_digits):
+    """This takes a list of labels and hacks off digits so you can go, say, from metres to km.
+    
+    Args:
+        labels (str): A list of labels
+        n_hacked_digits (int): The number of digits to hack off
+        
+    Return:
+        The new labels
+    
+    Author: SMM
+    """
+    new_labels = []
+    for label in labels:
+        new_labels.append(label[0:-n_hacked_digits])
+        
+    return new_labels
+
+
+
 def TickConverter(x_min,x_max,n_target_tics):
     """This function is used to convert ticks in metres to ticks in kilometres.
        

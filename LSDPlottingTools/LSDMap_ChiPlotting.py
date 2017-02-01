@@ -544,7 +544,13 @@ def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_c
     # now get the tick marks    
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
+    
+    # Lets do the ticks in km
+    n_hacked_digits = 3
+    new_x_labels = LSDMap_BP.TickLabelShortenizer(new_x_labels,n_hacked_digits)
+    new_y_labels = LSDMap_BP.TickLabelShortenizer(new_y_labels,n_hacked_digits)
 
+    print("This cmap for base raster is: "+thiscmap)
     im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
     
     # set the colour limits
@@ -572,8 +578,8 @@ def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_c
     ax.spines['bottom'].set_linewidth(1) 
     ax.set_xticklabels(new_x_labels,rotation=60)
     ax.set_yticklabels(new_y_labels)  
-    ax.set_xlabel("Easting (m)")
-    ax.set_ylabel("Northing (m)")  
+    ax.set_xlabel("Easting (km)")
+    ax.set_ylabel("Northing (km)")  
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
     ax.tick_params(axis='both', width=1, pad = 2)
@@ -612,8 +618,10 @@ def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_c
     
     chi = thisPointData.QueryData('chi')
     chi = [float(x) for x in chi]
- 
-    this_cmap = 'CMRmap'
+
+           
+    #this_cmap = 'brg_r'
+    this_cmap = 'CMRmap_r'
     sc = ax.scatter(easting,Ncoord,s=0.5, c=chi,cmap=this_cmap,edgecolors='none')
     
     # set the colour limits

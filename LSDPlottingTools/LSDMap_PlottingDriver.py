@@ -303,7 +303,8 @@ class LSDMap_PlottingDriver(object):
                 
                 
             thisBasinData = LSDMap_PD.LSDMap_PointData(self.basin_csv_fname)
-            chi_drape_cname = 'CMRmap'
+            chi_drape_cname = 'CMRmap_r'
+            #chi_drape_cname = 'brg_r'
             cbar_lablel = "$\chi$ (m)"
                 
             LSDMap_CP.BasicChiCoordinatePlot(self.hs_fname, 
