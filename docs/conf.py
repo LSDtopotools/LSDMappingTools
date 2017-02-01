@@ -30,9 +30,11 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return MagicMock()
 
-MOCK_MODULES = ['scipy','pyproj', 'LSDOSystemTools', 'numpy', 'numpy.ma', 'gdal', 'osgeo', 'osgeo.gdal', 
+MOCK_MODULES = ['scipy','pyproj', 'numpy', 'numpy.ma', 'gdal', 'osgeo', 'osgeo.gdal', 
                 'osgeo.gdalconst', 'osgeo.gdal_array', 'matplotlib', 'matplotlib.pyplot', 'matplotlib.rcParams',
-               'matplotlib.colors', 'matplotlib.image', 'matplotlib.cm']
+               'matplotlib.colors', 'matplotlib.image', 'matplotlib.cm', 'matplotlib.gridspec', 'matplotlib.patches',
+               'cartopy', 'cartopy.feature', 'cartopy.crs', 'cartopy.mpl', 'cartopy.mpl.ticker', 'shapely', 'shapely.geometry',
+               'shapely.geometry.polygon']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
