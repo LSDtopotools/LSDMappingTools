@@ -372,7 +372,7 @@ class LSDMap_PointData(object):
         Author: SMM
     
         """        
-        print("Hey friend, I am thinning the data for you!")
+        print("I am thinning the data for you!")
         
         # Get the data for thinning
         if data_name not in self.VariableList:
@@ -430,7 +430,7 @@ class LSDMap_PointData(object):
         """
     
     
-        print("Hey, frined, I am thinning the data for you from a list!")
+        print("I am thinning the data for you from a list!")
         
         # Get the data for thinning
         if data_name not in self.VariableList:

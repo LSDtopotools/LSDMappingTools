@@ -315,6 +315,7 @@ class LSDMap_PlottingDriver(object):
                                        self.plotting_parameters["clim_val"],
                                        self.plotting_parameters["basin_order_list"],
                                        thisBasinData,
+                                       self.basin_fname,
                                        self.plotting_parameters["drape_alpha"],
                                        self.plotting_parameters["FigFileName"],
                                        self.plotting_parameters["FigFormat"],

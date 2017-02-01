@@ -17,6 +17,7 @@ import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
 #import LSDMap_OSystemTools as LSDOst
 import LSDPlottingTools.LSDMap_BasicPlotting as LSDMap_BP
 import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
+import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
 
 
 def ConvertBasinIndexToJunction(BasinPointData,BasinIndexList):
@@ -476,7 +477,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thisPointData, this
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='$\chi (m)$',clim_val = (0,0),
-                            basin_order_list = [], basin_point_data = "None",
+                            basin_order_list = [], basin_point_data = "None", basin_raster_name = "None",
                             drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
                             size_format = "ESURF"):
 
@@ -492,6 +493,7 @@ def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_c
         clim_val  (float,float): The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots. 
         basin_order_list (list of int): The basin indices to be selected
         basin_point_data (LSDM_PointData): The mapping between junctions and indices
+        basin_raster_name (str): If a basin raster name is supplied the chi raster will be masked
         drape_alpha (float): The alpha value of the drape
         FigFileName (str): The name of the figure file
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
@@ -515,6 +517,8 @@ def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_c
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
+
+    raster_drape = LSDMap_BM.NanBelowThreshold(raster_drape,0)
 
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
@@ -584,7 +588,7 @@ def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_c
     thisPointData = LSDMap_PD.LSDMap_PointData(csvfile)
     
     
-    # Check if there are basins
+    # Check if there are basins, and if we are to mask them
     if not len(basin_order_list) == 0:
         # check if there is a point data object
         if basin_point_data != "None":
@@ -592,6 +596,11 @@ def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_c
             print("I am thinning to the following basins: ")
             print(basin_junction_list)
             thisPointData.ThinDataSelection('basin_junction',basin_junction_list)
+            
+            if basin_raster_name != "None":
+                basin_raster = LSDMap_IO.ReadRasterArrayBlocks(basin_raster_name)
+                LSDMap_BM.MaskByCategory(raster_drape,basin_raster,basin_junction_list)
+                
     
     # convert to easting and northing
     [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)

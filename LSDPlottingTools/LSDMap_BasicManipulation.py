@@ -306,6 +306,59 @@ def RedefineIntRaster(rasterArray,grouped_data_list,spread):
                             
             counter = counter+spread
     return rasterArray
+
+#==============================================================================
+# This function takes groups of data and then resets values in a
+# raster to mimic these values
+#============================================================================== 
+def MaskByCategory(rasterArray,rasterForMasking,data_list):
+    """This function takes values from an integer raster and renames them based on a list. 
+    
+    It is useful for renaming basin numbers. 
+    
+    Args:
+        rasterArray (np.array): The raster array
+        grouped_data_list (int): A list of lists containing groups to be redefined
+        spread (int): How big of a difference between groups. For plotting this helps to generate differenc colours. 
+    
+    Returns:
+        np.array: The new array
+        
+    Author: SMM
+    """
+
+    # The -9090 is just a placeholder
+    for item in data_list:
+        rasterForMasking[rasterForMasking == item] = -9090
+        
+    rasterArray[rasterForMasking != -9090] = np.nan
+    
+    
+    return rasterArray
+
+#==============================================================================
+# This function takes groups of data and then resets values in a
+# raster to mimic these values
+#============================================================================== 
+def NanBelowThreshold(rasterArray,threshold):
+    """This function takes an array and turns any element below threshold to a nan
+    
+    It is useful for renaming basin numbers. 
+    
+    Args:
+        rasterArray (np.array): The raster array
+        threshold (int): The threshold value
+    
+    Returns:
+        np.array: The new array
+        
+    Author: SMM
+    """
+
+    # The -9090 is just a placeholder  
+    rasterArray[rasterArray < threshold] = np.nan
+        
+    return rasterArray
             
 
 
