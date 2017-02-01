@@ -36,10 +36,10 @@ LSDPlottingTools.LSDMap_GDALIO module
     :undoc-members:
     :show-inheritance:
 
-LSDPlottingTools.LSDMap_PointData module
+LSDPlottingTools.LSDMap_PointTools module
 ----------------------------------------
 
-.. automodule:: LSDPlottingTools.LSDMap_PointData
+.. automodule:: LSDPlottingTools.LSDMap_PointTools
     :members:
     :undoc-members:
     :show-inheritance:
