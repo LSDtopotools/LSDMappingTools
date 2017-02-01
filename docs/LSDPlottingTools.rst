@@ -68,6 +68,30 @@ LSDPlottingTools.cubehelix module
     :undoc-members:
     :show-inheritance:
 
+LSDPlottingTools.colours module
+---------------------------------
+
+.. automodule:: LSDPlottingTools.colours
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    
+LSDPlottingTools.labels module
+---------------------------------
+
+.. automodule:: LSDPlottingTools.labels
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+LSDPlottingTools.locationmap module
+---------------------------------
+
+.. automodule:: LSDPlottingTools.locationmap
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
