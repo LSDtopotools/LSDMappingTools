@@ -44,7 +44,7 @@ DataDirectory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/test_raster
 #DataDirectory = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
 
 LSDP.MultiDrapeErodeDiffMaps(DataDirectory, "BoscastleElevations0.asc", "Boscastle*.bil", 
-               cmap=nonlincmap, 
+               cmap=cmap_lin, 
                drape_min_threshold= -2.5,
                drape_max_threshold= 2.5,
                cbar_label = "DEM difference (m)",

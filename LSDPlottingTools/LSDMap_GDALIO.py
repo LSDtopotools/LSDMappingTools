@@ -468,8 +468,9 @@ def ReadRasterArrayBlocks(raster_file,raster_band=1):
             data_array[i:i+rows,j:j+cols] = values
  
     print("NoData is:", NoDataValue)
-    nodata_mask = data_array == NoDataValue
-    data_array[nodata_mask] = np.nan
+    if NoDataValue is not None:
+        nodata_mask = data_array == NoDataValue
+        data_array[nodata_mask] = np.nan
            
     return data_array
 #==============================================================================
