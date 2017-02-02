@@ -16,6 +16,57 @@ import LSDPlottingTools.LSDMap_OSystemTools as LSDOst
 from scipy import signal
 import matplotlib.pyplot as plt
 
+
+
+def TickSpineFormatter(ax, sizeformat = "esurf"):
+    """This formats the line weights on the bounding box and ticks.
+    
+    Args:
+        ax1 (axis object): the matplotlib axis object
+        size_format (str): The size format. Can be geomorhpology, esurf or big
+    
+    returns:
+        The axis object
+        
+    Author: SMM
+    """
+
+    import matplotlib.lines as mpllines
+
+    # some formatting to make some of the ticks point outward    
+    for line in ax.get_xticklines():
+        line.set_marker(mpllines.TICKDOWN)
+
+    for line in ax.get_yticklines():
+        line.set_marker(mpllines.TICKLEFT)
+    
+    if sizeformat == "esurf":
+        lw = 1.0
+        pd = 8
+    elif sizeformat == "geomorphology":
+        lw = 1.5
+        pd = 10
+    elif sizeformat == "big":
+        lw = 2
+        pd = 12
+    else:
+        lw = 1.0
+        pd = 8        
+
+    ax.spines['top'].set_linewidth(lw)
+    ax.spines['left'].set_linewidth(lw)
+    ax.spines['right'].set_linewidth(lw)
+    ax.spines['bottom'].set_linewidth(lw) 
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
+    ax.tick_params(axis='both', width=lw, pad = pd)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(pd) 
+        
+    return ax
+
+    
+
 #==============================================================================
 # This formats ticks if you want to convert metres to km
 #==============================================================================
@@ -285,204 +336,12 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     return new_xlocs,new_ylocs,x_labels,y_labels
 #==============================================================================
 
-#==============================================================================
-def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters',clim_val = (0,0)):
-    """This creates a plot of a raster where the colours are streched over log space
-    
-    Args:
-        FileName (str): The name of the raster (with full path and extension).        
-        thiscmap (colormap): The colourmap to be used.
-        colorbarlabel (str): The label of the colourbar
-        clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
 
-    Returns:
-        A density plot of the raster.
-        
-    Author:
-        Simon M Mudd  
-    """     
-    import matplotlib.pyplot as plt
-    import matplotlib.lines as mpllines
-
-    label_size = 20
-    axis_size = 28
-
-    # Set up fonts for plots
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = label_size 
-
-    # get the data
-    raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
-    
-    # get the log of the raster
-    raster = np.log10(raster)
-    
-    # now get the extent
-    extent_raster = LSDMap_IO.GetRasterExtent(FileName)
-    
-    x_min = extent_raster[0]
-    x_max = extent_raster[1]
-    y_min = extent_raster[2]
-    y_max = extent_raster[3]
-
-    # make a figure, sized for a ppt slide
-    fig = plt.figure(1, facecolor='white',figsize=(10,7.5))
-
-    # make room for the colorbar
-    fig.subplots_adjust(bottom=0.2)
-    fig.subplots_adjust(top=0.9)
-
-    ax1 =  fig.add_subplot(1,1,1)
-    im = ax1.imshow(raster[::-1], thiscmap, extent = extent_raster)
-
-    # now get the tick marks    
-    n_target_tics = 5
-    xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
-
-    plt.xticks(xlocs, new_x_labels, rotation=60)  #[1:-1] skips ticks where we have no data
-    plt.yticks(ylocs, new_y_labels) 
-    
-    print("The x locs are: ") 
-    print(xlocs)
-    
-    print("The x labels are: ")
-    print(new_x_labels)
-    
-    # some formatting to make some of the ticks point outward    
-    for line in ax1.get_xticklines():
-        line.set_marker(mpllines.TICKDOWN)
-
-    for line in ax1.get_yticklines():
-        line.set_marker(mpllines.TICKLEFT)
-
-    plt.xlabel('Easting (m)',fontsize = axis_size)
-    plt.ylabel('Northing (m)', fontsize = axis_size)  
-
-    ax1.set_xlabel("Easting (m)")
-    ax1.set_ylabel("Northing (m)")
-    
-    # set the colour limits
-    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
-    if (clim_val == (0,0)):
-        print("I don't think I should be here")
-        im.set_clim(0, np.nanmax(raster))
-    else:
-        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
-        im.set_clim(clim_val[0],clim_val[1])
-    
-    
-    cbar = fig.colorbar(im, orientation='horizontal')
-    cbar.set_label(colorbarlabel)  
-
-    plt.show()
 
 #==============================================================================
-
-#==============================================================================
-def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters',clim_val = (0,0)):
-    """This creates a plot of a raster. The most basic plotting function
-    
-    Args:
-        FileName (str): The name of the raster (with full path and extension).        
-        thiscmap (colormap): The colourmap to be used.
-        colorbarlabel (str): The label of the colourbar
-        clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
-
-    Returns:
-        A density plot of the raster
-        
-    Author:
-        Simon M Mudd  
-    """     
-    import matplotlib.pyplot as plt
-    import matplotlib.lines as mpllines
-
-    label_size = 20
-    #title_size = 30
-    axis_size = 28
-
-    # Set up fonts for plots
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = label_size 
-
-    # get the data
-    raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
-    
-    # now get the extent
-    extent_raster = LSDMap_IO.GetRasterExtent(FileName)
-    
-    x_min = extent_raster[0]
-    x_max = extent_raster[1]
-    y_min = extent_raster[2]
-    y_max = extent_raster[3]
-
-    # make a figure, sized for a ppt slide
-    fig = plt.figure(1, facecolor='white',figsize=(10,7.5))
-    
-    ax1 =  fig.add_subplot(1,1,1)
-    im = ax1.imshow(raster[::-1], thiscmap, extent = extent_raster)
-    
-    #print("The is the extent raster data element")
-    #print(extent_raster)
-
-    #print("now I am in the mapping routine")
-    #print("x_min: " + str(x_min))
-    #print("x_max: " + str(x_max))
-    #print("y_min: " + str(y_min))
-    #print("y_max: " + str(y_max))
-
-    # now get the tick marks    
-    n_target_tics = 5
-    xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
-
-    plt.xticks(xlocs, new_x_labels, rotation=60)  #[1:-1] skips ticks where we have no data
-    plt.yticks(ylocs, new_y_labels) 
-    
-    #print("The x locs are: ") 
-    #print(xlocs)
-    
-    #print("The x labels are: ")
-    #print(new_x_labels)
-    
-    # some formatting to make some of the ticks point outward    
-    for line in ax1.get_xticklines():
-        line.set_marker(mpllines.TICKDOWN)
-        #line.set_markeredgewidth(3)
-
-    for line in ax1.get_yticklines():
-        line.set_marker(mpllines.TICKLEFT)
-        #line.set_markeredgewidth(3)  
-    
-    plt.xlim(x_min,x_max)    
-    plt.ylim(y_max,y_min)   
-   
-    plt.xlabel('Easting (m)',fontsize = axis_size)
-    plt.ylabel('Northing (m)', fontsize = axis_size)  
-
-    ax1.set_xlabel("Easting (m)")
-    ax1.set_ylabel("Northing (m)")
-    
-    # set the colour limits
-    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
-    if (clim_val == (0,0)):
-        print("I don't think I should be here")
-        im.set_clim(0, np.nanmax(raster))
-    else:
-        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
-        im.set_clim(clim_val[0],clim_val[1])
-    
-    
-    cbar = fig.colorbar(im, orientation='vertical')
-    cbar.set_label(colorbarlabel)  
-    plt.show()
-
-#==============================================================================
-
-#==============================================================================
-def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters',
-                             clim_val = (0,0),FigFileName = 'Image.pdf', FigFormat = 'show'):
+def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meters',
+                             clim_val = (0,0),FigFileName = 'Image.pdf', FigFormat = 'show',
+                             size_format = "esurf", is_log = False):
     """This creates a plot of a raster. The most basic plotting function. It uses AxisGrid to ensure proper placment of the raster.
     
     Args:
@@ -491,7 +350,9 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
         colorbarlabel (str): The label of the colourbar
         clim_val (float,float): The colour limits. If (0,0) then the min and max raster values are used. 
         FigFilename (str): The name of the figure (with extension)
-        FigFormat (str): the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen. 
+        FigFormat (str): the format of the figure (e.g., jpg, png, pdf). If "show" then the figure is plotted to screen.
+        size_format (str): the size of the figure
+        islog (bool): True if you want the figure to have a log density not the density
     
     Returns:
         A density plot of the raster
@@ -512,6 +373,10 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
     
+    if is_log:
+        # get the log of the raster
+        raster = np.log10(raster)
+    
     # now get the extent
     extent_raster = LSDMap_IO.GetRasterExtent(FileName)
     
@@ -520,8 +385,16 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
     y_min = extent_raster[2]
     y_max = extent_raster[3]
 
-    # make a figure, sized for a ppt slide
-    fig = plt.figure(1, facecolor='white',figsize=(10,7.5))
+    # make a figure, 
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
 
     gs = plt.GridSpec(100,75,bottom=0.1,left=0.1,right=0.9,top=1.0)
     ax = fig.add_subplot(gs[10:100,10:75])
@@ -544,11 +417,6 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
         print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im.set_clim(clim_val[0],clim_val[1])
     
-    # go through the ticks     
-    ax.spines['top'].set_linewidth(2.5)
-    ax.spines['left'].set_linewidth(2.5)
-    ax.spines['right'].set_linewidth(2.5)
-    ax.spines['bottom'].set_linewidth(2.5) 
         
     # This affects all axes because we set share_all = True.
     ax.set_xlim(x_min,x_max)    
@@ -563,10 +431,18 @@ def BasicDensityPlotGridPlot(FileName, thiscmap='gray',colorbarlabel='Elevation 
     ax.set_xlabel("Easting (m)")
     ax.set_ylabel("Northing (m)")  
 
-    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
-    ax.tick_params(axis='both', width=2.5, pad = 10)
-    for tick in ax.xaxis.get_major_ticks():
-        tick.set_pad(10)        
+    ax = TickSpineFormatter(ax,size_format)
+    
+#    # go through the ticks     
+#    ax.spines['top'].set_linewidth(2.5)
+#    ax.spines['left'].set_linewidth(2.5)
+#    ax.spines['right'].set_linewidth(2.5)
+#    ax.spines['bottom'].set_linewidth(2.5) 
+#    
+#    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap        
+#    ax.tick_params(axis='both', width=2.5, pad = 10)
+#    for tick in ax.xaxis.get_major_ticks():
+#        tick.set_pad(10)        
 
     print("The figure format is: " + FigFormat)
     if FigFormat == 'show':    

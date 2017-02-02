@@ -106,7 +106,6 @@ class LSDMap_PlottingDriver(object):
         
         # Basic plots
         plotting_switches["BasicDensityPlot"] = False
-        plotting_switches["BasicDensityPlotGridPlot"] = False
         plotting_switches["BasicDrapedPlotGridPlot"] = False
         plotting_switches["DrapedOverHillshade"] = False
         plotting_switches["DrapedOverFancyHillshade"] = False
@@ -155,6 +154,7 @@ class LSDMap_PlottingDriver(object):
         num_default_parameters["elevation_threshold"] = 0
         
         bool_default_parameters["label_sources"] = False
+        bool_default_parameters["is_log"] = False
 
         
         
@@ -219,26 +219,22 @@ class LSDMap_PlottingDriver(object):
         """
         import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
 
-        
-        if self.plotting_switches["BasicDensityPlot"]:
-            LSDMap_BP.BasicDensityPlot(self.base_faster_fname, 
-                                       self.plotting_parameters["base_cmap"],
-                                       self.plotting_parameters["cbar_label"],
-                                       self.plotting_parameters["clim_val"])
             
-        if self.plotting_switches["BasicDensityPlotGridPlot"]: 
+        if self.plotting_switches["BasicDensityPlot"]: 
             
             # Check to see if there is a filename. If not set a default file name
             if self.plotting_parameters["FigFileName"] == "None":
-                self.plotting_parameters["FigFileName"] = self.FilePath+os.sep+self.FilePrefix+"BDPG."+self.plotting_parameters["FigFormat"]     
+                self.plotting_parameters["FigFileName"] = self.FilePath+os.sep+self.FilePrefix+"BDP."+self.plotting_parameters["FigFormat"]     
             
             print("Hey there partner, I am making a grid plot.")
-            LSDMap_BP.BasicDensityPlotGridPlot(self.base_faster_fname, 
+            LSDMap_BP.BasicDensityPlot(self.base_faster_fname, 
                                        self.plotting_parameters["base_cmap"],
                                        self.plotting_parameters["cbar_label"],
                                        self.plotting_parameters["clim_val"],
                                        self.plotting_parameters["FigFileName"],
-                                       self.plotting_parameters["FigFormat"])
+                                       self.plotting_parameters["FigFormat"],
+                                       self.plotting_parameters["size_format"],
+                                       self.plotting_parameters["is_log"])
                 
             
         if self.plotting_switches["BasicDrapedPlotGridPlot"]:
