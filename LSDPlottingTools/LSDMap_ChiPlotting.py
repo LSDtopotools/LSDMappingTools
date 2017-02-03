@@ -890,6 +890,8 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     basin = [int(x) for x in basin] 
     source = thisPointData.QueryData('source_key')
     source = [int(x) for x in source]
+              
+    print("The number of data points are: " +str(len(chi)))
 
     # need to convert everything into arrays so we can mask different basins
     Chi = np.asarray(chi)
@@ -920,6 +922,11 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     dot_pos = FigFileName.rindex('.')
     newFilename = FigFileName[:dot_pos]+FigFileName[dot_pos:]
     print("newFilename: "+newFilename)
+    
+    if len(basin_order_list) == 0:
+        print("No basins in this list!")
+        print("I am defaulting to look at basin 0")
+        basin_order_list.append(0)
 
     texts = []
     bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec="k", lw=0.5,alpha = 0.25)

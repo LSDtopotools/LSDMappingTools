@@ -87,7 +87,7 @@ class LSDMap_PlottingDriver(object):
         self.hs_fname = str(self.FilePath+os.sep+self.FilePrefix+"_hs.bil")
         self.basin_fname = str(self.FilePath+os.sep+self.FilePrefix+"_AllBasins.bil")
         self.chi_raster_fname = str(self.FilePath+os.sep+self.FilePrefix+"_chi_coord.bil")
-        self.chi_csv_fname = str(self.FilePath+os.sep+self.FilePrefix+"_MChi_segmented.csv")
+        self.chi_csv_fname = str(self.FilePath+os.sep+self.FilePrefix+"_MChiSegmented.csv")
         self.basic_chi_csv_fname = str(self.FilePath+os.sep+self.FilePrefix+"_chi_coord_basins.csv")
         self.basin_csv_fname = str(self.FilePath+os.sep+self.FilePrefix+"_AllBasinsInfo.csv")
         
@@ -152,6 +152,7 @@ class LSDMap_PlottingDriver(object):
         num_default_parameters["spread"] = 10
         num_default_parameters["basin_rename_list"] = []
         num_default_parameters["elevation_threshold"] = 0
+        num_default_parameters["source_thinning_threshold"]= 0
         
         bool_default_parameters["label_sources"] = False
         bool_default_parameters["is_log"] = False
@@ -318,5 +319,29 @@ class LSDMap_PlottingDriver(object):
                                        self.plotting_parameters["FigFormat"],
                                        self.plotting_parameters["size_format"])            
             
-         
+        if self.plotting_switches["ChiProfiles"]:
+            print("I am plotting a basic chi profile plot!")
+            
+            # Check to see if there is a filename. If not set a default file name
+            if self.plotting_parameters["FigFileName"] == "None":
+                self.plotting_parameters["FigFileName"] = self.FilePath+os.sep+self.FilePrefix+"ChiProfile."+self.plotting_parameters["FigFormat"]     
+
+                
+                
+            thisBasinData = LSDMap_PD.LSDMap_PointData(self.basin_csv_fname)
+            chi_drape_cname = 'CMRmap_r'
+            #chi_drape_cname = 'brg_r'
+            cbar_lablel = "$\chi$ (m)"
+            
+            print("The csv filename is: "+ self.chi_csv_fname)
+            
+            LSDMap_CP.ChiProfiles(self.chi_csv_fname,
+                                       self.plotting_parameters["FigFileName"],
+                                       self.plotting_parameters["FigFormat"],
+                                       self.plotting_parameters["basin_order_list"],      
+                                       self.plotting_parameters["basin_rename_list"],      
+                                       self.plotting_parameters["label_sources"], 
+                                       self.plotting_parameters["elevation_threshold"], 
+                                       self.plotting_parameters["source_thinning_threshold"], 
+                                       self.plotting_parameters["size_format"])            
             
