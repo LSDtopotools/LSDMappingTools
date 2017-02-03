@@ -156,6 +156,7 @@ class LSDMap_PlottingDriver(object):
         
         bool_default_parameters["label_sources"] = False
         bool_default_parameters["is_log"] = False
+        bool_default_parameters["plot_M_chi"]= False
 
         
         
@@ -317,6 +318,7 @@ class LSDMap_PlottingDriver(object):
                                        self.plotting_parameters["drape_alpha"],
                                        self.plotting_parameters["FigFileName"],
                                        self.plotting_parameters["FigFormat"],
+                                       self.plotting_parameters["plot_M_chi"],
                                        self.plotting_parameters["size_format"])            
             
         if self.plotting_switches["ChiProfiles"]:

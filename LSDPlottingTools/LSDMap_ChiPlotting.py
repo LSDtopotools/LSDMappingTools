@@ -818,7 +818,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
                 basin_order_list = [],basin_rename_list = [],
                 label_sources = False,
                 elevation_threshold = 0,
-                source_thinning_threshold = 0,
+                source_thinning_threshold = 0, plot_M_chi = False,
                 size_format = "ESURF"):
     """This function plots the chi vs elevation: lumps everything onto the same axis. This tends to make a mess. 
  
@@ -831,6 +831,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
         label_sources (bool): If tru, label the sources.
         elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
         source_thinning_threshold (float) = Minimum chi length of a source segment. No thinning if 0
+        plot_MChi (bool): If true, plots chi against MChi
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf). 
  
     Returns:
@@ -897,18 +898,23 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     Chi = np.asarray(chi)
     Elevation = np.asarray(elevation)
     #Fdist = np.asarray(fdist)
-    #M_chi = np.asarray(m_chi)
+    M_chi = np.asarray(m_chi)
     Basin = np.asarray(basin)
     Source = np.asarray(source)
     
     #max_basin = np.amax(Basin)
     max_chi = np.amax(Chi)
     max_Elevation = np.amax(Elevation)
-    #max_M_chi = np.amax(M_chi)
+    max_M_chi = np.amax(M_chi)
     min_Elevation = np.amin(Elevation)
     
-    z_axis_min = int(min_Elevation/10)*10 
-    z_axis_max = int(max_Elevation/10)*10+10
+    if plot_M_chi:
+        z_axis_min = 0
+        z_axis_max = int(max_M_chi/10)*10+10
+    else:    
+        z_axis_min = int(min_Elevation/10)*10 
+        z_axis_max = int(max_Elevation/10)*10+10
+    
     chi_axis_max = int(max_chi/5)*5+5
     
     # make a color map of fixed colors
@@ -936,9 +942,14 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
 
         m = np.ma.masked_where(Basin!=basin_number, Basin)
         maskX = np.ma.masked_where(np.ma.getmask(m), Chi)
-        maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+        if plot_M_chi:
+            maskElevation = np.ma.masked_where(np.ma.getmask(m), M_chi)
+        else:
+            maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
+            
         maskBasin = np.ma.masked_where(np.ma.getmask(m), Basin_colors)
         maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
+        
     
         # logic for source labeling
         if label_sources:
@@ -957,7 +968,11 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
             
             for this_source in list_source:
                 source_Chi= source_info[this_source]["Chi"]
-                source_Elevation = source_info[this_source]["Elevation"]
+                
+                if plot_M_chi:
+                    source_Elevation = source_info[this_source]["M_chi"]
+                else:
+                    source_Elevation = source_info[this_source]["Elevation"]
                 #print("Source is: "+str(this_source))
                 #print("Chi is: "+str(source_info[this_source]["Chi"]))
                 #print("FlowDistance is is: "+str(source_info[this_source]["FlowDistance"]))
