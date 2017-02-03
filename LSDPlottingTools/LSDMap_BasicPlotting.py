@@ -386,6 +386,8 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     y_max = extent_raster[3]
 
     # make a figure, 
+    # make a figure,
+    print("The size format is: " + size_format)
     if size_format == "geomorphology":
         fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
         l_pad = -40
@@ -395,18 +397,27 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     else:
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
         l_pad = -35
+        
+    gs = plt.GridSpec(100,100,bottom=0.1,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[15:100,15:95])
 
-    gs = plt.GridSpec(100,75,bottom=0.1,left=0.1,right=0.9,top=1.0)
-    ax = fig.add_subplot(gs[10:100,10:75])
-
+    # This is the axis for the colorbar   
+    ax2 = fig.add_subplot(gs[10:15,15:80])
+    
+    
     # now get the tick marks    
     n_target_tics = 5
     xlocs,ylocs,new_x_labels,new_y_labels = GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)  
 
     im = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
 
-    cbar = plt.colorbar(im)
-    cbar.set_label(colorbarlabel) 
+    
+    plt.colorbar(im,cmap=thiscmap,spacing='uniform', orientation='horizontal',cax=ax2)   
+    ax2.text(0,1,colorbarlabel,horizontalalignment='left',
+        verticalalignment='bottom',transform=ax2.transAxes)
+    #ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=0)   
+    #cbar = plt.colorbar(im)
+    #cbar.set_label(colorbarlabel) 
     
     # set the colour limits
     #print "Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1])
@@ -425,11 +436,16 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     ax.set_xticks(xlocs)
     ax.set_yticks(ylocs)
     
+    # convert to km
+    n_hacked_digits = 3
+    new_x_labels = TickLabelShortenizer(new_x_labels,n_hacked_digits)
+    new_y_labels = TickLabelShortenizer(new_y_labels,n_hacked_digits)
+    
     ax.set_xticklabels(new_x_labels,rotation=60)
     ax.set_yticklabels(new_y_labels)  
     
-    ax.set_xlabel("Easting (m)")
-    ax.set_ylabel("Northing (m)")  
+    ax.set_xlabel("Easting (km)")
+    ax.set_ylabel("Northing (km)")  
 
     ax = TickSpineFormatter(ax,size_format)
     
