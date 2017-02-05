@@ -974,10 +974,20 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
         maskBasin = np.ma.masked_where(np.ma.getmask(m), Basin_colors)
         maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
         
-        if(have_segmented_elevation):
-            # We need to loop through the sources
-            maskSegmentedElevation = np.ma.masked_where(np.ma.getmask(m),Segmented_elevation)
-            ax.plot(maskX,maskSegmentedElevation,'--')
+        if(have_segmented_elevation):            
+            # We need to loop through the sources. 
+            # We can do that by converting the sources to a set and then looping through the set 
+            sources_list = maskSource.tolist()
+            myset = set(sources_list)
+            print("The sources are: ")
+            print(myset)
+            sources_list = list(myset)
+            for source in sources_list:
+                m_mask = np.ma.masked_where(Source!=source, Source)
+                mask_maskX = np.ma.masked_where(np.ma.getmask(m_mask), Chi)
+                maskSegmentedElevation = np.ma.masked_where(np.ma.getmask(m_mask), Segmented_elevation)
+                a_line, = ax.plot(mask_maskX,maskSegmentedElevation,'b',alpha = 0.6)
+                a_line.set_dashes([3,1])
         
     
         # logic for source labeling
