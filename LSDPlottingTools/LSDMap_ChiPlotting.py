@@ -819,7 +819,8 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
                 label_sources = False,
                 elevation_threshold = 0,
                 source_thinning_threshold = 0, plot_M_chi = False,
-                size_format = "ESURF"):
+                size_format = "ESURF",
+                plot_segments = False):
     """This function plots the chi vs elevation: lumps everything onto the same axis. This tends to make a mess. 
  
     Args:
@@ -828,7 +829,7 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. 
         basin_order_list (int list): The basins to plot
         basin_rename_list (int list): A list for naming substitutions
-        label_sources (bool): If tru, label the sources.
+        label_sources (bool): If true, label the sources.
         elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
         source_thinning_threshold (float) = Minimum chi length of a source segment. No thinning if 0
         plot_MChi (bool): If true, plots chi against MChi
@@ -849,6 +850,11 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size     
+   
+    if plot_M_chi:
+        print("I will plot chi vs M_chi")
+    else:
+        print("I will plot ci vs elevation")
    
     # make a figure, 
     if size_format == "geomorphology":
@@ -891,6 +897,21 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     basin = [int(x) for x in basin] 
     source = thisPointData.QueryData('source_key')
     source = [int(x) for x in source]
+    
+    segments = thisPointData.QueryData('segment_number')
+    segments = [int(x) for x in segments]
+    segmented_elevation = thisPointData.QueryData('segmented_elevation')
+    segmented_elevation = [float(x) for x in segmented_elevation]
+    
+    # Some booleans that tell if there are segments and segmented elevation
+    have_segments = False
+    if len(segments) == len(chi):
+        have_segments = True
+        print("I've got the segments")
+    have_segmented_elevation = False
+    if len(segmented_elevation) == len(chi):
+        have_segmented_elevation = True
+        print("I've got segmented elevation")
               
     print("The number of data points are: " +str(len(chi)))
 
@@ -901,6 +922,9 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     M_chi = np.asarray(m_chi)
     Basin = np.asarray(basin)
     Source = np.asarray(source)
+    
+    Segments = np.asarray(segments)
+    Segmented_elevation = np.asarray(segmented_elevation)
     
     #max_basin = np.amax(Basin)
     max_chi = np.amax(Chi)
@@ -949,6 +973,11 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
             
         maskBasin = np.ma.masked_where(np.ma.getmask(m), Basin_colors)
         maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
+        
+        if(have_segmented_elevation):
+            # We need to loop through the sources
+            maskSegmentedElevation = np.ma.masked_where(np.ma.getmask(m),Segmented_elevation)
+            ax.plot(maskX,maskSegmentedElevation,'--')
         
     
         # logic for source labeling

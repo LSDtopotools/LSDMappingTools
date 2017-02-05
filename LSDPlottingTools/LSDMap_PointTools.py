@@ -273,6 +273,8 @@ class LSDMap_PointData(object):
         """
         if data_name not in self.VariableList:
             print("The data " + data_name + " is not one of the data elements in this point data")
+            empty_list = []            
+            return empty_list
         else:
         
             if PrintToScreen:
