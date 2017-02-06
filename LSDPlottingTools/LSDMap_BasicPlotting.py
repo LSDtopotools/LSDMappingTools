@@ -1299,7 +1299,7 @@ def LongitudinalSwathAnalysisPlot(full_file_path, ax):
     #plt.plot(distance,minimum,'-.',color='black')
     #plt.plot(distance,maximum,'-.',color='black')
     
-    ax.plot(distance,mean,'-')
+    ax.plot(distance,mean,'-', alpha=0.6)
    
     # Configure final plot
     ax.spines['top'].set_linewidth(1)
@@ -1311,7 +1311,7 @@ def LongitudinalSwathAnalysisPlot(full_file_path, ax):
     plt.xlabel('Distance along channel longitudinal profile (m)')
     plt.subplots_adjust(bottom=0.15,left=0.18)
 
-def MultiLongitudinalSwathAnalysisPlot(data_dir, wildcard_fname):
+def MultiLongitudinalSwathAnalysisPlot(data_dir, wildcard_fname,maximum=0):
     """For multiple overlaid channel swath profiles.
     
     Author:
@@ -1325,7 +1325,7 @@ def MultiLongitudinalSwathAnalysisPlot(data_dir, wildcard_fname):
         print(f)
         LongitudinalSwathAnalysisPlot(f, ax)
     
-    x, y = function_sketcher((lambda x: x*0), np.linspace(0,45000, 100))    
+    x, y = function_sketcher((lambda x: x*0), np.linspace(0,maximum, 100))    
     ax.plot( x, y, linestyle="--", color="k" )
         
     fig.canvas.draw()
