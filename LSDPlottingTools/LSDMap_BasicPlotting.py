@@ -1324,8 +1324,26 @@ def MultiLongitudinalSwathAnalysisPlot(data_dir, wildcard_fname):
     for f in glob.glob(data_dir + wildcard_fname):
         print(f)
         LongitudinalSwathAnalysisPlot(f, ax)
+    
+    x, y = function_sketcher((lambda x: x*0), np.linspace(0,45000, 100))    
+    ax.plot( x, y, linestyle="--", color="k" )
         
     fig.canvas.draw()
+    
+def function_sketcher(formula, x_range):  
+    """Creates x and y values over specified range for a given lambda function.
+    
+    Arguments:
+        formula: a lambda function describing a mathematical function
+            example: "lambda x: x**3+2*x-4" (ommit the quotations when passing)
+        x_range: A range of numbers to calculate y from = range(0,10) or np.linspace
+            
+    Author:
+        DAV
+    """
+    x = np.array(x_range)
+    y = formula(x)
+    return x, y
 
 #==============================================================================
 def round_to_n(x, n):
