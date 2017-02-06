@@ -1171,7 +1171,8 @@ def Hillshade(raster_file, azimuth = 315, angle_altitude = 45, NoDataValue = -99
 
 #==============================================================================
 def SwathPlot(path, filename, axis):
-    """A function that creates a swath in either the x or y direction only. Averages across entire DEM. Exceedingly basic. 
+    """A function that creates a swath in either the x or y direction only. 
+       Averages across entire DEM. Exceedingly basic. 
     
     Args:
         path (str): the path to the raster
@@ -1236,9 +1237,95 @@ def SwathPlot(path, filename, axis):
 #==============================================================================    
     
 
+def LongitudinalSwathAnalysisPlot(full_file_path, ax):
+    """Longitudinal channel swath profiles from the swath analysis driver
+        output.
+        
+    Author:
+        DAV & DTM
+    """
 
-#==============================================================================
+    # FileList = dir +   
+    f = open(full_file_path, 'r')
+    lines = f.readlines()
+    N_Segments = len(lines)-1
 
+    # Initialise a bunch of vectors
+    distance = np.zeros(N_Segments)
+    mean = np.zeros(N_Segments)
+    sd = np.zeros(N_Segments)
+    minimum = np.zeros(N_Segments)
+    LQ = np.zeros(N_Segments)
+    median = np.zeros(N_Segments)
+    UQ = np.zeros(N_Segments)
+    maximum = np.zeros(N_Segments)
+    for i in range (0, N_Segments):        
+       
+       line = lines[i+1].strip().split(" ")
+       distance[i] = float(line[0])
+       mean[i] = float(line[1])
+       sd[i] = float(line[2])
+       minimum[i] = float(line[3])
+       LQ[i] = float(line[4])
+       median[i] = float(line[5])
+       UQ[i] = float(line[6])
+       maximum[i] = float(line[7])
+       
+       # if there is nodata (-9999) replace with the numpy nodata entry
+       if (mean[i] == -9999):
+         mean[i] = np.nan
+         sd[i] = np.nan
+         minimum[i] = np.nan
+         LQ[i] = np.nan
+         median[i] = np.nan
+         UQ[i] = np.nan
+         maximum[i] = np.nan
+         
+    f.close()
+
+    #######################
+    #                     #
+    #  Plot data          #
+    #                     #
+    #######################    
+    OutputFigureFormat = 'pdf'    
+    # SET UP COLOURMAPS
+    # PLOT 1 -> transverse profile
+    #plt.figure(1, facecolor='White',figsize=[10,6])
+
+    #plt.plot(distance,median,'-')
+    #plt.plot(distance,LQ,'--',color='green')
+    #plt.plot(distance,UQ,'--',color='green')
+    #plt.plot(distance,minimum,'-.',color='black')
+    #plt.plot(distance,maximum,'-.',color='black')
+    
+    ax.plot(distance,mean,'-')
+   
+    # Configure final plot
+    ax.spines['top'].set_linewidth(1)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['right'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1) 
+    ax.tick_params(axis='both', width=1)    
+    plt.ylabel('Average elevation difference (m)')
+    plt.xlabel('Distance along channel longitudinal profile (m)')
+    plt.subplots_adjust(bottom=0.15,left=0.18)
+
+def MultiLongitudinalSwathAnalysisPlot(data_dir, wildcard_fname):
+    """For multiple overlaid channel swath profiles.
+    
+    Author:
+        DAV
+    """
+    import glob
+    
+    fig, ax = plt.subplots()
+    
+    for f in glob.glob(data_dir + wildcard_fname):
+        print(f)
+        LongitudinalSwathAnalysisPlot(f, ax)
+        
+    fig.canvas.draw()
 
 #==============================================================================
 def round_to_n(x, n):
@@ -1264,7 +1351,7 @@ def round_to_n(x, n):
 #==============================================================================
 
 def init_plotting_DV():
-    """Initial plotting parameterss.
+    """Initial plotting parameters.
     
     Author:
         DAV
