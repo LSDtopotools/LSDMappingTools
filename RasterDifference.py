@@ -16,11 +16,12 @@ Created on Sun Jan 15 16:18:35 2017
 """
 import LSDPlottingTools as LSDP
 
-DataDirectory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/erode_diff/test_raster_diff_func/"
+DataDirectory = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
 
 
-LSDP.RasterDifference(DataDirectory + "BoscastleElevations0.asc", 
-                      DataDirectory + "Elevations4200.asc", 
+LSDP.RasterDifference(DataDirectory + "RyedaleElevDiff_GRIDDED_TLIM.bil", 
+                      DataDirectory + "RyedaleElevDiff_UNIFORM_TLIM.bil", 
                       raster_band=1, 
-                      OutFileName="BoscastleElevDiff_GRID_DLIM.bil", 
+                      OutFileName="RyedaleErodeDiff_GRID_UNI_TLIMM.bil", 
                       OutFileType="ENVI")
+
