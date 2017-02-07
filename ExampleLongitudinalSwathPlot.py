@@ -25,5 +25,9 @@ file_wildcard = "*ElevDiff_*_TLIM_long_profile.txt"
 plt.rcParams['lines.linewidth'] = 1.5
 
 # Returns the objects now
+# Cycles through input swath files in alphabetical order.
 fig, ax = MultiLongitudinalSwathAnalysisPlot(data_dir, file_wildcard, maximum=45000)
+
+# Check these corespond to the correct line.
+ax.legend(['Key label 1','Key label 2'],loc='best')
 

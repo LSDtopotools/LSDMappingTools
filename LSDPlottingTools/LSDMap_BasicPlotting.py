@@ -1311,8 +1311,17 @@ def LongitudinalSwathAnalysisPlot(full_file_path, ax):
     plt.xlabel('Distance along channel longitudinal profile (m)')
     plt.subplots_adjust(bottom=0.15,left=0.18)
 
-def MultiLongitudinalSwathAnalysisPlot(data_dir, wildcard_fname,maximum=0):
+def MultiLongitudinalSwathAnalysisPlot(data_dir, wildcard_fname, maximum=0):
     """For multiple overlaid channel swath profiles.
+    
+    Arguments:
+        data_dir: Full path to the directory containing the swath profile text 
+                    files.
+        wildcard_fname: Any string that can be expanded by python's `glob` to 
+                        give a list of files, e.g. "some_common_prefix_*.txt"
+        maximum (optional): Hacky solution, but give this a float value and it
+                            will plot the 'zero' line on your swath profile. 
+                            C.f. maximum length of channel)
     
     Author:
         DAV
@@ -1321,11 +1330,12 @@ def MultiLongitudinalSwathAnalysisPlot(data_dir, wildcard_fname,maximum=0):
     
     fig, ax = plt.subplots()
     
-    for f in glob.glob(data_dir + wildcard_fname):
+    for f in sorted(glob.glob(data_dir + wildcard_fname)):
         print(f)
         LongitudinalSwathAnalysisPlot(f, ax)
     
-    x, y = function_sketcher((lambda x: x*0), np.linspace(0,maximum, 100))    
+    # Plot the zero line on the graph, if length supplied.
+    x, y = function_sketcher((lambda x: x*0), np.linspace(0, maximum, 100))    
     ax.plot( x, y, linestyle="--", color="k" )
         
     fig.canvas.draw()
