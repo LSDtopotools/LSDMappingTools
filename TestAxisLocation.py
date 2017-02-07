@@ -21,8 +21,8 @@ def TestAxisLocation():
     rcParams['xtick.labelsize'] = tick_label_size
     rcParams['ytick.labelsize'] = tick_label_size 
     
-    DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\Divides\\"    
-    #DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
+    #DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\Divides\\"    
+    DataDirectory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
     Base_file = "Mega_divide"
      
     bil = ".bil"
@@ -69,7 +69,7 @@ def TestAxisLocation():
     right='off',         # ticks along the top edge are off
     labelleft='off') # labels along the bottom edge are off
     
-    ax1 = fig.add_axes([0.09,0.09,0.85,0.85])
+    ax1 = fig.add_axes([0.0,0.09,0.85,0.85])
     #ax1.set(alpha=0.25)    
     ax1.text(0.1,0.1,
              "x: Tick 10pt, Font 12pt need 0.9 inches.\n",
@@ -109,7 +109,7 @@ def TestAxisLocation():
     # So in every inch there are 94 points of text
     # The bottom 
     
-    
+    plt.show()
     
     
     

@@ -912,6 +912,8 @@ def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
     if len(segmented_elevation) == len(chi):
         have_segmented_elevation = True
         print("I've got segmented elevation")
+    else:
+        print("I don't have the segmented elevation")
               
     print("The number of data points are: " +str(len(chi)))
 
