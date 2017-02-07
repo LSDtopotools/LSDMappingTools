@@ -17,6 +17,7 @@ This software is realsed under the Artistic Licence v2.0
 
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
+import matplotlib.cm as _cm
 import numpy as np
 
 
@@ -68,7 +69,7 @@ class BackgroundRaster(BaseRaster):
     Class Background raster represents the background image over which the
     drape data can be overlain. (overlaid? overlayed? superimposed?)
     """
-    def __init__(self, RasterName, Directory, backgroundtype="Hillshade"):
+    def __init__(self, RasterName, Directory, background_type="Hillshade"):
         
         # We need to initialise our base class though first!
         super(BackgroundRaster, self).__init__(RasterName, Directory)
@@ -76,7 +77,7 @@ class BackgroundRaster(BaseRaster):
         # Could also have done it this way:
         # BaseRaster.__init__(RasterName, Directory)
         
-        self._backgroundtype = backgroundtype
+        self._backgroundtype = background_type
         
         self._render_background(self.fullpath_to_raster)
         #self._hillshade_raster = LSDP.Hillshade(self.fullpath_to_raster)
@@ -87,17 +88,22 @@ class BackgroundRaster(BaseRaster):
         will form the drape plot, e.g. a hillshade
         """
         if self._backgroundtype == "Hillshade":
-          self.Hillshade = LSDP.Hillshade(self.fullpath_to_raster)
+            self.Hillshade = LSDP.Hillshade(self.fullpath_to_raster)
+            self.colourmap = "gray"
+          
+        elif self._backgroundtype == "Terrain":
+            self.Hillshade = LSDP.ReadRasterArrayBlocks(self.fullpath_to_raster)
+            self.colourmap = "terrain"
         else:
-          print ("That background style is not yet supported. Currently only " \
-                " 'Hillshade' is supported")
+            print ("That background style is not yet supported. Currently only " \
+                   " 'Hillshade' and 'Terrain' are supported.")
         
     def show_hillshade(self):
         """
         For testing the hillshade
         """
         plt.imshow(self.Hillshade,
-                   cmap="gray",
+                   cmap=self.colourmap,
                    extent=self.extents)
         
 class DrapeRaster(BaseRaster):
@@ -157,11 +163,12 @@ class DrapePlot(object):
     a BackgroundRaster overlain with a DrapeRaster.
     """
     def __init__(self, DrapeRasterName, BackgroundRasterName, Directory,
-                 drape_colourmap,
+                 drape_colourmap, background_type="Hillshade",
                  drape_min_threshold=None, drape_max_threshold=None,
                  vmin=None, vmax = None, middle_mask_range=None):	
         
-        self.Background = BackgroundRaster(BackgroundRasterName, Directory)
+        self.Background = BackgroundRaster(BackgroundRasterName, Directory,
+                                           background_type)
         self.Drape = DrapeRaster(DrapeRasterName, Directory,
                                  drape_min_threshold=drape_min_threshold,
                                  drape_max_threshold=drape_max_threshold,
@@ -180,7 +187,7 @@ class DrapePlot(object):
         
         # Plot the background
         self.im = self.ax.imshow(self.Background.Hillshade,
-                                 "gray",
+                                 self.Background.colourmap,
                                  extent=self.Background.extents,
                                  interpolation="nearest")
         # Plot the drape (overlay data) on top.

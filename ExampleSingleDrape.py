@@ -15,15 +15,15 @@ Directory = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/erode_diff/Diff
 BackgroundRasterName = "RyedaleElevations0.asc"
 DrapeRasterName = "RyedaleErodeDiff_GRID_UNI_TLIMM.bil"
 #DrapeRasterName = "BoscastleErodeDiff_GRID_UNI_TLIMM.bil"
-Colourmap = "seismic"
+Colourmap = "coolwarm"
 drape_min_threshold = None
 drape_max_threshold = None
 colourbar_label = "Erosion/Deposition (m)"
 
 #raster = BaseRaster(RasterName, DataDirectory)
 dp = lsdmap.DrapePlot(DrapeRasterName, BackgroundRasterName, Directory,
-                      Colourmap, 
-                      vmin=-3, vmax=3, middle_mask_range=(-0.01,0.01))
+                      Colourmap, background_type="Terrain",
+                      vmin=-3, vmax=3, middle_mask_range=(-0.02,0.02))
 
 # Customise the DrapePlot
 dp.make_drape_colourbar(cbar_label=colourbar_label)
