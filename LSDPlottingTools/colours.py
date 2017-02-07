@@ -197,8 +197,31 @@ class MidpointNormalize(_mcolors.Normalize):
         # simple example...
         x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
         return _np.ma.masked_array(_np.interp(value, x, y))    
+
+        
+class MetaColours(type):
+    """A metclass for colourmaps making them all read-only attributes"""
     
+    @property
+    def niceterrain(cls):
+        """ A terrain colour map that doesn't have the stupid blue colour for
+            low lying land...
+        """
+        return cls._niceterrain
+
+class UsefulColourmaps(object, metaclass=MetaColours):
+    """The interface for accessing usefulcolourmaps attributes"""
+    _niceterrain = truncate_colormap("terrain", 0.25, 0.9)
+
+#class UsefulColourmaps(object):
+#    """A holding class for some useful custom colourmaps"""
+#    
+#    @property
+#    def niceterrain():
+#        niceterrain = truncate_colormap("terrain", 0.25, 0.9)
+#        return niceterrain
     
+    # That's all for now!
     
     
     
