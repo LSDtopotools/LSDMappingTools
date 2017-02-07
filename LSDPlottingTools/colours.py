@@ -8,6 +8,8 @@ Created on Thu Jan 12 14:33:21 2017
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from six import with_metaclass
+
 import numpy as _np
 import matplotlib as _mpl
 import matplotlib.pyplot as _plt
@@ -216,7 +218,8 @@ class MetaColours(type):
         """
         return cls._darkearth
 
-class UsefulColourmaps(object, metaclass=MetaColours):
+#class UsefulColourmaps(object, metaclass=MetaColours):
+class UsefulColourmaps(with_metaclass(MetaColours, object)):    
     """The interface for accessing usefulcolourmaps attributes"""
     _niceterrain = truncate_colormap("terrain", 0.25, 0.9)
     _darkearth = truncate_colormap("gist_earth", 0.25, 0.9)
