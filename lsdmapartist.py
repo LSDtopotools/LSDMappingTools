@@ -93,7 +93,8 @@ class BackgroundRaster(BaseRaster):
           
         elif self._backgroundtype == "Terrain":
             self.Hillshade = LSDP.ReadRasterArrayBlocks(self.fullpath_to_raster)
-            self.colourmap = LSDP.colours.UsefulColourmaps.niceterrain
+            #self.colourmap = LSDP.colours.UsefulColourmaps.niceterrain
+            self.colourmap = LSDP.colours.UsefulColourmaps.darkearth
             #self.colourmap = "terrain"
         else:
             print ("That background style is not yet supported. Currently only " \
