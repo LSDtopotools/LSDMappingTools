@@ -15,11 +15,15 @@ from LSDPlottingTools.LSDMap_BasicPlotting \
 
 init_plotting_DV()
 
-data_dir = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/SwathProfile/Swath_secondVisit/Ryedale/"
+#data_dir = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/SwathProfile/Swath_secondVisit/Ryedale/"
+data_dir = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/SwathProfile/Swath_secondVisit/Ryedale/"
+
 file_single = "RyedaleElevDiff_GRIDDED_TLIM_long_profile.txt"
 file_wildcard = "*ElevDiff_*_TLIM_long_profile.txt"
 
 #plot_swath_profile(file_single + data_dir)
 plt.rcParams['lines.linewidth'] = 1.5
 
-MultiLongitudinalSwathAnalysisPlot(data_dir, file_wildcard)
+# Returns the objects now
+fig, ax = MultiLongitudinalSwathAnalysisPlot(data_dir, file_wildcard, maximum=45000)
+

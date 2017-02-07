@@ -1329,6 +1329,7 @@ def MultiLongitudinalSwathAnalysisPlot(data_dir, wildcard_fname,maximum=0):
     ax.plot( x, y, linestyle="--", color="k" )
         
     fig.canvas.draw()
+    return fig, ax
     
 def function_sketcher(formula, x_range):  
     """Creates x and y values over specified range for a given lambda function.
@@ -1336,7 +1337,12 @@ def function_sketcher(formula, x_range):
     Arguments:
         formula: a lambda function describing a mathematical function
             example: "lambda x: x**3+2*x-4" (ommit the quotations when passing)
+                    would represent the line $y = x^3 + 2*x - 4$.
         x_range: A range of numbers to calculate y from = range(0,10) or np.linspace
+        
+    Returns:
+        x: the x coordinates of the function graph as a numpy array (same as x_range)
+        y: the y coordinates of the function graph as a numpy array
             
     Author:
         DAV
