@@ -209,9 +209,17 @@ class MetaColours(type):
         """
         return cls._niceterrain
 
+    @property
+    def darkearth(cls):
+        """ A terrain colour map that doesn't have the stupid blue colour for
+            low lying land...
+        """
+        return cls._darkearth
+
 class UsefulColourmaps(object, metaclass=MetaColours):
     """The interface for accessing usefulcolourmaps attributes"""
     _niceterrain = truncate_colormap("terrain", 0.25, 0.9)
+    _darkearth = truncate_colormap("gist_earth", 0.25, 0.9)
 
 #class UsefulColourmaps(object):
 #    """A holding class for some useful custom colourmaps"""
