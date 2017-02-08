@@ -179,9 +179,17 @@ class nonlinear_colourmap(LinearSegmentedColormap):
 #        yi = _np.interp(xi, self._x, self.transformed_levels)
 #        return self.cmap(yi / self.levmax, alpha)
     
-    def sort_levels(self, levels):
-        #levels = levels[levels <= 4.5] # Should check levels are not gt max value in data.
-        return levels.sort()
+    def create_levels(self, tmin, tmax, sigma1, sigma2, t1mean, t2mean):
+        """ Creates levels for the non-linear colourmap"""
+        levels = _np.concatenate((
+                    [tmin, tmax],
+                    _np.linspace(t1mean - 2 * sigma1, t1mean + 2 * sigma1, 5),
+                    _np.linspace(t2mean - 2 * sigma2, t2mean + 2 * sigma2, 5),
+                    ))
+        levels = levels[levels <= tmax]
+        levels.sort()
+        print(levels)
+        return levels
 
 
 class MidpointNormalize(_mcolors.Normalize):
