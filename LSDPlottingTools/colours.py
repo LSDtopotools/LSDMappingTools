@@ -72,9 +72,9 @@ def discrete_colourmap(N, base_cmap=None):
     elif isinstance(base_cmap, str):
         base = _plt.cm.get_cmap(base_cmap)
     else:
-        print("DrapeName supplied is of type: ", type(base_cmap))
-        raise ValueError('DrapeName must either be a string name of a colormap, \
-                         or a Colormap. Please try again.')
+        print("Colourmap supplied is of type: ", type(base_cmap))
+        raise ValueError('Colourmap must either be a string name of a colormap, \
+                         or a Colormap object (class instance). Please try again.')
         
     color_list = base(_np.linspace(0, 1, N))
     cmap_name = base.name + str(N)
@@ -161,8 +161,17 @@ class nonlinear_colourmap(LinearSegmentedColormap):
     name = 'nlcmap'
         
     def __init__(self, cmap, levels):
-        self.cmap = cmap
-        self.N = cmap.N
+        
+        if isinstance(cmap, str):
+            self.cmap = _cm.get_cmap(cmap)
+        elif isinstance(cmap, _mcolors.Colormap):
+            self.cmap = cmap
+        else:
+            raise ValueError('Colourmap must either be a string name of a colormap, \
+                         or a Colormap object (class instance). Please try again.' \
+                         "Colourmap supplied is of type: ", type(cmap))
+
+        self.N = self.cmap.N
         self.monochrome = self.cmap.monochrome
         self.levels = _np.asarray(levels, dtype='float64')
         self._x = self.levels
@@ -179,17 +188,17 @@ class nonlinear_colourmap(LinearSegmentedColormap):
 #        yi = _np.interp(xi, self._x, self.transformed_levels)
 #        return self.cmap(yi / self.levmax, alpha)
     
-    def create_levels(self, tmin, tmax, sigma1, sigma2, t1mean, t2mean):
-        """ Creates levels for the non-linear colourmap"""
-        levels = _np.concatenate((
-                    [tmin, tmax],
-                    _np.linspace(t1mean - 2 * sigma1, t1mean + 2 * sigma1, 5),
-                    _np.linspace(t2mean - 2 * sigma2, t2mean + 2 * sigma2, 5),
-                    ))
-        levels = levels[levels <= tmax]
-        levels.sort()
-        print(levels)
-        return levels
+def create_levels(tmin, tmax, sigma1, sigma2, t1mean, t2mean):
+    """ Creates levels for the non-linear colourmap"""
+    levels = _np.concatenate((
+                [tmin, tmax],
+                _np.linspace(t1mean - 2 * sigma1, t1mean + 2 * sigma1, 5),
+                _np.linspace(t2mean - 2 * sigma2, t2mean + 2 * sigma2, 5),
+                ))
+    levels = levels[levels <= tmax]
+    levels.sort()
+    print(levels)
+    return levels
 
 
 class MidpointNormalize(_mcolors.Normalize):
