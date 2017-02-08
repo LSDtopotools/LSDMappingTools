@@ -166,7 +166,7 @@ class DrapePlot(object):
     a BackgroundRaster overlain with a DrapeRaster.
     """
     def __init__(self, DrapeRasterName, BackgroundRasterName, Directory,
-                 drape_colourmap, 
+                 drape_colourmap="jet", 
                  background_type="Hillshade", 
                  show_background_colourbar=False,
                  colourbar_label="",
@@ -175,7 +175,10 @@ class DrapePlot(object):
                  vmin=None, 
                  vmax=None, 
                  middle_mask_range=None,
-                 coord_type="UTM"):	
+                 coord_type="UTM", **kwargs):	
+        
+#        for key, value in kwargs.items():
+#            setattr(self, '_'+key, value)
         
         self.Background = BackgroundRaster(BackgroundRasterName, 
                                            Directory,
@@ -188,12 +191,11 @@ class DrapePlot(object):
                                  middle_mask_range=middle_mask_range)
 
         self._drape_colourmap = drape_colourmap
-        self._cbar_label = colourbar_label
-        self._background_colourmap_flag = show_background_colourbar
+        self._colourbar_label = colourbar_label
+        self._show_background_colourbar = show_background_colourbar
         self._vmin = vmin
         self._vmax = vmax
         
-        print(coord_type)
         self._set_coord_type(coord_type)
         
         self._num_drapes = 0  # Number of drapes in the image.
@@ -233,7 +235,7 @@ class DrapePlot(object):
         self._num_drapes += 1
         self._drape_list.append(self.im_background)
         
-        if self._background_colourmap_flag:
+        if self._show_background_colourbar:
             # Plot the background image colour bar
             self._generic_colourbar_plotter(self.im_background, "Elevation (m)")
         
@@ -258,7 +260,7 @@ class DrapePlot(object):
         self._set_axis_labels(self._xaxis_label, self._yaxis_label)
         
         # Add the colourbar for the drape
-        self._generic_colourbar_plotter(self.im, self._cbar_label)
+        self._generic_colourbar_plotter(self.im, self._colourbar_label)
 
     def _generic_colourbar_plotter(self, mappable, cbar_label):
         """A generic colourbar plotter"""
