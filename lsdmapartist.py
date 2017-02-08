@@ -165,22 +165,36 @@ class DrapePlot(object):
     a BackgroundRaster overlain with a DrapeRaster.
     """
     def __init__(self, DrapeRasterName, BackgroundRasterName, Directory,
-                 drape_colourmap, background_type="Hillshade",
-                 drape_min_threshold=None, drape_max_threshold=None,
-                 vmin=None, vmax = None, middle_mask_range=None):	
+                 drape_colourmap, 
+                 background_type="Hillshade", 
+                 show_background_colourbar=False,
+                 drape_min_threshold=None, 
+                 drape_max_threshold=None,
+                 vmin=None, 
+                 vmax=None, 
+                 middle_mask_range=None):	
         
-        self.Background = BackgroundRaster(BackgroundRasterName, Directory,
+        self.Background = BackgroundRaster(BackgroundRasterName, 
+                                           Directory,
                                            background_type)
-        self.Drape = DrapeRaster(DrapeRasterName, Directory,
+
+        self.Drape = DrapeRaster(DrapeRasterName, 
+                                 Directory,
                                  drape_min_threshold=drape_min_threshold,
                                  drape_max_threshold=drape_max_threshold,
                                  middle_mask_range=middle_mask_range)
+
         self._drape_colourmap = drape_colourmap
-        
+        self._background_colourmap_flag = show_background_colourbar
         self._vmin = vmin
         self._vmax = vmax
-
         
+        self._num_drapes = 0  # Number of drapes in the image.
+        # We will increase this everytime we call ax.imshow.
+        
+        # Stores the Image instances generated from imshow()
+        self._drape_list = []
+
         self.make_drape_plot()
 		
     def make_drape_plot(self):
@@ -188,17 +202,31 @@ class DrapePlot(object):
         self.fig, self.ax = plt.subplots()
         
         # Plot the background
-        self.im = self.ax.imshow(self.Background.Hillshade,
+        self.im_background = self.ax.imshow(self.Background.Hillshade,
                                  self.Background.colourmap,
                                  extent=self.Background.extents,
                                  interpolation="nearest")
+        self._num_drapes += 1
+        self._drape_list.append(self.im_background)
+        
+        if self._background_colourmap_flag:
+            # Plot the background image colour bar
+            self.generic_colourbar_plotter(self.im_background)
+        
         # Plot the drape (overlay data) on top.
         self.im = self.ax.imshow(self.Drape._RasterArray,
                                  self._drape_colourmap,
                                  extent=self.Drape.extents,
                                  interpolation="nearest",
                                  vmin=self._vmin, vmax=self._vmax)
+        
+        self._drape_list.append(self.im)
+        self._num_drapes += 1
 
+    def generic_colourbar_plotter(self, mappable):
+        """A generic colourbar plotter"""
+        self.cbar = self.fig.colorbar(mappable)
+        
     def make_drape_colourbar(self, cbar_label="Test"):
         """Adds a colourbar for the drape"""
         self.fig.subplots_adjust(right=0.85)
@@ -219,6 +247,10 @@ class DrapePlot(object):
 
     def show_plot(self):
         self.fig.show()
+    
+    @property    
+    def num_drapes(self):
+        return self._num_drapes
         
 
 class MultiDrapePlot(object):
