@@ -229,10 +229,10 @@ class DrapePlot(object):
         
     def make_drape_colourbar(self, cbar_label="Test"):
         """Adds a colourbar for the drape"""
-        self.fig.subplots_adjust(right=0.85)
-        self.cax = self.fig.add_axes([0.9, 0.1, 0.03, 0.8])
+        #self.fig.subplots_adjust(right=0.85)
+        #self.cax = self.fig.add_axes([0.9, 0.1, 0.03, 0.8])
         
-        self.cbar = self.fig.colorbar(self.im, cax=self.cax) 
+        self.cbar = self.fig.colorbar(self.im)#, cax=self.cax) 
         self.cbar.set_label(cbar_label)
         # This is needed to update the canvas figure with the colour bar.
         self.fig.canvas.draw()
