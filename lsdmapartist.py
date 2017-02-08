@@ -18,6 +18,7 @@ This software is realsed under the Artistic Licence v2.0
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 import matplotlib.cm as _cm
+import matplotlib.colors as _mcolors
 import numpy as np
 
 
@@ -168,11 +169,13 @@ class DrapePlot(object):
                  drape_colourmap, 
                  background_type="Hillshade", 
                  show_background_colourbar=False,
+                 colourbar_label="",
                  drape_min_threshold=None, 
                  drape_max_threshold=None,
                  vmin=None, 
                  vmax=None, 
-                 middle_mask_range=None):	
+                 middle_mask_range=None,
+                 coord_type="UTM"):	
         
         self.Background = BackgroundRaster(BackgroundRasterName, 
                                            Directory,
@@ -185,9 +188,13 @@ class DrapePlot(object):
                                  middle_mask_range=middle_mask_range)
 
         self._drape_colourmap = drape_colourmap
+        self._cbar_label = colourbar_label
         self._background_colourmap_flag = show_background_colourbar
         self._vmin = vmin
         self._vmax = vmax
+        
+        print(coord_type)
+        self._set_coord_type(coord_type)
         
         self._num_drapes = 0  # Number of drapes in the image.
         # We will increase this everytime we call ax.imshow.
@@ -196,6 +203,23 @@ class DrapePlot(object):
         self._drape_list = []
 
         self.make_drape_plot()
+        
+    def _set_coord_type(self, coord_type):
+        """Sets the coordinate type"""
+        if coord_type == "UTM":
+            self._coord_type = "UTM"
+            self._xaxis_label = "Easting (m)"
+            self._yaxis_label = "Northing (m)"
+        
+        # Example, do not actually use...
+        elif coord_type == "Kruskal–Szekeres":
+            self._coord_type = "Kruskal–Szekeres"
+            self._xaxis_label = "X"
+            self._yaxis_label = "T"
+        
+        else:
+            raise ValueError("Sorry, the coordinate type: ", coord_type, 
+                             "is not yet supported")
 		
     def make_drape_plot(self):
         """Creates a matplotlib Axes object with the drape map."""
@@ -211,21 +235,36 @@ class DrapePlot(object):
         
         if self._background_colourmap_flag:
             # Plot the background image colour bar
-            self.generic_colourbar_plotter(self.im_background)
+            self._generic_colourbar_plotter(self.im_background, "Elevation (m)")
         
         # Plot the drape (overlay data) on top.
+        # Should be separate function really...
         self.im = self.ax.imshow(self.Drape._RasterArray,
                                  self._drape_colourmap,
                                  extent=self.Drape.extents,
                                  interpolation="nearest",
-                                 vmin=self._vmin, vmax=self._vmax)
+                                 vmin=self._vmin, vmax=self._vmax,
+                                 norm=_mcolors.SymLogNorm(linthresh=0.3,
+                                                         
+                                                          vmin=-4.0,
+                                                          vmax=4.0)
+                                 )
+                                 #norm=_mcolors.PowerNorm(gamma=0.2))
+        
         
         self._drape_list.append(self.im)
         self._num_drapes += 1
+        
+        self._set_axis_labels(self._xaxis_label, self._yaxis_label)
+        
+        # Add the colourbar for the drape
+        self._generic_colourbar_plotter(self.im, self._cbar_label)
 
-    def generic_colourbar_plotter(self, mappable):
+    def _generic_colourbar_plotter(self, mappable, cbar_label):
         """A generic colourbar plotter"""
-        self.cbar = self.fig.colorbar(mappable)
+        self.cbar = self.fig.colorbar(mappable, fraction=0.046, pad=0.04)
+        self.cbar.set_label(cbar_label)
+        self.fig.canvas.draw()
         
     def make_drape_colourbar(self, cbar_label="Test"):
         """Adds a colourbar for the drape"""
@@ -236,10 +275,19 @@ class DrapePlot(object):
         self.cbar.set_label(cbar_label)
         # This is needed to update the canvas figure with the colour bar.
         self.fig.canvas.draw()
+      
+    def _set_axis_labels(self, x_axis_label="", y_axis_label=""):
+        self.ax.set_xlabel(x_axis_label)
+        self.ax.set_ylabel(y_axis_label)
         
-    def set_coordinate_labels_axis(self, x_axis_label='Easting (m)',
+    def set_fig_axis_labels(self, x_axis_label='Easting (m)',
                                    y_axis_label='Northing (m)'):
-        """Sets the x and y axis labels for the entire figure"""
+        """Sets the x and y axis labels for the entire figure
+        
+        This is a hacky-method since figures don't technically,
+        have axis labels, so you are actually setting a text box
+        value and manually positioning it on the figure
+        """
         self.fig.text(0.5, 0.04, x_axis_label, ha='center')
         self.fig.text(0.04, 0.5, y_axis_label, va='center', rotation='vertical')
         self.fig.canvas.draw()
@@ -251,6 +299,10 @@ class DrapePlot(object):
     @property    
     def num_drapes(self):
         return self._num_drapes
+    
+    @property
+    def coord_type(self):
+        return self._coord_type
         
 
 class MultiDrapePlot(object):
