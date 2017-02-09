@@ -50,6 +50,10 @@ class BaseRaster(object):
         return self._FullPathRaster
     
     @property
+    def raster_filename(self):
+        return self._RasterFileName
+    
+    @property
     def xmin(self):
         self.x_min = self._RasterExtents[0]
 
@@ -265,7 +269,7 @@ class DrapePlot(object):
         self._generic_colourbar_plotter(self.im, self._colourbar_label)
         
         # Add a title
-        self.set_subplot_autolabel()
+        self._set_subplot_autolabel()
 
     def _generic_colourbar_plotter(self, mappable, cbar_label):
         """A generic colourbar plotter"""
@@ -298,7 +302,11 @@ class DrapePlot(object):
         self.fig.text(0.5, 0.04, x_axis_label, ha='center')
         self.fig.text(0.04, 0.5, y_axis_label, va='center', rotation='vertical')
         self.fig.canvas.draw()
-     
+
+    def _set_subplot_autolabel(self):
+        subplotlabel = LSDP.labels.make_line_label(self.Drape.raster_filename)
+        self.ax.set_title(subplotlabel)
+        
     def set_subplot_labels(self, text):
         self.ax.set_title(text)
 
