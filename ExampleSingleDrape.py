@@ -8,9 +8,12 @@ An example of using the LSDMapArtist to create drape plots
 @author: dav
 """
 
+
 import lsdmapartist as lsdmap
-import LSDPlottingTools.colours as lsdcolours
+#import LSDPlottingTools.colours as lsdcolours
 import matplotlib.cm as cm
+
+from ..LSDPlottingTools import colours as lsdcolours
 
 #Directory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"
 #Directory = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
