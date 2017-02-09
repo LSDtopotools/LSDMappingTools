@@ -9,7 +9,7 @@ An example of using the LSDMapArtist to create drape plots
 """
 
 import matplotlib.cm as cm
-from LSDMapArtist.drapeplot import DrapePlot
+from LSDMapArtist.drapeplot import DrapeAxes
 from LSDPlottingTools import colours as lsdcolours
 from LSDPlottingTools import init_plotting_DV
 
@@ -37,7 +37,7 @@ drape_max_threshold = None
 colourbar_label = "Erosion/Deposition (m)"
 
 #raster = BaseRaster(RasterName, DataDirectory)
-dp = DrapePlot(DrapeRasterName, BackgroundRasterName, Directory,
+dp = DrapeAxes(DrapeRasterName, BackgroundRasterName, Directory,
                       Colourmap, background_type="Hillshade", 
                       show_background_colourbar=False,
                       colourbar_label=colourbar_label,

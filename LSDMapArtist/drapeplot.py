@@ -166,9 +166,9 @@ class DrapeRaster(BaseRaster):
     def set_drape_max_threshold(self):
         pass
 
-class DrapePlot(object):
+class DrapeAxes(object):
     """
-    Class DrapeMap contains the methods for creating a drape map, i.e
+    Class DrapeAxes contains the methods for creating a drape map, i.e
     a BackgroundRaster overlain with a DrapeRaster.
     """
     def __init__(self, DrapeRasterName, BackgroundRasterName, Directory,
@@ -186,6 +186,7 @@ class DrapePlot(object):
         
 #        for key, value in kwargs.items():
 #            setattr(self, '_'+key, value)
+        self.fig, self.ax = plt.subplots()
         
         self.Background = BackgroundRaster(BackgroundRasterName, 
                                            Directory,
@@ -212,28 +213,20 @@ class DrapePlot(object):
         self._drape_list = []
 
         self.make_drape_plot()
-        
-        
-    def _set_coord_type(self, coord_type):
-        """Sets the coordinate type"""
-        if coord_type == "UTM":
-            self._coord_type = "UTM"
-            self._xaxis_label = "Easting (m)"
-            self._yaxis_label = "Northing (m)"
-        
-        # Example, do not actually use...
-        elif coord_type == "Kruskal–Szekeres":
-            self._coord_type = "Kruskal–Szekeres"
-            self._xaxis_label = "X"
-            self._yaxis_label = "T"
-        
-        else:
-            raise ValueError("Sorry, the coordinate type: ", coord_type, 
-                             "is not yet supported")
+    
+    #def __call__(self):
+    #    return self.ax
 		
     def make_drape_plot(self):
         """Creates a matplotlib Axes object with the drape map."""
-        self.fig, self.ax = plt.subplots()
+        
+        # but what if fig XOR ax is None??
+#        if fig is None and ax is None:
+#            self.fig, self.ax = plt.subplots()
+#        else:
+#            self.fig=fig, self.ax=ax
+
+        
         
         # Plot the background
         self.im_background = self.ax.imshow(self.Background.Hillshade,
@@ -254,13 +247,11 @@ class DrapePlot(object):
                                  extent=self.Drape.extents,
                                  interpolation="nearest",
                                  vmin=self._vmin, vmax=self._vmax,
-                                 norm=_mcolors.SymLogNorm(linthresh=0.3,
-                                                         
+                                 norm=_mcolors.SymLogNorm(linthresh=0.3, 
                                                           vmin=-4.0,
                                                           vmax=4.0)
                                  )
                                  #norm=_mcolors.PowerNorm(gamma=0.2))
-        
         
         self._drape_list.append(self.im)
         self._num_drapes += 1
@@ -272,6 +263,25 @@ class DrapePlot(object):
         
         # Add a title
         self._set_subplot_autolabel()
+        
+        #return self.fig, self.ax
+    
+    def _set_coord_type(self, coord_type):
+        """Sets the coordinate type"""
+        if coord_type == "UTM":
+            self._coord_type = "UTM"
+            self._xaxis_label = "Easting (m)"
+            self._yaxis_label = "Northing (m)"
+        
+        # Example, do not actually use...
+        elif coord_type == "Kruskal–Szekeres":
+            self._coord_type = "Kruskal–Szekeres"
+            self._xaxis_label = "X"
+            self._yaxis_label = "T"
+        
+        else:
+            raise ValueError("Sorry, the coordinate type: ", coord_type, 
+                             "is not yet supported")
 
     def _generic_colourbar_plotter(self, mappable, cbar_label):
         """A generic colourbar plotter"""
@@ -324,11 +334,11 @@ class DrapePlot(object):
         return self._coord_type
         
 
-class MultiDrapePlot(object):
+class DrapeFig(object):
     """
     Class MultiDrapeMap creates multiplot drape maps.
     
-    Composed of multiple DrapePlot
+    Composed of multiple DrapeAxes
     """
     pass
 
