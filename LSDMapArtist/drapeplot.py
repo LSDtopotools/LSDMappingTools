@@ -20,6 +20,7 @@ import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 import matplotlib.cm as _cm
 import matplotlib.colors as _mcolors
+import matplotlib.axes
 import numpy as np
 
 
@@ -180,7 +181,8 @@ class DrapePlot(object):
                  vmin=None, 
                  vmax=None, 
                  middle_mask_range=None,
-                 coord_type="UTM", **kwargs):	
+                 coord_type="UTM", *args, **kwargs):	
+        
         
 #        for key, value in kwargs.items():
 #            setattr(self, '_'+key, value)
