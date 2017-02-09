@@ -3,6 +3,15 @@ An experimental python package for plotting LSDTopoTools output and world domina
 
 This does not affect the other modules in LSDPlottingTools. LSDPlottingTools is blissfully unaware of LSDMapArtist's existence. LSDMapArtist imports from LSDPlottingTools, but not the other way round so as not to break people's code.
 
+__Note: to use this, you must have LSDPlottingTools in your PYTHONPATH, either by setting it in bash or by using:__
+
+```python
+
+import sys
+
+sys.path.append("PATH/TO/LSDPlottingTools/")
+```
+
 ## Overview
 An object-oriented plotting module for constructing
 drape maps in a reusable, generic way.
