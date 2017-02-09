@@ -9,7 +9,7 @@ An example of using the LSDMapArtist to create drape plots
 """
 
 import matplotlib.cm as cm
-from LSDMapArtist import drapeplot as lsdmap
+from LSDMapArtist.drapeplot import DrapePlot
 from LSDPlottingTools import colours as lsdcolours
 
 #Directory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"
@@ -35,7 +35,7 @@ drape_max_threshold = None
 colourbar_label = "Erosion/Deposition (m)"
 
 #raster = BaseRaster(RasterName, DataDirectory)
-dp = lsdmap.DrapePlot(DrapeRasterName, BackgroundRasterName, Directory,
+dp = DrapePlot(DrapeRasterName, BackgroundRasterName, Directory,
                       Colourmap, background_type="Hillshade", 
                       show_background_colourbar=False,
                       colourbar_label=colourbar_label,
