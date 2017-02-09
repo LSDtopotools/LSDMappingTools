@@ -15,6 +15,7 @@ This software is realsed under the Artistic Licence v2.0
 
 """
 
+# LSDPlottingTools must be in your pythonpath
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 import matplotlib.cm as _cm
