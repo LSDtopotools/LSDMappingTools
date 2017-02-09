@@ -41,6 +41,8 @@ dp = DrapePlot(DrapeRasterName, BackgroundRasterName, Directory,
                       colourbar_label=colourbar_label,
                       vmin=-4, vmax=4, middle_mask_range=(-0.02,0.02))
 
+
+
 # Customise the DrapePlot
 #dp.make_drape_colourbar(cbar_label=colourbar_label)
 #dp.set_fig_axis_labels()

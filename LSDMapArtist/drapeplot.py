@@ -207,6 +207,7 @@ class DrapePlot(object):
 
         self.make_drape_plot()
         
+        
     def _set_coord_type(self, coord_type):
         """Sets the coordinate type"""
         if coord_type == "UTM":
@@ -262,6 +263,9 @@ class DrapePlot(object):
         
         # Add the colourbar for the drape
         self._generic_colourbar_plotter(self.im, self._colourbar_label)
+        
+        # Add a title
+        self.set_subplot_autolabel()
 
     def _generic_colourbar_plotter(self, mappable, cbar_label):
         """A generic colourbar plotter"""
@@ -294,7 +298,9 @@ class DrapePlot(object):
         self.fig.text(0.5, 0.04, x_axis_label, ha='center')
         self.fig.text(0.04, 0.5, y_axis_label, va='center', rotation='vertical')
         self.fig.canvas.draw()
-        
+     
+    def set_subplot_labels(self, text):
+        self.ax.set_title(text)
 
     def show_plot(self):
         self.fig.show()
