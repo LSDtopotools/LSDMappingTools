@@ -1,13 +1,15 @@
 # LSDMapArtist
-An experimental python package for plotting LSDTopoTools output and world domination. (But mainly plotting)
+An experimental python package for plotting LSDTopoTools output and world domination. (But mainly LSDTopoTools output)
 
+This does not affect the other modules in LSDPlottingTools. LSDPlottingTools is blissfully unaware of LSDMapArtist's existence. LSDMapArtist imports from LSDPlottingTools, but not the other way round so as not to break people's code.
 
+## Overview
 An object-oriented plotting module for constructing
 drape maps in a reusable, generic way.
 
-Experimental. Use at your own risk.
+Experimental. Use at your own risk. Subject to rapid change.
 
-If it ever works I'll transfer it to @LSDTopoTools
+<del>If it ever works I'll transfer it to @LSDTopoTools</del> -- done!
 
 This software is realsed under the Artistic Licence v2.0
 
@@ -29,3 +31,7 @@ myDrapePlot.save_fig("png", "ESurfDyn")
 
 ```
 And so on...
+
+## Suggestions
+
+## Todo
