@@ -293,7 +293,7 @@ class DrapeAxes(object):
             self._yaxis_label = "T"
         
         else:
-            raise ValueError("Sorry, the coordinate type: ", coord_type, 
+            raise NotImplementedError("Sorry, the coordinate type: ", coord_type, 
                              "is not yet supported")
 
     def _generic_colourbar_plotter(self, mappable, cbar_label):
