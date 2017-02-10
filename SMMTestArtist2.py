@@ -25,7 +25,8 @@ import sys
 #
 #init_plotting_DV()
 
-Directory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
+Directory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\divides\\"
+#Directory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
 Base_file = "Mega_divide"
 
 
@@ -43,7 +44,8 @@ BR.show_raster()
 plt.clf()
 #raster = BaseRaster(RasterName, DataDirectory)
 MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km")
-MF.save_fig()
+MF.show_plot()
+#MF.save_fig()
 
 
 

@@ -145,8 +145,10 @@ class MapFigure(object):
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
         #self.ax = plt.subplots()
         
-        self.fig, self.ax = plt.subplots()
-        
+        #self.fig, self.ax = plt.subplots()
+        self.fig = plt.figure()
+        self.ax = self.fig.add_axes([0.15, 0.1, 0.7, 0.7])        
+
         # Names of the directory and the base raster        
         self._Directory = Directory
         self._BaseRasterName = BaseRasterName
@@ -166,7 +168,7 @@ class MapFigure(object):
         # The coordinate type. UTM and UTM with tick in km are supported at the moment         
         self._set_coord_type(coord_type)
         
-        # Get the tickj properties 
+        # Get the tick properties 
         self._xmin = self._RasterList[0].xmin
         self._ymin = self._RasterList[0].ymin
         self._xmax = self._RasterList[0].xmax
@@ -179,14 +181,16 @@ class MapFigure(object):
         
         # Stores the Image instances generated from imshow()
         self._drape_list = []
+        
+        self.ax = self.make_base_plot(self.ax)
 
 
     def make_ticks(self):
         if self._coord_type == "UTM":
-            self.tick_xlocs,self.tick_ylocs,self.tick_x_labels,self.tick_y_labels = LSDP.GetTicksForUTM(self._BaseRasterFullName,self._xmax,self._xmin,
+            self.tick_xlocs,self.tick_ylocs,self.tick_x_labels,self.tick_y_labels = LSDP.GetTicksForUTMNoInversion(self._BaseRasterFullName,self._xmax,self._xmin,
                              self._ymax,self._ymin,self._n_target_ticks)
         elif self._coord_type == "UTM_km":
-            self.tick_xlocs,self.tick_ylocs,self.tick_x_labels,self.tick_y_labels = LSDP.GetTicksForUTM(self._BaseRasterFullName,self._xmax,self._xmin,
+            self.tick_xlocs,self.tick_ylocs,self.tick_x_labels,self.tick_y_labels = LSDP.GetTicksForUTMNoInversion(self._BaseRasterFullName,self._xmax,self._xmin,
                              self._ymax,self._ymin,self._n_target_ticks)
             n_hacked_digits = 3
             self.tick_x_labels = LSDP.TickLabelShortenizer(self.tick_x_labels,n_hacked_digits)
@@ -198,31 +202,37 @@ class MapFigure(object):
         print("I made the ticks.")
         print("x labels are: ")
         print(self.tick_x_labels)
+        print("x locations are:")
+        print(self.tick_xlocs)
         print("y labels are: ")
         print(self.tick_y_labels)
+        print("y locations are:")
+        print(self.tick_ylocs)
 
-    def add_ticks_to_axis(self):
-        self.ax.set_xticklabels(self.tick_x_labels)
-        self.ax.set_yticklabels(self.tick_y_labels)
-        self.ax.set_xticks(self.tick_xlocs)
-        self.ax.set_yticks(self.tick_ylocs)        
+    def add_ticks_to_axis(self,ax):
+        ax.set_xticklabels(self.tick_x_labels)
+        ax.set_yticklabels(self.tick_y_labels)
+        ax.set_xticks(self.tick_xlocs)
+        ax.set_yticks(self.tick_ylocs) 
         
-    def make_base_plot(self):
+        return ax
+        
+    def make_base_plot(self,ax):
         
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
 
-        im = self.ax.imshow(self.__RasterList[0]._RasterArray[::-1], self.__RasterList[0].colourmap, extent = self.__RasterList[0].extents, interpolation="nearest")
+        im = ax.imshow(self._RasterList[0]._RasterArray, self._RasterList[0].colourmap, extent = self._RasterList[0].extents, interpolation="nearest")
         
         # This affects all axes because we set share_all = True.
-        self.ax.set_xlim(self._xmin,self._xmax)
-        self.ax.set_ylim(self._ymax,self._ymin)
-        self.ax.add_ticks_to_axis(self)       
+        #ax.set_xlim(self._xmin,self._xmax)
+        #ax.set_ylim(self._ymin,self._ymax)
+        ax = self.add_ticks_to_axis(ax)       
         self._drape_list.append(im)
         
-        print("The number of axes are: "+len(self._drape_list))
+        print("The number of axes are: "+str(len(self._drape_list)))
         
-        #self.ax.show()
+        return ax
         
         
         
@@ -249,6 +259,7 @@ class MapFigure(object):
                              "is not yet supported")        
 
     def show_plot(self):
+        
         self.fig.show()            
  
     def save_fig(self):
