@@ -41,7 +41,8 @@ dp = DrapeAxes(DrapeRasterName, BackgroundRasterName, Directory,
                       Colourmap, background_type="Hillshade", 
                       show_background_colourbar=False,
                       colourbar_label=colourbar_label,
-                      vmin=-4, vmax=4, middle_mask_range=(-0.02,0.02))
+                      vmin=-4, vmax=4, middle_mask_range=(-0.02,0.02),
+                      colourbar_norm_type="SymLogNorm")
 
 
 

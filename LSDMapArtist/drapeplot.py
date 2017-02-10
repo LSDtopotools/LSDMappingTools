@@ -178,6 +178,7 @@ class DrapeAxes(object):
                  colourbar_label="",
                  drape_min_threshold=None, 
                  drape_max_threshold=None,
+                 colourbar_norm_type=None,
                  vmin=None, 
                  vmax=None, 
                  middle_mask_range=None,
@@ -204,6 +205,8 @@ class DrapeAxes(object):
         self._vmin = vmin
         self._vmax = vmax
         
+        self._colourbar_normalisation = self.set_colourbar_norm_type(colourbar_norm_type)
+        
         self._set_coord_type(coord_type)
         
         self._num_drapes = 0  # Number of drapes in the image.
@@ -216,7 +219,19 @@ class DrapeAxes(object):
     
     #def __call__(self):
     #    return self.ax
-		
+	
+    def set_colourbar_norm_type(self, colourbar_norm_type):
+        if colourbar_norm_type == "SymLogNorm":
+            norm = _mcolors.SymLogNorm(linthresh=0.3, vmin=self._vmin, vmax=self._vmax)
+        elif colourbar_norm_type is None:
+            norm = None
+        else:
+            raise NotImplementedError("That type of normalisation is not coded in yet..")
+            norm = None
+        
+        return norm
+        
+	
     def make_drape_plot(self):
         """Creates a matplotlib Axes object with the drape map."""
         
@@ -247,9 +262,7 @@ class DrapeAxes(object):
                                  extent=self.Drape.extents,
                                  interpolation="nearest",
                                  vmin=self._vmin, vmax=self._vmax,
-                                 norm=_mcolors.SymLogNorm(linthresh=0.3, 
-                                                          vmin=-4.0,
-                                                          vmax=4.0)
+                                 norm=self._colourbar_normalisation
                                  )
                                  #norm=_mcolors.PowerNorm(gamma=0.2))
         
