@@ -46,9 +46,9 @@ ChiRasterName = Base_file+"_chi_coord.bil"
 plt.clf()
 MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km")
 MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.4)
-MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4)
+MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4, show_colourbar = True)
 #MF.show_plot()
-#MF.save_fig()
+MF.save_fig()
 
 
 
