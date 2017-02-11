@@ -33,18 +33,19 @@ Base_file = "Mega_divide"
 BackgroundRasterName = Base_file+".bil"
 DrapeRasterName = Base_file+"_hs.bil"
 
-BR = BaseRaster(BackgroundRasterName, Directory)
-BR.set_raster_type("Terrain")
-BR.show_raster()
+#BR = BaseRaster(BackgroundRasterName, Directory)
+#BR.set_raster_type("Terrain")
+#print(BR._colourmap)
+#BR.show_raster()
 
-BR.set_colourmap("RdYlGn")
-BR.show_raster()
+#BR.set_colourmap("RdYlGn")
+#BR.show_raster()
 
 
 plt.clf()
-#raster = BaseRaster(RasterName, DataDirectory)
 MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km")
-MF.show_plot()
+MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.3)
+#MF.show_plot()
 #MF.save_fig()
 
 

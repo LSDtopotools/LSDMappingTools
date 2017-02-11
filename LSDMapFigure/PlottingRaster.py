@@ -41,6 +41,9 @@ class BaseRaster(object):
         
         # Get the extents as a list
         self._RasterExtents = LSDP.GetRasterExtent(self._FullPathRaster)
+        
+        # set the default colourmap
+        self._colourmap = "gray"
     
     @property
     def extents(self):
@@ -146,8 +149,11 @@ class MapFigure(object):
         #self.ax = plt.subplots()
         
         #self.fig, self.ax = plt.subplots()
-        self.fig = plt.figure()
-        self.ax = self.fig.add_axes([0.15, 0.1, 0.7, 0.7])        
+        fig = plt.figure()
+        self.ax_list = []
+        ax = fig.add_axes([0,0,1,1])
+        self.ax_list.append(ax)
+        
 
         # Names of the directory and the base raster        
         self._Directory = Directory
@@ -182,7 +188,8 @@ class MapFigure(object):
         # Stores the Image instances generated from imshow()
         self._drape_list = []
         
-        self.ax = self.make_base_plot(self.ax)
+        self.ax_list = self.make_base_image(self.ax_list)
+        print(self.ax_list[0])
 
 
     def make_ticks(self):
@@ -217,22 +224,51 @@ class MapFigure(object):
         
         return ax
         
-    def make_base_plot(self,ax):
+    def make_base_image(self,ax_list):
         
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
 
-        im = ax.imshow(self._RasterList[0]._RasterArray, self._RasterList[0].colourmap, extent = self._RasterList[0].extents, interpolation="nearest")
+        print("This colourmap is: "+ self._RasterList[0]._colourmap)
+        im = self.ax_list[0].imshow(self._RasterList[0]._RasterArray, self._RasterList[0]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest")
         
         # This affects all axes because we set share_all = True.
         #ax.set_xlim(self._xmin,self._xmax)
         #ax.set_ylim(self._ymin,self._ymax)
-        ax = self.add_ticks_to_axis(ax)       
+        self.ax_list[0] = self.add_ticks_to_axis(self.ax_list[0])       
         self._drape_list.append(im)
         
         print("The number of axes are: "+str(len(self._drape_list)))
         
-        return ax
+        print(self.ax_list[0])
+        return self.ax_list
+        
+    def add_drape_image(self,RasterName,Directory,alpha=0.5):
+        
+        print("N axes are: "+str(len(self.ax_list)))
+        print(self.ax_list[0])
+        
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,alpha=0.5)
+
+    def _add_drape_image(self,ax_list,RasterName,Directory,alpha=0.5):
+         
+        self._RasterList.append(BaseRaster(RasterName,Directory))
+        
+        # We need to initiate with a figure
+        #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
+
+        im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha)
+        
+        # This affects all axes because we set share_all = True.
+        #ax.set_xlim(self._xmin,self._xmax)
+        #ax.set_ylim(self._ymin,self._ymax)
+        self.ax_list[0] = self.add_ticks_to_axis(self.ax_list[0])       
+        self._drape_list.append(im)
+        
+        print("The number of axes are: "+str(len(self._drape_list)))
+        
+        return self.ax_list[0]
+
         
         
         
