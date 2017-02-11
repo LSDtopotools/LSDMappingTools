@@ -44,7 +44,7 @@ DrapeRasterName = Base_file+"_hs.bil"
 
 plt.clf()
 MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km")
-MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.3)
+MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.7)
 #MF.show_plot()
 #MF.save_fig()
 

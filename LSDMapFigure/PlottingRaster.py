@@ -248,7 +248,7 @@ class MapFigure(object):
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
         
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,alpha=0.5)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,alpha)
 
     def _add_drape_image(self,ax_list,RasterName,Directory,alpha=0.5):
          
