@@ -32,6 +32,7 @@ Base_file = "Mega_divide"
 
 BackgroundRasterName = Base_file+".bil"
 DrapeRasterName = Base_file+"_hs.bil"
+ChiRasterName = Base_file+"_chi_coord.bil"
 
 #BR = BaseRaster(BackgroundRasterName, Directory)
 #BR.set_raster_type("Terrain")
@@ -44,7 +45,8 @@ DrapeRasterName = Base_file+"_hs.bil"
 
 plt.clf()
 MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km")
-MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.7)
+MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.4)
+MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4)
 #MF.show_plot()
 #MF.save_fig()
 

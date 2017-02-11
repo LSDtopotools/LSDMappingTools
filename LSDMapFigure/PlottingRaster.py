@@ -220,7 +220,9 @@ class MapFigure(object):
         ax.set_xticklabels(self.tick_x_labels)
         ax.set_yticklabels(self.tick_y_labels)
         ax.set_xticks(self.tick_xlocs)
-        ax.set_yticks(self.tick_ylocs) 
+        ax.set_yticks(self.tick_ylocs)
+        ax.set_xlabel(self._xaxis_label)
+        ax.set_ylabel(self._yaxis_label)
         
         return ax
         
@@ -243,16 +245,17 @@ class MapFigure(object):
         print(self.ax_list[0])
         return self.ax_list
         
-    def add_drape_image(self,RasterName,Directory,alpha=0.5):
+    def add_drape_image(self,RasterName,Directory,colourmap = "gray",alpha=0.5):
         
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
         
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,alpha)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha)
 
-    def _add_drape_image(self,ax_list,RasterName,Directory,alpha=0.5):
+    def _add_drape_image(self,ax_list,RasterName,Directory,colourmap = "gray",alpha=0.5):
          
         self._RasterList.append(BaseRaster(RasterName,Directory))
+        self._RasterList[-1].set_colourmap(colourmap)
         
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
@@ -267,7 +270,7 @@ class MapFigure(object):
         
         print("The number of axes are: "+str(len(self._drape_list)))
         
-        return self.ax_list[0]
+        return self.ax_list
 
         
         
