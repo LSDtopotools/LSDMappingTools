@@ -23,6 +23,7 @@ import matplotlib.cm as _cm
 import matplotlib.colors as _mcolors
 import matplotlib.axes
 import numpy as np
+from matplotlib import rcParams
 
 
 class BaseRaster(object):
@@ -42,6 +43,7 @@ class BaseRaster(object):
         
         # Get the extents as a list
         self._RasterExtents = LSDP.GetRasterExtent(self._FullPathRaster)
+        self._RasterAspectRatio = (self._RasterExtents[1]-self._RasterExtents[0])/(self._RasterExtents[3]-self._RasterExtents[2])
         
         # set the default colourmap
         self._colourmap = "gray"
@@ -64,11 +66,11 @@ class BaseRaster(object):
 
     @property
     def ymin(self):
-        self.y_min = self._RasterExtents[1]
+        self.y_min = self._RasterExtents[2]
         
     @property
     def xmax(self):
-        self.x_max = self._RasterExtents[2]
+        self.x_max = self._RasterExtents[1]
         
     @property
     def ymax(self):
@@ -83,7 +85,11 @@ class BaseRaster(object):
     @property
     def zorder(self):
         self._zorder = 1
-        
+    
+    #def get_apect_ratio(self):    
+    #    # Get the aspect ratio
+    #    self._RasterAspectRatio = (self.xmax-self.xmin)/(self.ymax-self.ymin) 
+    #    return self._RasterAspectRatio
         
     def set_raster_type(self, rastertype):
         """
@@ -323,13 +329,46 @@ class MapFigure(object):
         
         self.fig.show()            
  
-    def save_fig(self):
+    def save_fig(self,fig_width_inches = 4,cbar_location = "Top"):
+
+        label_size = 50        
+        print("I am setting the font size to: "+str(label_size))        
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.size'] = label_size
+        rcParams['lines.linewidth']  = 1.5  
+        
+        map_aspect_ratio = self._RasterList[0]._RasterAspectRatio
+        print("The aspect ratio is: "+str(map_aspect_ratio))
         
         fig = matplotlib.pyplot.gcf()
-        fig.set_size_inches(4, 3)
+        fig_size_inches, map_axes, cbar_axes = phelp.MapFigureSizer(fig_width_inches,
+                                                              map_aspect_ratio,cbar_loc = cbar_location)
+        
+        fig.set_size_inches(fig_size_inches[0], fig_size_inches[1])        
+        self.ax_list[0].set_position(map_axes)
+        
+        print("Number of axes are: " + str(len(self.ax_list)))        
+        
+        
+        if cbar_axes == None:
+            del self.ax_list[-1]    
+        else:    
+            self.ax_list[-1].set_position(cbar_axes)
+        
+        
         fig.savefig('test2png.png', dpi=100)        
         
         #self.fig.show()   
         #print("The figure format is: " + self.FigFormat)
         #plt.savefig(self.FigFileName,format=self.FigFormat)
-        #self.fig.clf()           
+        #self.fig.clf()  
+
+    def SetRCParams(self,label_size):
+        """This sets a load of RC params
+        """
+        print("I am setting the font size to: "+str(label_size))        
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.size'] = label_size
+        rcParams['lines.linewidth']  = 1.5         

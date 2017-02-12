@@ -35,9 +35,11 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None"):
         
     # Now get the width of the map
     map_width_inches = figure_width_inches-cumulative_label_width
+    print("Map width is: "+str(map_width_inches))
     
     # now calculate the height of map and then the figure
     map_height_inches = map_width_inches/aspect_ratio
+    print("Map height is: "+str(map_height_inches))
     
     # now get the full height of the figure
     figure_height_inches = cumulative_label_height+map_height_inches
@@ -50,7 +52,7 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None"):
     if cbar_loc == "left":
         cbar_left_inches = 0.9
         cbar_bottom_inches = 0.9
-        map_left_inches = 1.5
+        map_left_inches = 2.4
         mab_bottom_inches = 0.9
         
         map_axes = [map_left_inches/figure_width_inches,
@@ -67,23 +69,71 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None"):
         cbar_bottom_inches = 0.9
         map_left_inches = 1.5
         mab_bottom_inches = 0.9        
+
+        map_axes = [map_left_inches/figure_width_inches,
+                    mab_bottom_inches/figure_height_inches,
+                    map_width_inches/figure_width_inches,
+                    map_height_inches/figure_height_inches]        
+        cbar_axes = [cbar_left_inches/figure_width_inches,
+                    cbar_bottom_inches/figure_height_inches,
+                    0.6/figure_width_inches,
+                    map_height_inches/map_height_inches] 
     
     elif cbar_loc == "top":
+        print("I am placing the colourbar on the top")        
+        
         cbar_left_inches = 0.9
-        cbar_bottom_inches = 0.9
-        map_left_inches = 1.5
-        mab_bottom_inches = 0.9 
+        mab_bottom_inches = 0.9
+        map_left_inches = 0.9
+        cbar_bottom_inches = 0.9+map_height_inches+0.9
+        
+        
+        
+        
+
+        map_axes = [map_left_inches/figure_width_inches,
+                    mab_bottom_inches/figure_height_inches,
+                    map_width_inches/figure_width_inches,
+                    map_height_inches/figure_height_inches]        
+        cbar_axes = [cbar_left_inches/figure_width_inches,
+                    cbar_bottom_inches/figure_height_inches,
+                    map_width_inches/figure_width_inches,
+                    0.4/map_height_inches] 
         
     elif cbar_loc == "bottom":
         cbar_left_inches = 0.9
         cbar_bottom_inches = 0.9
-        map_left_inches = 1.5
+        map_left_inches = 0.9
         mab_bottom_inches = 0.9
+
+        map_axes = [map_left_inches/figure_width_inches,
+                    mab_bottom_inches/figure_height_inches,
+                    map_width_inches/figure_width_inches,
+                    map_height_inches/figure_height_inches]        
+        cbar_axes = [cbar_left_inches/figure_width_inches,
+                    cbar_bottom_inches/figure_height_inches,
+                    0.6/figure_width_inches,
+                    map_height_inches/map_height_inches] 
         
     else:
-        map_left_inches = 1.5
+        map_left_inches = 0.9
         mab_bottom_inches = 0.9       
 
+        map_axes = [map_left_inches/figure_width_inches,
+                    mab_bottom_inches/figure_height_inches,
+                    map_width_inches/figure_width_inches,
+                    map_height_inches/figure_height_inches]        
+        cbar_axes = None
+        
+    print("The figure size is: ")
+    print fig_size_inches
+    print("Map axes are:")
+    print(map_axes)
+    print("cbar_axes are:")
+    print(cbar_axes)    
+    return fig_size_inches, map_axes, cbar_axes
+    
+    
 #==============================================================================
 # Formats ticks for an imshow plot in UTM
 # Filename is the name of the file with full path
