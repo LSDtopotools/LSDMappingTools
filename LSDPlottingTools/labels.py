@@ -163,7 +163,7 @@ def make_line_label(fname):
         part3 = None
     
     print(parts)  
-    label = '_'.join(parts)
+    label = '_'.join(parts[1:])
 
     print("FIGURE LABEL IS:", label)
     return label
