@@ -15,15 +15,15 @@ from LSDPlottingTools import init_plotting_DV
 
 init_plotting_DV()
 #Directory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"
-#Directory = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
+Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
 #Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
-Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
+#Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
 BackgroundRasterName = "BoscastleElevations0.asc"
-DrapeRasterName = "BoscastleElevDiff_UNIFORM_TLIM.bil"
-#DrapeRasterName = "BoscastleErodeDiff_GRID_UNI_TLIMM.bil"
+#DrapeRasterName = "BoscastleElevDiff_UNIFORM_TLIM.bil"
+DrapeRasterName = "BoscastleErodeDiff_GRID_UNI_TLIMM.bil"
 
 # Standard colourmap
-Colourmap = "RdYlGn"
+Colourmap = "seismic"
 
 #Non-linear colourmap
 ##ColourLevels = lsdcolours.nonlinear_colourmap.create_levels(-3.0, 3.0, -0.2, 0.2, -0.5, 0.5)
@@ -43,7 +43,6 @@ dp = DrapeAxes(DrapeRasterName, BackgroundRasterName, Directory,
                       colourbar_label=colourbar_label,
                       vmin=-4, vmax=4, middle_mask_range=(-0.02,0.02),
                       colourbar_norm_type="SymLogNorm")
-
 
 
 # Customise the DrapePlot

@@ -133,11 +133,37 @@ def make_line_label(fname):
     Author: DAV
 
     """
+    parts = []
     # Passing a list of delimiters to the re.split function
-    part1 = _re.split("[_.]", fname)[0]
-    part2 = _re.split("[_.]", fname)[1]
-    part3 = _re.split("[_.]", fname)[2]
+    try:
+        part1 = _re.split("[_.]", fname)[0]
+        print(part1)
+        parts.append(part1)
+    except:
+        print("Unable to extract file name parts as strings by splitting \
+              after first underscore")
+        part1 = None
+        
+    try:
+        part2 = _re.split("[_.]", fname)[1]
+        print(part2)
+        parts.append(part2)
+    except:
+        print("Unable to extract file name parts as strings by splitting \
+              after second underscore")     
+        part2 = None
+        
+    try:
+        part3 = _re.split("[_.]", fname)[2]
+        print(part3)
+        parts.append(part3)
+    except:
+        print("Unable to extract file name parts as strings by splitting \
+              after third underscore")
+        part3 = None
+    
+    print(parts)  
+    label = '_'.join(parts)
 
-    part = part2 + '_' + part3
-    print(part)
-    return part
+    print("FIGURE LABEL IS:", label)
+    return label
