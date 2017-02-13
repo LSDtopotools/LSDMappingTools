@@ -182,6 +182,7 @@ class DrapeAxes(object):
                  vmin=None, 
                  vmax=None, 
                  middle_mask_range=None,
+                 drape_alpha=1.0,
                  coord_type="UTM", *args, **kwargs):	
         
         
@@ -206,6 +207,8 @@ class DrapeAxes(object):
         self._vmax = vmax
         
         self._colourbar_normalisation = self.set_colourbar_norm_type(colourbar_norm_type)
+        
+        self._drape_alpha = drape_alpha
         
         self._set_coord_type(coord_type)
         
@@ -262,7 +265,8 @@ class DrapeAxes(object):
                                  extent=self.Drape.extents,
                                  interpolation="nearest",
                                  vmin=self._vmin, vmax=self._vmax,
-                                 norm=self._colourbar_normalisation
+                                 norm=self._colourbar_normalisation,
+                                 alpha=self._drape_alpha
                                  )
                                  #norm=_mcolors.PowerNorm(gamma=0.2))
         
