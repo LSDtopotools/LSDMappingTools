@@ -40,10 +40,10 @@ colourbar_label = "Total accumulated rainfall (mm)"
 dp = DrapeAxes(DrapeRasterName, BackgroundRasterName, Directory,
                       Colourmap, background_type="Hillshade", 
                       show_background_colourbar=False,
-                      colourbar_label=colourbar_label, drape_alpha=0.7
+                      colourbar_label=colourbar_label, drape_alpha=0.8
                       )
                       #colourbar_norm_type="SymLogNorm")
-
+dp.set_subplot_labels("")
 
 # Customise the DrapePlot
 #dp.make_drape_colourbar(cbar_label=colourbar_label)
