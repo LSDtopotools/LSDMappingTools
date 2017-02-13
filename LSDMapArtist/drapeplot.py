@@ -156,6 +156,8 @@ class DrapeRaster(BaseRaster):
         masked_mid_values_index = (np.logical_and(self._RasterArray > self._middlemaskrange[0], 
                                    self._RasterArray < self._middlemaskrange[1]))
         self._RasterArray[masked_mid_values_index] = np.nan
+                         
+
         
     def _render_drape(self, fullpath_to_raster):
         pass
@@ -183,6 +185,7 @@ class DrapeAxes(object):
                  vmax=None, 
                  middle_mask_range=None,
                  drape_alpha=1.0,
+                 clip_to_background=False,
                  coord_type="UTM", *args, **kwargs):	
         
         
@@ -217,6 +220,9 @@ class DrapeAxes(object):
         
         # Stores the Image instances generated from imshow()
         self._drape_list = []
+        
+        if clip_to_background:
+            self.mask_by_background_nodatas()
 
         self.make_drape_plot()
     
@@ -338,6 +344,11 @@ class DrapeAxes(object):
         
     def set_subplot_labels(self, text):
         self.ax.set_title(text)
+        
+    def mask_by_background_nodatas(self):
+        """Uses the Background raster mask to mask the drape extents"""
+        masked_background_index = np.isnan(self.Background._RasterArray) #== np.nan or -9999.0
+        self.Drape._RasterArray[masked_background_index] = np.nan
 
     def show_plot(self):
         self.fig.show()
