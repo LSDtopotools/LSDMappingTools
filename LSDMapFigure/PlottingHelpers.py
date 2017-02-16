@@ -6,7 +6,7 @@ Created on Sun Feb 12 10:29:18 2017
 """
 
 #==============================================================================
-def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_width = 0.5, text_padding = [0.4,0.4,0.4,0.4,0.2]):
+def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_width = 0.5, text_padding = [0.4,0.4,0.4,0.4,0.2,0.2]):
     """This function takes a string size argument and calculates the size of the
     various components of a plot based on a map image making up the centre of the
     figure.
@@ -33,23 +33,25 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_wid
     # [2] = top/bottom tick marks+tick labels
     # [3] = top/bottom text (i.e., and exis label)
     # [4] = whitespace at the edge of the figure + between map and colourbar
+    # [5] = colorbar text (e.g. tick labels+axis label)
 
     # By default the axes labels with tick label take up ~0.9 inches.
     # later we will adjust this with the size of the font but for now give a default
     cumulative_label_width = text_padding[0]+text_padding[1]
     cumulative_label_height = text_padding[2]+text_padding[3]
     wspace_padding = text_padding[4]
+    cbar_padding = text_padding[5]
 
     # first check if cbar is on the left or right
     if cbar_loc == "left" or cbar_loc == "right":
         #The colourbar takes up ~1 inch of space
-        cumulative_label_width = cumulative_label_width+cbar_width
+        cumulative_label_width = cumulative_label_width+cbar_width+cbar_padding
     elif cbar_loc == "top" or cbar_loc == "bottom":
-        cumulative_label_height = cumulative_label_height+cbar_width
+        cumulative_label_height = cumulative_label_height+cbar_width+cbar_padding
 
     # Now get the width of the map. Where you add the whitespace depends on where the colourbar is located
     if cbar_loc == "left" or cbar_loc == "right":
-        map_width_inches = figure_width_inches-cumulative_label_width-3*wspace_padding
+        map_width_inches = figure_width_inches-cumulative_label_width-cbar_padding-3*wspace_padding
         print("Map width is: "+str(map_width_inches))
     else:
         map_width_inches = figure_width_inches-cumulative_label_width-2*wspace_padding
@@ -60,7 +62,7 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_wid
 
     # now get the full height of the figure. Again figure height depends on where cbar is located
     if cbar_loc == "top" or cbar_loc == "bottom":
-        figure_height_inches = cumulative_label_height+map_height_inches+3*wspace_padding
+        figure_height_inches = cumulative_label_height+map_height_inches+cbar_padding+3*wspace_padding
     else:
         figure_height_inches = cumulative_label_height+map_height_inches+2*wspace_padding
 
