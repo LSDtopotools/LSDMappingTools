@@ -329,7 +329,7 @@ class MapFigure(object):
         
         self.fig.show()            
  
-    def save_fig(self,fig_width_inches = 4,cbar_location = "Top"):
+    def save_fig(self,fig_width_inches = 4,cbar_location = "Top",FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100):
 
         label_size = 50        
         print("I am setting the font size to: "+str(label_size))        
@@ -356,8 +356,7 @@ class MapFigure(object):
         else:    
             self.ax_list[-1].set_position(cbar_axes)
         
-        
-        fig.savefig('test2png.png', dpi=100)        
+        fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi)        
         
         #self.fig.show()   
         #print("The figure format is: " + self.FigFormat)
