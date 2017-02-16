@@ -66,7 +66,8 @@ MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4, 
 #MF.show_plot()
 ImageName = Directory+"TestNewArtist.png" 
 fig_size_inches = 6
-MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName)
+ax_style = "Madhouse"
+MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style)
 
 
 

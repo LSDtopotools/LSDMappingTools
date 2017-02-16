@@ -232,6 +232,65 @@ class MapFigure(object):
         ax.set_ylabel(self._yaxis_label)
         
         return ax
+
+    def axis_styler(self,ax_list,axis_style="Normal"):
+        """This sets the line width and fonts on the axes. 
+        
+        Args:
+            ax_list (axes objects): the list of axis objects
+            axis_style (string): The syle of the axis. See options below. 
+        """
+
+        if axis_style == "Normal":
+            lw = 1              # line width
+            ftsz = 10           # Size of tick label font
+            tpd = 2             # Tick padding
+            label_ftsz = 12     # Fontsize of axis label
+        elif axis_style == "Thick":
+            lw = 2
+            ftsz = 10
+            tpd = 2
+            label_ftsz = 12            
+        elif axis_style == "Thin":
+            lw = 0.5
+            ftsz = 8
+            tpd = 1
+            label_ftsz = 10   
+        elif axis_style == "Big":
+            lw = 2
+            ftsz = 12
+            tpd = 3 
+            label_ftsz = 14 
+        elif axis_style == "Madhouse":
+            # This is just a crazy style to test if the figure is actually recieving these instructions
+            lw = 4
+            ftsz = 20
+            tpd = 3 
+            label_ftsz = 6             
+        else:
+            print("Using the default axis styling")
+            lw = 1
+            ftsz = 10
+            tpd = 2
+            label_ftsz = 12             
+           
+        for ax in ax_list:
+            # Now to fix up the axes
+            ax.spines['top'].set_linewidth(lw)
+            ax.spines['left'].set_linewidth(lw)
+            ax.spines['right'].set_linewidth(lw)
+            ax.spines['bottom'].set_linewidth(lw)
+            
+            ax.xaxis.label.set_size(label_ftsz)
+            ax.yaxis.label.set_size(label_ftsz)
+                        
+            # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+            ax.tick_params(axis='both', width=lw, pad = tpd, labelsize = ftsz )
+            
+        return ax_list
+
+                
+            
         
     def make_base_image(self,ax_list):
         
@@ -329,8 +388,10 @@ class MapFigure(object):
         
         self.fig.show()            
  
-    def save_fig(self,fig_width_inches = 4,cbar_location = "Top",FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100):
+    def save_fig(self,fig_width_inches = 4,cbar_location = "Top",FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100, axis_style = "Normal"):
 
+        
+        self.ax_list = self.axis_styler(self.ax_list,axis_style)
         
         map_aspect_ratio = self._RasterList[0]._RasterAspectRatio
         print("The aspect ratio is: "+str(map_aspect_ratio))
