@@ -62,7 +62,7 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_wid
     if cbar_loc == "top" or cbar_loc == "bottom":
         figure_height_inches = cumulative_label_height+map_height_inches+3*wspace_padding
     else:
-        figure_height_inches = cumulative_label_height+map_height_inches+2*wspace_padding        
+        figure_height_inches = cumulative_label_height+map_height_inches+2*wspace_padding
 
     # This gets returned, we use it to make the figure.
     fig_size_inches = [figure_width_inches,figure_height_inches]
@@ -133,11 +133,10 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_wid
                     map_height_inches/map_height_inches]
 
     else:
-        map_left_inches = 0.9
-        mab_bottom_inches = 0.9
+        print('FIONA - Working on no colourbar')
 
-        map_axes = [map_left_inches/figure_width_inches,
-                    mab_bottom_inches/figure_height_inches,
+        map_axes = [(cumulative_label_width+wspace_padding)/figure_width_inches,
+                    (cumulative_label_height+wspace_padding)/figure_height_inches,
                     map_width_inches/figure_width_inches,
                     map_height_inches/figure_height_inches]
         cbar_axes = None
