@@ -144,7 +144,7 @@ class BaseRaster(object):
 
 class MapFigure(object):
     def __init__(self, BaseRasterName, Directory,
-                 coord_type="UTM", *args, **kwargs):
+                 coord_type="UTM", colourbar_location = "None",*args, **kwargs):
 
         # A map figure has one figure
         #self.fig = plt.figure(1, facecolor='white',figsize=(6,3))
@@ -160,8 +160,23 @@ class MapFigure(object):
         self.ax_list = []
         ax = fig.add_axes([0,0,1,1])
         self.ax_list.append(ax)
-
-
+        
+        
+        print("Your colourbar will be located: "+ colourbar_location)
+        if colourbar_location == "top" or colourbar_location == "bottom":
+            self.colourbar_location = colourbar_location
+            self.colourbar_orientation = "horizontal" 
+        elif colourbar_location == "left" or colourbar_location == "right":
+            self.colourbar_location = colourbar_location
+            self.colourbar_orientation = "vertical" 
+        elif colourbar_location == "None": 
+            self.colourbar_location = "None"
+            self.colourbar_orientation = "None" 
+        else:
+            print("You did not choose a valid colourbar location. Options are top, left, right, bottom and None. Defaulting to None.")
+            self.colourbar_location = "None"
+            self.colourbar_orientation = "None"                         
+  
         # Names of the directory and the base raster
         self._Directory = Directory
         self._BaseRasterName = BaseRasterName
@@ -312,20 +327,17 @@ class MapFigure(object):
     def add_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar",
-                        colourbar_orientation = "horizontal"):
+                        colorbarlabel = "Colourbar"):
 
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,show_colourbar,colorbarlabel,colourbar_orientation)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel)
 
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
                          alpha=0.5,
-                         show_colourbar = False,
-                         colorbarlabel = "Colourbar",
-                         colourbar_orientation = "horizontal"):
+                         colorbarlabel = "Colourbar"):
 
         self._RasterList.append(BaseRaster(RasterName,Directory))
         self._RasterList[-1].set_colourmap(colourmap)
@@ -343,20 +355,20 @@ class MapFigure(object):
 
         print("The number of axes are: "+str(len(self._drape_list)))
 
-        if show_colourbar:
+        if self.colourbar_orientation != "None":           
             self.ax_list = self.add_colourbar(self.ax_list,im,self._RasterList[-1],
-                                              colorbarlabel = colorbarlabel, cbar_orientation = colourbar_orientation)
+                                              colorbarlabel = colorbarlabel)
 
 
         return self.ax_list
 
-    def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar",cbar_orientation = 'horizontal'):
+    def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar"):
         fig = matplotlib.pyplot.gcf()
         ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
-        cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation=cbar_orientation,cax=ax_list[-1])
+        cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation=self.colourbar_orientation,cax=ax_list[-1])
         #cbar.set_label(colorbarlabel, fontsize=10)
         
-        if cbar_orientation == 'horizontal': 
+        if self.colourbar_orientation == 'horizontal': 
             ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)
         else:
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-35)
@@ -392,7 +404,7 @@ class MapFigure(object):
         
         self.fig.show()            
  
-    def save_fig(self,fig_width_inches = 4,cbar_location = "Top",FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100, axis_style = "Normal"):
+    def save_fig(self,fig_width_inches = 4,FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100, axis_style = "Normal"):
 
         
         self.ax_list = self.axis_styler(self.ax_list,axis_style)
@@ -402,7 +414,7 @@ class MapFigure(object):
 
         fig = matplotlib.pyplot.gcf()
         fig_size_inches, map_axes, cbar_axes = phelp.MapFigureSizer(fig_width_inches,
-                                                              map_aspect_ratio,cbar_loc = cbar_location)
+                                                              map_aspect_ratio,cbar_loc = self.colourbar_location)
 
         fig.set_size_inches(fig_size_inches[0], fig_size_inches[1])
         self.ax_list[0].set_position(map_axes)
