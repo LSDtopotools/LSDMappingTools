@@ -331,12 +331,6 @@ class MapFigure(object):
  
     def save_fig(self,fig_width_inches = 4,cbar_location = "Top",FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100):
 
-        label_size = 50        
-        print("I am setting the font size to: "+str(label_size))        
-        rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
-        rcParams['font.size'] = label_size
-        rcParams['lines.linewidth']  = 1.5  
         
         map_aspect_ratio = self._RasterList[0]._RasterAspectRatio
         print("The aspect ratio is: "+str(map_aspect_ratio))

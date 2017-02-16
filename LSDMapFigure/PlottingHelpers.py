@@ -6,7 +6,7 @@ Created on Sun Feb 12 10:29:18 2017
 """
 
 #==============================================================================
-def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None"):
+def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",text_padding = [0.4,0.4,0.4,0.4]):
     """This function takes a string size argument and calculates the size of the
     various components of a plot based on a map image making up the centre of the
     figure. 
@@ -21,10 +21,17 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None"):
     
     """
     
+    
+    # The text padding list holds the height and width, in inches of
+    # [0] = left/right tick marks+tick labels
+    # [1] = left/right text (i.e., and exis label)
+    # [2] = top/bottom tick marks+tick labels
+    # [3] = top/bottom text (i.e., and exis label)
+    
     # By default the axes labels with tick label take up ~0.9 inches.
     # later we will adjust this with the size of the font but for now give a default
-    cumulative_label_width = 0.9    
-    cumulative_label_height = 0.9    
+    cumulative_label_width = text_padding[0]+text_padding[1]   
+    cumulative_label_height = text_padding[2]+text_padding[3] 
     
     # first check if cbar is on the left or right
     if cbar_loc == "left" or cbar_loc == "right":

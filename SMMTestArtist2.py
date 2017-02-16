@@ -14,6 +14,11 @@ Created on Fri Feb 10 12:55:23 2017
 
 
 import matplotlib.pyplot as plt
+import matplotlib
+
+# Force matplotlib to not use any Xwindows backend.
+#matplotlib.use('Agg')
+
 from matplotlib import rcParams
 import matplotlib.cm as cm
 from LSDMapFigure.PlottingRaster import MapFigure
@@ -27,8 +32,15 @@ import sys
 #
 #init_plotting_DV()
 
+#label_size = 100
+#rcParams['font.family'] = 'sans-serif'
+#rcParams['font.sans-serif'] = ['arial']
+#rcParams['font.size'] = label_size
+#rcParams['lines.linewidth']  = 1.5   
+
 #Directory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\divides\\"
-Directory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
+#Directory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
+Directory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/divide_migration/"
 Base_file = "Mega_divide"
 
 
@@ -44,20 +56,17 @@ ChiRasterName = Base_file+"_chi_coord.bil"
 #BR.set_colourmap("RdYlGn")
 #BR.show_raster()
 
-label_size = 100
-rcParams['font.family'] = 'sans-serif'
-rcParams['font.sans-serif'] = ['arial']
-rcParams['font.size'] = label_size
-rcParams['lines.linewidth']  = 1.5      
+   
 
 
-plt.clf()
+plt.clf() 
 MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km")
 MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.4)
 MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4, show_colourbar = True)
 #MF.show_plot()
 ImageName = Directory+"TestNewArtist.png" 
-MF.save_fig(FigFileName = ImageName)
+fig_size_inches = 6
+MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName)
 
 
 
