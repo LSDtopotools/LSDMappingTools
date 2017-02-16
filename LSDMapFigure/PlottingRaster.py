@@ -312,18 +312,20 @@ class MapFigure(object):
     def add_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar"):
+                        colorbarlabel = "Colourbar",
+                        colourbar_orientation = "horizontal"):
 
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,show_colourbar,colorbarlabel)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,show_colourbar,colorbarlabel,colourbar_orientation)
 
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
                          alpha=0.5,
                          show_colourbar = False,
-                         colorbarlabel = "Colourbar"):
+                         colorbarlabel = "Colourbar",
+                         colourbar_orientation = "horizontal"):
 
         self._RasterList.append(BaseRaster(RasterName,Directory))
         self._RasterList[-1].set_colourmap(colourmap)
@@ -343,17 +345,21 @@ class MapFigure(object):
 
         if show_colourbar:
             self.ax_list = self.add_colourbar(self.ax_list,im,self._RasterList[-1],
-                                              colorbarlabel = colorbarlabel)
+                                              colorbarlabel = colorbarlabel, cbar_orientation = colourbar_orientation)
 
 
         return self.ax_list
 
-    def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar"):
+    def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar",cbar_orientation = 'horizontal'):
         fig = matplotlib.pyplot.gcf()
         ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
-        cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation='horizontal',cax=ax_list[-1])
+        cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation=cbar_orientation,cax=ax_list[-1])
         #cbar.set_label(colorbarlabel, fontsize=10)
-        ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)
+        
+        if cbar_orientation == 'horizontal': 
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)
+        else:
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-35)
 
         return ax_list
 
