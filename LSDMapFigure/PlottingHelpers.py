@@ -120,10 +120,8 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_wid
                     0.4/map_height_inches]
 
     elif cbar_loc == "bottom":
-        cbar_left_inches = 0.9
-        cbar_bottom_inches = 0.9
-        map_left_inches = 0.9
-        mab_bottom_inches = 0.9
+        print("SMM working on the bottom colourbar")
+        
 
         map_axes = [map_left_inches/figure_width_inches,
                     mab_bottom_inches/figure_height_inches,
