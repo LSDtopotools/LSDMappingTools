@@ -373,7 +373,7 @@ class MapFigure(object):
         elif self.colourbar_location == 'bottom':
             ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
         elif self.colourbar_location == 'left':
-            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
         elif self.colourbar_location == 'right':
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)            
         return ax_list

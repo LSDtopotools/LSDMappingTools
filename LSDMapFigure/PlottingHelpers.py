@@ -49,9 +49,18 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
 
     # Now we need to figure out where the axis are. Sadly this requires
     # a load of tedious conditional statments about the location of the axes
+    
+    #Will's changes:
+    #1/ Make space for the colourbar label on the left
+    #2/ Double the cbar_padding to leave space for the colourbar values on the right.
+    # NB: this should later be a function of font size
+    #3/ Changed rotation of colourbar text to 90 and the labelpad to -75 in PlottingRaster.py
+    
     if cbar_loc == "left":
-        cbar_left_inches = whitespace_padding         
-        map_left_inches = cbar_left_inches+cbar_width+cbar_text_width+map_text_width+cbar_padding
+        cbar_left_inches = whitespace_padding + cbar_text_width       
+        #cbar_left_inches = whitespace_padding        
+        map_left_inches = cbar_left_inches+cbar_width+map_text_width + 2*cbar_padding  
+        #map_left_inches = cbar_left_inches+cbar_width+cbar_text_width+map_text_width+cbar_padding
         map_width_inches = figure_width_inches-map_left_inches-whitespace_padding
         map_height_inches = map_width_inches/aspect_ratio
         
