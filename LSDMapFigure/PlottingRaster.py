@@ -368,6 +368,10 @@ class MapFigure(object):
         cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation=self.colourbar_orientation,cax=ax_list[-1])
         #cbar.set_label(colorbarlabel, fontsize=10)
         
+        
+        #Will's changes:
+        # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
+        
         if self.colourbar_location == 'top': 
             ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
         elif self.colourbar_location == 'bottom':
