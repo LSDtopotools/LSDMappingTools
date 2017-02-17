@@ -11,7 +11,7 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
                    cbar_text_width = 0.4,
                    cbar_padding = 0.1,
                    cbar_fraction = 1,
-                   whitespace_padding = 0.05,
+                   whitespace_padding = 0.1,
                    map_text_width = 0.65,
                    map_text_height = 0.45):
     """This function takes a string size argument and calculates the size of the
