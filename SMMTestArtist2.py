@@ -12,12 +12,17 @@ Created on Fri Feb 10 12:55:23 2017
 @author: smudd
 """
 
+import matplotlib
+
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
+
 
 import matplotlib.pyplot as plt
 import matplotlib
 
 # Force matplotlib to not use any Xwindows backend.
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 from matplotlib import rcParams
 import matplotlib.cm as cm
@@ -38,15 +43,14 @@ rcParams['font.sans-serif'] = ['arial']
 #rcParams['font.size'] = label_size
 #rcParams['lines.linewidth']  = 1.5   
 
-Directory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\divides\\"
-#Directory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
-#Directory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/divide_migration/"
-Base_file = "Mega_divide"
 
+Directory = "/home/s1563094/Datastore/DATA/UK/LiDAR_DTM_1m/HIN/"
+Base_file = "HIN_"
 
-BackgroundRasterName = Base_file+".bil"
-DrapeRasterName = Base_file+"_hs.bil"
-ChiRasterName = Base_file+"_chi_coord.bil"
+BackgroundRasterName = Base_file+"marsh1.bil"
+DrapeRasterName = Base_file+"marsh1_topo_hs.bil"
+ChiRasterName = Base_file+"marsh1_topo_slope.bil"
+
 
 #BR = BaseRaster(BackgroundRasterName, Directory)
 #BR.set_raster_type("Terrain")
