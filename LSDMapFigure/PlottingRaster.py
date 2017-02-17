@@ -369,7 +369,7 @@ class MapFigure(object):
         #cbar.set_label(colorbarlabel, fontsize=10)
         
         if self.colourbar_location == 'top': 
-            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
         elif self.colourbar_location == 'bottom':
             ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
         elif self.colourbar_location == 'left':
