@@ -33,14 +33,14 @@ import sys
 #init_plotting_DV()
 
 #label_size = 100
-#rcParams['font.family'] = 'sans-serif'
-#rcParams['font.sans-serif'] = ['arial']
+rcParams['font.family'] = 'sans-serif'
+rcParams['font.sans-serif'] = ['arial']
 #rcParams['font.size'] = label_size
 #rcParams['lines.linewidth']  = 1.5   
 
-#Directory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\divides\\"
+Directory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\divides\\"
 #Directory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
-Directory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/divide_migration/"
+#Directory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/divide_migration/"
 Base_file = "Mega_divide"
 
 
@@ -60,13 +60,14 @@ ChiRasterName = Base_file+"_chi_coord.bil"
 
 
 plt.clf() 
-MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km")
+cbar_loc = "bottom"
+MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km",colourbar_location = cbar_loc)
 MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.4)
-MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4, show_colourbar = True)
+MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4)
 #MF.show_plot()
 ImageName = Directory+"TestNewArtist.png" 
 fig_size_inches = 6
-ax_style = "Madhouse"
+ax_style = "Normal"
 MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style)
 
 
