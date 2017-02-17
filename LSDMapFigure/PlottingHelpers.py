@@ -6,7 +6,15 @@ Created on Sun Feb 12 10:29:18 2017
 """
 
 #==============================================================================
-def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_width = 0.5, text_padding = [0.4,0.4,0.4,0.4,0.2,0.2]):
+def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", 
+                   cbar_width = 0.5, 
+                   cbar_text_width = 0.4,
+                   cbar_padding = 0.1,
+                   cbar_fraction = 1,
+                   whitespace_padding = 0.05,
+                   map_text_width = 0.55,
+                   map_text_height = 0.55,                  
+                   text_padding = [0.4,0.4,0.2,0.2,0.05,0.05]):
     """This function takes a string size argument and calculates the size of the
     various components of a plot based on a map image making up the centre of the
     figure.
@@ -35,56 +43,38 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_wid
     # [4] = whitespace at the edge of the figure + between map and colourbar
     # [5] = colorbar text (e.g. tick labels+axis label)
 
-    # By default the axes labels with tick label take up ~0.9 inches.
-    # later we will adjust this with the size of the font but for now give a default
-    cumulative_label_width = text_padding[0]+text_padding[1]
-    cumulative_label_height = text_padding[2]+text_padding[3]
-    wspace_padding = text_padding[4]
-    cbar_padding = text_padding[5]
-
-    # first check if cbar is on the left or right
-    if cbar_loc == "left" or cbar_loc == "right":
-        #The colourbar takes up ~1 inch of space
-        cumulative_label_width = cumulative_label_width+cbar_width+cbar_padding
-    elif cbar_loc == "top" or cbar_loc == "bottom":
-        cumulative_label_height = cumulative_label_height+cbar_width+cbar_padding
-
-    # Now get the width of the map. Where you add the whitespace depends on where the colourbar is located
-    if cbar_loc == "left" or cbar_loc == "right":
-        map_width_inches = figure_width_inches-cumulative_label_width-cbar_padding-3*wspace_padding
-        print("Map width is: "+str(map_width_inches))
-    else:
-        map_width_inches = figure_width_inches-cumulative_label_width-2*wspace_padding
-
-    # now calculate the height of map and then the figure.
-    map_height_inches = map_width_inches/aspect_ratio
-    print("Map height is: "+str(map_height_inches))
-
-    # now get the full height of the figure. Again figure height depends on where cbar is located
-    if cbar_loc == "top" or cbar_loc == "bottom":
-        figure_height_inches = cumulative_label_height+map_height_inches+cbar_padding+3*wspace_padding
-    else:
-        figure_height_inches = cumulative_label_height+map_height_inches+2*wspace_padding
 
     # This gets returned, we use it to make the figure.
-    fig_size_inches = [figure_width_inches,figure_height_inches]
+    
+    #======================================================
 
     # Now we need to figure out where the axis are. Sadly this requires
     # a load of tedious conditional statments about the location of the axes
     if cbar_loc == "left":
-        cbar_left_inches = 0.9
-        cbar_bottom_inches = 0.9
-        map_left_inches = 2.4
-        mab_bottom_inches = 0.9
+        cbar_left_inches = whitespace_padding         
+        map_left_inches = cbar_left_inches+cbar_width+cbar_text_width+map_text_width+cbar_padding
+        map_width_inches = figure_width_inches-map_left_inches-whitespace_padding
+        map_height_inches = map_width_inches/aspect_ratio
+        
+        
+        
+        map_bottom_inches = whitespace_padding+map_text_height
+        cbar_bottom_inches = map_bottom_inches
+        figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding 
+
+        fig_size_inches = [figure_width_inches,figure_height_inches]
+
+        print("cbar_left: "+str(cbar_left_inches)+" map left: "+str(map_left_inches))
+        print("cbar_bottom: "+str(cbar_bottom_inches)+ " map bottom: "+str(map_bottom_inches))
 
         map_axes = [map_left_inches/figure_width_inches,
-                    mab_bottom_inches/figure_height_inches,
+                    map_bottom_inches/figure_height_inches,
                     map_width_inches/figure_width_inches,
                     map_height_inches/figure_height_inches]
         cbar_axes = [cbar_left_inches/figure_width_inches,
-                    cbar_bottom_inches/figure_height_inches,
-                    0.6/figure_width_inches,
-                    map_height_inches/map_height_inches]
+                    map_bottom_inches/figure_height_inches,
+                    cbar_width/figure_width_inches,
+                    cbar_fraction*(map_height_inches/figure_height_inches)]
 
     elif cbar_loc == "right":
         print('FIONA - Working on the colourbar on the right hand side')
@@ -99,16 +89,18 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_wid
                     map_height_inches/figure_height_inches]
 
     elif cbar_loc == "top":
-        print("I am placing the colourbar on the top")
+        print("SMM I am placing the colourbar on the top")
 
-        cbar_left_inches = 0.9
-        mab_bottom_inches = 0.9
-        map_left_inches = 0.9
-        cbar_bottom_inches = 0.9+map_height_inches+0.9
+        # The bottom offset includes i) the colourbar ii) colourbar text
+        # iii) ticks iv) tick test
+        colourbar_bottom_inches = wspace_padding+cumulative_label_height
+        
+        map_bottom_inches =colourbar_bottom_inches+cbar_padding+colourbar_thickness+cumulative_label_height 
 
-
-
-
+        # now get the left offset
+        map_left_inches = wspace_padding+cumulative_label_width
+        map_width_inches = figure_width_inches-map_left_inches-wspace_padding
+        map_height_inches = map_width_inches/aspect_ratio 
 
         map_axes = [map_left_inches/figure_width_inches,
                     mab_bottom_inches/figure_height_inches,
@@ -122,15 +114,33 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", cbar_wid
     elif cbar_loc == "bottom":
         print("SMM working on the bottom colourbar")
         
+        # The bottom offset includes i) the colourbar ii) colourbar text
+        # iii) ticks iv) tick test
+        colourbar_bottom_inches = wspace_padding+cumulative_label_height
+        
+        map_bottom_inches =colourbar_bottom_inches+cbar_padding+cbar_width+cumulative_label_height 
+
+        # now get the left offset
+        map_left_inches = wspace_padding+cumulative_label_width
+        map_width_inches = figure_width_inches-map_left_inches-wspace_padding
+        map_height_inches = map_width_inches/aspect_ratio       
+        
+        figure_height_inches = map_bottom_inches+map_height_inches+wspace_padding
 
         map_axes = [map_left_inches/figure_width_inches,
-                    mab_bottom_inches/figure_height_inches,
+                    map_bottom_inches/figure_height_inches,
                     map_width_inches/figure_width_inches,
                     map_height_inches/figure_height_inches]
-        cbar_axes = [cbar_left_inches/figure_width_inches,
-                    cbar_bottom_inches/figure_height_inches,
-                    0.6/figure_width_inches,
-                    map_height_inches/map_height_inches]
+        cbar_axes = [map_left_inches/figure_width_inches,
+                    colourbar_bottom_inches/figure_height_inches,
+                    colourbar_fraction*(map_width_inches/figure_width_inches),
+                    cbar_width/figure_height_inches]
+        
+
+        fig_size_inches= [figure_width_inches,figure_height_inches] 
+        # overwrite: to see if the bloody thing is working
+        #map_axes = [0.1,0.1,0.4,0.4]
+        #cbar_axes = [0.5,0.5,0.1,0.4]           
 
     else:
         print('FIONA - Working on no colourbar')
