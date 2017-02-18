@@ -75,7 +75,7 @@ MF.add_point_data(PointData)
 ImageName = Directory+"TestNewArtist.png" 
 fig_size_inches = 6
 ax_style = "Normal"
-MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = 1000)
+MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = 250)
 
 
 
