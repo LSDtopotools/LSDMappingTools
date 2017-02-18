@@ -20,10 +20,6 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 import matplotlib
-
-# Force matplotlib to not use any Xwindows backend.
-matplotlib.use('Agg')
-
 from matplotlib import rcParams
 import matplotlib.cm as cm
 from LSDMapFigure.PlottingRaster import MapFigure
@@ -31,6 +27,7 @@ from LSDMapFigure.PlottingRaster import BaseRaster
 
 from LSDPlottingTools import colours as lsdcolours
 from LSDPlottingTools import init_plotting_DV
+from LSDPlottingTools import LSDMap_PointTools
 import sys
 
 #sys.path.append("PATH/TO/LSDPlottingTools/")
@@ -44,12 +41,17 @@ rcParams['font.sans-serif'] = ['arial']
 #rcParams['lines.linewidth']  = 1.5   
 
 
-Directory = "/home/s1563094/Datastore/DATA/UK/LiDAR_DTM_1m/HIN/"
-Base_file = "HIN_"
+#DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
+Directory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\Divides\\"
+#DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
+Base_file = "Mega_divide"
 
-BackgroundRasterName = Base_file+"marsh1.bil"
-DrapeRasterName = Base_file+"marsh1_topo_hs.bil"
-ChiRasterName = Base_file+"marsh1_topo_slope.bil"
+#Directory = "/home/s1563094/Datastore/DATA/UK/LiDAR_DTM_1m/HIN/"
+#Base_file = "HIN_"
+
+BackgroundRasterName = Base_file+".bil"
+DrapeRasterName = Base_file+"_hs.bil"
+ChiRasterName = Base_file+"_chi_coord.bil"
 
 
 #BR = BaseRaster(BackgroundRasterName, Directory)
@@ -60,19 +62,20 @@ ChiRasterName = Base_file+"marsh1_topo_slope.bil"
 #BR.set_colourmap("RdYlGn")
 #BR.show_raster()
 
-   
-
+PD_file = Base_file+"_chi_coord_basins.csv"  
+PointData = LSDMap_PointTools.LSDMap_PointData(Directory+PD_file)
 
 plt.clf() 
 cbar_loc = "bottom"
 MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km",colourbar_location = cbar_loc)
 MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.4)
 MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4)
+MF.add_point_data(PointData)
 #MF.show_plot()
 ImageName = Directory+"TestNewArtist.png" 
 fig_size_inches = 6
 ax_style = "Normal"
-MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style)
+MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = 1000)
 
 
 

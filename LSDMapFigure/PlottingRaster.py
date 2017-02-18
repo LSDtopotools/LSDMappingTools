@@ -47,6 +47,10 @@ class BaseRaster(object):
 
         # set the default colourmap
         self._colourmap = "gray"
+        
+        # get the EPSG string
+        self._EPSGString = LSDP.LSDMap_IO.GetUTMEPSG(self._FullPathRaster)
+        #print("The EPSGString is: "+ self._EPSGString)
 
     @property
     def extents(self):
@@ -382,7 +386,26 @@ class MapFigure(object):
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)            
         return ax_list
 
+    def add_point_data(self, thisPointData,column_for_plotting = "None",
+                       this_colourmap = "cubehelix"):
+        EPSG_string = self._RasterList[0]._EPSGString
+        print("I am going to plot some points for you. The EPSG string is:"+EPSG_string)
+        
+        # convert to easting and northing
+        [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
 
+        # check if the column for plotting exists
+        this_data = thisPointData.QueryData(column_for_plotting)
+                
+        
+        # this gets added to the base axis, which is axis_list[0]
+
+        if len(this_data) == 0 or len(this_data) != len(easting):
+            print("I am only plotting the points.")            
+            sc = self.ax_list[0].scatter(easting,northing,s=0.5, c="blue",cmap=this_colourmap,edgecolors='none')
+        else:
+            sc = self.ax_list[0].scatter(easting,northing,s=0.5, c=this_data,cmap=this_colourmap,edgecolors='none')
+        
 
 
     def _set_coord_type(self, coord_type):
