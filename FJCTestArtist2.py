@@ -50,12 +50,11 @@ ChiRasterName = Base_file+"_SO.bil"
 #rcParams['lines.linewidth']  = 1.5
 
 plt.clf()
-MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km")
+MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km", colourbar_location='right')
 MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.4)
 MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4, show_colourbar = True)
 #MF.show_plot()
-text_padding = [0.1,0.4,0.1,0.4]
-MF.save_fig(fig_width_inches = 10, text_padding=text_padding, cbar_location = "right")
+MF.save_fig(fig_width_inches = 10)
 
 
 
