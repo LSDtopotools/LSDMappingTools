@@ -47,6 +47,10 @@ class BaseRaster(object):
 
         # set the default colourmap
         self._colourmap = "gray"
+        
+        # get the EPSG string
+        self._EPSGString = LSDP.LSDMap_IO.GetUTMEPSG(self._FullPathRaster)
+        #print("The EPSGString is: "+ self._EPSGString)
 
     @property
     def extents(self):
@@ -333,6 +337,9 @@ class MapFigure(object):
         print(self.ax_list[0])
 
         self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel)
+        #print("Getting axis limits in drape function: ")
+        #print(self.ax_list[0].get_xlim())  
+
 
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
@@ -368,14 +375,49 @@ class MapFigure(object):
         cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation=self.colourbar_orientation,cax=ax_list[-1])
         #cbar.set_label(colorbarlabel, fontsize=10)
         
-        if self.colourbar_orientation == 'horizontal': 
-            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)
-        else:
-            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-35)
-
+        
+        #Will's changes:
+        # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
+        
+        if self.colourbar_location == 'top': 
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        elif self.colourbar_location == 'bottom':
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        elif self.colourbar_location == 'left':
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
+        elif self.colourbar_location == 'right':
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)            
         return ax_list
 
+    def add_point_data(self, thisPointData,column_for_plotting = "None",
+                       this_colourmap = "cubehelix"):
 
+        # Get the axis limits to asser after
+        this_xlim = self.ax_list[0].get_xlim()    
+        this_ylim = self.ax_list[0].get_ylim() 
+
+        EPSG_string = self._RasterList[0]._EPSGString
+        print("I am going to plot some points for you. The EPSG string is:"+EPSG_string)
+        
+        # convert to easting and northing
+        [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+
+        # check if the column for plotting exists
+        this_data = thisPointData.QueryData(column_for_plotting)
+                
+        
+        # this gets added to the base axis, which is axis_list[0]
+
+        if len(this_data) == 0 or len(this_data) != len(easting):
+            print("I am only plotting the points.")            
+            sc = self.ax_list[0].scatter(easting,northing,s=0.5, c="blue",cmap=this_colourmap,edgecolors='none')
+        else:
+            sc = self.ax_list[0].scatter(easting,northing,s=0.5, c=this_data,cmap=this_colourmap,edgecolors='none')
+
+        # Annoying but the scatter plot resets the extens so you need to reassert them 
+        self.ax_list[0].set_xlim(this_xlim)    
+        self.ax_list[0].set_ylim(this_ylim) 
+       
 
 
     def _set_coord_type(self, coord_type):
@@ -407,7 +449,7 @@ class MapFigure(object):
     def save_fig(self,fig_width_inches = 4,FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100, axis_style = "Normal"):
 
         
-        self.ax_list = self.axis_styler(self.ax_list,axis_style)
+        self.ax_list = self.axis_styler(self.ax_list,axis_style)       
         
         map_aspect_ratio = self._RasterList[0]._RasterAspectRatio
         print("The aspect ratio is: "+str(map_aspect_ratio))
@@ -418,6 +460,10 @@ class MapFigure(object):
 
         fig.set_size_inches(fig_size_inches[0], fig_size_inches[1])
         self.ax_list[0].set_position(map_axes)
+        
+        # Annoying but the scatter plot resets the extens so you need to reassert them 
+        self.ax_list[0].set_xlim(self._xmin,self._xmax)    
+        self.ax_list[0].set_ylim(self._ymax,self._ymin) 
 
         print("Number of axes are: " + str(len(self.ax_list)))
 

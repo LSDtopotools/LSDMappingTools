@@ -21,8 +21,8 @@ def TestAxisLocation():
     rcParams['xtick.labelsize'] = tick_label_size
     rcParams['ytick.labelsize'] = tick_label_size 
     
-    #DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\Divides\\"    
-    DataDirectory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
+    DataDirectory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\Divides\\"    
+    #DataDirectory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
     Base_file = "Mega_divide"
      
     bil = ".bil"
