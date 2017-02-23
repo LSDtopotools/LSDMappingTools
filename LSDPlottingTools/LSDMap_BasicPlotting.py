@@ -607,7 +607,7 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
 #==============================================================================
 def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
                             colorbarlabel='Elevation in meters',clim_val = (0,0),
-                            drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show'):
+                            drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show', dpi_save = 250):
     """This creates a draped plot of a raster. It uses AxisGrid to ensure proper placment of the raster.
 
     Args:
@@ -718,7 +718,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     elif FigFormat == 'return':
         return fig
     else:
-        plt.savefig(FigFileName,format=FigFormat,dpi=250)
+        plt.savefig(FigFileName,format=FigFormat,dpi=dpi_save)
         fig.clf()
 
 #==============================================================================
