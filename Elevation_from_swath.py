@@ -47,7 +47,7 @@ def read_all_data(DataDirectory,DEM_prefix, info_file, data_file):
 
     return distance, MeanValues, MinValues, MaxValues, no_lines, data2
 
-def make_elevation_plots(DataDirectory, DEM_prefix, DEM_swathed,info_file, data_file,  field_site, smoothing):
+def make_elevation_plots(DataDirectory, DEM_prefix, DEM_swathed,info_file, data_file,  field_site, smoothing, OutputFigureName):
     """
     Make nice plots of the elevations along the swath
     """
@@ -57,7 +57,7 @@ def make_elevation_plots(DataDirectory, DEM_prefix, DEM_swathed,info_file, data_
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = 14
 
-    distance, MeanValues, MinValues, MaxValues, Nlines, info = read_all_data(DataDirectory, DEM_prefix,info_file, data_file, OutputFigureName)
+    distance, MeanValues, MinValues, MaxValues, Nlines, info = read_all_data(DataDirectory, DEM_prefix,info_file, data_file)
 
     # add the XY Plot
     fig = plt.figure(1, figsize=(cm2inch(25),cm2inch(15)))
@@ -110,16 +110,16 @@ def make_elevation_plots(DataDirectory, DEM_prefix, DEM_swathed,info_file, data_
     #plt.tight_layout()
     plt.close()
 
-##################################################
-############# Parameters to change ###############
-##################################################
+#############################################################################################################
+######################################## Parameters to change ###############################################
+#############################################################################################################
 
 if __name__ == "__main__":
 
     DEM_prefix = 'SRTM90_final_PP' # The original DEM
     DEM_swathed = DEM_prefix + "_swath_raster_0"  # the swath raster produce by the driver, change it if you manually change the outpu file
     info_file  = DEM_prefix + "_swath_genInfo_0" # the information file, change it if you manually change the outpu file
-    data_file = DEM_prefix + "SRTM90_final_PP_swath_elevations_0" # the data file, change it if you manually change the outpu file
+    data_file = DEM_prefix + "_swath_elevations_0" # the data file, change it if you manually change the outpu file
     field_site = "Swath profile" # Title of the figure
     smoothing = False # if true, slightly smooth the curve
     #DataDirectory = 'Z:\\DEMs_for_analysis\\eel_river\\'
