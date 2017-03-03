@@ -389,8 +389,29 @@ class MapFigure(object):
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)            
         return ax_list
 
+    def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar"):
+        fig = matplotlib.pyplot.gcf()
+        ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
+        cbar = plt.colorbar(sc,cmap=cmap, orientation=self.colourbar_orientation,cax=ax_list[-1])
+        #cbar.set_label(colorbarlabel, fontsize=10)
+        
+        
+        #Will's changes:
+        # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
+        
+        if self.colourbar_location == 'top': 
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        elif self.colourbar_location == 'bottom':
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        elif self.colourbar_location == 'left':
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
+        elif self.colourbar_location == 'right':
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)            
+        return ax_list
+
+
     def add_point_data(self, thisPointData,column_for_plotting = "None",
-                       this_colourmap = "cubehelix"):
+                       this_colourmap = "cubehelix",colorbarlabel = "Colourbar"):
 
         # Get the axis limits to asser after
         this_xlim = self.ax_list[0].get_xlim()    
@@ -416,8 +437,11 @@ class MapFigure(object):
 
         # Annoying but the scatter plot resets the extens so you need to reassert them 
         self.ax_list[0].set_xlim(this_xlim)    
-        self.ax_list[0].set_ylim(this_ylim) 
-       
+        self.ax_list[0].set_ylim(this_ylim)
+
+        if self.colourbar_orientation != "None":           
+            self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap = "cubehelix",
+                                              colorbarlabel = colorbarlabel)
 
 
     def _set_coord_type(self, coord_type):
