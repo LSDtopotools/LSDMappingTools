@@ -34,26 +34,54 @@ def floodplain_mean_depth(water_raster, floodplain_mask, threshold=0.0):
     
     # I.e. mask where we are NOT in a floodplain (flagged==1)
     floodplain_waters = _np.ma.masked_where(floodplain_mask != 1, water_raster)
-    plt.imshow(floodplain_waters)
+    #plt.imshow(floodplain_waters)
     
     mean_water_depth_on_floodplain = _np.mean(floodplain_waters)
     print("Mean water depth in floodplain: ", mean_water_depth_on_floodplain)
     print(floodplain_waters)
+    
+def main_channel_mean_depth(water_raster, floodplain_mask, stream_mask, threshold=0.0):
+    """Calculates the mean water depth in the floodplain channel.
+       I.e. does not include channel headwaters outside the floodplain."""
+    #floodplain_channel_waters = _np.ma.masked_where(_np.logical_and(floodplain_mask !=1, stream_mask >= 0), water_raster)   
+    #floodplain_channel_waters = water_raster[_np.logical_and(floodplain_mask==1 , (~_np.isnan(stream_mask)))]
+    #floodplain_channel_waters = water_raster[(floodplain_mask==1) & (~_np.isnan(stream_mask))]
+    
+    # Floodplain minus channel...
+    #floodplain_channel_waters = _np.ma.masked_where( (floodplain_mask !=1 & _np.isnan(stream_mask) ), water_raster)
+    
+    # Channels within the flood plain
+    #floodplain_channel_waters = _np.ma.masked_where( (floodplain_mask != 1 & ~_np.isnan(stream_mask) ), water_raster)
+    
+    # Get fourth order streams
+    floodplain_channel_waters = _np.ma.masked_where( stream_mask!=4 , water_raster)
 
     
+    #plt.imshow(floodplain_mask)
+    #plt.imshow(stream_mask)
     
-raster_file = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/peak_flood/WaterDepths2400_GRID_HYDRO.asc"
+    plt.imshow(floodplain_channel_waters)
+    
+
+    
+"""Get your rasters into arrays"""    
+water_raster_file = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/peak_flood/WaterDepths2400_GRID_HYDRO.asc"
 #raster_file = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/peak_flood/WaterDepths2400_GRID_HYDRO.asc"
 floodplain_file = "/mnt/SCRATCH/Analyses/ChannelMaskAnalysis/floodplain_boscastle/BoscastleElevations_FP.bil"
+stream_raster_file = "/mnt/SCRATCH/Analyses/ChannelMaskAnalysis/floodplain_boscastle/BoscastleElevations_SO.bil"
 
-water_raster = lsdgdal.ReadRasterArrayBlocks(raster_file)
+water_raster = lsdgdal.ReadRasterArrayBlocks(water_raster_file)
 floodplain_mask = lsdgdal.ReadRasterArrayBlocks(floodplain_file)
+stream_mask = lsdgdal.ReadRasterArrayBlocks(stream_raster_file)
+print(stream_mask)
 
-DX = lsdgdal.GetUTMMaxMin(raster_file)[0]   # I never realised you could do this!
+DX = lsdgdal.GetUTMMaxMin(water_raster_file)[0]   # I never realised you could do this!
 print(DX)
 
+"""Calculate the depths and areas"""
 calculate_mean_waterdepth(water_raster)
 calcualte_max_waterdepth(water_raster)
 calculate_waterinundation_area(water_raster, DX, 0.02)
 
 floodplain_mean_depth(water_raster, floodplain_mask)
+main_channel_mean_depth(water_raster, floodplain_mask, stream_mask)
