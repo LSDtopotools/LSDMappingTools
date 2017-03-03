@@ -15,15 +15,15 @@ from LSDPlottingTools import init_plotting_DV
 
 init_plotting_DV()
 #Directory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"
-Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
 #Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
-#Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
-BackgroundRasterName = "BoscastleElevations0.asc"
-#DrapeRasterName = "BoscastleElevDiff_UNIFORM_TLIM.bil"
-DrapeRasterName = "BoscastleErodeDiff_GRID_UNI_TLIMM.bil"
+#Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
+Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
+BackgroundRasterName = "RyedaleElevations0.asc"
+DrapeRasterName = "RyedaleElevDiff_GRIDDED_DLIM.bil"
+#DrapeRasterName = "BoscastleErodeDiff_GRID_UNI_TLIMM.bil"
 
 # Standard colourmap
-Colourmap = "seismic"
+Colourmap = "RdYlGn"
 
 #Non-linear colourmap
 ##ColourLevels = lsdcolours.nonlinear_colourmap.create_levels(-3.0, 3.0, -0.2, 0.2, -0.5, 0.5)
