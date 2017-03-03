@@ -175,10 +175,21 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
                     cbar_width/figure_height_inches]          
 
     else:
-        print('FIONA - Working on no colourbar')
+        print("No colourbar")
+        
+        map_left_inches = whitespace_padding+map_text_width
+        map_right_inches = figure_width_inches-whitespace_padding 
+        map_width_inches = map_right_inches-map_left_inches
+        map_height_inches = map_width_inches/aspect_ratio
+        
+        map_bottom_inches = whitespace_padding+map_text_height
+ 
+        figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding 
 
-        map_axes = [(cumulative_label_width+wspace_padding)/figure_width_inches,
-                    (cumulative_label_height+wspace_padding)/figure_height_inches,
+        fig_size_inches = [figure_width_inches,figure_height_inches]
+
+        map_axes = [map_left_inches/figure_width_inches,
+                    map_bottom_inches/figure_height_inches,
                     map_width_inches/figure_width_inches,
                     map_height_inches/figure_height_inches]
         cbar_axes = None

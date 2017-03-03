@@ -165,6 +165,15 @@ class MapFigure(object):
         ax = fig.add_axes([0,0,1,1])
         self.ax_list.append(ax)
         
+        # check the colourbar location
+        if colourbar_location == "Top" or colourbar_location == "TOP":
+            colourbar_location = "top"
+        if colourbar_location == "Bottom" or colourbar_location == "BOTTOM":
+            colourbar_location = "bottom"        
+        if colourbar_location == "Left" or colourbar_location == "LEFT":
+            colourbar_location = "left" 
+        if colourbar_location == "Right" or colourbar_location == "RIGHT":
+            colourbar_location = "right"             
         
         print("Your colourbar will be located: "+ colourbar_location)
         if colourbar_location == "top" or colourbar_location == "bottom":
@@ -389,8 +398,31 @@ class MapFigure(object):
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)            
         return ax_list
 
+    def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar"):
+        fig = matplotlib.pyplot.gcf()
+        ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
+        cbar = plt.colorbar(sc,cmap=cmap, orientation=self.colourbar_orientation,cax=ax_list[-1])
+        #cbar.set_label(colorbarlabel, fontsize=10)
+        
+        
+        #Will's changes:
+        # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
+        
+        if self.colourbar_location == 'top': 
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        elif self.colourbar_location == 'bottom':
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        elif self.colourbar_location == 'left':
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
+        elif self.colourbar_location == 'right':
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)            
+        return ax_list
+
+
     def add_point_data(self, thisPointData,column_for_plotting = "None",
-                       this_colourmap = "cubehelix"):
+                       this_colourmap = "cubehelix",colorbarlabel = "Colourbar",
+                       scale_points = True,column_for_scaling = "None",
+                       scaled_data_in_log = False):
 
         # Get the axis limits to asser after
         this_xlim = self.ax_list[0].get_xlim()    
@@ -404,20 +436,46 @@ class MapFigure(object):
 
         # check if the column for plotting exists
         this_data = thisPointData.QueryData(column_for_plotting)
-                
         
-        # this gets added to the base axis, which is axis_list[0]
+        scale_data = thisPointData.QueryData(column_for_plotting)
+        
+        if scaled_data_in_log:
+            scale_data = np.log(scaled_data)
+                
+        # scale the points if you want
+        if scale_points == True:
+            if len(scale_data) == 0 or len(scale_data) != len(easting): 
+                point_scale = 0.5
+            else:
+                max_sd = max(scale_data)
+                min_sd = min(scale_data)
+                print("max is: "+str(max_sd)+ " and min is: "+ str(min_sd))
+                
+                point_scale = 0.5
+                
+            
+            
+        
+        else:
+            point_scale = 0.5
+        
+
 
         if len(this_data) == 0 or len(this_data) != len(easting):
             print("I am only plotting the points.")            
-            sc = self.ax_list[0].scatter(easting,northing,s=0.5, c="blue",cmap=this_colourmap,edgecolors='none')
+            sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none')
         else:
-            sc = self.ax_list[0].scatter(easting,northing,s=0.5, c=this_data,cmap=this_colourmap,edgecolors='none')
+            sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none')
 
         # Annoying but the scatter plot resets the extens so you need to reassert them 
         self.ax_list[0].set_xlim(this_xlim)    
-        self.ax_list[0].set_ylim(this_ylim) 
-       
+        self.ax_list[0].set_ylim(this_ylim)
+
+        print("The colourbar orientation for point plotting is: "+self.colourbar_orientation)
+        if self.colourbar_orientation != "None":
+            print("Let me add a colourbar for your point data")
+            self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap = "cubehelix",
+                                              colorbarlabel = colorbarlabel)
 
 
     def _set_coord_type(self, coord_type):
