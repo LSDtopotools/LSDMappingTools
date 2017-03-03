@@ -165,6 +165,15 @@ class MapFigure(object):
         ax = fig.add_axes([0,0,1,1])
         self.ax_list.append(ax)
         
+        # check the colourbar location
+        if colourbar_location == "Top" or colourbar_location == "TOP":
+            colourbar_location = "top"
+        if colourbar_location == "Bottom" or colourbar_location == "BOTTOM":
+            colourbar_location = "bottom"        
+        if colourbar_location == "Left" or colourbar_location == "LEFT":
+            colourbar_location = "left" 
+        if colourbar_location == "Right" or colourbar_location == "RIGHT":
+            colourbar_location = "right"             
         
         print("Your colourbar will be located: "+ colourbar_location)
         if colourbar_location == "top" or colourbar_location == "bottom":
@@ -439,7 +448,9 @@ class MapFigure(object):
         self.ax_list[0].set_xlim(this_xlim)    
         self.ax_list[0].set_ylim(this_ylim)
 
-        if self.colourbar_orientation != "None":           
+        print("The colourbar orientation for point plotting is: "+self.colourbar_orientation)
+        if self.colourbar_orientation != "None":
+            print("Let me add a colourbar for your point data")
             self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap = "cubehelix",
                                               colorbarlabel = colorbarlabel)
 
