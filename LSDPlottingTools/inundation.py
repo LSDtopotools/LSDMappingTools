@@ -38,7 +38,7 @@ def floodplain_mean_depth(water_raster, floodplain_mask, threshold=0.0):
     
     mean_water_depth_on_floodplain = _np.mean(floodplain_waters)
     print("Mean water depth in floodplain: ", mean_water_depth_on_floodplain)
-    print(floodplain_waters)
+    #print(floodplain_waters)
     
 def main_channel_mean_depth(water_raster, floodplain_mask, stream_mask, threshold=0.0):
     """Calculates the mean water depth in the floodplain channel.
@@ -55,11 +55,12 @@ def main_channel_mean_depth(water_raster, floodplain_mask, stream_mask, threshol
     
     # Get fourth order streams
     floodplain_channel_waters = _np.ma.masked_where( stream_mask!=4 , water_raster)
-
     
+    mean_channel_depth = _np.mean(floodplain_channel_waters)
+    print("Mean main channel depth: ", mean_channel_depth)
+
     #plt.imshow(floodplain_mask)
     #plt.imshow(stream_mask)
-    
     plt.imshow(floodplain_channel_waters)
     
 
@@ -73,7 +74,7 @@ stream_raster_file = "/mnt/SCRATCH/Analyses/ChannelMaskAnalysis/floodplain_bosca
 water_raster = lsdgdal.ReadRasterArrayBlocks(water_raster_file)
 floodplain_mask = lsdgdal.ReadRasterArrayBlocks(floodplain_file)
 stream_mask = lsdgdal.ReadRasterArrayBlocks(stream_raster_file)
-print(stream_mask)
+#print(stream_mask)
 
 DX = lsdgdal.GetUTMMaxMin(water_raster_file)[0]   # I never realised you could do this!
 print(DX)
