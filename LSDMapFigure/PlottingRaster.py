@@ -420,7 +420,9 @@ class MapFigure(object):
 
 
     def add_point_data(self, thisPointData,column_for_plotting = "None",
-                       this_colourmap = "cubehelix",colorbarlabel = "Colourbar"):
+                       this_colourmap = "cubehelix",colorbarlabel = "Colourbar",
+                       scale_points = True,column_for_scaling = "None",
+                       scaled_data_in_log = False):
 
         # Get the axis limits to asser after
         this_xlim = self.ax_list[0].get_xlim()    
@@ -434,15 +436,36 @@ class MapFigure(object):
 
         # check if the column for plotting exists
         this_data = thisPointData.QueryData(column_for_plotting)
-                
         
-        # this gets added to the base axis, which is axis_list[0]
+        scale_data = thisPointData.QueryData(column_for_plotting)
+        
+        if scaled_data_in_log:
+            scale_data = np.log(scaled_data)
+                
+        # scale the points if you want
+        if scale_points == True:
+            if len(scale_data) == 0 or len(scale_data) != len(easting): 
+                point_scale = 0.5
+            else:
+                max_sd = max(scale_data)
+                min_sd = min(scale_data)
+                print("max is: "+str(max_sd)+ " and min is: "+ str(min_sd))
+                
+                point_scale = 0.5
+                
+            
+            
+        
+        else:
+            point_scale = 0.5
+        
+
 
         if len(this_data) == 0 or len(this_data) != len(easting):
             print("I am only plotting the points.")            
-            sc = self.ax_list[0].scatter(easting,northing,s=0.5, c="blue",cmap=this_colourmap,edgecolors='none')
+            sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none')
         else:
-            sc = self.ax_list[0].scatter(easting,northing,s=0.5, c=this_data,cmap=this_colourmap,edgecolors='none')
+            sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none')
 
         # Annoying but the scatter plot resets the extens so you need to reassert them 
         self.ax_list[0].set_xlim(this_xlim)    
