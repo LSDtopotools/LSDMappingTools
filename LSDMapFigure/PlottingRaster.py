@@ -480,12 +480,15 @@ class MapFigure(object):
         # check if the column for plotting exists
         this_data = thisPointData.QueryData(column_for_plotting)
         
+        # Now the data for scaling. Point size will be scaled by these data
         scale_data = thisPointData.QueryData(column_for_scaling)
         
+        # If there is scaled data, convert to log if that option is selected
         if scaled_data_in_log:
             if len(scale_data) == 0 or len(scale_data) != len(easting): 
                 scale_data = 0.5
             else:
+                # We need this logic since we can get nans and -Infs from 0 and negative numbers                
                 scale_data = np.log(scale_data)
                 scale_data[scale_data < -10] = -10
                         
@@ -497,11 +500,10 @@ class MapFigure(object):
             else:
                 max_sd = np.nanmax(scale_data)
                 min_sd = np.nanmin(scale_data)
-                                
                 
                 print("max is: "+str(max_sd)+ " and min is: "+ str(min_sd))
                 
-                # now rescale the data
+                # now rescale the data. Always a linear scaling. 
                 new_scale = []
                 size_range = max_point_size-min_point_size
                 for datum in scale_data:
@@ -510,13 +512,11 @@ class MapFigure(object):
                     new_scale.append(new_size)
                 ns_array = np.asarray(new_scale)
                 point_scale = ns_array
- 
         
         else:
             point_scale = 0.5
         
-
-
+        
         if len(this_data) == 0 or len(this_data) != len(easting):
             print("I am only plotting the points.")            
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none')
@@ -533,7 +533,15 @@ class MapFigure(object):
             self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap = "cubehelix",
                                               colorbarlabel = colorbarlabel)
 
+    def add_text_annotation_from_points(self, annotation_file):
+        """
+        This adds annotations to points. Used for annotating basins, or sources, for example.
+        """
+        # Format the bounding box
+        bbox_props = dict(boxstyle="round,pad=0.1", fc="w", ec="b", lw=0.5,alpha = 0.5)
 
+        # First get the source node information
+        #source_nodes = LSDMap_CP.FindSourceInformation(chanPointData)        
 
 
     def _set_coord_type(self, coord_type):
