@@ -439,7 +439,7 @@ class MapFigure(object):
         # check if the column for plotting exists
         this_data = thisPointData.QueryData(column_for_plotting)
         
-        scale_data = thisPointData.QueryData(column_for_plotting)
+        scale_data = thisPointData.QueryData(column_for_scaling)
         
         if scaled_data_in_log:
             if len(scale_data) == 0 or len(scale_data) != len(easting): 
