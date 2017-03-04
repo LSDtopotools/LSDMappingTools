@@ -421,8 +421,10 @@ class MapFigure(object):
 
     def add_point_data(self, thisPointData,column_for_plotting = "None",
                        this_colourmap = "cubehelix",colorbarlabel = "Colourbar",
-                       scale_points = True,column_for_scaling = "None",
-                       scaled_data_in_log = False):
+                       scale_points = False,column_for_scaling = "None",
+                       scaled_data_in_log = False,
+                       max_point_size = 5,
+                       min_point_size = 0.5):
 
         # Get the axis limits to asser after
         this_xlim = self.ax_list[0].get_xlim()    
@@ -440,21 +442,34 @@ class MapFigure(object):
         scale_data = thisPointData.QueryData(column_for_plotting)
         
         if scaled_data_in_log:
-            scale_data = np.log(scaled_data)
+            if len(scale_data) == 0 or len(scale_data) != len(easting): 
+                scale_data = 0.5
+            else:
+                scale_data = np.log(scale_data)
+                scale_data[scale_data < -10] = -10
+                        
                 
         # scale the points if you want
         if scale_points == True:
             if len(scale_data) == 0 or len(scale_data) != len(easting): 
                 point_scale = 0.5
             else:
-                max_sd = max(scale_data)
-                min_sd = min(scale_data)
+                max_sd = np.nanmax(scale_data)
+                min_sd = np.nanmin(scale_data)
+                                
+                
                 print("max is: "+str(max_sd)+ " and min is: "+ str(min_sd))
                 
-                point_scale = 0.5
-                
-            
-            
+                # now rescale the data
+                new_scale = []
+                size_range = max_point_size-min_point_size
+                for datum in scale_data:
+                    frac = (datum-min_sd)/(max_sd-min_sd)
+                    new_size = frac*size_range+min_point_size
+                    new_scale.append(new_size)
+                ns_array = np.asarray(new_scale)
+                point_scale = ns_array
+ 
         
         else:
             point_scale = 0.5

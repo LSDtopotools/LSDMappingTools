@@ -70,7 +70,9 @@ cbar_loc = "Bottom"
 MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km",colourbar_location = cbar_loc)
 MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.4)
 #MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4)
-MF.add_point_data(PointData,column_for_plotting = "chi",colorbarlabel = "I am point data")
+MF.add_point_data(PointData,column_for_plotting = "chi",colorbarlabel = "I am point data",
+                  scale_points = True,column_for_scaling = "chi",
+                       scaled_data_in_log = False)
 #MF.show_plot()
 ImageName = Directory+"TestNewArtist.png" 
 fig_size_inches = 6
