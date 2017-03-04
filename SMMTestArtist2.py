@@ -43,9 +43,11 @@ rcParams['font.sans-serif'] = ['arial']
 
 #DataDirectory = "/home/smudd/SMMDataStore/analysis_for_papers/Meghalaya/chi_analysis/"
 #Directory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\Divides\\"
-Directory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\test_segments\\"
+#Directory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\test_segments\\"
+Directory = "C:\\Vagrantboxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\"
 #DataDirectory = "T:\\analysis_for_papers\\Meghalaya/chi_analysis\\"
-Base_file = "Mega_divide_segments"
+#Base_file = "Mega_divide_segments"
+Base_file= "Mega_clip"
 
 #Directory = "/home/s1563094/Datastore/DATA/UK/LiDAR_DTM_1m/HIN/"
 #Base_file = "HIN_"
@@ -72,7 +74,7 @@ cbar_loc = "Bottom"
 MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km",colourbar_location = cbar_loc)
 MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.4)
 #MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4)
-MF.add_point_data(PointData,column_for_plotting = "chi",colorbarlabel = "I am point data",
+MF.add_point_data(PointData,column_for_plotting = "source_key",colorbarlabel = "I am point data",
                   scale_points = True,column_for_scaling = "drainage area",
                        scaled_data_in_log = False)
 #MF.show_plot()

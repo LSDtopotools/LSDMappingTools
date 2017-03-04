@@ -31,6 +31,10 @@ class BaseRaster(object):
     Class BaseRaster represents the data associated with the basic rasters
     used to create to image to be plotted. It also contains the methods
     associated with performing any basic analyses to that raster.
+    
+    Args:
+        RasterName (str): The name of the rasters (with extension). It is read by gdal so should cope with mulitple formats
+        Directory (str): The path to the raster. Needs to have the trailing slash 
     """
     def __init__(self, RasterName, Directory):
 
@@ -99,6 +103,9 @@ class BaseRaster(object):
         """
         Renders the background image that
         will form the drape plot, e.g. a hillshade
+        
+        Args:
+            rastertype (str): The type of raster. Not many supported, but basically just changes the colourmap
         """
         self._rastertype = rastertype
         if self._rastertype == "Hillshade":
@@ -114,11 +121,17 @@ class BaseRaster(object):
 
     def set_colourmap(self, cmap):
         """
-        There must be a more pythonic way to do this!
+        There must be a more pythonic way to do this! But sets the colourmap
+        
+        Args:
+            cmap (list or str): the colourmap
         """
         self._colourmap = cmap
 
     def _initialise_masks(self):
+        """
+        Some logic Declan wrote to mask values.
+        """
         if self._drapeminthreshold is not None:
             self.mask_low_values()
         if self._drapemaxthreshold is not None:
@@ -126,11 +139,17 @@ class BaseRaster(object):
         if self._middlemaskrange is not None:
             self.mask_middle_values()
 
-    def mask_low_values(self):
+    def mask_low_values(self):#
+        """
+        Reads from the self._drapeminthreshold to mask low values.
+        """
         low_values_index = self._RasterArray < self._drapeminthreshold
         self._RasterArray[low_values_index] = np.nan
 
     def mask_high_values(self):
+        """
+        Reads from the self._drapeminthreshold to mask high values.
+        """
         high_values_index = self._RasterArray < self._drapemaxthreshold
         self._RasterArray[high_values_index] = np.nan
 
@@ -141,12 +160,22 @@ class BaseRaster(object):
         self._RasterArray[masked_mid_values_index] = np.nan
 
     def show_raster(self):
+        """
+        Low level show function. Only really used for debugging since it contains
+        no sizing, labelling etc.
+        """
         plt.imshow(self._RasterArray,
                    cmap=self._colourmap,
                    extent=self.extents)
         plt.show()
 
 class MapFigure(object):
+    """
+    This is the main object used for plotting. It contains the underlying axes of the figures.
+    At the moment the4 axes contain typically a colourbar and a main image axis.
+    The function also contains routines for sizing, draping, adding point data, 
+    etc.
+    """
     def __init__(self, BaseRasterName, Directory,
                  coord_type="UTM", colourbar_location = "None",*args, **kwargs):
 
@@ -228,6 +257,11 @@ class MapFigure(object):
 
 
     def make_ticks(self):
+        """
+        This function makes the tick marks and the tick labels.
+        It has been optimised so you get nice looking ticks, so you shouldn't have to mess with them after this is called.
+        """
+        
         if self._coord_type == "UTM":
             self.tick_xlocs,self.tick_ylocs,self.tick_x_labels,self.tick_y_labels = LSDP.GetTicksForUTMNoInversion(self._BaseRasterFullName,self._xmax,self._xmin,
                              self._ymax,self._ymin,self._n_target_ticks)
@@ -252,6 +286,9 @@ class MapFigure(object):
         print(self.tick_ylocs)
 
     def add_ticks_to_axis(self,ax):
+        """
+        This is a low level function for placing the ticks on the active image axis.
+        """
         ax.set_xticklabels(self.tick_x_labels)
         ax.set_yticklabels(self.tick_y_labels)
         ax.set_xticks(self.tick_xlocs)
@@ -319,6 +356,10 @@ class MapFigure(object):
 
 
     def make_base_image(self,ax_list):
+        """
+        This function creates the base image. It creates the axis for the base image, 
+        further drapes and point data are placed upon this image .
+        """
 
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
@@ -491,6 +532,8 @@ class MapFigure(object):
             print("Let me add a colourbar for your point data")
             self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap = "cubehelix",
                                               colorbarlabel = colorbarlabel)
+
+
 
 
     def _set_coord_type(self, coord_type):
