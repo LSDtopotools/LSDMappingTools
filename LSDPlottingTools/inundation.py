@@ -12,6 +12,7 @@ import LSDMap_GDALIO as lsdgdal
 import numpy as _np
 import matplotlib.pyplot as plt
 import glob
+import os
 import re
 
 
@@ -68,12 +69,30 @@ def main_channel_mean_depth(water_raster, floodplain_mask, stream_mask, threshol
     plt.imshow(floodplain_channel_waters)
     
     return mean_channel_depth
+
+def split_letternumber_string(string):
+    """
+    Splits strings of the form "Alphabet123" into a tuple of ("Alpha", "123")
+    """
+    match = re.match(r"([a-z]+)([0-9]+)", string, re.I)
+    if match:
+        items = match.groups()
+        return items #tuple
     
-def timestep_string_from_filename():
-    pass
+def timestep_string_from_filename(filename):
+    """Extracts the timestep string from the file"""
+    base_name = os.path.splitext(os.path.basename(filename))[0]
+    print(base_name)
+    timestep_string = split_letternumber_string(base_name)
+    
+    return timestep_string[1]
+
 
 def natural_key(string_):
-    """See http://www.codinghorror.com/blog/archives/001018.html"""
+    """Sorts strings in a 'natural sort' way, ie.. if you have numbers in the strings,
+    it treats the digits as a single number. 
+    See http://www.codinghorror.com/blog/archives/001018.html
+    """
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
 
 def simulation_inundation_timeseries(glob_wildcard, floodplain_mask, stream_mask, threshold=0):
@@ -86,15 +105,15 @@ def simulation_inundation_timeseries(glob_wildcard, floodplain_mask, stream_mask
         Mean Water Depth (Channel)
     """
     # Create an empty array with the correct number of columns
-    data_array = _np.empty((0,5), int)
+    data_array = _np.empty((0,5), dtype=_np.float32)
     print("Data array shape: ", data_array.shape)
 
-    for water_raster_file in sorted(glob.glob(glob_wildcard)):
+    for water_raster_file in sorted(glob.glob(glob_wildcard), key=natural_key):
         print(water_raster_file)
         water_raster = lsdgdal.ReadRasterArrayBlocks(water_raster_file)
         
         timestep_row = [] # Empty list to store elements of the row
-        cur_timestep = str("TEST") # get the current timestep by parsing the filename
+        cur_timestep = timestep_string_from_filename(water_raster_file) # get the current timestep by parsing the filename
 
         # Inundation area
         this_inundation_area = calculate_waterinundation_area(water_raster, DX, 0.02)
@@ -109,7 +128,7 @@ def simulation_inundation_timeseries(glob_wildcard, floodplain_mask, stream_mask
                              this_mean_floodplain_waterdepth,
                              this_mean_mainchannel_waterdepth])
         # Convert the list into a numpy array
-        timestep_row = _np.asarray(timestep_row)
+        timestep_row = _np.asarray(timestep_row, dtype=_np.float32)
         
         # Now append (stack) that row onto the bottom of the array (axis=0)
         data_array = _np.append(data_array, timestep_row, axis=0)
@@ -117,6 +136,8 @@ def simulation_inundation_timeseries(glob_wildcard, floodplain_mask, stream_mask
     print(data_array)
     print(data_array.shape)
     
+    with open("inundation_timeseries.txt",'wb') as f:
+        _np.savetxt(f, data_array, fmt='%i %f %f %f %f')
 
 
 
