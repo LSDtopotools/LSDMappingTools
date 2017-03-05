@@ -59,14 +59,14 @@ def main_channel_mean_depth(water_raster, floodplain_mask, stream_mask, threshol
     #floodplain_channel_waters = _np.ma.masked_where( (floodplain_mask != 1 & ~_np.isnan(stream_mask) ), water_raster)
     
     # Get fourth order streams
-    floodplain_channel_waters = _np.ma.masked_where( stream_mask!=4 , water_raster)
+    floodplain_channel_waters = _np.ma.masked_where( stream_mask!=5 , water_raster)
     
     mean_channel_depth = _np.mean(floodplain_channel_waters)
     print("Mean main channel depth: ", mean_channel_depth)
 
     #plt.imshow(floodplain_mask)
     #plt.imshow(stream_mask)
-    plt.imshow(floodplain_channel_waters)
+    #plt.imshow(floodplain_channel_waters)
     
     return mean_channel_depth
 
@@ -95,7 +95,9 @@ def natural_key(string_):
     """
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
 
-def simulation_inundation_timeseries(glob_wildcard, floodplain_mask, stream_mask, threshold=0):
+def simulation_inundation_timeseries(glob_wildcard, floodplain_mask, stream_mask,
+                                     threshold=0,
+                                     savefilename="inundation_metrics.txt"):
     """Creates a timeseries of a given inundation metric. 
     
     Options should be:
@@ -136,20 +138,21 @@ def simulation_inundation_timeseries(glob_wildcard, floodplain_mask, stream_mask
     print(data_array)
     print(data_array.shape)
     
-    with open("inundation_timeseries.txt",'wb') as f:
+    with open(savefilename,'wb') as f:
         _np.savetxt(f, data_array, fmt='%i %f %f %f %f')
 
 
 
     
 """Get your rasters into arrays"""    
-water_raster_wildcard = "/run/media/dav/SHETLAND/ModelRuns/Boscastle_storms/Lumped/Hydro/WaterDepths*.asc"
-water_raster_file = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/peak_flood/WaterDepths2400_GRID_HYDRO.asc"
+water_raster_wildcard = "/run/media/dav/SHETLAND/ModelRuns/Ryedale_storms/Gridded/Hydro/WaterDepths*.asc"
+water_raster_file = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/peak_flood_maps/ryedale/WaterDepths2880_GRID_TLIM.asc"
 #raster_file = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/peak_flood/WaterDepths2400_GRID_HYDRO.asc"
-floodplain_file = "/mnt/SCRATCH/Analyses/ChannelMaskAnalysis/floodplain_boscastle/BoscastleElevations_FP.bil"
-stream_raster_file = "/mnt/SCRATCH/Analyses/ChannelMaskAnalysis/floodplain_boscastle/BoscastleElevations_SO.bil"
+floodplain_file = "/mnt/SCRATCH/Analyses/ChannelMaskAnalysis/floodplain_ryedale/RyedaleElevations_FP.bil"
+stream_raster_file = "/mnt/SCRATCH/Analyses/ChannelMaskAnalysis/floodplain_ryedale/RyedaleElevations_SO.bil"
 
 water_raster = lsdgdal.ReadRasterArrayBlocks(water_raster_file)
+
 floodplain_mask = lsdgdal.ReadRasterArrayBlocks(floodplain_file)
 stream_mask = lsdgdal.ReadRasterArrayBlocks(stream_raster_file)
 #print(stream_mask)
@@ -165,4 +168,6 @@ print(DX)
 #main_channel_mean_depth(water_raster, floodplain_mask, stream_mask)
 
 """Make the timeseries file"""
-simulation_inundation_timeseries(water_raster_wildcard, floodplain_mask, stream_mask)
+simulation_inundation_timeseries(water_raster_wildcard, floodplain_mask,
+                                 stream_mask,
+                                 savefilename="ryedale_inundation_GRIDDED_HYDRO.txt")
