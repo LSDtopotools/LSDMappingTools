@@ -11,6 +11,9 @@ this line. The mean, max, and total area wil be able to be calculated.)
 import LSDMap_GDALIO as lsdgdal
 import numpy as _np
 import matplotlib.pyplot as plt
+import glob
+import os
+import re
 
 
 def calculate_mean_waterdepth(raster):
@@ -28,6 +31,7 @@ def calculate_waterinundation_area(raster, cellsize, threshold):
     area = DX * DX * total_cells  # metres
     
     print("Inundation area is: ", area, " metres square")
+    return area
     
 def floodplain_mean_depth(water_raster, floodplain_mask, threshold=0.0):
     """Calculates the mean waterdepth on the floodplain"""
@@ -39,6 +43,7 @@ def floodplain_mean_depth(water_raster, floodplain_mask, threshold=0.0):
     mean_water_depth_on_floodplain = _np.mean(floodplain_waters)
     print("Mean water depth in floodplain: ", mean_water_depth_on_floodplain)
     #print(floodplain_waters)
+    return mean_water_depth_on_floodplain
     
 def main_channel_mean_depth(water_raster, floodplain_mask, stream_mask, threshold=0.0):
     """Calculates the mean water depth in the floodplain channel.
@@ -63,9 +68,82 @@ def main_channel_mean_depth(water_raster, floodplain_mask, stream_mask, threshol
     #plt.imshow(stream_mask)
     plt.imshow(floodplain_channel_waters)
     
+    return mean_channel_depth
+
+def split_letternumber_string(string):
+    """
+    Splits strings of the form "Alphabet123" into a tuple of ("Alpha", "123")
+    """
+    match = re.match(r"([a-z]+)([0-9]+)", string, re.I)
+    if match:
+        items = match.groups()
+        return items #tuple
+    
+def timestep_string_from_filename(filename):
+    """Extracts the timestep string from the file"""
+    base_name = os.path.splitext(os.path.basename(filename))[0]
+    print(base_name)
+    timestep_string = split_letternumber_string(base_name)
+    
+    return timestep_string[1]
+
+
+def natural_key(string_):
+    """Sorts strings in a 'natural sort' way, ie.. if you have numbers in the strings,
+    it treats the digits as a single number. 
+    See http://www.codinghorror.com/blog/archives/001018.html
+    """
+    return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
+
+def simulation_inundation_timeseries(glob_wildcard, floodplain_mask, stream_mask, threshold=0):
+    """Creates a timeseries of a given inundation metric. 
+    
+    Options should be:
+        Inundation Area (Entire catchment)
+        Mean Water Depth (Entire catchment)
+        Mean Water Depth (Floodplain only)
+        Mean Water Depth (Channel)
+    """
+    # Create an empty array with the correct number of columns
+    data_array = _np.empty((0,5), dtype=_np.float32)
+    print("Data array shape: ", data_array.shape)
+
+    for water_raster_file in sorted(glob.glob(glob_wildcard), key=natural_key):
+        print(water_raster_file)
+        water_raster = lsdgdal.ReadRasterArrayBlocks(water_raster_file)
+        
+        timestep_row = [] # Empty list to store elements of the row
+        cur_timestep = timestep_string_from_filename(water_raster_file) # get the current timestep by parsing the filename
+
+        # Inundation area
+        this_inundation_area = calculate_waterinundation_area(water_raster, DX, 0.02)
+        this_mean_catchment_waterdepth = calculate_mean_waterdepth(water_raster)
+        this_mean_floodplain_waterdepth = floodplain_mean_depth(water_raster, floodplain_mask)
+        this_mean_mainchannel_waterdepth = main_channel_mean_depth(water_raster, floodplain_mask, stream_mask)
+        
+        # Append each value to the current row list object
+        timestep_row.append([cur_timestep,
+                             this_inundation_area,
+                             this_mean_catchment_waterdepth,
+                             this_mean_floodplain_waterdepth,
+                             this_mean_mainchannel_waterdepth])
+        # Convert the list into a numpy array
+        timestep_row = _np.asarray(timestep_row, dtype=_np.float32)
+        
+        # Now append (stack) that row onto the bottom of the array (axis=0)
+        data_array = _np.append(data_array, timestep_row, axis=0)
+    
+    print(data_array)
+    print(data_array.shape)
+    
+    with open("inundation_timeseries.txt",'wb') as f:
+        _np.savetxt(f, data_array, fmt='%i %f %f %f %f')
+
+
 
     
 """Get your rasters into arrays"""    
+water_raster_wildcard = "/run/media/dav/SHETLAND/ModelRuns/Boscastle_storms/Lumped/Hydro/WaterDepths*.asc"
 water_raster_file = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/peak_flood/WaterDepths2400_GRID_HYDRO.asc"
 #raster_file = "/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/peak_flood_maps/boscastle/peak_flood/WaterDepths2400_GRID_HYDRO.asc"
 floodplain_file = "/mnt/SCRATCH/Analyses/ChannelMaskAnalysis/floodplain_boscastle/BoscastleElevations_FP.bil"
@@ -80,9 +158,11 @@ DX = lsdgdal.GetUTMMaxMin(water_raster_file)[0]   # I never realised you could d
 print(DX)
 
 """Calculate the depths and areas"""
-calculate_mean_waterdepth(water_raster)
-calcualte_max_waterdepth(water_raster)
-calculate_waterinundation_area(water_raster, DX, 0.02)
+#calculate_mean_waterdepth(water_raster)
+#calcualte_max_waterdepth(water_raster)
+#calculate_waterinundation_area(water_raster, DX, 0.02)
+#floodplain_mean_depth(water_raster, floodplain_mask)
+#main_channel_mean_depth(water_raster, floodplain_mask, stream_mask)
 
-floodplain_mean_depth(water_raster, floodplain_mask)
-main_channel_mean_depth(water_raster, floodplain_mask, stream_mask)
+"""Make the timeseries file"""
+simulation_inundation_timeseries(water_raster_wildcard, floodplain_mask, stream_mask)
