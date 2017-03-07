@@ -467,7 +467,7 @@ class MapFigure(object):
                        max_point_size = 5,
                        min_point_size = 0.5):
 
-        # Get the axis limits to asser after
+        # Get the axis limits to assert after
         this_xlim = self.ax_list[0].get_xlim()    
         this_ylim = self.ax_list[0].get_ylim() 
 
@@ -523,7 +523,7 @@ class MapFigure(object):
         else:
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none')
 
-        # Annoying but the scatter plot resets the extens so you need to reassert them 
+        # Annoying but the scatter plot resets the extents so you need to reassert them 
         self.ax_list[0].set_xlim(this_xlim)    
         self.ax_list[0].set_ylim(this_ylim)
 
@@ -533,16 +533,48 @@ class MapFigure(object):
             self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap = "cubehelix",
                                               colorbarlabel = colorbarlabel)
 
-    def add_text_annotation_from_points(self, annotation_file):
+    def add_text_annotation_from_points(self, thisPointData,column_for_plotting = "None",
+                                        selection_criteria = []):
         """
-        This adds annotations to points. Used for annotating basins, or sources, for example.
+        This adds annotations to points. Used for annotating basins or sources, for example.
         """
+        
+        # A list of text objects
+        texts = []        
+        
+        # Get the axis limits to assert after
+        this_xlim = self.ax_list[0].get_xlim()    
+        this_ylim = self.ax_list[0].get_ylim()
+
         # Format the bounding box
         bbox_props = dict(boxstyle="round,pad=0.1", fc="w", ec="b", lw=0.5,alpha = 0.5)
 
-        # First get the source node information
-        #source_nodes = LSDMap_CP.FindSourceInformation(chanPointData)        
+        # see if the data column exists
+        test_data = thisPointData.QueryData(column_for_plotting)
+        
+        if len(test_data) == 0:
+            print("There is no data with the column name: "+column_for_plotting)
+        else:
 
+            # Thin the data
+            if len(selection_criteria) == 1:
+                thisPointData.ThinData(column_for_plotting,selection_criteria)
+            elif len(selection_criteria) >1:
+                thisPointData.ThinDataSelection(column_for_plotting,selection_criteria)
+                
+            # get the easting and northing
+            EPSG_string = self._RasterList[0]._EPSGString 
+            print("EPSG_string is: "+EPSG_string)
+            [this_easting,this_northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+            thinned_data = thisPointData.QueryData(column_for_plotting)
+    
+            texts.append(self.ax_list[0].text(this_easting,this_northing, str(thinned_data),fontsize = 8, color= "r",alpha=0.7,bbox=bbox_props))
+    
+        # Annoying but the scatter plot resets the extents so you need to reassert them 
+        self.ax_list[0].set_xlim(this_xlim)    
+        self.ax_list[0].set_ylim(this_ylim)
+        
+        return texts
 
     def _set_coord_type(self, coord_type):
         """Sets the coordinate type"""
