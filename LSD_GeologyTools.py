@@ -15,9 +15,15 @@ from osgeo import ogr
 import LSDPlottingTools as LSDPT
 import gdal as gdal
 import numpy as np
+from osgeo.gdalconst import GA_ReadOnly
 
 def readFile(filename):
-    filehandle = gdal.Open(filename)
+    print("Hey buddy, Reading the file: "+filename)
+
+    filehandle = gdal.Open(filename, GA_ReadOnly )
+    if filehandle == None:
+        raise Exception("Unable to read the data file") 
+    
     band1 = filehandle.GetRasterBand(1)
     geotransform = filehandle.GetGeoTransform()
     geoproj = filehandle.GetProjection()
@@ -317,7 +323,11 @@ def GLIM_geologic_maps_modify_shapefile(shapefile_name):
     print("The rocks are: ")
     print(geol_dict)
       
-    print("All done")   
+    print("All done") 
+    
+    # Close DataSources
+    dataSource.Destroy()
+    
     return new_shapefile_name, geol_dict
 
 
@@ -330,11 +340,8 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
         raise Exception('[Errno 2] No such file or directory: \'' + shapefile_name + '\'') 
         
     # get the short name of the new shapefile
-    shapefilefilepath = LSDPT.GetPath(new_shapefile_name)
-    shapefilename = LSDPT.GetFileNameNoPath(new_shapefile_name)
     shapefileshortname = LSDPT.GetFilePrefix(new_shapefile_name)
     print("The shortname is: "+shapefileshortname)
-
 
     src = ogr.Open(shapefile_name)
     daLayer = src.GetLayer(0)
@@ -346,10 +353,6 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
         print(layerDefinition.GetFieldDefn(i).GetName())
         
     geom_type = layerDefinition.GetGeomType()
-    print("Geometry type is: "+str(geom_type))
-    
-    print("Mulitpolygon type is: "+str(ogr.wkbMultiPolygon))
-    print("Polygon type is: "+str(ogr.wkbPolygon))
 
     # get rid of previous copies
     if exists(new_shapefile_name):
@@ -361,14 +364,11 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
     
     # create the output layer
     out_lyr = out_ds.CreateLayer("yo",srs = daLayer.GetSpatialRef(),geom_type=ogr.wkbPolygon)    
-    #out_lyr = out_ds.CreateLayer(shapefileshortname,
-    #                             srs = daLayer.GetSpatialRef(),
-    #                             geom_type=ogr.wkbMultiPolygon)
      
     # Add input Layer Fields to the output Layer if it is the one we want
     for i in range(0, layerDefinition.GetFieldCount()):
         fieldDefn = layerDefinition.GetFieldDefn(i)
-        fieldName = fieldDefn.GetName()
+        #fieldName = fieldDefn.GetName()
         out_lyr.CreateField(fieldDefn)
 
     # Get the output Layer's Feature Definition
@@ -384,7 +384,6 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
         outFeature.SetGeometry(geom.Clone())
         # Add new feature to output Layer
         
-
         # Add field values from input Layer
         for i in range(0, outLayerDefn.GetFieldCount()):
             fieldDefn = outLayerDefn.GetFieldDefn(i)
@@ -393,6 +392,10 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
                 inFeature.GetField(i))
                 
         out_lyr.CreateFeature(outFeature)
+    
+    # Close shapefiles    
+    src.Destroy()
+    out_ds.Destroy()
         
 if __name__ == "__main__":
     
@@ -402,10 +405,12 @@ if __name__ == "__main__":
     
     shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain.shp'
     new_shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\New_TipOfSpain.shp'    
-    
+    tifname = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain_new.tif'
     
     #Copy_Shapefile(shapefile_name,new_shapefile_name)
     #Rasterize_BGS_geologic_maps(shapefile_name)
     #Rasterize_GLIM_geologic_maps_pythonic(shapefile_name)
     new_shapefile_name, geol_dict = GLIM_geologic_maps_modify_shapefile(shapefile_name)
     Rasterize_GLIM_geologic_maps_pythonic(new_shapefile_name)
+    #LSDPT.ReadRasterArrayBlocks(tifname)
+    #readFile(tifname)
