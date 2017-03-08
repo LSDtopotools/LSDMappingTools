@@ -35,11 +35,16 @@ def readFile(filename):
 def writeFile(filename,geotransform,geoprojection,data):
     (x,y) = data.shape
     format = "GTiff"
+    noDataValue = -9999
     driver = gdal.GetDriverByName(format)
     # you can change the dataformat but be sure to be able to store negative values including -9999
     dst_datatype = gdal.GDT_Float32
+    
+    #print(data)    
+    
     dst_ds = driver.Create(filename,y,x,1,dst_datatype)
     dst_ds.GetRasterBand(1).WriteArray(data)
+    dst_ds.GetRasterBand(1).SetNoDataValue( noDataValue )  
     dst_ds.SetGeoTransform(geotransform)
     dst_ds.SetProjection(geoprojection)
     return 1
@@ -226,7 +231,7 @@ def Rasterize_GLIM_geologic_maps_pythonic(shapefile_name):
     xMin, xMax, yMin, yMax = daLayer.GetExtent()
     xRes = int((xMax - xMin) / inGridSize)
     yRes = int((yMax - yMin) / inGridSize)
-    rasterDS = gdal.GetDriverByName('GTiff').Create(outraster, xRes, yRes, 1,    gdal.GDT_Byte)
+    rasterDS = gdal.GetDriverByName('GTiff').Create(outraster, xRes, yRes, 1,    gdal.Int32)
     
     # Define spatial reference
     NoDataVal = -9999
@@ -237,19 +242,7 @@ def Rasterize_GLIM_geologic_maps_pythonic(shapefile_name):
     rBand.Fill(NoDataVal)
 
     # Rasterize
-    err = gdal.RasterizeLayer(rasterDS, [1], daLayer, options = ["ATTRIBUTE=GEOL_CODE"])
-    
-    # And now for a hack that converts to 
-    print("The raster name is: "+outraster)
-    [xsize,ysize,geotransform,geoproj,Z] = readFile(outraster)
-
-    # Set large negative values to -9999
-    Z[Z<0]= -9999
-    Z[np.isnan(Z)]= -9999
-
-    outraster2 = shapefilefilepath+os.sep+shapefileshortname + '2.tif'
-    writeFile(writefilename,geotransform,geoproj,Z)   
-    
+    err = gdal.RasterizeLayer(rasterDS, [1], daLayer, options = ["ATTRIBUTE=GEOL_CODE"]) 
     
     # Make a key for the bedrock
     geol_dict = dict()
@@ -270,6 +263,33 @@ def Rasterize_GLIM_geologic_maps_pythonic(shapefile_name):
             f.write(str(key)+','+ str(geol_dict[key])+'\n')
       
     print("All done")        
+
+def Correct_Raterized_GLIM_map(tifname):
+    # And now for a hack that converts to 
+    print("The raster name is: "+tifname)
+
+    [xsize,ysize,geotransform,geoproj,Z] = readFile(tifname)
+
+    print("Before data check")
+    print(Z)
+    
+    print("Data type is: "+ str(Z.dtype))
+    X = Z.astype(int)
+    # Set large negative values to -9999
+    X[X<=0] = -9999
+    #Z[np.isnan(Z)]= -9999
+    
+    print("After_data_check")
+    print(X)
+
+    #get path and filename seperately 
+    filepath = LSDPT.GetPath(tifname)
+    #filename = LSDPT.GetFileNameNoPath(tifname)
+    fileshortname = LSDPT.GetFilePrefix(tifname)
+
+    outraster2 = filepath+fileshortname + '2.tif'
+    writeFile(outraster2,geotransform,geoproj,X)   
+   
 
 def GLIM_geologic_maps_modify_shapefile(shapefile_name):
  
@@ -363,7 +383,8 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
     out_ds = driver.CreateDataSource(new_shapefile_name)
     
     # create the output layer
-    out_lyr = out_ds.CreateLayer("yo",srs = daLayer.GetSpatialRef(),geom_type=ogr.wkbPolygon)    
+    #out_lyr = out_ds.CreateLayer("yo",srs = daLayer.GetSpatialRef(),geom_type=ogr.wkbPolygon)    
+    out_lyr = out_ds.CreateLayer("yo",srs = daLayer.GetSpatialRef(),geom_type=geom_type)      
      
     # Add input Layer Fields to the output Layer if it is the one we want
     for i in range(0, layerDefinition.GetFieldCount()):
@@ -411,6 +432,7 @@ if __name__ == "__main__":
     #Rasterize_BGS_geologic_maps(shapefile_name)
     #Rasterize_GLIM_geologic_maps_pythonic(shapefile_name)
     new_shapefile_name, geol_dict = GLIM_geologic_maps_modify_shapefile(shapefile_name)
-    Rasterize_GLIM_geologic_maps_pythonic(new_shapefile_name)
+    #Rasterize_GLIM_geologic_maps_pythonic(new_shapefile_name)
+    Correct_Raterized_GLIM_map(tifname)
     #LSDPT.ReadRasterArrayBlocks(tifname)
     #readFile(tifname)
