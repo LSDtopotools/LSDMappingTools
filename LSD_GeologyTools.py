@@ -10,6 +10,7 @@ Created on Tue Feb 07 13:34:02 2017
 
 # Importing needed modules 
 import os 
+from os.path import exists
 from osgeo import ogr
 import LSDPlottingTools as LSDPT
 import gdal as gdal
@@ -278,13 +279,89 @@ def GLIM_geologic_maps_modify_shapefile(shapefile_name):
       
     print("All done")   
 
+
+def Copy_Shapefile(shapefile_name,new_shapefile_name):
+ 
+    if exists(shapefile_name) is False:
+        raise Exception('[Errno 2] No such file or directory: \'' + shapefile_name + '\'') 
+        
+    # get the short name of the new shapefile
+    shapefilefilepath = LSDPT.GetPath(new_shapefile_name)
+    shapefilename = LSDPT.GetFileNameNoPath(new_shapefile_name)
+    shapefileshortname = LSDPT.GetFilePrefix(new_shapefile_name)
+    print("The shortname is: "+shapefileshortname)
+
+
+    src = ogr.Open(shapefile_name)
+    daLayer = src.GetLayer(0)
+
+
     
+    # lets see what the layers are
+    print("Let me tell you what the names of the fields are!")
+    layerDefinition = daLayer.GetLayerDefn()
+    for i in range(layerDefinition.GetFieldCount()):
+        print(layerDefinition.GetFieldDefn(i).GetName())
+        
+    geom_type = layerDefinition.GetGeomType()
+    print("Geometry type is: "+str(geom_type))
+    
+    print("Mulitpolygon type is: "+str(ogr.wkbMultiPolygon))
+    print("Polygon type is: "+str(ogr.wkbPolygon))
+
+    # get rid of previous copies
+    if exists(new_shapefile_name):
+        os.remove(new_shapefile_name)
+    
+    # get the driver and create a new data source
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+    out_ds = driver.CreateDataSource(new_shapefile_name)
+    
+    # create the output layer
+    out_lyr = out_ds.CreateLayer("yo",srs = daLayer.GetSpatialRef(),geom_type=ogr.wkbPolygon)    
+    #out_lyr = out_ds.CreateLayer(shapefileshortname,
+    #                             srs = daLayer.GetSpatialRef(),
+    #                             geom_type=ogr.wkbMultiPolygon)
+     
+    # Add input Layer Fields to the output Layer if it is the one we want
+    for i in range(0, layerDefinition.GetFieldCount()):
+        fieldDefn = layerDefinition.GetFieldDefn(i)
+        fieldName = fieldDefn.GetName()
+        out_lyr.CreateField(fieldDefn)
+
+    # Get the output Layer's Feature Definition
+    outLayerDefn = out_lyr.GetLayerDefn()
+
+    # Add features to the ouput Layer
+    for inFeature in daLayer:
+        # Create output Feature
+        outFeature = ogr.Feature(outLayerDefn)
+
+        # add in geometries
+        geom = inFeature.GetGeometryRef()
+        outFeature.SetGeometry(geom.Clone())
+        # Add new feature to output Layer
+        
+
+        # Add field values from input Layer
+        for i in range(0, outLayerDefn.GetFieldCount()):
+            fieldDefn = outLayerDefn.GetFieldDefn(i)
+            #fieldName = fieldDefn.GetName()
+            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
+                inFeature.GetField(i))
+                
+        out_lyr.CreateFeature(outFeature)
+        
 if __name__ == "__main__":
     
     #shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Geology_raster/bgs-50k_1726879/sc034/sc034_eyemouth_bedrock.shp'
-    shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology.shp'
+    #shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology.shp'
     #shapefile_name = 'T:\\analysis_for_papers\\Geology_raster\\bgs-50k_1726879\\sc034\\sc034_eyemouth_bedrock.shp' 
     
+    shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\SouthernSpain_geology.shp'
+    new_shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\New_SouthernSpain_geology.shp'    
+    
+    Copy_Shapefile(shapefile_name,new_shapefile_name)
     #Rasterize_BGS_geologic_maps(shapefile_name)
     #Rasterize_GLIM_geologic_maps_pythonic(shapefile_name)
-    GLIM_geologic_maps_modify_shapefile(shapefile_name)
+    #GLIM_geologic_maps_modify_shapefile(shapefile_name)
