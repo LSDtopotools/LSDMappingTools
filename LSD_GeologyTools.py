@@ -14,6 +14,30 @@ from os.path import exists
 from osgeo import ogr
 import LSDPlottingTools as LSDPT
 import gdal as gdal
+import numpy as np
+
+def readFile(filename):
+    filehandle = gdal.Open(filename)
+    band1 = filehandle.GetRasterBand(1)
+    geotransform = filehandle.GetGeoTransform()
+    geoproj = filehandle.GetProjection()
+    Z = band1.ReadAsArray()
+    xsize = filehandle.RasterXSize
+    ysize = filehandle.RasterYSize
+    return xsize,ysize,geotransform,geoproj,Z
+
+def writeFile(filename,geotransform,geoprojection,data):
+    (x,y) = data.shape
+    format = "GTiff"
+    driver = gdal.GetDriverByName(format)
+    # you can change the dataformat but be sure to be able to store negative values including -9999
+    dst_datatype = gdal.GDT_Float32
+    dst_ds = driver.Create(filename,y,x,1,dst_datatype)
+    dst_ds.GetRasterBand(1).WriteArray(data)
+    dst_ds.SetGeoTransform(geotransform)
+    dst_ds.SetProjection(geoprojection)
+    return 1
+
 
 
 def Rasterize_BGS_geologic_maps(shapefile_name):
@@ -207,13 +231,25 @@ def Rasterize_GLIM_geologic_maps_pythonic(shapefile_name):
     rBand.Fill(NoDataVal)
 
     # Rasterize
-    err = gdal.RasterizeLayer(rasterDS, [1], daLayer, burn_values=[200], options = ["ALL_TOUCHED=TRUE", "ATTRIBUTE=OBJECTID"])
-      
+    err = gdal.RasterizeLayer(rasterDS, [1], daLayer, options = ["ATTRIBUTE=GEOL_CODE"])
+    
+    # And now for a hack that converts to 
+    print("The raster name is: "+outraster)
+    [xsize,ysize,geotransform,geoproj,Z] = readFile(outraster)
+
+    # Set large negative values to -9999
+    Z[Z<0]= -9999
+    Z[np.isnan(Z)]= -9999
+
+    outraster2 = shapefilefilepath+os.sep+shapefileshortname + '2.tif'
+    writeFile(writefilename,geotransform,geoproj,Z)   
+    
+    
     # Make a key for the bedrock
     geol_dict = dict()
     for feature in daLayer:
         ID = feature.GetField("xx")
-        GEOL = feature.GetField("xx")
+        GEOL = feature.GetField("GEOL_CODE")
         
         if ID not in geol_dict:
             print("I found a new rock type, ID: "+ str(ID)+ " and rock type: " + str(GEOL))
@@ -282,6 +318,7 @@ def GLIM_geologic_maps_modify_shapefile(shapefile_name):
     print(geol_dict)
       
     print("All done")   
+    return new_shapefile_name, geol_dict
 
 
 def Copy_Shapefile(shapefile_name,new_shapefile_name):
@@ -370,4 +407,5 @@ if __name__ == "__main__":
     #Copy_Shapefile(shapefile_name,new_shapefile_name)
     #Rasterize_BGS_geologic_maps(shapefile_name)
     #Rasterize_GLIM_geologic_maps_pythonic(shapefile_name)
-    GLIM_geologic_maps_modify_shapefile(shapefile_name)
+    new_shapefile_name, geol_dict = GLIM_geologic_maps_modify_shapefile(shapefile_name)
+    Rasterize_GLIM_geologic_maps_pythonic(new_shapefile_name)
