@@ -11,7 +11,7 @@ Created on Tue Feb 07 13:34:02 2017
 # Importing needed modules 
 import os 
 from os.path import exists
-from osgeo import ogr
+from osgeo import ogr, osr
 import LSDPlottingTools as LSDPT
 import gdal as gdal
 import numpy as np
@@ -290,7 +290,25 @@ def Correct_Raterized_GLIM_map(tifname):
 
     outraster2 = filepath+fileshortname + '2.tif'
     writeFile(outraster2,geotransform,geoproj,X)   
-   
+
+# DOES NOT WORK
+#def Reproject_Raterized_GLIM_map(tifname, EPSG_code):
+#    
+#    if exists(tifname) is False:
+#        raise Exception('[Errno 2] No such file or directory: \'' + tifname + '\'')    
+#    
+#    
+#    src_ds = gdal.Open(tifname, gdal.GA_ReadOnly)
+#    if src_ds == None:
+#        raise Exception("Unable to read the data file")
+#    proj = src_ds.GetProjection()
+#    
+#    # Reproject
+#    dest_srs = osr.SpatialReference()
+#    dest_srs.ImportFromEPSG(EPSG_code) 
+#    
+#    int_ds = gdal.AutoCreateWarpedVRT(src_ds, proj.ExportToWkt(), dest_srs.ExportToWkt())
+
 
 def GLIM_geologic_maps_modify_shapefile(shapefile_name):
  
