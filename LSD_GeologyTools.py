@@ -197,7 +197,7 @@ def Rasterize_GLIM_geologic_maps(shapefile_name):
       
     print("All done")    
     
-def Rasterize_GLIM_geologic_maps_pythonic(shapefile_name):
+def Rasterize_GLIM_geologic_maps_pythonic(shapefile_name, raster_resolution = 400):
 
     # The shapefile to be rasterized:     
     print('Rasterize ' + shapefile_name) 
@@ -227,11 +227,11 @@ def Rasterize_GLIM_geologic_maps_pythonic(shapefile_name):
     print("Full name of out raster is: "+outraster)       
 
     # Create the destination data source
-    inGridSize=float(400)
+    inGridSize=float(raster_resolution)
     xMin, xMax, yMin, yMax = daLayer.GetExtent()
     xRes = int((xMax - xMin) / inGridSize)
     yRes = int((yMax - yMin) / inGridSize)
-    rasterDS = gdal.GetDriverByName('GTiff').Create(outraster, xRes, yRes, 1,    gdal.Int32)
+    rasterDS =  gdal.GetDriverByName('GTiff').Create(outraster, xRes, yRes, 1,  gdal.GDT_Byte)
     
     # Define spatial reference
     NoDataVal = -9999
@@ -242,7 +242,7 @@ def Rasterize_GLIM_geologic_maps_pythonic(shapefile_name):
     rBand.Fill(NoDataVal)
 
     # Rasterize
-    err = gdal.RasterizeLayer(rasterDS, [1], daLayer, options = ["ATTRIBUTE=GEOL_CODE"]) 
+    gdal.RasterizeLayer(rasterDS, [1], daLayer, options = ["ATTRIBUTE=GEOL_CODE"]) 
     
     # Make a key for the bedrock
     geol_dict = dict()
@@ -262,7 +262,8 @@ def Rasterize_GLIM_geologic_maps_pythonic(shapefile_name):
         for key in geol_dict:
             f.write(str(key)+','+ str(geol_dict[key])+'\n')
       
-    print("All done")        
+    print("Done rasterizing!")
+    return outraster         
 
 def Correct_Raterized_GLIM_map(tifname):
     # And now for a hack that converts to 
@@ -310,7 +311,7 @@ def GLIM_geologic_maps_modify_shapefile(shapefile_name):
     # New shapefile is opened for writing. 
     dataSource = ogr.Open(new_shapefile_name,1)
     daLayer = dataSource.GetLayer(0)
-      
+  
     # add a new field
     new_field = ogr.FieldDefn("GEOL_CODE", ogr.OFTInteger)
     daLayer.CreateField(new_field)
@@ -320,7 +321,8 @@ def GLIM_geologic_maps_modify_shapefile(shapefile_name):
     layerDefinition = daLayer.GetLayerDefn()
     for i in range(layerDefinition.GetFieldCount()):
         print(layerDefinition.GetFieldDefn(i).GetName())      
-    
+
+               
     # Make a key for the bedrock
     geol_dict = dict()
     geol_iterator = 0
@@ -344,9 +346,7 @@ def GLIM_geologic_maps_modify_shapefile(shapefile_name):
     print(geol_dict)
       
     print("All done") 
-    
-    # Close DataSources
-    dataSource.Destroy()
+
     
     return new_shapefile_name, geol_dict
 
@@ -363,6 +363,7 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
     shapefileshortname = LSDPT.GetFilePrefix(new_shapefile_name)
     print("The shortname is: "+shapefileshortname)
 
+    # read in the data
     src = ogr.Open(shapefile_name)
     daLayer = src.GetLayer(0)
     
@@ -380,8 +381,11 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
     
     # get the driver and create a new data source
     driver = ogr.GetDriverByName('ESRI Shapefile')
-    out_ds = driver.CreateDataSource(new_shapefile_name)
+    #src.Destroy()
     
+    
+    # Now write to the the outfile
+    out_ds = driver.CreateDataSource(new_shapefile_name)   
     # create the output layer
     #out_lyr = out_ds.CreateLayer("yo",srs = daLayer.GetSpatialRef(),geom_type=ogr.wkbPolygon)    
     out_lyr = out_ds.CreateLayer("yo",srs = daLayer.GetSpatialRef(),geom_type=geom_type)      
@@ -413,26 +417,27 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
                 inFeature.GetField(i))
                 
         out_lyr.CreateFeature(outFeature)
+        #out_ds.Destroy()
     
-    # Close shapefiles    
-    src.Destroy()
-    out_ds.Destroy()
+
         
 if __name__ == "__main__":
     
-    #shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Geology_raster/bgs-50k_1726879/sc034/sc034_eyemouth_bedrock.shp'
-    #shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology.shp'
+    #shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Geology_raster/bgs-50k_1726879/sc034/sc034_eyemouth_bedrock.shp'    
     #shapefile_name = 'T:\\analysis_for_papers\\Geology_raster\\bgs-50k_1726879\\sc034\\sc034_eyemouth_bedrock.shp' 
     
-    shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain.shp'
-    new_shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\New_TipOfSpain.shp'    
-    tifname = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain_new.tif'
+    shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology.shp'
+    #tifname = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology_raster.tif'
+    
+    #shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain.shp'
+    #new_shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\New_TipOfSpain.shp'    
+    #tifname = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain_new.tif'
     
     #Copy_Shapefile(shapefile_name,new_shapefile_name)
     #Rasterize_BGS_geologic_maps(shapefile_name)
     #Rasterize_GLIM_geologic_maps_pythonic(shapefile_name)
     new_shapefile_name, geol_dict = GLIM_geologic_maps_modify_shapefile(shapefile_name)
-    #Rasterize_GLIM_geologic_maps_pythonic(new_shapefile_name)
+    tifname = Rasterize_GLIM_geologic_maps_pythonic(new_shapefile_name,raster_resolution = 90)
     Correct_Raterized_GLIM_map(tifname)
     #LSDPT.ReadRasterArrayBlocks(tifname)
     #readFile(tifname)
