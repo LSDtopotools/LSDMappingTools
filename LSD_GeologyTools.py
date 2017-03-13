@@ -101,8 +101,7 @@ def Rasterize_BGS_geologic_maps(shapefile_name):
     system_call3 = 'rm '+ outraster
     os.system(system_call3)
     
-  
-    
+      
     # Make a key for the bedrock
     geol_dict = dict()
     for feature in daLayer:
@@ -122,80 +121,7 @@ def Rasterize_BGS_geologic_maps(shapefile_name):
             f.write(str(key)+','+ str(geol_dict[key])+'\n')
       
     print("All done")
-
-def Rasterize_GLIM_geologic_maps(shapefile_name):
-
-    # The shapefile to be rasterized:     
-    print('Rasterize ' + shapefile_name) 
-    #get path and filename seperately 
-    shapefilefilepath = LSDPT.GetPath(shapefile_name)
-    shapefilename = LSDPT.GetFileNameNoPath(shapefile_name)
-    shapefileshortname = LSDPT.GetFilePrefix(shapefile_name)
-
-    print("Shapefile name is: "+shapefilename)
-
-    # now get the the fields from the shapefile
-    daShapefile = shapefile_name
-
-    dataSource = ogr.Open(daShapefile)
-    daLayer = dataSource.GetLayer(0)
-    
-    # lets see what the layers are
-    print("Let me tell you what the names of the fields are!")
-    layerDefinition = daLayer.GetLayerDefn()
-    for i in range(layerDefinition.GetFieldCount()):
-        print(layerDefinition.GetFieldDefn(i).GetName())        
-    
-    
-    
-    
-    # The raster file to be created and receive the rasterized shapefile 
-    outrastername = shapefileshortname + '.tif' 
-    outraster = shapefilefilepath+os.sep+ outrastername
-    outcsv = shapefilefilepath+os.sep+shapefileshortname+'_lithokey.csv'
-    print("Full name of out raster is: "+outraster)       
-
-    # Rasterize!!
-    system_call = 'gdal_rasterize -a OBJECTID -l ' + shapefileshortname +' -tr 400 -400 -a_nodata -9999 ' +  shapefile_name + ' ' + outraster
-    print("System call is: ")
-    print(system_call)    
-    os.system(system_call)
-
-    
-    # now convert the raster to UTM, as well as delete the stupid TIF
-    # The raster file to be created and receive the rasterized shapefile 
-    outrastername_bil = shapefileshortname + '.bil' 
-    outraster_bil = shapefilefilepath+os.sep+ outrastername_bil
-    print("Full name of out raster is: "+outraster_bil)
-    
-    # This assumes UTM zone 30, because why would we do any work in East Anglia?
-    system_call2 = 'gdalwarp -t_srs EPSG:32630 -of ENVI -dstnodata -9999 ' +  outraster + ' ' + outraster_bil
-    os.system(system_call2)
-    
-    # Now get rid of the tif
-    #system_call3 = 'rm '+ outraster
-    #os.system(system_call3)
-    
- 
-    # Make a key for the bedrock
-    geol_dict = dict()
-    for feature in daLayer:
-        ID = feature.GetField("xx")
-        GEOL = feature.GetField("xx")
-        
-        if ID not in geol_dict:
-            print("I found a new rock type, ID: "+ str(ID)+ " and rock type: " + str(GEOL))
-            geol_dict[ID] = GEOL
-
-    print("The rocks are: ")
-    print(geol_dict)
-    
-    with open(outcsv, 'wb') as f:
-        f.write('ID,rocktype\n')
-        for key in geol_dict:
-            f.write(str(key)+','+ str(geol_dict[key])+'\n')
-      
-    print("All done")    
+  
     
 def Rasterize_GLIM_geologic_maps_pythonic(shapefile_name, raster_resolution = 400):
 
@@ -291,32 +217,13 @@ def Correct_Raterized_GLIM_map(tifname):
     outraster2 = filepath+fileshortname + '2.tif'
     writeFile(outraster2,geotransform,geoproj,X)   
 
-# DOES NOT WORK
-#def Reproject_Raterized_GLIM_map(tifname, EPSG_code):
-#    
-#    if exists(tifname) is False:
-#        raise Exception('[Errno 2] No such file or directory: \'' + tifname + '\'')    
-#    
-#    
-#    src_ds = gdal.Open(tifname, gdal.GA_ReadOnly)
-#    if src_ds == None:
-#        raise Exception("Unable to read the data file")
-#    proj = src_ds.GetProjection()
-#    
-#    # Reproject
-#    dest_srs = osr.SpatialReference()
-#    dest_srs.ImportFromEPSG(EPSG_code) 
-#    
-#    int_ds = gdal.AutoCreateWarpedVRT(src_ds, proj.ExportToWkt(), dest_srs.ExportToWkt())
-
-
 def GLIM_geologic_maps_modify_shapefile(shapefile_name):
  
     # The shapefile to be rasterized:     
     print('Rasterize ' + shapefile_name) 
     #get path and filename seperately 
     shapefilefilepath = LSDPT.GetPath(shapefile_name)
-    shapefilename = LSDPT.GetFileNameNoPath(shapefile_name)
+    #shapefilename = LSDPT.GetFileNameNoPath(shapefile_name)
     shapefileshortname = LSDPT.GetFilePrefix(shapefile_name)
     
     # get the new shapefile name
@@ -445,17 +352,12 @@ if __name__ == "__main__":
     #shapefile_name = 'T:\\analysis_for_papers\\Geology_raster\\bgs-50k_1726879\\sc034\\sc034_eyemouth_bedrock.shp' 
     
     shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology.shp'
-    #tifname = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology_raster.tif'
+    tifname = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology_new2.tif'
     
     #shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain.shp'
     #new_shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\New_TipOfSpain.shp'    
     #tifname = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain_new.tif'
     
-    #Copy_Shapefile(shapefile_name,new_shapefile_name)
-    #Rasterize_BGS_geologic_maps(shapefile_name)
-    #Rasterize_GLIM_geologic_maps_pythonic(shapefile_name)
     new_shapefile_name, geol_dict = GLIM_geologic_maps_modify_shapefile(shapefile_name)
     tifname = Rasterize_GLIM_geologic_maps_pythonic(new_shapefile_name,raster_resolution = 90)
     Correct_Raterized_GLIM_map(tifname)
-    #LSDPT.ReadRasterArrayBlocks(tifname)
-    #readFile(tifname)
