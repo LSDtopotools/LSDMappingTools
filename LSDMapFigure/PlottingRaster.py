@@ -31,6 +31,10 @@ class BaseRaster(object):
     Class BaseRaster represents the data associated with the basic rasters
     used to create to image to be plotted. It also contains the methods
     associated with performing any basic analyses to that raster.
+    
+    Args:
+        RasterName (str): The name of the rasters (with extension). It is read by gdal so should cope with mulitple formats
+        Directory (str): The path to the raster. Needs to have the trailing slash 
     """
     def __init__(self, RasterName, Directory):
 
@@ -99,6 +103,9 @@ class BaseRaster(object):
         """
         Renders the background image that
         will form the drape plot, e.g. a hillshade
+        
+        Args:
+            rastertype (str): The type of raster. Not many supported, but basically just changes the colourmap
         """
         self._rastertype = rastertype
         if self._rastertype == "Hillshade":
@@ -114,11 +121,17 @@ class BaseRaster(object):
 
     def set_colourmap(self, cmap):
         """
-        There must be a more pythonic way to do this!
+        There must be a more pythonic way to do this! But sets the colourmap
+        
+        Args:
+            cmap (list or str): the colourmap
         """
         self._colourmap = cmap
 
     def _initialise_masks(self):
+        """
+        Some logic Declan wrote to mask values.
+        """
         if self._drapeminthreshold is not None:
             self.mask_low_values()
         if self._drapemaxthreshold is not None:
@@ -126,11 +139,17 @@ class BaseRaster(object):
         if self._middlemaskrange is not None:
             self.mask_middle_values()
 
-    def mask_low_values(self):
+    def mask_low_values(self):#
+        """
+        Reads from the self._drapeminthreshold to mask low values.
+        """
         low_values_index = self._RasterArray < self._drapeminthreshold
         self._RasterArray[low_values_index] = np.nan
 
     def mask_high_values(self):
+        """
+        Reads from the self._drapeminthreshold to mask high values.
+        """
         high_values_index = self._RasterArray < self._drapemaxthreshold
         self._RasterArray[high_values_index] = np.nan
 
@@ -141,12 +160,22 @@ class BaseRaster(object):
         self._RasterArray[masked_mid_values_index] = np.nan
 
     def show_raster(self):
+        """
+        Low level show function. Only really used for debugging since it contains
+        no sizing, labelling etc.
+        """
         plt.imshow(self._RasterArray,
                    cmap=self._colourmap,
                    extent=self.extents)
         plt.show()
 
 class MapFigure(object):
+    """
+    This is the main object used for plotting. It contains the underlying axes of the figures.
+    At the moment the4 axes contain typically a colourbar and a main image axis.
+    The function also contains routines for sizing, draping, adding point data, 
+    etc.
+    """
     def __init__(self, BaseRasterName, Directory,
                  coord_type="UTM", colourbar_location = "None",*args, **kwargs):
 
@@ -228,6 +257,11 @@ class MapFigure(object):
 
 
     def make_ticks(self):
+        """
+        This function makes the tick marks and the tick labels.
+        It has been optimised so you get nice looking ticks, so you shouldn't have to mess with them after this is called.
+        """
+        
         if self._coord_type == "UTM":
             self.tick_xlocs,self.tick_ylocs,self.tick_x_labels,self.tick_y_labels = LSDP.GetTicksForUTMNoInversion(self._BaseRasterFullName,self._xmax,self._xmin,
                              self._ymax,self._ymin,self._n_target_ticks)
@@ -252,6 +286,9 @@ class MapFigure(object):
         print(self.tick_ylocs)
 
     def add_ticks_to_axis(self,ax):
+        """
+        This is a low level function for placing the ticks on the active image axis.
+        """
         ax.set_xticklabels(self.tick_x_labels)
         ax.set_yticklabels(self.tick_y_labels)
         ax.set_xticks(self.tick_xlocs)
@@ -319,6 +356,10 @@ class MapFigure(object):
 
 
     def make_base_image(self,ax_list):
+        """
+        This function creates the base image. It creates the axis for the base image, 
+        further drapes and point data are placed upon this image .
+        """
 
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
@@ -421,10 +462,12 @@ class MapFigure(object):
 
     def add_point_data(self, thisPointData,column_for_plotting = "None",
                        this_colourmap = "cubehelix",colorbarlabel = "Colourbar",
-                       scale_points = True,column_for_scaling = "None",
-                       scaled_data_in_log = False):
+                       scale_points = False,column_for_scaling = "None",
+                       scaled_data_in_log = False,
+                       max_point_size = 5,
+                       min_point_size = 0.5):
 
-        # Get the axis limits to asser after
+        # Get the axis limits to assert after
         this_xlim = self.ax_list[0].get_xlim()    
         this_ylim = self.ax_list[0].get_ylim() 
 
@@ -437,37 +480,50 @@ class MapFigure(object):
         # check if the column for plotting exists
         this_data = thisPointData.QueryData(column_for_plotting)
         
-        scale_data = thisPointData.QueryData(column_for_plotting)
+        # Now the data for scaling. Point size will be scaled by these data
+        scale_data = thisPointData.QueryData(column_for_scaling)
         
+        # If there is scaled data, convert to log if that option is selected
         if scaled_data_in_log:
-            scale_data = np.log(scaled_data)
+            if len(scale_data) == 0 or len(scale_data) != len(easting): 
+                scale_data = 0.5
+            else:
+                # We need this logic since we can get nans and -Infs from 0 and negative numbers                
+                scale_data = np.log(scale_data)
+                scale_data[scale_data < -10] = -10
+                        
                 
         # scale the points if you want
         if scale_points == True:
             if len(scale_data) == 0 or len(scale_data) != len(easting): 
                 point_scale = 0.5
             else:
-                max_sd = max(scale_data)
-                min_sd = min(scale_data)
+                max_sd = np.nanmax(scale_data)
+                min_sd = np.nanmin(scale_data)
+                
                 print("max is: "+str(max_sd)+ " and min is: "+ str(min_sd))
                 
-                point_scale = 0.5
-                
-            
-            
+                # now rescale the data. Always a linear scaling. 
+                new_scale = []
+                size_range = max_point_size-min_point_size
+                for datum in scale_data:
+                    frac = (datum-min_sd)/(max_sd-min_sd)
+                    new_size = frac*size_range+min_point_size
+                    new_scale.append(new_size)
+                ns_array = np.asarray(new_scale)
+                point_scale = ns_array
         
         else:
             point_scale = 0.5
         
-
-
+        
         if len(this_data) == 0 or len(this_data) != len(easting):
             print("I am only plotting the points.")            
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none')
         else:
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none')
 
-        # Annoying but the scatter plot resets the extens so you need to reassert them 
+        # Annoying but the scatter plot resets the extents so you need to reassert them 
         self.ax_list[0].set_xlim(this_xlim)    
         self.ax_list[0].set_ylim(this_ylim)
 
@@ -477,6 +533,48 @@ class MapFigure(object):
             self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap = "cubehelix",
                                               colorbarlabel = colorbarlabel)
 
+    def add_text_annotation_from_points(self, thisPointData,column_for_plotting = "None",
+                                        selection_criteria = []):
+        """
+        This adds annotations to points. Used for annotating basins or sources, for example.
+        """
+        
+        # A list of text objects
+        texts = []        
+        
+        # Get the axis limits to assert after
+        this_xlim = self.ax_list[0].get_xlim()    
+        this_ylim = self.ax_list[0].get_ylim()
+
+        # Format the bounding box
+        bbox_props = dict(boxstyle="round,pad=0.1", fc="w", ec="b", lw=0.5,alpha = 0.5)
+
+        # see if the data column exists
+        test_data = thisPointData.QueryData(column_for_plotting)
+        
+        if len(test_data) == 0:
+            print("There is no data with the column name: "+column_for_plotting)
+        else:
+
+            # Thin the data
+            if len(selection_criteria) == 1:
+                thisPointData.ThinData(column_for_plotting,selection_criteria)
+            elif len(selection_criteria) >1:
+                thisPointData.ThinDataSelection(column_for_plotting,selection_criteria)
+                
+            # get the easting and northing
+            EPSG_string = self._RasterList[0]._EPSGString 
+            print("EPSG_string is: "+EPSG_string)
+            [this_easting,this_northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+            thinned_data = thisPointData.QueryData(column_for_plotting)
+    
+            texts.append(self.ax_list[0].text(this_easting,this_northing, str(thinned_data),fontsize = 8, color= "r",alpha=0.7,bbox=bbox_props))
+    
+        # Annoying but the scatter plot resets the extents so you need to reassert them 
+        self.ax_list[0].set_xlim(this_xlim)    
+        self.ax_list[0].set_ylim(this_ylim)
+        
+        return texts
 
     def _set_coord_type(self, coord_type):
         """Sets the coordinate type"""
