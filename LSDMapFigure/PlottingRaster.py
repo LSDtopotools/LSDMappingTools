@@ -465,7 +465,7 @@ class MapFigure(object):
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,
                        max_point_size = 5,
-                       min_point_size = 0.5, coulor_log = False):
+                       min_point_size = 0.5, coulor_log = False, coulor_log_manual_scale = []):
 
         # Get the axis limits to assert after
         this_xlim = self.ax_list[0].get_xlim()
@@ -524,7 +524,17 @@ class MapFigure(object):
             print("I am only plotting the points.")
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none')
         else:
-            sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none')
+            if(coulor_log_manual_scale != []):
+                print("let me rescale the data using your array")
+                if(len(coulor_log_manual_scale) == 2):
+                    cNorm  = _mcolors.Normalize(vmin=coulor_log_manual_scale[0], vmax=coulor_log_manual_scale[1])
+
+                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=cNorm,cmap=this_colourmap,edgecolors='none')
+                else:
+                    print("Your coulor_log_manual_scale should be something like [min,max], aborting")
+                    quit()
+            else:
+                sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none')
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
