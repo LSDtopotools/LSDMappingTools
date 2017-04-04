@@ -160,14 +160,40 @@ class LSDMap_PointData(object):
                 self.PointData = DataDictTyped
                 self.DataTypes = TypeList
             else:
+                print("I am loading data using pandas, I haven't been widely tested yet, you can switch to the old way if you have troubles by looking for native_way in LSDMap_PointData")
+                #Loading the file
+                print("Loading")
                 data = pandas.read_csv(FileName, sep=",")
-                dataHeader = data.columns.values
-                dataPoints = data.values
-                DataDict = {}
+                print("Loaded")
+                #Extracting the headers
+                self.VariableList = list(data.columns.values)
+                #Correcting the names
+                for names in self.VariableList:
+                    names =  LSDOst.RemoveEscapeCharacters(names).lower()
 
-                for i in range(0, len(dataHeader)):
-                    DataDict[dataHeader[i]] = dataPoints[:][i]
-                    #print dataHeader
+                print("Your Variable list is : ")
+                print(self.VariableList)
+                #ingesting data values
+                dataPoints = np.array(data.values)
+                DataDict = {}
+                #Feeding the dictionnary[header][table of values]
+                print("I am ingesting the data")
+                for i in range(len(self.VariableList)):
+                    DataDict[self.VariableList[i]] = dataPoints[:,i]
+                #dealing with the types
+                DataDictTyped = {}
+                TypeList = []
+                for name in self.VariableList:
+                    this_list = DataDict[name]
+                    typed_list = LSDOst.ParseListToType(this_list)
+                    DataDictTyped[name] = typed_list
+
+                    TypeList.append(type(typed_list[0]))
+
+                self.PointData = DataDictTyped
+                self.DataTypes = TypeList
+                print("The points data are successfully loaded")
+
         else:
             print("Uh oh I could not open that file")
             self.VariableList = []
