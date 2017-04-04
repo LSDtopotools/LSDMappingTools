@@ -31,10 +31,10 @@ class BaseRaster(object):
     Class BaseRaster represents the data associated with the basic rasters
     used to create to image to be plotted. It also contains the methods
     associated with performing any basic analyses to that raster.
-    
+
     Args:
         RasterName (str): The name of the rasters (with extension). It is read by gdal so should cope with mulitple formats
-        Directory (str): The path to the raster. Needs to have the trailing slash 
+        Directory (str): The path to the raster. Needs to have the trailing slash
     """
     def __init__(self, RasterName, Directory):
 
@@ -51,7 +51,7 @@ class BaseRaster(object):
 
         # set the default colourmap
         self._colourmap = "gray"
-        
+
         # get the EPSG string
         self._EPSGString = LSDP.LSDMap_IO.GetUTMEPSG(self._FullPathRaster)
         #print("The EPSGString is: "+ self._EPSGString)
@@ -103,7 +103,7 @@ class BaseRaster(object):
         """
         Renders the background image that
         will form the drape plot, e.g. a hillshade
-        
+
         Args:
             rastertype (str): The type of raster. Not many supported, but basically just changes the colourmap
         """
@@ -122,7 +122,7 @@ class BaseRaster(object):
     def set_colourmap(self, cmap):
         """
         There must be a more pythonic way to do this! But sets the colourmap
-        
+
         Args:
             cmap (list or str): the colourmap
         """
@@ -173,7 +173,7 @@ class MapFigure(object):
     """
     This is the main object used for plotting. It contains the underlying axes of the figures.
     At the moment the4 axes contain typically a colourbar and a main image axis.
-    The function also contains routines for sizing, draping, adding point data, 
+    The function also contains routines for sizing, draping, adding point data,
     etc.
     """
     def __init__(self, BaseRasterName, Directory,
@@ -193,32 +193,32 @@ class MapFigure(object):
         self.ax_list = []
         ax = fig.add_axes([0,0,1,1])
         self.ax_list.append(ax)
-        
+
         # check the colourbar location
         if colourbar_location == "Top" or colourbar_location == "TOP":
             colourbar_location = "top"
         if colourbar_location == "Bottom" or colourbar_location == "BOTTOM":
-            colourbar_location = "bottom"        
+            colourbar_location = "bottom"
         if colourbar_location == "Left" or colourbar_location == "LEFT":
-            colourbar_location = "left" 
+            colourbar_location = "left"
         if colourbar_location == "Right" or colourbar_location == "RIGHT":
-            colourbar_location = "right"             
-        
+            colourbar_location = "right"
+
         print("Your colourbar will be located: "+ colourbar_location)
         if colourbar_location == "top" or colourbar_location == "bottom":
             self.colourbar_location = colourbar_location
-            self.colourbar_orientation = "horizontal" 
+            self.colourbar_orientation = "horizontal"
         elif colourbar_location == "left" or colourbar_location == "right":
             self.colourbar_location = colourbar_location
-            self.colourbar_orientation = "vertical" 
-        elif colourbar_location == "None": 
+            self.colourbar_orientation = "vertical"
+        elif colourbar_location == "None":
             self.colourbar_location = "None"
-            self.colourbar_orientation = "None" 
+            self.colourbar_orientation = "None"
         else:
             print("You did not choose a valid colourbar location. Options are top, left, right, bottom and None. Defaulting to None.")
             self.colourbar_location = "None"
-            self.colourbar_orientation = "None"                         
-  
+            self.colourbar_orientation = "None"
+
         # Names of the directory and the base raster
         self._Directory = Directory
         self._BaseRasterName = BaseRasterName
@@ -261,7 +261,7 @@ class MapFigure(object):
         This function makes the tick marks and the tick labels.
         It has been optimised so you get nice looking ticks, so you shouldn't have to mess with them after this is called.
         """
-        
+
         if self._coord_type == "UTM":
             self.tick_xlocs,self.tick_ylocs,self.tick_x_labels,self.tick_y_labels = LSDP.GetTicksForUTMNoInversion(self._BaseRasterFullName,self._xmax,self._xmin,
                              self._ymax,self._ymin,self._n_target_ticks)
@@ -299,11 +299,11 @@ class MapFigure(object):
         return ax
 
     def axis_styler(self,ax_list,axis_style="Normal"):
-        """This sets the line width and fonts on the axes. 
-        
+        """This sets the line width and fonts on the axes.
+
         Args:
             ax_list (axes objects): the list of axis objects
-            axis_style (string): The syle of the axis. See options below. 
+            axis_style (string): The syle of the axis. See options below.
         """
 
         if axis_style == "Normal":
@@ -315,49 +315,49 @@ class MapFigure(object):
             lw = 2
             ftsz = 10
             tpd = 2
-            label_ftsz = 12            
+            label_ftsz = 12
         elif axis_style == "Thin":
             lw = 0.5
             ftsz = 8
             tpd = 1
-            label_ftsz = 10   
+            label_ftsz = 10
         elif axis_style == "Big":
             lw = 2
             ftsz = 12
-            tpd = 3 
-            label_ftsz = 14 
+            tpd = 3
+            label_ftsz = 14
         elif axis_style == "Madhouse":
             # This is just a crazy style to test if the figure is actually recieving these instructions
             lw = 4
             ftsz = 20
-            tpd = 3 
-            label_ftsz = 6             
+            tpd = 3
+            label_ftsz = 6
         else:
             print("Using the default axis styling")
             lw = 1
             ftsz = 10
             tpd = 2
-            label_ftsz = 12             
-           
+            label_ftsz = 12
+
         for ax in ax_list:
             # Now to fix up the axes
             ax.spines['top'].set_linewidth(lw)
             ax.spines['left'].set_linewidth(lw)
             ax.spines['right'].set_linewidth(lw)
             ax.spines['bottom'].set_linewidth(lw)
-            
+
             ax.xaxis.label.set_size(label_ftsz)
             ax.yaxis.label.set_size(label_ftsz)
-                        
+
             # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
             ax.tick_params(axis='both', width=lw, pad = tpd, labelsize = ftsz )
-            
+
         return ax_list
 
 
     def make_base_image(self,ax_list):
         """
-        This function creates the base image. It creates the axis for the base image, 
+        This function creates the base image. It creates the axis for the base image,
         further drapes and point data are placed upon this image .
         """
 
@@ -388,7 +388,7 @@ class MapFigure(object):
 
         self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel)
         #print("Getting axis limits in drape function: ")
-        #print(self.ax_list[0].get_xlim())  
+        #print(self.ax_list[0].get_xlim())
 
 
     def _add_drape_image(self,ax_list,RasterName,Directory,
@@ -412,7 +412,7 @@ class MapFigure(object):
 
         print("The number of axes are: "+str(len(self._drape_list)))
 
-        if self.colourbar_orientation != "None":           
+        if self.colourbar_orientation != "None":
             self.ax_list = self.add_colourbar(self.ax_list,im,self._RasterList[-1],
                                               colorbarlabel = colorbarlabel)
 
@@ -424,19 +424,19 @@ class MapFigure(object):
         ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
         cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation=self.colourbar_orientation,cax=ax_list[-1])
         #cbar.set_label(colorbarlabel, fontsize=10)
-        
-        
+
+
         #Will's changes:
         # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
-        
-        if self.colourbar_location == 'top': 
+
+        if self.colourbar_location == 'top':
             ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
         elif self.colourbar_location == 'bottom':
             ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
         elif self.colourbar_location == 'left':
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
         elif self.colourbar_location == 'right':
-            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)            
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
         return ax_list
 
     def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar"):
@@ -444,19 +444,19 @@ class MapFigure(object):
         ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
         cbar = plt.colorbar(sc,cmap=cmap, orientation=self.colourbar_orientation,cax=ax_list[-1])
         #cbar.set_label(colorbarlabel, fontsize=10)
-        
-        
+
+
         #Will's changes:
         # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
-        
-        if self.colourbar_location == 'top': 
+
+        if self.colourbar_location == 'top':
             ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
         elif self.colourbar_location == 'bottom':
             ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
         elif self.colourbar_location == 'left':
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
         elif self.colourbar_location == 'right':
-            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)            
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
         return ax_list
 
 
@@ -465,45 +465,48 @@ class MapFigure(object):
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,
                        max_point_size = 5,
-                       min_point_size = 0.5):
+                       min_point_size = 0.5, coulor_log = False):
 
         # Get the axis limits to assert after
-        this_xlim = self.ax_list[0].get_xlim()    
-        this_ylim = self.ax_list[0].get_ylim() 
+        this_xlim = self.ax_list[0].get_xlim()
+        this_ylim = self.ax_list[0].get_ylim()
 
         EPSG_string = self._RasterList[0]._EPSGString
         print("I am going to plot some points for you. The EPSG string is:"+EPSG_string)
-        
+
         # convert to easting and northing
         [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
 
         # check if the column for plotting exists
         this_data = thisPointData.QueryData(column_for_plotting)
-        
+        # Log the color if required
+        if(coulor_log):
+            this_data = np.log10(this_data)
+
         # Now the data for scaling. Point size will be scaled by these data
         scale_data = thisPointData.QueryData(column_for_scaling)
-        
+
         # If there is scaled data, convert to log if that option is selected
         if scaled_data_in_log:
-            if len(scale_data) == 0 or len(scale_data) != len(easting): 
+            if len(scale_data) == 0 or len(scale_data) != len(easting):
                 scale_data = 0.5
             else:
-                # We need this logic since we can get nans and -Infs from 0 and negative numbers                
+                # We need this logic since we can get nans and -Infs from 0 and negative numbers
                 scale_data = np.log(scale_data)
                 scale_data[scale_data < -10] = -10
-                        
-                
+
+
         # scale the points if you want
         if scale_points == True:
-            if len(scale_data) == 0 or len(scale_data) != len(easting): 
+            if len(scale_data) == 0 or len(scale_data) != len(easting):
                 point_scale = 0.5
             else:
                 max_sd = np.nanmax(scale_data)
                 min_sd = np.nanmin(scale_data)
-                
+
                 print("max is: "+str(max_sd)+ " and min is: "+ str(min_sd))
-                
-                # now rescale the data. Always a linear scaling. 
+
+                # now rescale the data. Always a linear scaling.
                 new_scale = []
                 size_range = max_point_size-min_point_size
                 for datum in scale_data:
@@ -512,19 +515,19 @@ class MapFigure(object):
                     new_scale.append(new_size)
                 ns_array = np.asarray(new_scale)
                 point_scale = ns_array
-        
+
         else:
             point_scale = 0.5
-        
-        
+
+
         if len(this_data) == 0 or len(this_data) != len(easting):
-            print("I am only plotting the points.")            
+            print("I am only plotting the points.")
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none')
         else:
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none')
 
-        # Annoying but the scatter plot resets the extents so you need to reassert them 
-        self.ax_list[0].set_xlim(this_xlim)    
+        # Annoying but the scatter plot resets the extents so you need to reassert them
+        self.ax_list[0].set_xlim(this_xlim)
         self.ax_list[0].set_ylim(this_ylim)
 
         print("The colourbar orientation for point plotting is: "+self.colourbar_orientation)
@@ -538,12 +541,12 @@ class MapFigure(object):
         """
         This adds annotations to points. Used for annotating basins or sources, for example.
         """
-        
+
         # A list of text objects
-        texts = []        
-        
+        texts = []
+
         # Get the axis limits to assert after
-        this_xlim = self.ax_list[0].get_xlim()    
+        this_xlim = self.ax_list[0].get_xlim()
         this_ylim = self.ax_list[0].get_ylim()
 
         # Format the bounding box
@@ -551,7 +554,7 @@ class MapFigure(object):
 
         # see if the data column exists
         test_data = thisPointData.QueryData(column_for_plotting)
-        
+
         if len(test_data) == 0:
             print("There is no data with the column name: "+column_for_plotting)
         else:
@@ -561,19 +564,19 @@ class MapFigure(object):
                 thisPointData.ThinData(column_for_plotting,selection_criteria)
             elif len(selection_criteria) >1:
                 thisPointData.ThinDataSelection(column_for_plotting,selection_criteria)
-                
+
             # get the easting and northing
-            EPSG_string = self._RasterList[0]._EPSGString 
+            EPSG_string = self._RasterList[0]._EPSGString
             print("EPSG_string is: "+EPSG_string)
             [this_easting,this_northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
             thinned_data = thisPointData.QueryData(column_for_plotting)
-    
+
             texts.append(self.ax_list[0].text(this_easting,this_northing, str(thinned_data),fontsize = 8, color= "r",alpha=0.7,bbox=bbox_props))
-    
-        # Annoying but the scatter plot resets the extents so you need to reassert them 
-        self.ax_list[0].set_xlim(this_xlim)    
+
+        # Annoying but the scatter plot resets the extents so you need to reassert them
+        self.ax_list[0].set_xlim(this_xlim)
         self.ax_list[0].set_ylim(this_ylim)
-        
+
         return texts
 
     def _set_coord_type(self, coord_type):
@@ -599,14 +602,14 @@ class MapFigure(object):
                              "is not yet supported")
 
     def show_plot(self):
-        
-        self.fig.show()            
- 
+
+        self.fig.show()
+
     def save_fig(self,fig_width_inches = 4,FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100, axis_style = "Normal"):
 
-        
-        self.ax_list = self.axis_styler(self.ax_list,axis_style)       
-        
+
+        self.ax_list = self.axis_styler(self.ax_list,axis_style)
+
         map_aspect_ratio = self._RasterList[0]._RasterAspectRatio
         print("The aspect ratio is: "+str(map_aspect_ratio))
 
@@ -616,10 +619,10 @@ class MapFigure(object):
 
         fig.set_size_inches(fig_size_inches[0], fig_size_inches[1])
         self.ax_list[0].set_position(map_axes)
-        
-        # Annoying but the scatter plot resets the extens so you need to reassert them 
-        self.ax_list[0].set_xlim(self._xmin,self._xmax)    
-        self.ax_list[0].set_ylim(self._ymax,self._ymin) 
+
+        # Annoying but the scatter plot resets the extens so you need to reassert them
+        self.ax_list[0].set_xlim(self._xmin,self._xmax)
+        self.ax_list[0].set_ylim(self._ymax,self._ymin)
 
         print("Number of axes are: " + str(len(self.ax_list)))
 
