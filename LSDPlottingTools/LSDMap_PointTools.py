@@ -107,7 +107,7 @@ class LSDMap_PointData(object):
         print("The object file prefix is: " + self.FilePrefix)
 
         #See if the parameter files exist
-        native_way = True
+        native_way = False
         if os.access(FileName,os.F_OK):
             if(native_way):
                 this_file = open(FileName, 'r')
@@ -118,6 +118,7 @@ class LSDMap_PointData(object):
 
                 # Now get a list with the names of the parameters
                 self.VariableList = []
+
                 TestList = this_line.split(',')
 
                 for name in TestList:
@@ -159,6 +160,8 @@ class LSDMap_PointData(object):
 
                 self.PointData = DataDictTyped
                 self.DataTypes = TypeList
+                print(self.PointData)
+                print(self.DataTypes)
             else:
                 print("I am loading data using pandas, I haven't been widely tested yet, you can switch to the old way if you have troubles by looking for native_way in LSDMap_PointData")
                 #Loading the file
@@ -190,8 +193,9 @@ class LSDMap_PointData(object):
 
                     TypeList.append(type(typed_list[0]))
 
-                self.PointData = DataDictTyped
+                self.PointData = DataDict
                 self.DataTypes = TypeList
+                #print(self.PointData)
                 print("The points data are successfully loaded")
 
         else:
