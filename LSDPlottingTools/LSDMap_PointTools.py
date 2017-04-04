@@ -14,6 +14,7 @@ from . import LSDMap_OSystemTools as LSDOst
 import os
 import glob
 import pandas
+import numpy as np
 from pyproj import Proj, transform
 
 
@@ -160,13 +161,13 @@ class LSDMap_PointData(object):
                 self.DataTypes = TypeList
             else:
                 data = pandas.read_csv(FileName, sep=",")
-                dataHeader = list(data.columns.values)
+                dataHeader = data.columns.values
                 dataPoints = data.values
                 DataDict = {}
 
                 for i in range(0, len(dataHeader)):
                     DataDict[dataHeader[i]] = dataPoints[:][i]
-                    #print DataDict[dataHeader[i]]
+                    #print dataHeader
         else:
             print("Uh oh I could not open that file")
             self.VariableList = []
