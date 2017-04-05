@@ -465,7 +465,7 @@ class MapFigure(object):
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,
                        max_point_size = 5,
-                       min_point_size = 0.5, coulor_log = False, coulor_log_manual_scale = []):
+                       min_point_size = 0.5, coulor_log = False, coulor_log_manual_scale = [], manual_size = 0.5):
 
         # Get the axis limits to assert after
         this_xlim = self.ax_list[0].get_xlim()
@@ -499,7 +499,7 @@ class MapFigure(object):
         # scale the points if you want
         if scale_points == True:
             if len(scale_data) == 0 or len(scale_data) != len(easting):
-                point_scale = 0.5
+                point_scale = manual_size
             else:
                 max_sd = np.nanmax(scale_data)
                 min_sd = np.nanmin(scale_data)
@@ -517,7 +517,7 @@ class MapFigure(object):
                 point_scale = ns_array
 
         else:
-            point_scale = 0.5
+            point_scale = manual_size
 
 
         if len(this_data) == 0 or len(this_data) != len(easting):
@@ -528,8 +528,9 @@ class MapFigure(object):
                 print("let me rescale the data using your array")
                 if(len(coulor_log_manual_scale) == 2):
                     cNorm  = _mcolors.Normalize(vmin=coulor_log_manual_scale[0], vmax=coulor_log_manual_scale[1])
-
-                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=cNorm,cmap=this_colourmap,edgecolors='none')
+                    scalarMap = _cm.ScalarMappable(norm = cNorm, cmap= this_colourmap)
+                    tps_color = scalarMap.to_rgba(this_data)
+                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none')
                 else:
                     print("Your coulor_log_manual_scale should be something like [min,max], aborting")
                     quit()
