@@ -530,7 +530,10 @@ class MapFigure(object):
                     cNorm  = _mcolors.Normalize(vmin=coulor_log_manual_scale[0], vmax=coulor_log_manual_scale[1])
                     scalarMap = _cm.ScalarMappable(norm = cNorm, cmap= this_colourmap)
                     tps_color = scalarMap.to_rgba(this_data)
+                    scalarMap.set_array(tps_color)
+                    this_colourmap = scalarMap
                     sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none')
+
                 else:
                     print("Your coulor_log_manual_scale should be something like [min,max], aborting")
                     quit()
@@ -544,8 +547,7 @@ class MapFigure(object):
         print("The colourbar orientation for point plotting is: "+self.colourbar_orientation)
         if self.colourbar_orientation != "None":
             print("Let me add a colourbar for your point data")
-            self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap = "cubehelix",
-                                              colorbarlabel = colorbarlabel)
+            self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
     def add_text_annotation_from_points(self, thisPointData,column_for_plotting = "None",
                                         selection_criteria = []):
