@@ -34,7 +34,7 @@ MOCK_MODULES = ['scipy','pyproj', 'numpy', 'numpy.ma', 'gdal', 'osgeo', 'osgeo.g
                 'osgeo.gdalconst', 'osgeo.gdal_array', 'matplotlib', 'matplotlib.pyplot', 'matplotlib.rcParams',
                'matplotlib.colors', 'matplotlib.image', 'matplotlib.cm', 'matplotlib.gridspec', 'matplotlib.patches',
                'cartopy', 'cartopy.feature', 'cartopy.crs', 'cartopy.mpl', 'cartopy.mpl.ticker', 'shapely', 'shapely.geometry',
-               'shapely.geometry.polygon']
+               'shapely.geometry.polygon', 'pandas']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
