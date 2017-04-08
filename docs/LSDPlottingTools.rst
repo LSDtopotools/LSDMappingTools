@@ -101,14 +101,6 @@ LSDPlottingTools.scalebar module
     :undoc-members:
     :show-inheritance:
     
-    
-LSDPlottingTools.smoothhillshade module
----------------------------------
-
-.. automodule:: LSDPlottingTools.smoothhillshade
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 
 Module contents
