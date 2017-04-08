@@ -93,6 +93,24 @@ LSDPlottingTools.locationmap module
     :show-inheritance:
 
 
+LSDPlottingTools.scalebar module
+---------------------------------
+
+.. automodule:: LSDPlottingTools.scalerbar
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    
+    
+LSDPlottingTools.smoothhillshade module
+---------------------------------
+
+.. automodule:: LSDPlottingTools.smoothhillshade
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 Module contents
 ---------------
 
