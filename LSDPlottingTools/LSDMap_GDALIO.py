@@ -299,20 +299,22 @@ def GetUTMEPSG(FileName):
         
         print(srs.GetAttrValue(str('projcs')))
         proj_str = srs.GetAttrValue(str('projcs'))
-        
-        # extract the UTM information
-        proj_split = proj_str.split('_')
-        zone = proj_split[-1]
-    
-        N_or_S = zone[-1] 
-        zone = zone[:-1]
 
+
+        if proj_str != None:        
+            # extract the UTM information
+            proj_split = proj_str.split('_')
+            zone = proj_split[-1]
+        
+            N_or_S = zone[-1] 
+            zone = zone[:-1]
     
-        EPSG_string = 'epsg:'
-        if N_or_S == 'S':
-            EPSG_string = EPSG_string+'327'+zone
-        else:
-            EPSG_string = EPSG_string+'326'+zone        
+        
+            EPSG_string = 'epsg:'
+            if N_or_S == 'S':
+                EPSG_string = EPSG_string+'327'+zone
+            else:
+                EPSG_string = EPSG_string+'326'+zone        
     else:
         raise Exception("This is not a projected coordinate system!")
     

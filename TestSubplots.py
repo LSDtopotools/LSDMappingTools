@@ -27,8 +27,8 @@ def flood_maps_shapefile_zoom(DataDirectory):
     LSDP.flood_maps_shapefile_with_zoom(DataDirectory)
 
 if __name__ == "__main__":
-    DataDirectory = "/home/s0923330/Datastore/Python/floodplain_initiation/field_sites/"
-    make_field_sites_figure(DataDirectory)
+    DataDirectory = "/home/s0923330/Datastore/Python/floodplain_initiation/results_comparison/field_data/"
+    #make_field_sites_figure(DataDirectory)
     #make_flood_maps(DataDirectory)
-    #flood_maps_with_shapefile(DataDirectory)
+    flood_maps_with_shapefile(DataDirectory)
     #flood_maps_shapefile_zoom(DataDirectory)

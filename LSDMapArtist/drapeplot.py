@@ -100,8 +100,8 @@ class BackgroundRaster(BaseRaster):
           
         elif self._backgroundtype == "Terrain":
             self.Hillshade = LSDP.ReadRasterArrayBlocks(self.fullpath_to_raster)
-            #self.colourmap = LSDP.colours.UsefulColourmaps.niceterrain
-            self.colourmap = LSDP.colours.UsefulColourmaps.darkearth
+            self.colourmap = LSDP.colours.UsefulColourmaps.niceterrain
+            #self.colourmap = LSDP.colours.UsefulColourmaps.darkearth
             #self.colourmap = "terrain"
         else:
             print ("That background style is not yet supported. Currently only " \
@@ -177,6 +177,7 @@ class DrapeAxes(object):
                  drape_colourmap="jet", 
                  background_type="Hillshade", 
                  show_background_colourbar=False,
+                 HideDrape=False,
                  colourbar_label="",
                  drape_min_threshold=None, 
                  drape_max_threshold=None,
@@ -214,7 +215,7 @@ class DrapeAxes(object):
         self._drape_alpha = drape_alpha
         
         self._set_coord_type(coord_type)
-        
+        self.HideDrape = HideDrape
         self._num_drapes = 0  # Number of drapes in the image.
         # We will increase this everytime we call ax.imshow.
         
@@ -256,7 +257,7 @@ class DrapeAxes(object):
         self.im_background = self.ax.imshow(self.Background.Hillshade,
                                  self.Background.colourmap,
                                  extent=self.Background.extents,
-                                 interpolation="nearest")
+                                 interpolation="nearest", vmax=450)
         self._num_drapes += 1
         self._drape_list.append(self.im_background)
         
@@ -266,26 +267,29 @@ class DrapeAxes(object):
         
         # Plot the drape (overlay data) on top.
         # Should be separate function really...
-        self.im = self.ax.imshow(self.Drape._RasterArray,
-                                 self._drape_colourmap,
-                                 extent=self.Drape.extents,
-                                 interpolation="nearest",
-                                 vmin=self._vmin, vmax=self._vmax,
-                                 norm=self._colourbar_normalisation,
-                                 alpha=self._drape_alpha
-                                 )
-                                 #norm=_mcolors.PowerNorm(gamma=0.2))
-        
-        self._drape_list.append(self.im)
-        self._num_drapes += 1
-        
-        self._set_axis_labels(self._xaxis_label, self._yaxis_label)
-        
-        # Add the colourbar for the drape
-        self._generic_colourbar_plotter(self.im, self._colourbar_label)
+        if not self.HideDrape:
+            self.im = self.ax.imshow(self.Drape._RasterArray,
+                                     self._drape_colourmap,
+                                     extent=self.Drape.extents,
+                                     interpolation="nearest",
+                                     vmin=self._vmin, vmax=self._vmax,
+                                     norm=self._colourbar_normalisation,
+                                     alpha=self._drape_alpha
+                                     )
+                                     #norm=_mcolors.PowerNorm(gamma=0.2))
+            
+            self._drape_list.append(self.im)
+            self._num_drapes += 1
+            
+            
+            
+            # Add the colourbar for the drape
+            self._generic_colourbar_plotter(self.im, self._colourbar_label)
         
         # Add a title
         self._set_subplot_autolabel()
+        self._set_axis_labels(self._xaxis_label, self._yaxis_label)
+        
         
         #return self.fig, self.ax
     
@@ -324,7 +328,9 @@ class DrapeAxes(object):
       
     def _set_axis_labels(self, x_axis_label="", y_axis_label=""):
         self.ax.set_xlabel(x_axis_label)
+        self.ax.set_xticklabels(self.ax.xaxis.get_majorticklabels(), rotation=45)
         self.ax.set_ylabel(y_axis_label)
+        
         
     def set_fig_axis_labels(self, x_axis_label='Easting (m)',
                                    y_axis_label='Northing (m)'):

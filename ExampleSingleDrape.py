@@ -17,7 +17,8 @@ init_plotting_DV()
 #Directory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"
 #Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
 #Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
-Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
+#Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
+Directory = '/run/media/dav/SHETLAND/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/'
 BackgroundRasterName = "RyedaleElevations0.asc"
 DrapeRasterName = "RyedaleElevDiff_GRIDDED_DLIM.bil"
 #DrapeRasterName = "BoscastleErodeDiff_GRID_UNI_TLIMM.bil"
@@ -38,11 +39,11 @@ colourbar_label = "Erosion/Deposition (m)"
 
 #raster = BaseRaster(RasterName, DataDirectory)
 dp = DrapeAxes(DrapeRasterName, BackgroundRasterName, Directory,
-                      Colourmap, background_type="Hillshade", 
-                      show_background_colourbar=False,
-                      colourbar_label=colourbar_label,
-                      vmin=-4, vmax=4, middle_mask_range=(-0.02,0.02),
-                      colourbar_norm_type="SymLogNorm")
+                      Colourmap, background_type="Terrain", 
+                      show_background_colourbar=True,)
+#                      colourbar_label=colourbar_label,
+#                      vmin=-4, vmax=4, middle_mask_range=(-0.02,0.02),
+#                      colourbar_norm_type="SymLogNorm")
 
 
 # Customise the DrapePlot
