@@ -96,7 +96,7 @@ LSDPlottingTools.locationmap module
 LSDPlottingTools.scalebar module
 ---------------------------------
 
-.. automodule:: LSDPlottingTools.scalerbar
+.. automodule:: LSDPlottingTools.scalebar
     :members:
     :undoc-members:
     :show-inheritance:
