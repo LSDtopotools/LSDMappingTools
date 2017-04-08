@@ -2,3 +2,4 @@ numpy
 mock
 matplotlib
 scipy
+LSDMappingTools
