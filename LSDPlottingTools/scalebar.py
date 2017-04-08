@@ -67,7 +67,7 @@ defaultParams.update(
      })
 
 # Reload matplotlib to reset the default parameters
-imp.reload(sys.modules['matplotlib'])
+#imp.reload(sys.modules['matplotlib'])
 
 SI_LENGTH = 'si-length'
 SI_LENGTH_RECIPROCAL = 'si-length-reciprocal'

@@ -93,6 +93,16 @@ LSDPlottingTools.locationmap module
     :show-inheritance:
 
 
+LSDPlottingTools.scalebar module
+---------------------------------
+
+.. automodule:: LSDPlottingTools.scalebar
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    
+
+
 Module contents
 ---------------
 
