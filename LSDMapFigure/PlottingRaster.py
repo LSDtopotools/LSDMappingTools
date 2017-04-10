@@ -482,6 +482,7 @@ class MapFigure(object):
         # Log the color if required
         if(coulor_log):
             this_data = np.log10(this_data)
+            print("I logged (is it a verb?) your colour data, the minimum is %s and the maximum is %s" %(this_data.min(), this_data.max()))
 
         # Now the data for scaling. Point size will be scaled by these data
 
