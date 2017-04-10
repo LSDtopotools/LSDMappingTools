@@ -484,6 +484,7 @@ class MapFigure(object):
             this_data = np.log10(this_data)
 
         # Now the data for scaling. Point size will be scaled by these data
+
         scale_data = thisPointData.QueryData(column_for_scaling)
 
         # If there is scaled data, convert to log if that option is selected
@@ -518,7 +519,6 @@ class MapFigure(object):
 
         else:
             point_scale = manual_size
-
 
         if len(this_data) == 0 or len(this_data) != len(easting):
             print("I am only plotting the points.")
