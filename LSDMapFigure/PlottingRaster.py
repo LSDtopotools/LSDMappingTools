@@ -465,7 +465,7 @@ class MapFigure(object):
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,
                        max_point_size = 5,
-                       min_point_size = 0.5, coulor_log = False, coulor_log_manual_scale = [], manual_size = 0.5):
+                       min_point_size = 0.5, coulor_log = False, coulor_log_manual_scale = [], manual_size = 0.5, alpha = 1):
 
         # Get the axis limits to assert after
         this_xlim = self.ax_list[0].get_xlim()
@@ -523,7 +523,7 @@ class MapFigure(object):
 
         if len(this_data) == 0 or len(this_data) != len(easting):
             print("I am only plotting the points.")
-            sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none')
+            sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none', alpha = alpha)
         else:
             if(coulor_log_manual_scale != []):
                 print("let me rescale the data using your array")
@@ -533,13 +533,13 @@ class MapFigure(object):
                     tps_color = scalarMap.to_rgba(this_data)
                     scalarMap.set_array(tps_color)
                     this_colourmap = scalarMap
-                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none')
+                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none', alpha = alpha)
 
                 else:
                     print("Your coulor_log_manual_scale should be something like [min,max], aborting")
                     quit()
             else:
-                sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none')
+                sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha)
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
