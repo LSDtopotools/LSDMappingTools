@@ -465,7 +465,7 @@ class MapFigure(object):
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,
                        max_point_size = 5,
-                       min_point_size = 0.5, coulor_log = False, coulor_log_manual_scale = [], manual_size = 0.5, alpha = 1):
+                       min_point_size = 0.5, coulor_log = False, coulor_log_manual_scale = [], manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10):
 
         # Get the axis limits to assert after
         this_xlim = self.ax_list[0].get_xlim()
@@ -495,7 +495,8 @@ class MapFigure(object):
             else:
                 # We need this logic since we can get nans and -Infs from 0 and negative numbers
                 scale_data = np.log(scale_data)
-                scale_data[scale_data < -10] = -10
+                print("I logged (is it a verb?) your scaled data, the minimum is %s and the maximum is %s but all the values inferior to %s will be %s" %(np.nanmin(scale_data), np.nanmax(scale_data), minimum_log_scale_cut_off, minimum_log_scale_cut_off))
+                scale_data[scale_data < minimum_log_scale_cut_off] = minimum_log_scale_cut_off
 
 
         # scale the points if you want
