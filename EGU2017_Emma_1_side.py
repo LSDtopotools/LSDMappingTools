@@ -46,7 +46,7 @@ y_horizontal_value = 50 # position of this bar in case of horizontal geology
 size_point = 2 # Size of the points
 automated_legend = True # will automatically plot the legend from the geologic_keys csv file
 separated_legend = True # will print the legend in a separated file
-basin_key = 0 # Your basin key
+basin_key = 20 # Your basin key
 
 if(automated_legend):
     rDirectory3 = "/home/s1675537/PhD/DataStoreBoris/GIS/Data/Carpathian/Geology_tes/" # geologic key directory path
@@ -55,15 +55,15 @@ if(automated_legend):
     glimolofile = "glimology.csv" # file that host the geological keys signification
 
 ####### your file
-rDirectory1 = "/home/s1675537/PhD/DataStoreBoris/GIS/Data/Carpathian/Basins/small_Olt/"
-baseName1 = "smOlt"
-fname1 = baseName1+"_geol.csv"
+rDirectory1 = "/home/s1675537/PhD/DataStoreBoris/Emma/"
+baseName1 = "Betics"
+fname1 = baseName1+"_WGS84_geochi.csv"
 
 fdist_col1 = 7 # column that host the flow distance info
 elev_col1 = 6 # column that host the elevation
 mchi_col1 = 9 # column that host the mchi
 geol_col1 = 8 # column that host the geology key (it has to be number)
-sources_col1 = 11 # column that host the source key (it has to be number)
+sources_col1 = 10 # column that host the source key (it has to be number)
 Chi_col1 = 4 # column that host the Chi value
 basin_key_col1 = 3 # column that host the basin keys
 
@@ -103,7 +103,10 @@ if(os.path.isfile(rDirectory1+fname1)):
     max1 = X[:,fdist_col1].max()
 
     ##### Sort the data from a basin
-    X = X[X[:,basin_key_col1] == basin_key]
+    tempX = X[X[:,basin_key_col1] == basin_key]
+    X = tempX
+    print(tempX[:,basin_key_col1])
+
 
     if(automated_legend):
         df = pandas.read_csv(rDirectory3 + geologic_keys, sep=",")
@@ -122,16 +125,30 @@ if(os.path.isfile(rDirectory1+fname1)):
 
     ##### Identification of the main channel for each plot to underdrap (is it a word?? if not it should be) the geology ###
     print("I am selecting the main channel on each side and I am underdrapping the corresponding geology")
-    unique,pos = np.unique(X[:,sources_col1],return_inverse=True)
-    counts = np.bincount(pos)
-    maxpos = counts.argmax()
-    main_source1 = maxpos
+    
+    pos = X[:,sources_col1]
+    counount = 0
+    max_count = -999
+    max_count_index = -999
+    for i in range(1,pos.shape[0]):
+        print(max_count)
+        if(pos[i] == pos[i-1]):
+            counount += 1
+        else:
+            if (counount > max_count):
+                print(pos[i-1])
+                max_count_index = pos[i-1]
+                max_count = counount
+            counount = 0
 
+    main_source1 = max_count_index
+    print("The sources ID of these is %s " %(main_source1))
     geo1 = X[X[:,sources_col1] == main_source1]
 
 
 
     cGeology = geo1[:,geol_col1]
+
     yGeology = geo1[:,elev_col1]
 
     if(horizontal_geology):
@@ -142,7 +159,7 @@ if(os.path.isfile(rDirectory1+fname1)):
         yGeology = yGeology - underdrapping
     xGeology = geo1[:,fdist_col1]
 
-    print("The sources ID of these is %s " %(main_source1))
+
 
 
     ##### Elevation against flow distance/Chi colored by mChi #####
