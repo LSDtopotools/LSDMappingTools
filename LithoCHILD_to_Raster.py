@@ -47,11 +47,12 @@ if __name__ == "__main__": # Ignore this line
 
     print(" This script should take the output of lithochild and convert it to a bil ENVI raster ready for use with LSDTopoTools/MappingTool")
 
-    Directory = "" # needed if the file is not in the same directory as the script
+    Directory = "/home/s1675537/PhD/DataStoreBoris/Emma/" # needed if the file is not in the same directory as the script
     csv_file = "beticstest5_ts11_xyz.txt" # name of the test file containing the data
-    separator = "\t" # string that separate the data /!\ tabulation is \t /!\
-    raster_name = "output.bil"
+    separator = ", " # string that separate the data /!\ in case, tabulation is \t /!\
+    raster_name = "Final.bil"
     EPSG = 32630 # EPSG code of your projection
+    write_Directory = "/home/s1675537/PhD/DataStoreBoris/Emma/" # the path were you want the file to be placed
 
 
     Xres = 10 # resolution on the X axis
@@ -64,6 +65,7 @@ if __name__ == "__main__": # Ignore this line
 
     ########## Python code, no more parameters to set ########
     rasterOrigin = (Xmin, Ymax) # The origin of the raster is the upper left corner
+    raster_output = write_Directory+raster_name
 
     # Importing the files
 
@@ -80,6 +82,6 @@ if __name__ == "__main__": # Ignore this line
 
     print("I am now creating and saving the raster in EPSG %s" %(EPSG))
     grid_z0 = grid_z0[::-1] # inverting the array, required to make the raster
-    array2raster(raster_name, rasterOrigin, Xres,Yres, grid_z0, nodata,EPSG) # Creating the raster
+    array2raster(raster_output, rasterOrigin, Xres,Yres, grid_z0, nodata,EPSG) # Creating the raster
 
-    print("I am done")
+    print("I am done. If your raster is empty (nan or -1 values) it might means that your X/Y coord./res. are not right. If the problem persists, well, try other things or ask Simon")
