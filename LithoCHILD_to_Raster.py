@@ -48,8 +48,8 @@ if __name__ == "__main__": # Ignore this line
     print(" This script should take the output of lithochild and convert it to a bil ENVI raster ready for use with LSDTopoTools/MappingTool")
 
     Directory = "" # needed if the file is not in the same directory as the script
-    csv_file = "beticstest5_ts11.csv" # name of the test file containing the data
-    separator = ",," # string that separate the data
+    csv_file = "beticstest5_ts11_xyz.txt" # name of the test file containing the data
+    separator = "\t" # string that separate the data /!\ tabulation is \t /!\
     raster_name = "output.bil"
     EPSG = 32630 # EPSG code of your projection
 
