@@ -482,7 +482,7 @@ class MapFigure(object):
         # Log the color if required
         if(coulor_log):
             this_data = np.log10(this_data)
-            print("I logged (is it a verb?) your colour data, the minimum is %s and the maximum is %s" %(this_data.min(), this_data.max()))
+            print("I logged (is it a verb?) your colour data, the minimum is %s and the maximum is %s" %(np.nanmin(this_data), np.nanmax(this_data)))
 
         # Now the data for scaling. Point size will be scaled by these data
 
@@ -494,7 +494,7 @@ class MapFigure(object):
                 scale_data = 0.5
             else:
                 # We need this logic since we can get nans and -Infs from 0 and negative numbers
-                scale_data = np.log(scale_data)
+                scale_data = np.log10(scale_data)
                 print("I logged (is it a verb?) your scaled data, the minimum is %s and the maximum is %s but all the values inferior to %s will be %s" %(np.nanmin(scale_data), np.nanmax(scale_data), minimum_log_scale_cut_off, minimum_log_scale_cut_off))
                 scale_data[scale_data < minimum_log_scale_cut_off] = minimum_log_scale_cut_off
 
