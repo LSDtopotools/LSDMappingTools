@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 """
 Script that take the xyz output of Lithochild (Ask Emma for more info) and convert it to BIL raster.
 
@@ -28,7 +28,9 @@ def array2raster(newRasterfn,rasterOrigin,pixelWidth,pixelHeight,array, nodata, 
     outRaster = driver.Create(newRasterfn, cols, rows, 1, gdal.GDT_Float64)
     outRaster.SetGeoTransform((originX, pixelWidth, 0, originY, 0, pixelHeight))
     outband = outRaster.GetRasterBand(1)
+    #outband.SetNoDataValue(nodata)
     outband.WriteArray(array)
+    #outband.SetNoDataValue(nodata)
 
     outRasterSRS = osr.SpatialReference()
     outRasterSRS.ImportFromEPSG(EPSG)
@@ -66,6 +68,7 @@ if __name__ == "__main__": # Ignore this line
     ########## Python code, no more parameters to set ########
     rasterOrigin = (Xmin, Ymax) # The origin of the raster is the upper left corner
     raster_output = write_Directory+raster_name
+    hdr_name = raster_name[:-4]+".hdr" # Needed to deal with no data
 
     # Importing the files
 
@@ -83,5 +86,9 @@ if __name__ == "__main__": # Ignore this line
     print("I am now creating and saving the raster in EPSG %s" %(EPSG))
     grid_z0 = grid_z0[::-1] # inverting the array, required to make the raster
     array2raster(raster_output, rasterOrigin, Xres,Yres, grid_z0, nodata,EPSG) # Creating the raster
+    print("OK, now I have to add nodata value at the hand of the hdr file because Gdal does not do it for some reason")
+    #data ignore value = 0
+    with open(Directory+hdr_name, "a") as myfile:
+        myfile.write("data ignore value = " +str(nodata))
 
     print("I am done. If your raster is empty (nan or -1 values) it might means that your X/Y coord./res. are not right. If the problem persists, well, try other things or ask Simon")
