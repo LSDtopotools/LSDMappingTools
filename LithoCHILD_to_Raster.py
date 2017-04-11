@@ -88,7 +88,7 @@ if __name__ == "__main__": # Ignore this line
     array2raster(raster_output, rasterOrigin, Xres,Yres, grid_z0, nodata,EPSG) # Creating the raster
     print("OK, now I have to add nodata value at the hand of the hdr file because Gdal does not do it for some reason")
     #data ignore value = 0
-    with open(Directory+hdr_name, "a") as myfile:
+    with open(write_Directory+hdr_name, "a") as myfile:
         myfile.write("data ignore value = " +str(nodata))
 
     print("I am done. If your raster is empty (nan or -1 values) it might means that your X/Y coord./res. are not right. If the problem persists, well, try other things or ask Simon")
