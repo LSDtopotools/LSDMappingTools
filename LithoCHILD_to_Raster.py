@@ -15,7 +15,7 @@ import gdal, ogr, os, osr
 ########## Ignore this ########
 def array2raster(newRasterfn,rasterOrigin,pixelWidth,pixelHeight,array, nodata, EPSG):
     """This function take a regular array to create a raster with it"""
-    print("I amDealing with nodata values")
+    print("I am dealing with nodata values")
     array[np.isnan(array)] = nodata # Dealing with Nodata values
     print("I am writing the raster")
     cols = array.shape[1]
