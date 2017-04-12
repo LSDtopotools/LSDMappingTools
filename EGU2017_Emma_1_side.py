@@ -46,18 +46,24 @@ y_horizontal_value = 50 # position of this bar in case of horizontal geology
 size_point = 2 # Size of the points
 automated_legend = True # will automatically plot the legend from the geologic_keys csv file
 separated_legend = True # will print the legend in a separated file
-basin_key = 20 # Your basin key
+basin_key = 50 # Your basin key
+colormap_mchi = plt.cm.RdBu_r # colormap instance from pyplot.cm, use to color the ksn
+colobar_title = "log(ksn)"
+fontsize_colorbar = 8
+log_colour = True # it will log the colour for the Ksn plot (mchi)
+manual_color_scale = [] # Leave blank to aumatically pick your minimum/maximum value for scaling you colour. to manually choose the extent just write [0,5] (with your own choice)
+
 
 if(automated_legend):
-    rDirectory3 = "/home/s1675537/PhD/DataStoreBoris/GIS/Data/Carpathian/Geology_tes/" # geologic key directory path
-    geologic_keys = "Carpathians_WGS84_new_lithokey.csv" # file that host the geological keys
-    rDirectory4 = "/home/s1675537/PhD/DataStoreBoris/GIS/Data/Carpathian/Geology_tes/" # geologic key signification directory path
+    rDirectory3 = "/home/s1222798/GLIMIntoCHILD/" # geologic key directory path
+    geologic_keys = "glim_clip_new_new_lithokey.csv" # file that host the geological keys
+    rDirectory4 = "/home/s1222798/GLIMIntoCHILD/" # geologic key signification directory path
     glimolofile = "glimology.csv" # file that host the geological keys signification
 
 ####### your file
-rDirectory1 = "/home/s1675537/PhD/DataStoreBoris/Emma/"
-baseName1 = "Betics"
-fname1 = baseName1+"_WGS84_geochi.csv"
+rDirectory1 = "/home/s1222798/LSDTopoTools/Topographic_projects/Spain/Betics_10/"
+baseName1 = "Betics_WGS84"
+fname1 = baseName1+"_geochi.csv"
 
 fdist_col1 = 7 # column that host the flow distance info
 elev_col1 = 6 # column that host the elevation
@@ -68,8 +74,8 @@ Chi_col1 = 4 # column that host the Chi value
 basin_key_col1 = 3 # column that host the basin keys
 
 ## Writing directory and name
-wDirectory = "/home/s1675537/PhD/DataStoreBoris/presentation/Poster_EGU_2017/Poster/Figure/Geologic_Figures/"
-wname = "TESTEMMA_"+baseName1
+wDirectory = "/home/s1222798/LSDTopoTools/Topographic_projects/EGU_Plotting/"
+wname = baseName1+str(basin_key)
 
 
 
@@ -131,7 +137,6 @@ if(os.path.isfile(rDirectory1+fname1)):
     max_count = -999
     max_count_index = -999
     for i in range(1,pos.shape[0]):
-        print(max_count)
         if(pos[i] == pos[i-1]):
             counount += 1
         else:
@@ -167,6 +172,10 @@ if(os.path.isfile(rDirectory1+fname1)):
     flow_distance = X[:,fdist_col1]
     elevation = X[:,elev_col1]
     mchi = X[:,mchi_col1]
+    if(log_colour):
+        mchi[mchi <= 0] = 0.1
+        temp_mchi = np.log10(mchi)
+        mchi = temp_mchi
 
     # Positionning, If you wanna change it
     fig, ax = plt.subplots(figsize=(12, 8))
@@ -256,12 +265,16 @@ if(os.path.isfile(rDirectory1+fname1)):
 
     #Plotting the other stuffs
     print("Plotting the rest of the data")
+    if(manual_color_scale == []):
+        manual_color_scale.append(mchi.min())
+        manual_color_scale.append(mchi.max())
     if(median_leg):
-        obj = ax.scatter(flow_distance, elevation, c = mchi,cmap=plt.cm.jet, s = size_point, lw=0, norm=matplotlib.colors.Normalize(vmin=0, vmax=median_mult*np.median(mchi)))
+        obj = ax.scatter(flow_distance, elevation, c = mchi,cmap=colormap_mchi, s = size_point, lw=0, norm=matplotlib.colors.Normalize(vmin=0, vmax=median_mult*np.median(mchi)))
     else:
-        obj = ax.scatter(flow_distance, elevation, c = mchi,cmap=plt.cm.jet, s = size_point, lw=0, norm=matplotlib.colors.Normalize(vmin=0, vmax=mchi.max()*reductor))
+        obj = ax.scatter(flow_distance, elevation, c = mchi,cmap=colormap_mchi, s = size_point, lw=0, norm=matplotlib.colors.Normalize(vmin=manual_color_scale[0], vmax=manual_color_scale[1]*reductor))
     # m_Chi colorbar
     cbaxes = fig.add_axes([0.1, 0.03, 0.8, 0.02], frameon = False )
+    cbaxes.set_title(colobar_title, fontsize = fontsize_colorbar)
     cb = plt.colorbar(obj, cax = cbaxes,orientation="horizontal")
 
 
