@@ -491,7 +491,7 @@ class MapFigure(object):
         # If there is scaled data, convert to log if that option is selected
         if scaled_data_in_log:
             if len(scale_data) == 0 or len(scale_data) != len(easting):
-                scale_data = 0.5
+                scale_data = [0.5]
             else:
                 # We need this logic since we can get nans and -Infs from 0 and negative numbers
                 scale_data = np.log10(scale_data)
