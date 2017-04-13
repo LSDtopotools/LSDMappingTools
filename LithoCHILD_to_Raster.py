@@ -38,6 +38,15 @@ def array2raster(newRasterfn,rasterOrigin,pixelWidth,pixelHeight,array, nodata, 
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
 
     outband.FlushCache()
+
+def adapatSeaLevel(arr,nodata):
+    minimum_raster = np.nanmin(arr)
+    if(minimum_raster<0 and minimum_raster != nodata):
+        arr[arr[:,:]!=nodata] += -minimum_raster
+        print("I Uplifted your raster to make the lowest value the new sea level. It works only if your raster reach the sea level. Deactivate me in the code if you don't want it")
+    else:
+        print("I didn't change your raster, are you sure it required a sea level rise???")
+    return arr
 ##############################################################
 
 
@@ -55,6 +64,7 @@ if __name__ == "__main__": # Ignore this line
     raster_name = "Final.bil"
     EPSG = 32630 # EPSG code of your projection
     write_Directory = "/home/s1675537/PhD/DataStoreBoris/Emma/" # the path were you want the file to be placed
+    Sea_Level_rise = True # Adapt the sea level if True
 
 
     Xres = 10 # resolution on the X axis
@@ -70,6 +80,7 @@ if __name__ == "__main__": # Ignore this line
     raster_output = write_Directory+raster_name
     hdr_name = raster_name[:-4]+".hdr" # Needed to deal with no data
 
+
     # Importing the files
 
     print("I am importing the data from csv with Pandas, ignore the warning if there is any")
@@ -79,6 +90,11 @@ if __name__ == "__main__": # Ignore this line
     Y = np.linspace(0,Ymax-Ymin,(Ymax-Ymin)/Yres)
     gridx,gridy = np.meshgrid(X,Y) # creating the mesh
     data = np.array(df.values) # Numpyisation of the data
+
+    if(Sea_Level_rise):
+        print(data)
+        data = adapatSeaLevel(data, nodata)
+        
     print("I have everything, I am now converting this irregular grid to a regular one %s/%s"%(Xres,Yres))
     grid_z0 = griddata(data[:,0:2], data[:,2],(gridx,gridy) , method='linear') # interpolation, Linear look the more "natural"
     print("the minimum value is %s and the maximum is %s"%(np.nanmin(grid_z0),np.nanmax(grid_z0)))
