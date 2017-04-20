@@ -381,12 +381,12 @@ class MapFigure(object):
     def add_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar"):
+                        colorbarlabel = "Colourbar", norm = "None"):
 
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,norm)
         #print("Getting axis limits in drape function: ")
         #print(self.ax_list[0].get_xlim())
 
@@ -394,16 +394,17 @@ class MapFigure(object):
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
                          alpha=0.5,
-                         colorbarlabel = "Colourbar"):
+                         colorbarlabel = "Colourbar", nroma = "None"):
 
         self._RasterList.append(BaseRaster(RasterName,Directory))
         self._RasterList[-1].set_colourmap(colourmap)
 
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
-
-        im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha)
-
+        if(nroma != "None"):
+            im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, vmin = nroma[0],vmax = nroma[1])
+        else:
+            im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha)
         # This affects all axes because we set share_all = True.
         #ax.set_xlim(self._xmin,self._xmax)
         #ax.set_ylim(self._ymin,self._ymax)
