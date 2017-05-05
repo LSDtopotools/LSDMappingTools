@@ -60,7 +60,7 @@ MF.add_point_data( thisPointData, # this function plot the requested point file 
                    max_point_size = 5, # max size if scale point True again
                    min_point_size = 0.5, # You should be able to guess that one now
                    coulor_log = False, # do you want a log scale for your colorbar ?
-                   coulor_log_manual_scale = [], #Do you want to manually limit the scale of your colorbar? if not let is false
+                   coulor_manual_scale = [], #Do you want to manually limit the scale of your colorbar? if not let is false
                    manual_size = 0.5, # If none of above is choosen but you want to put another value than 0.5 to scale your point
                    alpha = 1, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
                    minimum_log_scale_cut_off = -10) # you probably won't need this
