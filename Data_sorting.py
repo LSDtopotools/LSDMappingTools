@@ -69,7 +69,7 @@ def crop_point_data_to_base_raster(raster_name, raster_directory, csv_file, EPSG
     df = df[df.latitude<lat_max]
     df = df[df.latitude>lat_min]
     df = df[df.longitude>long_min]
-    df.to_csv(csv_file[:-4]+"_filtered.csv", index = False)
+    df.to_csv(csv_file[:-4]+"_"+raster_name+"_filtered.csv", index = False)
 
 
-    return csv_file[:-4]+"_filtered.csv"
+    return csv_file[:-4]+"_"+raster_name+"_filtered.csv"
