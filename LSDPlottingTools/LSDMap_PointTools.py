@@ -209,16 +209,14 @@ class LSDMap_PointData(object):
             print("Something has gone wrong, latitude is not in the variable list")
             print("Here is the variable list: ")
             print(self.VariableList)
+        else:
+           self.Latitude = self.PointData["latitude"] 
         if "longitude" not in self.VariableList:
             print("Something has gone wrong, longitude is not in the variable list")
             print("Here is the variable list: ")
             print(self.VariableList)
-
-        # Add the latitude and longitude to their own data members and get rid
-        # of those from the VariableList
-        self.Latitude = self.PointData["latitude"]
-        self.Longitude = self.PointData["longitude"]
-
+        else:
+           self.Longitude = self.PointData["longitude"] 
 
 
 ##==============================================================================
