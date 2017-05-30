@@ -8,21 +8,23 @@ Created on Mon May 29 15:07:06 2017
 import numpy as np
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 
 def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
 
-    #DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
-    DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya_chi_test\\"
-    #movern_profile_file = "Irian_Jaya_PP_movern.csv"
-    movern_profile_file = "Mega_divide_movern.csv"
+    DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
+    #DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya_chi_test\\"
+    movern_profile_file = "Irian_Jaya_PP_movern.csv"
+    movern_basin_stats_file = "Irian_Jaya_PP_movernstats_basinstats.csv"
+    #movern_profile_file = "Mega_divide_movern.csv"
     #Base_file = "Mega_clip"
 
     label_size = 10
 
     # Set up fonts for plots
-    #rcParams['font.family'] = 'sans-serif'
-    #rcParams['font.sans-serif'] = ['arial']
-    #rcParams['font.size'] = label_size
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
     size_format = "default"
     # make a figure,
     if size_format == "geomorphology":
@@ -43,7 +45,8 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
 
 
     # load the m_over_n data file
-    thisPointData = LSDP.LSDMap_PointData(DataDirectory+movern_profile_file)    
+    thisPointData = LSDP.LSDMap_PointData(DataDirectory+movern_profile_file)
+    allBasinStatsData = LSDP.LSDMap_PointData(DataDirectory+movern_basin_stats_file)     
 
     end_movern = start_movern+d_movern*(n_movern-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
@@ -59,7 +62,7 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
     print(mn_legends)
         
 
-
+    # get the data form the profiles
     elevation = thisPointData.QueryData('elevation')
     elevation = [float(x) for x in elevation]
     basin = thisPointData.QueryData('basin_key')
@@ -67,13 +70,18 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
     source = thisPointData.QueryData('source_key')
     source = [int(x) for x in source]
     
+    # get the basin keys
+    allstats_basinkeys = allBasinStatsData.QueryData("basin_key")
+    allstats_basinkeys = [int(x) for x in allstats_basinkeys]
+    
     # need to convert everything into arrays so we can mask different basins
     Elevation = np.asarray(elevation)
     Basin = np.asarray(basin)
     Source = np.asarray(source)
     
-    print(Elevation)
+    #print(Elevation)
     
+    # Loop through m/n values aggregating data
     for idx,mn in enumerate(m_over_n_values):
         # first get the chi values for this m_over_n
         print ("mn is: " + str(mn))
@@ -81,6 +89,11 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
         mn_legend = "m_over_n = "+str(mn)
         print("I am looking for the data element: "+mn_legend)
         this_chi = thisPointData.QueryData(mn_legend)
+        
+        
+        
+        
+        
         
         # convert to a numpy array for masking
         Chi = np.asarray(this_chi)
@@ -119,11 +132,13 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
             ax.set_ylabel("Elevation (m)")
 
             # This affects all axes because we set share_all = True.
-            ax.set_ylim(z_axis_min,z_axis_max)
-            ax.set_xlim(0,chi_axis_max) 
+            #ax.set_ylim(z_axis_min,z_axis_max)
+            #ax.set_ylim(z_axis_min,z_axis_max)
+            #ax.set_xlim(0,chi_axis_max)
+            plt.title(mn_legend)
             
             #save the plot
-            newFilename = DataDirectory+"test.png"
+            newFilename = DataDirectory+"Chi_profiles_basin_"+str(basin_key)+"mn_index"+str(idx)+".png"
                 
             # This gets all the ticks, and pads them away from the axis so that the corners don't overlap    
             ax.tick_params(axis='both', width=1, pad = 2)
@@ -132,7 +147,8 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
 
             FigFormat = "png"
             plt.savefig(newFilename,format=FigFormat,dpi=500)
-            fig.clf()
+            ax.cla()
+            #plt.show()
          
     
 
