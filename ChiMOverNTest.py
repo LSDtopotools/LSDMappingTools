@@ -46,6 +46,8 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
            
     print("The m over n of these max are: ")    
     print(m_over_n_of_max)
+    
+    n_basins = len(max_MLEs)
         
     
 
@@ -141,7 +143,7 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
         
         # Now mask the data. Initially we will do only basin 0
         basin_key = 0
-        if basin_key == 0:      # We dont use this but I am putting conditional statement here so we can have proper indent
+        for basin_key in range(0,n_basins-1):      # We dont use this but I am putting conditional statement here so we can have proper indent
             
             # now we need to find out if this basin is in the allstats file, 
             # and if so what index it is
@@ -171,7 +173,7 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
             maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
             
             # now plot the data with a colourmap
-            ax.scatter(maskX,maskElevation,s=2.0, c=maskElevation,cmap="cubehelix",edgecolors='none')
+            ax.scatter(maskX,maskElevation,s=2.0, c=maskElevation,cmap="terrain",edgecolors='none')
 
             # some formatting of the figure
             ax.spines['top'].set_linewidth(1)
@@ -180,14 +182,14 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
             ax.spines['bottom'].set_linewidth(1)
 
             # make the lables
-            ax.set_xlabel("$\chi$")
+            ax.set_xlabel("$\chi$ (m)")
             ax.set_ylabel("Elevation (m)")
 
             # This affects all axes because we set share_all = True.
             #ax.set_ylim(z_axis_min,z_axis_max)
             #ax.set_ylim(z_axis_min,z_axis_max)
             #ax.set_xlim(0,chi_axis_max)
-            plt.title("Basin = " +mn_legend+", MLE = "+short_MLE)
+            #plt.title("Basin = " +mn_legend+", MLE = "+short_MLE)
             
             #newline = "\n"
             title_string = "Basin = "+str(basin_key)+", $m/n$ = "+str(mn)
