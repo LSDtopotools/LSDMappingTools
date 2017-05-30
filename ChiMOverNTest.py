@@ -51,7 +51,7 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
         
     
 
-    label_size = 10
+    label_size = 12
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
@@ -66,11 +66,11 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
         fig = plt.figure(1, facecolor='white',figsize=(16,9))
         #l_pad = -50
     else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
         #l_pad = -35
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
-    ax = fig.add_subplot(gs[25:100,10:95])
+    ax = fig.add_subplot(gs[5:100,10:95])
 
 
     
@@ -142,8 +142,8 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
         chi_axis_max = int(max_chi/5)*5+5
         
         # Now mask the data. Initially we will do only basin 0
-        basin_key = 3
-        if(basin_key == 3):                  # We dont use this but I am putting conditional statement here so we can have proper indent
+        basin_key = 12
+        if(basin_key == 12):                  # We dont use this but I am putting conditional statement here so we can have proper indent
         #for basin_key in range(0,n_basins-1):      
             
             # now we need to find out if this basin is in the allstats file, 
@@ -175,7 +175,7 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
             maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
             
             # now plot the data with a colourmap
-            ax.scatter(maskX,maskElevation,s=2.0, c=maskElevation,cmap="terrain",edgecolors='none')
+            ax.scatter(maskX,maskElevation,s=2.5, c=maskElevation,cmap="terrain",edgecolors='none')
 
             # some formatting of the figure
             ax.spines['top'].set_linewidth(1)
@@ -194,7 +194,7 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
             #plt.title("Basin = " +mn_legend+", MLE = "+short_MLE)
             
             #newline = "\n"
-            title_string = "Basin = "+str(basin_key)+", $m/n$ = "+str(mn)
+            title_string = "Basin "+str(basin_key)+", $m/n$ = "+str(mn)
             title_string2 = "MLE = "+short_MLE
             ax.text(0.05, 0.95, title_string,
                     verticalalignment='top', horizontalalignment='left',
@@ -222,7 +222,7 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
                 tick.set_pad(2)
 
             FigFormat = "png"
-            plt.savefig(newFilename,format=FigFormat,dpi=500)
+            plt.savefig(newFilename,format=FigFormat,dpi=300)
             ax.cla()
             #plt.show()
          
