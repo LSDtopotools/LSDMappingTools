@@ -142,8 +142,9 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
         chi_axis_max = int(max_chi/5)*5+5
         
         # Now mask the data. Initially we will do only basin 0
-        basin_key = 0
-        for basin_key in range(0,n_basins-1):      # We dont use this but I am putting conditional statement here so we can have proper indent
+        basin_key = 3
+        if(basin_key == 3):                  # We dont use this but I am putting conditional statement here so we can have proper indent
+        #for basin_key in range(0,n_basins-1):      
             
             # now we need to find out if this basin is in the allstats file, 
             # and if so what index it is
@@ -158,8 +159,9 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
             #else:
             #    MLE = "NaN"
             MLE = this_MLE[basin_key] 
-            MLE_str = str(MLE)
-            short_MLE = MLE_str[:4]
+            #MLE_str = str(MLE)
+            short_MLE = str("%03.02e" % round(MLE,2))
+            print("The short MLE is: "+short_MLE)
             
             #print("The MLE of this basin for this m over n is: "+short_MLE)
                         
