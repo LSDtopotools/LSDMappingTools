@@ -1629,3 +1629,4 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     else:
         plt.savefig(newFilename,format=FigFormat,dpi=500)
         fig.clf()
+    

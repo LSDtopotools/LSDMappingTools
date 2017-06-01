@@ -351,13 +351,16 @@ if __name__ == "__main__":
     #shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Geology_raster/bgs-50k_1726879/sc034/sc034_eyemouth_bedrock.shp'    
     #shapefile_name = 'T:\\analysis_for_papers\\Geology_raster\\bgs-50k_1726879\\sc034\\sc034_eyemouth_bedrock.shp' 
     
-    shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology.shp'
-    tifname = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology_new2.tif'
+    #shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology.shp'
+    #tifname = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology_new2.tif'
+    
+    shapefile_name = '/home/smudd/LSDTopoData/Carpathian/Geology_tes/Carpathians_WGS84.shp'
+    
     
     #shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain.shp'
     #new_shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\New_TipOfSpain.shp'    
     #tifname = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain_new.tif'
     
     new_shapefile_name, geol_dict = GLIM_geologic_maps_modify_shapefile(shapefile_name)
-    tifname = Rasterize_GLIM_geologic_maps_pythonic(new_shapefile_name,raster_resolution = 90)
+    tifname = Rasterize_GLIM_geologic_maps_pythonic(new_shapefile_name,raster_resolution = 400)
     Correct_Raterized_GLIM_map(tifname)
