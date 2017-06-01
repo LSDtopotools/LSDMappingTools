@@ -1629,4 +1629,88 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     else:
         plt.savefig(newFilename,format=FigFormat,dpi=500)
         fig.clf()
-    
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## Slope-area functions
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def SlopeAreaPlot(chi_csv_fname, FigFileName = 'Image.pdf',
+                       FigFormat = 'show',
+                       size_format = "ESURF",
+                       basin_key = '0'):
+    """
+    This function makes a slope-area plot from the chi mapping tool.
+    This is a work in progress! Need to think about what we want to visualise:
+    I think maybe a separate plot for each basin, and then colour-code by source ID.
+
+    Args:
+        chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. It should have the extension "_SAvertical.csv"
+        FigFileName (str): The name of the figure file
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        basin_key (int): the ID of the basin to make the plot for.
+
+    Returns:
+         Does not return anything but makes a plot.
+
+    Author: FJC
+    """
+    label_size = 10
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+
+    # get the point data object
+    thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
+
+    # Get the slope, drainage area, basin ID and source ID
+    slope = thisPointData.QueryData('slope')
+    slope = [float(x) for x in slope]
+    area = thisPointData.QueryData('drainage area')
+    area = [float(x) for x in area]
+    basin = thisPointData.QueryData('basin_key')
+    basin = [int(x) for x in basin]
+    source = thisPointData.QueryData('source_key')
+    source = [int(x) for x in source]
+
+    # need to convert everything into arrays so we can mask different basins
+    Slope = np.asarray(slope)
+    Area = np.asarray(area)
+    Basin = np.asarray(basin)
+    Source = np.asarray(source)
+
+    # mask to just get the data for the basin of interest
+    m = np.ma.masked_where(Basin!=basin_key, Basin)
+    maskSlope = np.ma.masked_where(np.ma.getmask(m), Slope)
+    maskArea = np.ma.masked_where(np.ma.getmask(m), Area)
+    maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
+
+    # now make the slope area plot. Need to add a lot more here but just to test for now.
+    ax.scatter(maskArea,maskSlope)
+    ax.set_xlabel('Drainage area (m$^2$)')
+    ax.set_ylabel('Slope (m/m)')
+
+    # return or show the figure
+    print("The figure format is: " + FigFormat)
+    if FigFormat == 'show':
+        plt.show()
+    elif FigFormat == 'return':
+        return fig
+    else:
+        plt.savefig(newFilename,format=FigFormat,dpi=500)
+        fig.clf()
