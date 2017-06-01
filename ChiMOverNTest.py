@@ -14,10 +14,11 @@ import pandas as pd
 def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
 
     DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
-    #DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya_chi_test\\"
+    DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya_chi_test\\"
     movern_profile_file = "Irian_Jaya_PP_movern.csv"
     movern_basin_stats_file = "Irian_Jaya_PP_movernstats_basinstats.csv"
     #movern_profile_file = "Mega_divide_movern.csv"
+    #movern_basin_stats_file = "Mega_divide_movernstats_basinstats.csv"
     #Base_file = "Mega_clip"
  
 
