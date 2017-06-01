@@ -80,17 +80,22 @@ def select_data_from_one_col(csv_file, col_name = "None",values =[], wanted = Tr
     This function selects specific data from a csv file using pandas (the package, not the majestic animal).
     It requires the name+path of csv, the name of the column, a python list containing the wanted values and the wanted parameter (True to select the data, False to select the opposite)
     """
-
+    # Ignore this
     word = "excluding"
     if(wanted):
         word = "including"
+    ###########
     print("I am going to sort your data " + col_name +" by " + word + " the following value(s):")
     print(values)
+    # import the file
     df = bamboo_bears.read_csv(csv_file,sep = ",")
+    # Select the data
     if(wanted):
         retArray = df[df[col_name].isin(values)]
     else:
         if(wanted == False):
             retArray = df[~df[col_name].isin(values)]
+
     retArray.to_csv(csv_file[:-4]+"_SDFOC.csv", index = False)
+    print("Your new file is ready and is there: " + str(csv_file[:-4]+"_SDFOC.csv"))
     return csv_file[:-4]+"_SDFOC.csv"
