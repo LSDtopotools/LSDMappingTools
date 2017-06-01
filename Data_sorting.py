@@ -71,5 +71,26 @@ def crop_point_data_to_base_raster(raster_name, raster_directory, csv_file, EPSG
     df = df[df.longitude>long_min]
     df.to_csv(csv_file[:-4]+"_"+raster_name+"_filtered.csv", index = False)
 
-
+    #return the name of the new csv file
     return csv_file[:-4]+"_"+raster_name+"_filtered.csv"
+
+def select_data_from_one_col(csv_file, col_name = "None",values =[], wanted = True):
+
+    """
+    This function selects specific data from a csv file using pandas (the package, not the majestic animal).
+    It requires the name+path of csv, the name of the column, a python list containing the wanted values and the wanted parameter (True to select the data, False to select the opposite)
+    """
+
+    word = "excluding"
+    if(wanted):
+        word = "including"
+    print("I am going to sort your data " + col_name +" by " + word + " the following value(s):")
+    print(values)
+    df = bamboo_bears.read_csv(csv_file,sep = ",")
+    if(wanted):
+        retArray = df[df[col_name].isin(values)]
+    else:
+        if(wanted == False):
+            retArray = df[~df[col_name].isin(values)]
+    retArray.to_csv(csv_file[:-4]+"_SDFOC.csv", index = False)
+    return csv_file[:-4]+"_SDFOC.csv"
