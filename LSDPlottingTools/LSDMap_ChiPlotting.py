@@ -1654,6 +1654,8 @@ def SlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
 
     Author: FJC
     """
+    import matplotlib.colors as colors
+    
     label_size = 10
 
     # Set up fonts for plots
@@ -1697,10 +1699,31 @@ def SlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     maskArea = np.ma.masked_where(np.ma.getmask(m), Area)
     maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
 
+    #colour by source - this is the same as the script to colour channels over a raster,
+    # so that the colour scheme should match
+    # make a color map of fixed colors
+    NUM_COLORS = 15
+
+    this_cmap = plt.cm.Set1
+    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
+    plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+    channel_data = [x % NUM_COLORS for x in maskSource]
+
+
     # now make the slope area plot. Need to add a lot more here but just to test for now.
-    ax.scatter(maskArea,maskSlope)
+    ax.scatter(maskArea,maskSlope, c=channel_data, cmap=this_cmap, s=10)
     ax.set_xlabel('Drainage area (m$^2$)')
     ax.set_ylabel('Slope (m/m)')
+
+    # log
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+
+    # set axis limits
+    x_pad = 1000
+    y_pad = 0.00001
+    ax.set_ylim(np.min(maskSlope)-y_pad,0)
+    ax.set_xlim(np.min(maskArea)-x_pad,np.max(maskArea)+y_pad)
 
     # return or show the figure
     print("The figure format is: " + FigFormat)
