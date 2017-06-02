@@ -11,10 +11,11 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import pandas as pd
 
-def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
+def ChiMOverNTest( DataDirectory, movern_profile_file, movern_basin_stats_file, 
+                   basin_list = [0], start_movern = 0.2, d_movern = 0.1, n_movern = 7):
 
     DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
-    DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya_chi_test\\"
+    #DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya_chi_test\\"
     movern_profile_file = "Irian_Jaya_PP_movern.csv"
     movern_basin_stats_file = "Irian_Jaya_PP_movernstats_basinstats.csv"
     #movern_profile_file = "Mega_divide_movern.csv"
@@ -108,7 +109,7 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
     # need to convert everything into arrays so we can mask different basins
     Elevation = np.asarray(elevation)
     Basin = np.asarray(basin)
-    Source = np.asarray(source)
+    #Source = np.asarray(source)
     
     #print(Elevation)
     
@@ -133,19 +134,20 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
         Chi = np.asarray(this_chi)
         
         # some info about the chi and elevation values
-        max_chi = np.amax(Chi)
-        max_Elevation = np.amax(Elevation)
-        min_Elevation = np.amin(Elevation)        
+        #max_chi = np.amax(Chi)
+        #max_Elevation = np.amax(Elevation)
+        #min_Elevation = np.amin(Elevation)        
 
-        z_axis_min = int(min_Elevation/10)*10
-        z_axis_max = int(max_Elevation/10)*10+10
-
-        chi_axis_max = int(max_chi/5)*5+5
+        #z_axis_min = int(min_Elevation/10)*10
+        #z_axis_max = int(max_Elevation/10)*10+10
+        #chi_axis_max = int(max_chi/5)*5+5
         
         # Now mask the data. Initially we will do only basin 0
-        basin_key = 12
-        if(basin_key == 12):                  # We dont use this but I am putting conditional statement here so we can have proper indent
-        #for basin_key in range(0,n_basins-1):      
+        if basin_list == []:
+            print("You didn't give me any basins so I assume you want all of them.")
+            basin_list = range(0,n_basins-1)
+        
+        for basin_key in basin_list:      
             
             # now we need to find out if this basin is in the allstats file, 
             # and if so what index it is
@@ -230,4 +232,21 @@ def ChiMOverNTest(start_movern = 0.1, d_movern = 0.1, n_movern = 6):
     
 
 if __name__ == "__main__":
-    ChiMOverNTest()
+    
+    # Change these filenames and paths to suit your own files
+    DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
+    #DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya_chi_test\\"
+    movern_profile_file = "Irian_Jaya_PP_movern.csv"
+    movern_basin_stats_file = "Irian_Jaya_PP_movernstats_basinstats.csv"
+    #movern_profile_file = "Mega_divide_movern.csv"
+    #movern_basin_stats_file = "Mega_divide_movernstats_basinstats.csv"
+    
+    basin_list = [0,1]
+    start_movern = 0.2
+    d_movern = 0.1
+    n_movern = 7    
+    
+    # run the plotting function
+    ChiMOverNTest(DataDirectory, movern_profile_file, movern_basin_stats_file, 
+                   basin_list, start_movern, d_movern, n_movern)
+    
