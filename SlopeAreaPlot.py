@@ -96,4 +96,12 @@ def MakeBinnedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
         LSDP.LSDMap_ChiPlotting.BinnedSlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
 
 if __name__ == "__main__":
-    MakeBinnedSlopeAreaPlot(DataDirectory='/home/s0923330/DEMs_for_analysis/mid_bailey_run_10m/', DEM_prefix='bailey_dem_10m', FigFormat='png', x_param='mean')
+    
+    DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
+    DEM_prefix = "Irian_Jaya_PP"
+    #DataDirectory = '/home/s0923330/DEMs_for_analysis/mid_bailey_run_10m/' 
+    #DEM_prefix = 'bailey_dem_10m'
+    FigFormat='png'
+    x_param='mean'
+    MakeRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat='png', size_format = 'ESURF')
+    MakeBinnedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat='png', x_param='mean')
