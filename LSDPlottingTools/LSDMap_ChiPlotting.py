@@ -1655,7 +1655,7 @@ def SlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     Author: FJC
     """
     import matplotlib.colors as colors
-    
+
     label_size = 10
 
     # Set up fonts for plots
@@ -1700,15 +1700,13 @@ def SlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
 
     #colour by source - this is the same as the script to colour channels over a raster,
-    # so that the colour scheme should match
+    # (BasicChannelPlotGridPlotCategories) so that the colour scheme should match
     # make a color map of fixed colors
     NUM_COLORS = 15
-
     this_cmap = plt.cm.Set1
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
     plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
     channel_data = [x % NUM_COLORS for x in maskSource]
-
 
     # now make the slope area plot. Need to add a lot more here but just to test for now.
     ax.scatter(maskArea,maskSlope, c=channel_data, cmap=this_cmap, s=10)
@@ -1724,6 +1722,130 @@ def SlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     y_pad = 0.00001
     ax.set_ylim(np.min(maskSlope)-y_pad,0)
     ax.set_xlim(np.min(maskArea)-x_pad,np.max(maskArea)+y_pad)
+
+    # return or show the figure
+    print("The figure format is: " + FigFormat)
+    if FigFormat == 'show':
+        plt.show()
+    elif FigFormat == 'return':
+        return fig
+    else:
+        save_fmt = FigFormat
+        plt.savefig(DataDirectory+FigFileName,format=save_fmt,dpi=500)
+        fig.clf()
+
+def BinnedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
+                       FigFormat = 'show',
+                       size_format = "ESURF",
+                       basin_key = '0', x_param = 'midpoints', y_param = 'mean'):
+    """
+    This function makes a slope-area plot from the chi mapping tool using the binned data.
+
+    Args:
+        PointData : LSDPointData object produced from the csv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. It should have the extension "_SAbinned.csv"
+        FigFileName (str): The name of the figure file
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        basin_key (int): the ID of the basin to make the plot for.
+        x_param (str): Key for which parameter to plot on the x axis, either 'midpoints' for the midpoints of the area data (default), or 'mean' for the mean of the area data.
+        y_param (str): Key for which parameter to plot on the y axis, either 'mean' for the mean of the slope data (default), or 'median', for the median of the slope data.
+
+    Returns:
+         Does not return anything but makes a plot.
+
+    Author: FJC
+    """
+    import matplotlib.colors as colors
+    import matplotlib.ticker
+
+    label_size = 10
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+
+    # Get the slope, drainage area, basin ID and source ID
+    mean_log_S = PointData.QueryData('mean_log_S')
+    mean_log_S = [float(10**x) for x in mean_log_S]
+    median_log_S = PointData.QueryData('median_log_S')
+    median_log_S = [float(10**x) for x in median_log_S]
+    mean_log_A = PointData.QueryData('mean_log_A')
+    mean_log_A = [float(10**x) for x in mean_log_A]
+    midpoints_A = PointData.QueryData('midpoints_log_A')
+    midpoints_A = [float(10**x) for x in midpoints_A]
+    basin = PointData.QueryData('basin_key')
+    basin = [int(x) for x in basin]
+    source = PointData.QueryData('source_key')
+    source = [int(x) for x in source]
+
+    # get the errors
+    log_S_sterr = PointData.QueryData('logS_stdErr')
+    log_S_sterr = [float(10**x) for x in log_S_sterr]
+    log_A_sterr = PointData.QueryData('logA_stdErr')
+    log_A_sterr = [float(10**x) for x in log_A_sterr]
+
+    # need to convert everything into arrays so we can mask different basins
+    MeanLogSlope = np.asarray(mean_log_S)
+    MedianLogSlope = np.asarray(median_log_S)
+    MeanLogArea = np.asarray(mean_log_A)
+    MidpointsArea = np.asarray(midpoints_A)
+    Basin = np.asarray(basin)
+    Source = np.asarray(source)
+
+    # mask to just get the data for the basin of interest
+    m = np.ma.masked_where(Basin!=basin_key, Basin)
+    MeanLogSlope = np.ma.masked_where(np.ma.getmask(m), MeanLogSlope)
+    MedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
+    MeanLogArea = np.ma.masked_where(np.ma.getmask(m), MeanLogArea)
+    MidpointsArea = np.ma.masked_where(np.ma.getmask(m), MidpointsArea)
+    maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
+
+    #colour by source - this is the same as the script to colour channels over a raster,
+    # (BasicChannelPlotGridPlotCategories) so that the colour scheme should match
+    # make a color map of fixed colors
+    NUM_COLORS = 15
+    this_cmap = plt.cm.Set1
+    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
+    plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+    channel_data = [x % NUM_COLORS for x in maskSource]
+
+    # now make the slope area plot. Need to add a lot more here but just to test for now.
+    if x_param == 'mean' and y_param == 'mean':
+        ax.scatter(MeanLogArea,MeanLogSlope, c=channel_data, cmap=this_cmap, s=10)
+    elif x_param == 'mean' and y_param == 'median':
+        ax.scatter(MeanLogArea,MedianLogSlope, c=channel_data, cmap=this_cmap, s=10)
+    elif x_param == 'midpoints' and y_param == 'median':
+        ax.scatter(MidpointsArea,MedianLogSlope, c=channel_data, cmap=this_cmap, s=10)
+    else:
+        ax.scatter(MidpointsArea,MeanLogSlope, c=channel_data, cmap=this_cmap, s=10)
+
+    ax.set_xlabel('Drainage area (m$^2$)')
+    ax.set_ylabel('Slope (m/m)')
+
+    # log
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+
+    # set axis limits
+    x_pad = 1000
+    y_pad = 0.00001
+    ax.set_ylim(np.min(MeanLogSlope)-y_pad,0)
+    ax.set_xlim(np.min(MeanLogArea)-x_pad,np.max(MeanLogArea)+y_pad)
 
     # return or show the figure
     print("The figure format is: " + FigFormat)
