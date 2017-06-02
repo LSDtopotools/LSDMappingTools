@@ -1709,7 +1709,7 @@ def SlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     channel_data = [x % NUM_COLORS for x in maskSource]
 
     # now make the slope area plot. Need to add a lot more here but just to test for now.
-    ax.scatter(maskArea,maskSlope, c=channel_data, cmap=this_cmap, s=10)
+    ax.scatter(maskArea,maskSlope,c=channel_data,cmap=this_cmap,s=10,marker="+",lw=1)
     ax.set_xlabel('Drainage area (m$^2$)')
     ax.set_ylabel('Slope (m/m)')
 
@@ -1804,6 +1804,8 @@ def BinnedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     MedianLogSlope = np.asarray(median_log_S)
     MeanLogArea = np.asarray(mean_log_A)
     MidpointsArea = np.asarray(midpoints_A)
+    SlopeError = np.asarray(log_S_sterr)
+    AreaError = np.asarray(log_A_sterr)
     Basin = np.asarray(basin)
     Source = np.asarray(source)
 
@@ -1813,6 +1815,8 @@ def BinnedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     MedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
     MeanLogArea = np.ma.masked_where(np.ma.getmask(m), MeanLogArea)
     MidpointsArea = np.ma.masked_where(np.ma.getmask(m), MidpointsArea)
+    SlopeError = np.ma.masked_where(np.ma.getmask(m), SlopeError)
+    AreaError = np.ma.masked_where(np.ma.getmask(m), AreaError)
     maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
 
     #colour by source - this is the same as the script to colour channels over a raster,
@@ -1826,13 +1830,17 @@ def BinnedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
 
     # now make the slope area plot. Need to add a lot more here but just to test for now.
     if x_param == 'mean' and y_param == 'mean':
-        ax.scatter(MeanLogArea,MeanLogSlope, c=channel_data, cmap=this_cmap, s=10)
+        #plt.errorbar(MeanLogArea,MeanLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
+        ax.scatter(MeanLogArea,MeanLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
     elif x_param == 'mean' and y_param == 'median':
-        ax.scatter(MeanLogArea,MedianLogSlope, c=channel_data, cmap=this_cmap, s=10)
+        #plt.errorbar(MeanLogArea,MedianLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
+        ax.scatter(MeanLogArea,MedianLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
     elif x_param == 'midpoints' and y_param == 'median':
-        ax.scatter(MidpointsArea,MedianLogSlope, c=channel_data, cmap=this_cmap, s=10)
+        #plt.errorbar(MidpointsArea,MedianLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
+        ax.scatter(MidpointsArea,MedianLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
     else:
-        ax.scatter(MidpointsArea,MeanLogSlope, c=channel_data, cmap=this_cmap, s=10)
+        #plt.errorbar(MidpointsArea,MeanLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
+        ax.scatter(MidpointsArea,MeanLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
 
     ax.set_xlabel('Drainage area (m$^2$)')
     ax.set_ylabel('Slope (m/m)')
