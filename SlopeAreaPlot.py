@@ -95,19 +95,17 @@ def MakeBinnedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
         FileName = DEM_prefix+'_SA_plot_binned_basin%s.%s' %(str(basin_key),FigFormat)
         LSDP.LSDMap_ChiPlotting.BinnedSlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
 
-def MakeBinnedSAPlotwithRasterMap(DataDirectory, DEM_prefix, FigFormat = 'show',
-                         size_format = 'ESURF', x_param='midpoints', y_param='mean'):
+def MakeChannelsMap(DataDirectory, DEM_prefix, FigFormat = 'show',
+                         size_format = 'ESURF'):
     """
-    Function to make a binned slope area plot with a subplot of the raster with the channels
-    colour-coded by source node. The colours should match up between the plot and the map.
+    Function to make a raster map with the channels
+    colour-coded by source node. The colours should match up between the slope-area plot and the map.
 
     Args:
         DataDirectory (str): the path to the directory with the csv file
         DEM_prefix (str): name of your DEM without extension
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
-        x_param (str): Key for which parameter to plot on the x axis, either 'midpoints' for the midpoints of the area data (default), or 'mean' for the mean of the area data.
-        y_param (str): Key for which parameter to plot on the y axis, either 'mean' for the mean of the slope data (default), or 'median', for the median of the slope data.
 
     Returns:
         Figure with map and slope-area plot for each basin
@@ -143,13 +141,7 @@ def MakeBinnedSAPlotwithRasterMap(DataDirectory, DEM_prefix, FigFormat = 'show',
         # get the channels map
         raster_fname = DataDirectory+DEM_prefix+".bil"
         hs_fname = DataDirectory+DEM_prefix+"_hs.bil"
-        map_fig = LSDP.LSDMap_ChiPlotting.BasicChannelPlotByBasin(raster_fname, hs_fname, raw_csv_fname, size_format=size_format, basin_key=basin, FigFileName=DataDirectory+FileName,FigFormat='return')
-
-        # get the binned slope-area plot
-        plot_fig = LSDP.LSDMap_ChiPlotting.BinnedSlopeAreaPlot(thisPointData, DataDirectory, FigFormat='return', size_format=size_format, basin_key=basin_key)
-
-        # merge into a single figure
-        combined_fig = plt.subplots(2,1)
+        LSDP.LSDMap_ChiPlotting.BasicChannelPlotByBasin(raster_fname, hs_fname, raw_csv_fname, size_format=size_format, basin_key=basin, FigFileName=DataDirectory+FileName,FigFormat=FigFormat)
 
 if __name__ == "__main__":
 
@@ -160,5 +152,5 @@ if __name__ == "__main__":
     FigFormat='png'
     x_param='mean'
     #MakeRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat='png', size_format = 'ESURF')
-    #MakeBinnedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat='png', x_param='mean')
-    MakeBinnedSAPlotwithRasterMap(DataDirectory, DEM_prefix, FigFormat=FigFormat, x_param=x_param)
+    MakeBinnedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat='png', x_param='mean')
+    MakeChannelsMap(DataDirectory, DEM_prefix, FigFormat=FigFormat)
