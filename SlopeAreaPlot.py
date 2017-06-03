@@ -95,6 +95,51 @@ def MakeBinnedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
         FileName = DEM_prefix+'_SA_plot_binned_basin%s.%s' %(str(basin_key),FigFormat)
         LSDP.LSDMap_ChiPlotting.BinnedSlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
 
+def BinnedSAPlotwithRasterMap(DataDirectory, DEM_prefix, FigFormat = 'show',
+                         size_format = 'ESURF', x_param='midpoints', y_param='mean'):
+    """
+    Function to make a binned slope area plot with a subplot of the raster with the channels
+    colour-coded by source node. The colours should match up between the plot and the map.
+
+    Args:
+        DataDirectory (str): the path to the directory with the csv file
+        DEM_prefix (str): name of your DEM without extension
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        x_param (str): Key for which parameter to plot on the x axis, either 'midpoints' for the midpoints of the area data (default), or 'mean' for the mean of the area data.
+        y_param (str): Key for which parameter to plot on the y axis, either 'mean' for the mean of the slope data (default), or 'median', for the median of the slope data.
+
+    Returns:
+        Figure with map and slope-area plot for each basin
+
+    Author: FJC
+    """
+    from LSDPlottingTools import LSDMap_PointTools as PointTools
+
+    # read in the csv file
+    chi_csv_fname = DataDirectory+DEM_prefix+'_SAbinned.csv'
+    print("I'm reading in the csv file "+chi_csv_fname)
+
+    # get the point data object
+    thisPointData = PointTools.LSDMap_PointData(chi_csv_fname)
+
+    # get the basin keys
+    basin = thisPointData.QueryData('basin_key')
+    basin = [int(x) for x in basin]
+    Basin = np.asarray(basin)
+    basin_keys = np.unique(Basin)
+    print('There are %s basins') %(len(basin_keys))
+
+    # loop through each basin and make the figure
+    for basin_key in basin_keys:
+        # set up the figure
+        FileName = DEM_prefix+'_raster_SA_basin%s.%s' %(str(basin_key),FigFormat)
+
+        # get the channels map
+
+        # get the binned slope-area plot
+        plot_ax = LSDP.LSDMap_ChiPlotting.BinnedSlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat='return', size_format=size_format, basin_key=basin_key)
+
 if __name__ == "__main__":
 
     #DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"

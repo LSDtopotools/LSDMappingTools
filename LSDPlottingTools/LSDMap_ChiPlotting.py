@@ -1860,7 +1860,7 @@ def BinnedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     if FigFormat == 'show':
         plt.show()
     elif FigFormat == 'return':
-        return fig
+        return ax # return the axes object so can make nice subplots with the other plotting tools?
     else:
         save_fmt = FigFormat
         plt.savefig(DataDirectory+FigFileName,format=save_fmt,dpi=500)
