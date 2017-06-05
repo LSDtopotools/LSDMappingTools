@@ -97,8 +97,13 @@ def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0
     plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
     channel_data = [x % NUM_COLORS for x in maskSource]
 
+    # normalise magnitude for plotting
+    min_size = np.min(maskMagnitude)
+    max_size = np.max(maskMagnitude)
+    normSize = [100*((x - min_size)/(max_size - min_size)) for x in maskMagnitude]
+
     # now plot the knickpoint elevations and flow distances
-    ax.scatter(maskFlowDistance, maskElevation, c = channel_data, cmap=this_cmap, s = maskMagnitude)
+    ax.scatter(maskFlowDistance, maskElevation, c = channel_data, cmap=this_cmap, s = normSize, lw=0.5,edgecolors='k')
     ax.set_xlabel('Flow distance (m)')
     ax.set_ylabel('Elevation (m)')
 
