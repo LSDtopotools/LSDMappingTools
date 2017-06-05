@@ -33,14 +33,10 @@ def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0
 
     Author: FJC
     """
-    # read in the csv file
-    #kp_csv_fname = DataDirectory+DEM_prefix+'_MChi.csv'
-    #print("I'm reading in the csv file "+kp_csv_fname)
-
-    # get the point data object
     #PointData = LSDMap_PD.LSDMap_PointData(kp_csv_fname)
     # thin out small knickpoints
-    PointData.ThinData('knickpoints',kp_threshold)
+    KPData = PointData
+    KPData.ThinData('knickpoints',kp_threshold)
 
     # Set up fonts for plots
     label_size = 10
@@ -62,16 +58,16 @@ def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
 
-    # get the knickpoint data
-    elevation = PointData.QueryData('elevation')
+    # get the data
+    elevation = KPData.QueryData('elevation')
     elevation = [float(x) for x in elevation]
-    flow_distance = PointData.QueryData('flow distance')
+    flow_distance = KPData.QueryData('flow distance')
     flow_distance = [float(x) for x in flow_distance]
-    magnitude = PointData.QueryData('knickpoints')
+    magnitude = KPData.QueryData('knickpoints')
     magnitude = [float(x) for x in magnitude]
-    basin = PointData.QueryData('file_from_combine')
+    basin = KPData.QueryData('file_from_combine')
     basin = [int(x) for x in basin]
-    source = PointData.QueryData('source_key')
+    source = KPData.QueryData('source_key')
     source = [int(x) for x in source]
 
     # need to convert everything into arrays so we can mask different basins
@@ -91,7 +87,7 @@ def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0
     #colour by source - this is the same as the script to colour channels over a raster,
     # (BasicChannelPlotGridPlotCategories) so that the colour scheme should match
     # make a color map of fixed colors
-    NUM_COLORS = 15
+    NUM_COLORS = len(np.unique(maskSource))
     this_cmap = plt.cm.Set1
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
     plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
@@ -102,8 +98,18 @@ def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0
     max_size = np.max(maskMagnitude)
     normSize = [100*((x - min_size)/(max_size - min_size)) for x in maskMagnitude]
 
+    # now get the channel profiles that correspond to each knickpoint source and basin
+    PointData.ThinDataFromKey('basin_key',basin_key)
+    PointData.ThinDataSelection('source_key',maskSource)
+
+    channel_elev = PointData.QueryData('elevation')
+    channel_elev = [float(x) for x in channel_elev]
+    channel_dist = PointData.QueryData('flow_distance')
+    channel_dist = [float(x) for x in channel_dist]
+
     # now plot the knickpoint elevations and flow distances
-    ax.scatter(maskFlowDistance, maskElevation, c = channel_data, cmap=this_cmap, s = normSize, lw=0.5,edgecolors='k')
+    ax.scatter(channel_dist, channel_elev, s=0.1, c='k')
+    ax.scatter(maskFlowDistance, maskElevation, c = channel_data, cmap=this_cmap, s = normSize, lw=0.5,edgecolors='k',zorder=100)
     ax.set_xlabel('Flow distance (m)')
     ax.set_ylabel('Elevation (m)')
 

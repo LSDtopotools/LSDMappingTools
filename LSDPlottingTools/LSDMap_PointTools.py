@@ -210,13 +210,13 @@ class LSDMap_PointData(object):
             print("Here is the variable list: ")
             print(self.VariableList)
         else:
-           self.Latitude = self.PointData["latitude"] 
+           self.Latitude = self.PointData["latitude"]
         if "longitude" not in self.VariableList:
             print("Something has gone wrong, longitude is not in the variable list")
             print("Here is the variable list: ")
             print(self.VariableList)
         else:
-           self.Longitude = self.PointData["longitude"] 
+           self.Longitude = self.PointData["longitude"]
 
 
 ##==============================================================================
@@ -519,6 +519,65 @@ class LSDMap_PointData(object):
 
         #print("The updated data is:")
         #print(self.PointData[data_name])
+
+    def ThinDataFromKey(self,data_name,data_key):
+        """This function takes a key for a value and retains the members in data name corresponding to that selection.
+        Similar to ThinDataSelection but just takes one key rather than a list
+
+        Args:
+            data_name (str): The name of the data member to select
+            data_key (int): The integer to search, values corresponding to this will be retained
+
+        Returns:
+            None removes data from the object (not reversible!!)
+
+        Author: FJC
+
+        """
+        print("I am only keeping the "+data_name+" data with a value of "+str(data_key))
+
+        # Get the data for thinning
+        if data_name not in self.VariableList:
+            print("The data " + data_name + " is not one of the data elements in this point data")
+        else:
+            this_data = self.PointData[data_name]
+
+        this_data = [int(x) for x in this_data]
+        #print("The original data I need to thin is: ")
+        #print(this_data)
+
+
+        # Start a new data dict
+        NewDataDict = {}
+        NewLat = []
+        NewLon = []
+        for name in self.VariableList:
+            NewDataDict[name] = []
+
+
+        # Get all the data to be deleted
+        print("The data I am keeping is: ")
+        print(data_key)
+        delete_indices = []
+        for index, data in enumerate(this_data):
+            #print("Data: "+str(data))
+            if data != data_key:
+                #print("I'm not keeping it")
+                delete_indices.append(index)
+            else:
+                #print("I'll have that one. ")
+                NewLat.append(self.Latitude[index])
+                NewLon.append(self.Longitude[index])
+                for name in self.VariableList:
+                    this_element = self.PointData[name][index]
+                    NewDataDict[name].append(this_element)
+
+
+        # Now reset the data dict
+        self.PointData = NewDataDict
+        self.Latitude = NewLat
+        self.Longitude = NewLon
+
 
 
 ##==============================================================================
