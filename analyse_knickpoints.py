@@ -49,6 +49,7 @@ import numpy as np
 import os
 import matplotlib
 import pandas
+from LSDPlottingTools import LSDMap_PointTools as PointTools
 
 def read_MChi_file(DataDirectory, csv_name, kp_threshold):
     """
@@ -164,9 +165,49 @@ def knickpoint_plots_for_basins(DataDirectory, csv_name, kp_threshold):
         plt.savefig(DataDirectory+write_name+str(id)+"."+file_ext,dpi=100)
         plt.close()
 
-DataDirectory = '/home/s0923330/DEMs_for_analysis/sierras_kn/'
-baseName = "combined"
-csv_name = baseName + "_MChi.csv"
-kp_threshold = 100 # every knickpoint below this will be erased
-knickpoint_plots_for_basins(DataDirectory,csv_name, kp_threshold)
-#get_data_column_from_csv(DataDirectory,csv_name,kp_threshold,column_name="latitude")
+def knickpoint_plotter(DataDirectory, DEM_prefix, kp_threshold=0, FigFormat='pdf'):
+    """
+    Function to test LSDMap_KnickpointPlotting
+
+    Args:
+        DataDirectory (str): the data directory of the chi csv file
+        DEM_prefix (str): DEM name without extension
+        kp_threshold (int): threshold knickpoint magnitude, values below this will be removed.
+
+    Returns:
+        Plot of knickpoint magnitude for each basin
+
+    Author: FJC
+    """
+    from LSDPlottingTools import LSDMap_PointTools as PointTools
+    from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
+
+    # read in the raw csv file
+    kp_csv_fname = DataDirectory+DEM_prefix+'_MChi.csv'
+    print("I'm reading in the csv file "+kp_csv_fname)
+
+    # get the point data objects
+    PointData = PointTools.LSDMap_PointData(kp_csv_fname)
+
+    # get the basin keys
+    basin = PointData.QueryData('file_from_combine')
+    basin = [int(x) for x in basin]
+    Basin = np.asarray(basin)
+    basin_keys = np.unique(Basin)
+    print('There are %s basins') %(len(basin_keys))
+
+    # loop through each basin and make the figure
+    for basin_key in basin_keys:
+        FileName = DEM_prefix+"_KP_elevations_%s.%s" %(str(basin_key),FigFormat)
+        KP.plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key, kp_threshold, FileName, FigFormat)
+
+if __name__ == "__main__":
+
+    DataDirectory = '/home/s0923330/DEMs_for_analysis/sierras_kn/'
+    baseName = "combined"
+    #csv_name = baseName + "_MChi.csv"
+    kp_threshold = 100 # every knickpoint below this will be erased
+    FigFormat = 'png'
+    #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_threshold)
+    #get_data_column_from_csv(DataDirectory,csv_name,kp_threshold,column_name="latitude")
+    knickpoint_plotter(DataDirectory,baseName,kp_threshold=kp_threshold,FigFormat=FigFormat)
