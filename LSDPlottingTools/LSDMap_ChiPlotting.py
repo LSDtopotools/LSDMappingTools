@@ -814,6 +814,173 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## This function plots channels, color coded
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def BasicChannelPlotByBasin(FileName, DrapeName, chi_csv_fname, thiscmap='gray',drape_cmap='gray',
+                            colorbarlabel='Elevation in meters',clim_val = (0,0),
+                            drape_alpha = 0.6,FigFileName = 'Image.pdf',FigFormat = 'show',
+                            elevation_threshold = 0, basin_key = 0, data_name = 'source_key',
+                            source_thinning_threshold = 0,
+                            size_format = "ESURF"):
+    """This plots the channels over a draped plot, colour coded by source. It masks the data so that the channels
+    are only plotted for a specific basin of interest, specified by the basin key from the chi csv file.
+
+    Args:
+        FileName (str): The name (with full path and extension) of the DEM.
+        DrapenName (str): The name (with full path and extension) of the drape file (usually a hillshade, but could be anything)
+        chi_csv_fname (str): The name (with full path and extension) of the cdv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool.
+        thiscmap (colormap): The colourmap for the elevation raster
+        drape_cmap (colormap):  The colourmap for the drape raster
+        colorbarlabel (str): the text label on the colourbar.
+        clim_val  (float,float): The colour limits for the drape file. If (0,0) it uses the minimum and maximum values of the drape file. Users can assign numbers to get consistent colourmaps between plots.
+        drape_alpha (float): The alpha value of the drape
+        FigFileName (str): The name of the figure file
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command. If 'return' then it returns the figure.
+        elevation_threshold (float): elevation_threshold chi points below this elevation are removed from plotting.
+        basin_key (int): the ID of the basin from the chi csv file
+        data_name (str) = The name of the sources csv
+        source_thinning_threshold (float) = Minimum chi length of a source segment. No thinning if 0.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+
+    Returns:
+        Prints a plot to file.
+
+    Author:
+        FJC (modified from SMM)
+
+    """
+    from matplotlib import colors
+    label_size = 10
+
+    # Set up fonts for plots
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+    #plt.rc('text', usetex=True)
+
+    # get the data
+    raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
+    raster_drape = LSDMap_IO.ReadRasterArrayBlocks(DrapeName)
+
+    # now get the extent
+    extent_raster = LSDMap_IO.GetRasterExtent(FileName)
+
+    x_min = extent_raster[0]
+    x_max = extent_raster[1]
+    y_min = extent_raster[2]
+    y_max = extent_raster[3]
+
+    # make a figure,
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,5))
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+    gs = plt.GridSpec(100,100,bottom=0.25,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+
+    # now get the tick marks
+    n_target_tics = 5
+    xlocs,ylocs,new_x_labels,new_y_labels = LSDMap_BP.GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics)
+
+    im1 = ax.imshow(raster[::-1], thiscmap, extent = extent_raster, interpolation="nearest")
+
+    # set the colour limits
+    print("Setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
+    if (clim_val == (0,0)):
+        print("Im setting colour limits based on minimum and maximum values")
+        im1.set_clim(0, np.nanmax(raster))
+    else:
+        print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
+        im1.set_clim(clim_val[0],clim_val[1])
+
+    plt.hold(True)
+
+    # Now for the drape: it is in grayscale
+    #print "drape_cmap is: "+drape_cmap
+    im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
+
+    # Set the colour limits of the drape
+    im3.set_clim(0,np.nanmax(raster_drape))
+
+
+    ax.spines['top'].set_linewidth(1)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['right'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1)
+
+    ax.set_xticklabels(new_x_labels,rotation=60)
+    ax.set_yticklabels(new_y_labels)
+
+    ax.set_xlabel("Easting (m)")
+    ax.set_ylabel("Northing (m)")
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)
+
+    # Now we get the chi points
+    EPSG_string = LSDMap_IO.GetUTMEPSG(FileName)
+    print("EPSG string is: " + EPSG_string)
+
+    thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
+
+    # mask for the basin
+    thisPointData.ThinDataSelection("basin_key",basin_key)
+
+    # thin elevation points below the threshold
+    thisPointData.ThinData('elevation',elevation_threshold)
+
+    # Logic for thinning the sources
+    if source_thinning_threshold > 0:
+        print("I am going to thin some sources out for you")
+        source_info = FindSourceInformation(thisPointData)
+        remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
+        thisPointData.ThinDataSelection("source_key",remaining_sources)
+
+    # convert to easting and northing
+    [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+
+    # The image is inverted so we have to invert the northing coordinate
+    Ncoord = np.asarray(northing)
+    Ncoord = np.subtract(extent_raster[3],Ncoord)
+    Ncoord = np.add(Ncoord,extent_raster[2])
+
+    these_data = thisPointData.QueryData(data_name)
+    #print M_chi
+    these_data = [int(x) for x in these_data]
+
+    # make a color map of fixed colors
+    NUM_COLORS = 15
+
+    this_cmap = plt.cm.Set1
+    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
+    plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+    channel_data = [x % NUM_COLORS for x in these_data]
+
+    ax.scatter(easting,Ncoord,s=0.5, c=channel_data,norm=cNorm,cmap=this_cmap,edgecolors='none')
+
+    # This affects all axes because we set share_all = True.
+    ax.set_xlim(x_min,x_max)
+    ax.set_ylim(y_max,y_min)
+
+    ax.set_xticks(xlocs)
+    ax.set_yticks(ylocs)
+    ax.set_title('Channels colored by source number')
+
+    print("The figure format is: " + FigFormat)
+    if FigFormat == 'show':
+        plt.show()
+    elif FigFormat == 'return':
+        return fig
+    else:
+        plt.savefig(FigFileName,format=FigFormat,dpi=500)
+        fig.clf()
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## This function plots channels, color coded
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def ChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',FigFormat = 'show',
                 basin_order_list = [],basin_rename_list = [],
                 label_sources = False,
@@ -1709,7 +1876,7 @@ def SlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     channel_data = [x % NUM_COLORS for x in maskSource]
 
     # now make the slope area plot. Need to add a lot more here but just to test for now.
-    ax.scatter(maskArea,maskSlope, c=channel_data, cmap=this_cmap, s=10)
+    ax.scatter(maskArea,maskSlope,c=channel_data,cmap=this_cmap,s=10,marker="+",lw=1)
     ax.set_xlabel('Drainage area (m$^2$)')
     ax.set_ylabel('Slope (m/m)')
 
@@ -1804,6 +1971,8 @@ def BinnedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     MedianLogSlope = np.asarray(median_log_S)
     MeanLogArea = np.asarray(mean_log_A)
     MidpointsArea = np.asarray(midpoints_A)
+    SlopeError = np.asarray(log_S_sterr)
+    AreaError = np.asarray(log_A_sterr)
     Basin = np.asarray(basin)
     Source = np.asarray(source)
 
@@ -1813,6 +1982,8 @@ def BinnedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     MedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
     MeanLogArea = np.ma.masked_where(np.ma.getmask(m), MeanLogArea)
     MidpointsArea = np.ma.masked_where(np.ma.getmask(m), MidpointsArea)
+    SlopeError = np.ma.masked_where(np.ma.getmask(m), SlopeError)
+    AreaError = np.ma.masked_where(np.ma.getmask(m), AreaError)
     maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
 
     #colour by source - this is the same as the script to colour channels over a raster,
@@ -1826,13 +1997,17 @@ def BinnedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
 
     # now make the slope area plot. Need to add a lot more here but just to test for now.
     if x_param == 'mean' and y_param == 'mean':
-        ax.scatter(MeanLogArea,MeanLogSlope, c=channel_data, cmap=this_cmap, s=10)
+        #plt.errorbar(MeanLogArea,MeanLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
+        ax.scatter(MeanLogArea,MeanLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
     elif x_param == 'mean' and y_param == 'median':
-        ax.scatter(MeanLogArea,MedianLogSlope, c=channel_data, cmap=this_cmap, s=10)
+        #plt.errorbar(MeanLogArea,MedianLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
+        ax.scatter(MeanLogArea,MedianLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
     elif x_param == 'midpoints' and y_param == 'median':
-        ax.scatter(MidpointsArea,MedianLogSlope, c=channel_data, cmap=this_cmap, s=10)
+        #plt.errorbar(MidpointsArea,MedianLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
+        ax.scatter(MidpointsArea,MedianLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
     else:
-        ax.scatter(MidpointsArea,MeanLogSlope, c=channel_data, cmap=this_cmap, s=10)
+        #plt.errorbar(MidpointsArea,MeanLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
+        ax.scatter(MidpointsArea,MeanLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
 
     ax.set_xlabel('Drainage area (m$^2$)')
     ax.set_ylabel('Slope (m/m)')
@@ -1852,7 +2027,7 @@ def BinnedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     if FigFormat == 'show':
         plt.show()
     elif FigFormat == 'return':
-        return fig
+        return fig # return the axes object so can make nice subplots with the other plotting tools?
     else:
         save_fmt = FigFormat
         plt.savefig(DataDirectory+FigFileName,format=save_fmt,dpi=500)
