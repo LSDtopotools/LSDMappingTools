@@ -162,7 +162,7 @@ def knickpoint_plots_for_basins(DataDirectory, csv_name, kp_type = "diff"):
         plt.savefig(DataDirectory+write_name+str(id)+"."+file_ext,dpi=100)
         plt.close()
 
-def knickpoint_plotter(DataDirectory, DEM_prefix, kp_type = "diff", FigFormat='pdf'):
+def knickpoint_plotter(DataDirectory, DEM_prefix, kp_type = "diff", FigFormat='pdf', processed = False):
     """
     Function to test LSDMap_KnickpointPlotting
 
@@ -180,11 +180,12 @@ def knickpoint_plotter(DataDirectory, DEM_prefix, kp_type = "diff", FigFormat='p
     from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
 
     # read in the raw csv file
-    kp_csv_fname = DataDirectory+DEM_prefix+'_KsnKn.csv'
-    print("I'm reading in the csv file "+kp_csv_fname)
+    if(processed == False):
+        kp_csv_fname = DataDirectory+DEM_prefix+'_KsnKn.csv'
+        print("I'm reading in the csv file "+kp_csv_fname)
 
-    # get the point data objects
-    PointData = PointTools.LSDMap_PointData(kp_csv_fname)
+        # get the point data objects
+        PointData = PointTools.LSDMap_PointData(kp_csv_fname)
 
     # get the basin keys
     basin = PointData.QueryData('basin_key')
