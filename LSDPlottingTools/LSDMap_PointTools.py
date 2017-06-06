@@ -89,7 +89,7 @@ def ConvertAllCSVToShapefile(path):
 class LSDMap_PointData(object):
 
     # The constructor: it needs a filename to read
-    def __init__(self,FileName):
+    def __init__(self,FileName, data_type = "csv"):
         """This is the LSDMap_pointdata object. It loads csv files that have latitude and longitude data (in WGS84) and keeps other data records.
 
         The object can convert to UTM, and it also can print data to other file formats like GeoJSON and shapefiles.
@@ -99,15 +99,15 @@ class LSDMap_PointData(object):
 
         Author: SMM
         """
+        if(data_type == "csv"):
+            # This gets the filename without the .csv
+            file_prefix = LSDOst.GetFilePrefix(FileName)
 
-        # This gets the filename without the .csv
-        file_prefix = LSDOst.GetFilePrefix(FileName)
-
-        self.FilePrefix = file_prefix
-        print("The object file prefix is: " + self.FilePrefix)
+            self.FilePrefix = file_prefix
+            print("The object file prefix is: " + self.FilePrefix)
 
         #See if the parameter files exist
-        native_way = False
+        native_way = False # Switch to TRUE if pandasif creating bugs
         if os.access(FileName,os.F_OK):
             if(native_way):
                 this_file = open(FileName, 'r')
@@ -166,7 +166,11 @@ class LSDMap_PointData(object):
                 print("I am loading data using pandas, I haven't been widely tested yet, you can switch to the old way if you have troubles by looking for native_way in LSDMap_PointData")
                 #Loading the file
                 print("Loading")
-                data = pandas.read_csv(FileName, sep=",")
+                if(data_type == "csv"):
+                    data = pandas.read_csv(FileName, sep=",")
+                else:
+                    if(data_type == "pandas"):
+                        data = FileName
                 print("Loaded")
                 #Extracting the headers
                 self.VariableList = list(data.columns.values)
