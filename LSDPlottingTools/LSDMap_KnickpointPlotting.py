@@ -99,16 +99,16 @@ def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0
     normSize = [100*((x - min_size)/(max_size - min_size)) for x in maskMagnitude]
 
     # now get the channel profiles that correspond to each knickpoint source and basin
-    PointData.ThinDataFromKey('basin_key',basin_key)
-    PointData.ThinDataSelection('source_key',maskSource)
-
-    channel_elev = PointData.QueryData('elevation')
-    channel_elev = [float(x) for x in channel_elev]
-    channel_dist = PointData.QueryData('flow_distance')
-    channel_dist = [float(x) for x in channel_dist]
+    # PointData.ThinDataFromKey('basin_key',basin_key)
+    # PointData.ThinDataSelection('source_key',maskSource)
+    #
+    # channel_elev = PointData.QueryData('elevation')
+    # channel_elev = [float(x) for x in channel_elev]
+    # channel_dist = PointData.QueryData('flow_distance')
+    # channel_dist = [float(x) for x in channel_dist]
 
     # now plot the knickpoint elevations and flow distances
-    ax.scatter(channel_dist, channel_elev, s=0.1, c='k')
+    #ax.scatter(channel_dist, channel_elev, s=0.1, c='k')
     ax.scatter(maskFlowDistance, maskElevation, c = channel_data, cmap=this_cmap, s = normSize, lw=0.5,edgecolors='k',zorder=100)
     ax.set_xlabel('Flow distance (m)')
     ax.set_ylabel('Elevation (m)')
