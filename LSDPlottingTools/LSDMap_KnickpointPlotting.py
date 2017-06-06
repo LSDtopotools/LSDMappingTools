@@ -12,7 +12,7 @@ from matplotlib import colors
 import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
 
 def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0, kp_threshold=0,
-                               FigFileName='Image.pdf', FigFormat='pdf', size_format='ESURF'):
+                               FigFileName='Image.pdf', FigFormat='pdf', size_format='ESURF', kp_type = "diff"):
     """
     Function to create a plot of knickpoint elevation vs flow distance for each
     basin. Knickpoints are colour-coded by source node, and the marker size represents
@@ -23,7 +23,8 @@ def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0
         DataDirectory (str): the data directory for the knickpoint file
         csv_name (str): name of the csv file with the knickpoint information
         basin_key (int): key to select the basin of interest
-        kp_threshold (int): threshold knickpoint magnitude, any knickpoint below this will be removed
+        kp_threshold (int): threshold knickpoint magnitude, any knickpoint below this will be removed (This option may be removed soon)
+        kp_type (string): switch between diff and ratio data
         FigFileName (str): The name of the figure file
         FigFormat (str): format of output figure, can be 'pdf' (default), 'png', 'return', or 'show'
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
@@ -36,7 +37,7 @@ def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0
     #PointData = LSDMap_PD.LSDMap_PointData(kp_csv_fname)
     # thin out small knickpoints
     KPData = PointData
-    KPData.ThinData('knickpoints',kp_threshold)
+    #KPData.ThinData(kp_type,kp_threshold)
 
     # Set up fonts for plots
     label_size = 10
@@ -63,9 +64,9 @@ def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0
     elevation = [float(x) for x in elevation]
     flow_distance = KPData.QueryData('flow distance')
     flow_distance = [float(x) for x in flow_distance]
-    magnitude = KPData.QueryData('knickpoints')
+    magnitude = KPData.QueryData(kp_type)
     magnitude = [float(x) for x in magnitude]
-    basin = KPData.QueryData('file_from_combine')
+    basin = KPData.QueryData('basin_key')
     basin = [int(x) for x in basin]
     source = KPData.QueryData('source_key')
     source = [int(x) for x in source]

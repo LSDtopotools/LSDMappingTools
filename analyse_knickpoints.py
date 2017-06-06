@@ -51,36 +51,33 @@ import matplotlib
 import pandas
 from LSDPlottingTools import LSDMap_PointTools as PointTools
 
-def read_MChi_file(DataDirectory, csv_name, kp_threshold):
+def read_MChi_file(DataDirectory, csv_name):
     """
-    This function reads in the MChi file using pandas
+    This function reads in the MChi file using pandas - the data is raw, I'll add processing functions
     file structure:
-    latitude	longitude chi	elevation	flow distance	drainage area	m_chi	b_chi	source_key	basin_key	segmented_elevation	knickpoints	knickpoint_sign	segment_length	file_from_combine
-    FJC 29/03/17
+    latitude longitude elevation	flow distance	drainage area	diff ratio sign	source_key	basin_key
+    FJC/BG 29/03/17
     """
     df = pandas.read_csv(DataDirectory+csv_name, sep=",")
-    df = df[df.knickpoints >= kp_threshold]
     return df
 
-def get_data_columns_from_csv(DataDirectory, csv_name, kp_threshold, columns):
+def get_data_columns_from_csv(DataDirectory, csv_name, columns):
     """
     This function returns lists of specified column names from the MChi csv file.
     Must be strings equal to the column headers.
-    User can specify a knickpoint threshold (values with knickpoint magnitudes
-    below this will be excluded)
     FJC 29/03/17
     """
     column_lists = []
-    df = read_MChi_file(DataDirectory, csv_name, kp_threshold)
+    df = read_MChi_file(DataDirectory, csv_name)
     for column_name in columns:
         print("I'm returning the "+column_name+" values as a list")
         column_values = list(df[column_name])
         column_lists.append(column_values)
     return column_lists
 
-def make_cumulative_plot(DataDirectory, csv_name, kp_threshold):
+def make_cumulative_plot(DataDirectory, csv_name):
     print("Now printing the cumulative plot")
-    sorted_data = read_MChi_file(DataDirectory, csv_name, kp_threshold)
+    sorted_data = read_MChi_file(DataDirectory, csv_name)
     temp_count = 0
     x_cumul, y_cumul = np.unique(sorted_data[:,11],return_counts= True)
     #y_cumul = np.unique(sorted_data[:,11],return_counts= True)
@@ -104,43 +101,43 @@ def make_cumulative_plot(DataDirectory, csv_name, kp_threshold):
     plt.clf()
 
     #### Elevation against Knickpoints ####
-def plot_knickpoint_elevations(DataDirectory, csv_name, kp_threshold):
+def plot_knickpoint_elevations(DataDirectory, csv_name, kp_type = "diff"):
     """
     This function creates a plot of knickpoint elevations against magnitude
     FJC 29/03/17, modified from code by BG.
     """
     # read in the data from the csv to lists
     elevation = get_data_column_from_csv(DataDirectory, csv_name, kp_threshold, "elevation")
-    kp_magnitude = get_data_column_from_csv(DataDirectory, csv_name, kp_threshold, "knickpoints")
+    kp_data = get_data_column_from_csv(DataDirectory, csv_name, kp_threshold, kp_type)
 
     # plot the figure
     fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(kp_magnitude, elevation, 'k+', linewidth=0.5)
+    ax.plot(kp_data, elevation, 'k+', linewidth=0.5)
     ax.grid(True)
     ax.set_title('Elevation against knickpoint value')
-    ax.set_xlabel('Knickpoint magnitude')
+    ax.set_xlabel('Knickpoint '+kp_type)
     ax.set_ylabel('Elevation (m)')
     #ax.set_ylim(0,100)
     ax.set_xlim(0,1000)
-    write_name = "knickpoint_elevation"
+    write_name = "knickpoint_elevation_"+kp_type
     file_ext = "png"
     plt.savefig(DataDirectory+write_name+"."+file_ext,dpi=300)
     plt.clf()
 
-def knickpoint_plots_for_basins(DataDirectory, csv_name, kp_threshold):
+def knickpoint_plots_for_basins(DataDirectory, csv_name, kp_type = "diff"):
     """
     This function creates subplots of knickpoint characteristics for each individual
-    basin.
+    basin. kp_type define if you want the ratio data or the differencee data (diff by default).
     FJC 29/03/17
     """
     # read in data from the csv to lists
-    columns = ["elevation", "flow distance", "drainage area", "knickpoints", "knickpoint_sign", "file_from_combine"]
-    column_lists = get_data_columns_from_csv(DataDirectory, csv_name, kp_threshold, columns)
+    columns = ["elevation", "flow distance", "drainage area", kp_type, "sign", "basin_key"]
+    column_lists = get_data_columns_from_csv(DataDirectory, csv_name, columns)
     print(len(column_lists))
     elevation = column_lists[0]
     flow_distance = column_lists[1]
     drainage_area = column_lists[2]
-    kp_magnitude = column_lists[3]
+    kp_data = column_lists[3]
     kp_sign = column_lists[4]
     basin_id = column_lists[5]
     #list_of_lists = zip(elevation,flow_distance,basin_id)
@@ -149,8 +146,8 @@ def knickpoint_plots_for_basins(DataDirectory, csv_name, kp_threshold):
     # loop through and get a plot for each basin id
     ids = set(basin_id)
     for id in ids:
-        print("This basin id is: "+str(id))
-        these_lists = [(a,b,c,d,e,f) for (a,b,c,d,e,f) in zip(elevation,flow_distance,drainage_area,kp_magnitude,kp_sign,basin_id) if f == id]
+        print("This basin id/key is: "+str(id))
+        these_lists = [(a,b,c,d,e,f) for (a,b,c,d,e,f) in zip(elevation,flow_distance,drainage_area,kp_data,kp_sign,basin_id) if f == id]
         this_elev, this_distance, this_area, this_magnitude, this_sign, this_id = zip(*these_lists)
 
         fig,ax = plt.subplots(figsize=(10,12))
@@ -165,17 +162,17 @@ def knickpoint_plots_for_basins(DataDirectory, csv_name, kp_threshold):
         plt.savefig(DataDirectory+write_name+str(id)+"."+file_ext,dpi=100)
         plt.close()
 
-def knickpoint_plotter(DataDirectory, DEM_prefix, kp_threshold=0, FigFormat='pdf'):
+def knickpoint_plotter(DataDirectory, DEM_prefix, kp_type = "diff", FigFormat='pdf'):
     """
     Function to test LSDMap_KnickpointPlotting
 
     Args:
         DataDirectory (str): the data directory of the chi csv file
         DEM_prefix (str): DEM name without extension
-        kp_threshold (int): threshold knickpoint magnitude, values below this will be removed.
+        kp_type (string): select the type of knickpoint data you want (diff vs ratio).
 
     Returns:
-        Plot of knickpoint magnitude for each basin
+        Plot of knickpoint (diff or ratio) for each basin
 
     Author: FJC
     """
@@ -183,14 +180,14 @@ def knickpoint_plotter(DataDirectory, DEM_prefix, kp_threshold=0, FigFormat='pdf
     from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
 
     # read in the raw csv file
-    kp_csv_fname = DataDirectory+DEM_prefix+'_MChi.csv'
+    kp_csv_fname = DataDirectory+DEM_prefix+'_KsnKn.csv'
     print("I'm reading in the csv file "+kp_csv_fname)
 
     # get the point data objects
     PointData = PointTools.LSDMap_PointData(kp_csv_fname)
 
     # get the basin keys
-    basin = PointData.QueryData('file_from_combine')
+    basin = PointData.QueryData('basin_key')
     basin = [int(x) for x in basin]
     Basin = np.asarray(basin)
     basin_keys = np.unique(Basin)
@@ -199,15 +196,15 @@ def knickpoint_plotter(DataDirectory, DEM_prefix, kp_threshold=0, FigFormat='pdf
     # loop through each basin and make the figure
     for basin_key in basin_keys:
         FileName = DEM_prefix+"_KP_elevations_%s.%s" %(str(basin_key),FigFormat)
-        KP.plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key, kp_threshold, FileName, FigFormat)
+        KP.plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key, kp_type, FileName, FigFormat)
 
 if __name__ == "__main__":
 
-    DataDirectory = '/home/s0923330/DEMs_for_analysis/sierras_kn/'
-    baseName = "combined"
+    DataDirectory = '/home/s1675537/PhD/DataStoreBoris/GIS/Data/Carpathian/knickpoint/'
+    baseName = "Buzau"
     #csv_name = baseName + "_MChi.csv"
-    kp_threshold = 100 # every knickpoint below this will be erased
+    kp_type = "diff" # every knickpoint below this will be erased
     FigFormat = 'png'
-    #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_threshold)
-    #get_data_column_from_csv(DataDirectory,csv_name,kp_threshold,column_name="latitude")
-    knickpoint_plotter(DataDirectory,baseName,kp_threshold=kp_threshold,FigFormat=FigFormat)
+    #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_type)
+    #get_data_column_from_csv(DataDirectory,csv_name,kp_type,column_name="latitude")
+    knickpoint_plotter(DataDirectory,baseName,kp_type=kp_type,FigFormat=FigFormat)
