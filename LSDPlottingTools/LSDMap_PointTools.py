@@ -89,7 +89,7 @@ def ConvertAllCSVToShapefile(path):
 class LSDMap_PointData(object):
 
     # The constructor: it needs a filename to read
-    def __init__(self,FileName, data_type = "csv"):
+    def __init__(self,FileName, data_type = "csv", PANDEX = False):
         """This is the LSDMap_pointdata object. It loads csv files that have latitude and longitude data (in WGS84) and keeps other data records.
 
         The object can convert to UTM, and it also can print data to other file formats like GeoJSON and shapefiles.
@@ -105,7 +105,9 @@ class LSDMap_PointData(object):
 
             self.FilePrefix = file_prefix
             print("The object file prefix is: " + self.FilePrefix)
-
+        self.PANDEX = PANDEX
+        if(self.PANDEX == True):
+            print("Warning, you are using an experimental version of LSDMT that is implementing Pandas dataframe to improve the performance. It is still unstable, switch PANDEX to False in your PointData parameters to use the regular way")
         #See if the parameter files exist
         native_way = False # Switch to TRUE if pandasif creating bugs
         if (data_type == "pandas"):
@@ -205,6 +207,11 @@ class LSDMap_PointData(object):
                 self.DataTypes = TypeList
                 #print(self.PointData)
                 print("The points data are successfully loaded")
+                print("DEBUG, pointdata:")
+                print(self.PointData)
+                print("DEBUG, DataTypes:")
+                print(self.DataTypes)
+
 
         else:
             print("Uh oh I could not open that file")
