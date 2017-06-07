@@ -1,26 +1,46 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon May 29 15:07:06 2017
-
-@author: smudd
-"""
-
+#=============================================================================
+# This script creates figures for visualising the m/n selection using the chi
+# mapping tool.
+#
+# It creates separate plots for each basin in the DEM.
+#
+# Authors:
+#     Simon M. Mudd
+#     Fiona J. Clubb
+#=============================================================================
+#=============================================================================
+# IMPORT MODULES
+#=============================================================================
 import numpy as np
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import pandas as pd
+#=============================================================================
 
-def ChiMOverNTest(DataDirectory, DEM_prefix, basin_list = [0],
+def MakeMLEPlots(DataDirectory, DEM_prefix, basin_list = [0],
                   start_movern = 0.2, d_movern = 0.1, n_movern = 7):
+    """
+    This function makes a chi-elevation plot for each basin and each value of
+    m/n and prints the MLE value between the tributaries and the main stem.
+    The plot with the maximum value of MLE is highlighted in red (suggesting
+    that this should be the appropriate m/n value for this basin). channels
+    are coloured by elevation.
 
-    #DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
-    #DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya_chi_test\\"
-    #movern_profile_file = "Irian_Jaya_PP_movernQ.csv"
-    #movern_basin_stats_file = "Irian_Jaya_PP_movernstatsQ_basinstats.csv"
-    #movern_profile_file = "Mega_divide_movern.csv"
-    #movern_basin_stats_file = "Mega_divide_movernstats_basinstats.csv"
-    #Base_file = "Mega_clip"
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        DEM_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+
+    Returns:
+        Plot of each m/n value for each basin.
+
+    Author: SMM, modified by FJC
+    """
 
     profile_suffix = "_movern.csv"
     basin_stats_suffix = "_movernstats_basinstats.csv"
@@ -54,8 +74,6 @@ def ChiMOverNTest(DataDirectory, DEM_prefix, basin_list = [0],
     print(m_over_n_of_max)
 
     n_basins = len(max_MLEs)
-
-
 
     label_size = 12
 
@@ -109,14 +127,11 @@ def ChiMOverNTest(DataDirectory, DEM_prefix, basin_list = [0],
     Basin = np.asarray(basin)
     #Source = np.asarray(source)
 
-    #print(Elevation)
-
     # Loop through m/n values aggregating data
     for idx,mn in enumerate(m_over_n_values):
 
         counter = str(idx).zfill(3)
         print("Counter is: "+counter)
-
         # first get the chi values for this m_over_n
         #print ("mn is: " + str(mn))
         #print("index is: "+str(idx))
@@ -126,7 +141,6 @@ def ChiMOverNTest(DataDirectory, DEM_prefix, basin_list = [0],
 
         # get the MLE value for this m/n
         this_MLE = allBasinStatsData.QueryData(mn_legend)
-
 
         # convert to a numpy array for masking
         Chi = np.asarray(this_chi)
@@ -146,7 +160,6 @@ def ChiMOverNTest(DataDirectory, DEM_prefix, basin_list = [0],
             basin_list = range(0,n_basins-1)
 
         for basin_key in basin_list:
-
             # now we need to find out if this basin is in the allstats file,
             # and if so what index it is
             #this_basin_index = -99
@@ -161,7 +174,8 @@ def ChiMOverNTest(DataDirectory, DEM_prefix, basin_list = [0],
             #    MLE = "NaN"
             MLE = this_MLE[basin_key]
             #MLE_str = str(MLE)
-            short_MLE = str("%03.02e" % round(MLE,2))
+            #short_MLE = str("%03.02e" % round(MLE,2))
+            short_MLE = str(round(MLE,3))
             print("The short MLE is: "+short_MLE)
 
             #print("The MLE of this basin for this m over n is: "+short_MLE)
@@ -223,25 +237,20 @@ def ChiMOverNTest(DataDirectory, DEM_prefix, basin_list = [0],
             FigFormat = "png"
             plt.savefig(newFilename,format=FigFormat,dpi=300)
             ax.cla()
-            #plt.show()
 
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
-    #DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
-    #DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya_chi_test\\"
-    #movern_profile_file = "Irian_Jaya_PP_movern.csv"
-    #movern_basin_stats_file = "Irian_Jaya_PP_movernstats_basinstats.csv"
-    #movern_profile_file = "Mega_divide_movern.csv"
-    #movern_basin_stats_file = "Mega_divide_movernstats_basinstats.csv"
-
     DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
     DEM_prefix = 'Kentucky_chi'
 
-    basin_list = [0,1]
+    # either specify a list of the basins, or set as empty to get all of them
+    basin_list = []
+
+    # specify the m/n values tested
     start_movern = 0.2
     d_movern = 0.1
     n_movern = 8
 
     # run the plotting function
-    ChiMOverNTest(DataDirectory, DEM_prefix, basin_list, start_movern, d_movern, n_movern)
+    MakeMLEPlots(DataDirectory, DEM_prefix, basin_list, start_movern, d_movern, n_movern)
