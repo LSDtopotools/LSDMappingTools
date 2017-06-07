@@ -116,3 +116,63 @@ def plot_knickpoint_elevations(PointData, DataDirectory, basin_key=0, kp_thresho
         save_fmt = FigFormat
         plt.savefig(DataDirectory+FigFileName,format=save_fmt,dpi=500)
         fig.clf()
+
+
+def plot_diff_ratio(PointData, DataDirectory, saveName = "Basic_diff_ratio", save_fmt = ".png", size_format = "ESURF"):
+    """
+    Basic plot to have a general view of the knickpoints: diff against ratio colored by elevation
+
+    Args:
+        PointData: A PointData object
+        DataDirectory: Where the data is saved
+        saveName: save name
+    """
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+
+    diff = PointData.QueryData("diff")
+    ratio = PointData.QueryData("ratio")
+    elevation =PointData.QueryData("elevation")
+    ax.scatter(diff,ratio, s=0.5, lw = 0, c = elevation)
+    ax.set_xlabel("Diff")
+    ax.set_ylabel("Ratio")
+
+    plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
