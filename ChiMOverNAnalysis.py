@@ -16,20 +16,21 @@ import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import pandas as pd
+from matplotlib import colors
 #=============================================================================
 
-def MakeMLEPlots(DataDirectory, DEM_prefix, basin_list = [0],
+def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
                   start_movern = 0.2, d_movern = 0.1, n_movern = 7):
     """
     This function makes a chi-elevation plot for each basin and each value of
     m/n and prints the MLE value between the tributaries and the main stem.
     The plot with the maximum value of MLE is highlighted in red (suggesting
-    that this should be the appropriate m/n value for this basin). channels
+    that this should be the appropriate m/n value for this basin). Channels
     are coloured by elevation.
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
-        DEM_prefix (str): The prefix for the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
         basin_list: a list of the basins to make the plots for. If an empty list is passed then
         all the basins will be analysed. Default = basin 0.
         start_movern (float): the starting m/n value. Default is 0.2
@@ -45,8 +46,8 @@ def MakeMLEPlots(DataDirectory, DEM_prefix, basin_list = [0],
     profile_suffix = "_movern.csv"
     basin_stats_suffix = "_movernstats_basinstats.csv"
 
-    movern_profile_file = DEM_prefix+profile_suffix
-    movern_basin_stats_file = DEM_prefix+basin_stats_suffix
+    movern_profile_file = fname_prefix+profile_suffix
+    movern_basin_stats_file = fname_prefix+basin_stats_suffix
 
     end_movern = start_movern+d_movern*(n_movern-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
@@ -238,14 +239,167 @@ def MakeMLEPlots(DataDirectory, DEM_prefix, basin_list = [0],
             plt.savefig(newFilename,format=FigFormat,dpi=300)
             ax.cla()
 
+def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7,
+                    size_format='ESURF', FigFormat='png'):
+    """
+    This function makes chi-elevation plots for each basin and each value of m/n
+    where the channels are coloured by the MLE value compared to the main stem.
+    The main stem is plotted in black.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+
+    Returns:
+        Plot of each m/n value for each basin.
+
+    Author: FJC
+    """
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[10:95,5:80])
+    #colorbar axis
+    ax2 = fig.add_subplot(gs[10:95,82:85])
+
+    # read in the csv files
+    profile_suffix = "_movern.csv"
+    basin_stats_suffix = "_movernstats_basinstats.csv"
+    movern_profile_file = fname_prefix+profile_suffix
+    movern_basin_stats_file = fname_prefix+basin_stats_suffix
+
+    # get the data frames
+    ProfileDF = pd.read_csv(DataDirectory+movern_profile_file)
+    BasinStatsDF = pd.read_csv(DataDirectory+movern_basin_stats_file)
+
+    # get the number of basins
+    basin_keys = list(BasinStatsDF['basin_key'])
+    basin_keys = [float(x) for x in basin_keys]
+
+    # get the list of basins
+    if basin_list == []:
+        print("You didn't give me a list of basins, so I'll just run the analysis on all of them!")
+        basin_list = basin_keys
+
+    # loop through each m over n value
+    end_movern = start_movern+d_movern*(n_movern-1)
+    m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
+
+    for m_over_n in m_over_n_values:
+
+        print("This m/n is: "+str(m_over_n))
+
+        # get the full stats data for this m over n
+        fullstats_suffix = "_movernstats_%s_fullstats.csv" %(str(m_over_n))
+        fullstats_profile_file = fname_prefix+fullstats_suffix
+        print("The stats filename is "+ fullstats_profile_file)
+        FullStatsDF = pd.read_csv(DataDirectory+fullstats_profile_file)
+
+        # loop through all the basins in the basin list
+        for basin_key in basin_list:
+            print("This basin key is %s") %str(basin_key)
+
+            # mask the data frames for this basin
+            ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_key]
+            FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin_key]
+
+            # get the data frame for the main stem
+            ProfileDF_MS = ProfileDF_basin[ProfileDF_basin['source_key'] == FullStatsDF_basin['reference_source_key'][0]]
+
+            # get the data frame for the tributaries
+            ProfileDF_basin = ProfileDF_basin[ProfileDF_basin['source_key'] != FullStatsDF_basin['reference_source_key'][0]]
+            # merge with the full data to get the MLE for the tributaries
+            ProfileDF_tribs = ProfileDF_basin.merge(FullStatsDF_basin, left_on = "source_key", right_on = "test_source_key")
+
+            # get the chi and elevation data for the main stem
+            movern_key = 'm_over_n = %s' %(str(m_over_n))
+            MainStemX = list(ProfileDF_MS[movern_key])
+            MainStemElevation = list(ProfileDF_MS['elevation'])
+
+            # get the chi, elevation, and MLE for the tributaries
+            TributariesX = list(ProfileDF_tribs[movern_key])
+            TributariesElevation = list(ProfileDF_tribs['elevation'])
+            TributariesMLE = list(ProfileDF_tribs['MLE'])
+
+            # get the colourmap to colour channels by the MLE value
+            #NUM_COLORS = len(MLE)
+            MLE_array = np.asarray(TributariesMLE)
+            this_cmap = plt.cm.Reds
+            cNorm  = colors.Normalize(vmin=np.min(MLE_array), vmax=np.max(MLE_array))
+            plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+
+            # now plot the data with a colourmap
+            sc = ax.scatter(TributariesX,TributariesElevation,c=TributariesMLE,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+            ax.plot(MainStemX,MainStemElevation,lw=2, c='k')
+
+            # some formatting of the figure
+            ax.spines['top'].set_linewidth(1)
+            ax.spines['left'].set_linewidth(1)
+            ax.spines['right'].set_linewidth(1)
+            ax.spines['bottom'].set_linewidth(1)
+
+            # make the lables
+            ax.set_xlabel("$\chi$ (m)")
+            ax.set_ylabel("Elevation (m)")
+
+            # label with the basin and m/n
+            title_string = "Basin "+str(basin_key)+", $m/n$ = "+str(m_over_n)
+            ax.text(0.05, 0.95, title_string,
+                    verticalalignment='top', horizontalalignment='left',
+                    transform=ax.transAxes,
+                    color='black', fontsize=10)
+
+            # add the colorbar
+            colorbarlabel = "$MLE$"
+            cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
+            cbar.set_label(colorbarlabel, fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+
+            #save the plot
+            newFilename = DataDirectory+"MLE_profiles"+str(basin_key)+"_"+str(m_over_n)+".png"
+
+            # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+            ax.tick_params(axis='both', width=1, pad = 2)
+            for tick in ax.xaxis.get_major_ticks():
+                tick.set_pad(2)
+
+            plt.savefig(newFilename,format=FigFormat,dpi=300)
+            ax.cla()
+            ax2.cla()
+
+
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
     DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
-    DEM_prefix = 'Kentucky_chi'
+    fname_prefix = 'Kentucky_chi'
+    size_format='ESURF'
+    FigFormat = 'png'
 
     # either specify a list of the basins, or set as empty to get all of them
-    basin_list = []
+    basin_list = [0]
 
     # specify the m/n values tested
     start_movern = 0.2
@@ -253,4 +407,6 @@ if __name__ == "__main__":
     n_movern = 8
 
     # run the plotting function
-    MakeMLEPlots(DataDirectory, DEM_prefix, basin_list, start_movern, d_movern, n_movern)
+    #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
+    MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
+                        size_format=size_format, FigFormat=FigFormat)
