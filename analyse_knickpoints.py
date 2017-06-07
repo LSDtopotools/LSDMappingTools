@@ -162,7 +162,26 @@ def knickpoint_plots_for_basins(DataDirectory, csv_name, kp_type = "diff"):
         plt.savefig(DataDirectory+write_name+str(id)+"."+file_ext,dpi=100)
         plt.close()
 
-def knickpoint_plotter(DataDirectory, DEM_prefix, kp_type = "diff", FigFormat='pdf', processed = False):
+def select_main_basin(pd):
+    """
+    Function that takes a dataframe from the knickpoint anaysis tool and mask it on the main basin
+
+    Args:
+    pd = pandas dataframe to mask
+
+    Returns:
+    The new pandas dataframe sorted/masked
+
+    Author: Yes
+    """
+    basins_count =  pd.groupby("basin_key")["basin_key"].count()
+    maxi =basins_count[basins_count == basins_count.max()]
+    biggest_basin = maxi.index.values[0]
+    pd = pd[pd["basin_key"] == biggest_basin]
+    return pd
+
+
+def knickpoint_plotter(DataDirectory = "none", DEM_prefix ="none" , kp_type = "diff", FigFormat='pdf', processed = False, pd_name = "none"):
     """
     Function to test LSDMap_KnickpointPlotting
 
@@ -170,6 +189,8 @@ def knickpoint_plotter(DataDirectory, DEM_prefix, kp_type = "diff", FigFormat='p
         DataDirectory (str): the data directory of the chi csv file
         DEM_prefix (str): DEM name without extension
         kp_type (string): select the type of knickpoint data you want (diff vs ratio).
+        processed (bool): Switch on to directly give a pandas dataframe to plots
+        pd_name (string or pandas dataframe): Name of this theoretical pandas dataframe
 
     Returns:
         Plot of knickpoint (diff or ratio) for each basin
@@ -181,16 +202,20 @@ def knickpoint_plotter(DataDirectory, DEM_prefix, kp_type = "diff", FigFormat='p
 
     # read in the raw csv file
     if(processed):
-        print("I will directly load your pandas dataframe, or at least try")
-        kp_csv_fname = read_MChi_file(DataDirectory,DEM_prefix+'_KsnKn.csv')
-        # get the point data objects
-        PointData = PointTools.LSDMap_PointData(kp_csv_fname,data_type ="pandas")
+        if(DEM_prefix !="none" and DataDirectory != "none"):
+            print("I will directly load your pandas dataframe, or at least try")
+            kp_csv_fname = read_MChi_file(DataDirectory,DEM_prefix+'_KsnKn.csv')
+            # get the point data objects
+            PointData = PointTools.LSDMap_PointData(kp_csv_fname,data_type ="pandas", PANDEX = True)
+        else:
+            if(isinstance(pd_name, pandas.DataFrame)):
+                PointData = PointTools.LSDMap_PointData(pd_name,data_type ="pandas", PANDEX = True)
     else:
         kp_csv_fname = DataDirectory+DEM_prefix+'_KsnKn.csv'
         print("I'm reading in the csv file "+kp_csv_fname)
 
         # get the point data objects
-        PointData = PointTools.LSDMap_PointData(+kp_csv_fname, data_type ="csv")
+        PointData = PointTools.LSDMap_PointData(+kp_csv_fname, data_type ="csv", PANDEX = True)
 
     # get the basin keys
     basin = PointData.QueryData('basin_key')
@@ -208,9 +233,11 @@ if __name__ == "__main__":
 
     DataDirectory = '/home/s1675537/PhD/DataStoreBoris/GIS/Data/Carpathian/knickpoint/'
     baseName = "Buzau"
+    dfp = read_MChi_file(DataDirectory,baseName+"_KsnKn.csv")
+    dfp = select_main_basin(dfp)
     #csv_name = baseName + "_MChi.csv"
     kp_type = "diff" # every knickpoint below this will be erased
     FigFormat = 'png'
     #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_type)
     #get_data_column_from_csv(DataDirectory,csv_name,kp_type,column_name="latitude")
-    knickpoint_plotter(DataDirectory,baseName,kp_type=kp_type,FigFormat=FigFormat, processed = True)
+    knickpoint_plotter(kp_type=kp_type,FigFormat=FigFormat, processed = True, pd_name = dfp)
