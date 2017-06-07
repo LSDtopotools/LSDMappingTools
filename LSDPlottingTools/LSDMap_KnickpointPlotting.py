@@ -60,44 +60,36 @@ def plot_knickpoint_elevations(PointData, DataDirectory, basin_key=0, kp_thresho
     ax = fig.add_subplot(gs[25:100,10:95])
 
     # get the data
+
+    # Soert the dataset to the basin key
+    KPData.selectValue('basin_key', value = basin_key, operator = "==")
+
     elevation = KPData.QueryData('elevation')
-    elevation = [float(x) for x in elevation]
+
     flow_distance = KPData.QueryData('flow distance')
-    flow_distance = [float(x) for x in flow_distance]
+
     magnitude = KPData.QueryData(kp_type)
     print("For the plotting, if you want to manage the scale, " +kp_type + " max is "+ str(magnitude.max()) +" and min is " + str(magnitude.min()))
-    basin = KPData.QueryData('basin_key')
-    basin = [int(x) for x in basin]
+
     source = KPData.QueryData('source_key')
-    source = [int(x) for x in source]
 
-    # need to convert everything into arrays so we can mask different basins
-    Elevation = np.asarray(elevation)
-    FlowDistance = np.asarray(flow_distance)
-    Magnitude = np.asarray(magnitude)
-    Basin = np.asarray(basin)
-    Source = np.asarray(source)
 
-    # mask to just get the data for the basin of interest
-    m = np.ma.masked_where(Basin!=basin_key, Basin)
-    maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
-    maskFlowDistance = np.ma.masked_where(np.ma.getmask(m), FlowDistance)
-    maskMagnitude = np.ma.masked_where(np.ma.getmask(m), Magnitude)
-    maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
+
 
     #colour by source - this is the same as the script to colour channels over a raster,
     # (BasicChannelPlotGridPlotCategories) so that the colour scheme should match
     # make a color map of fixed colors
-    NUM_COLORS = len(np.unique(maskSource))
+    NUM_COLORS = len(np.unique(source))
     this_cmap = plt.cm.Set1
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
     plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
-    channel_data = [x % NUM_COLORS for x in maskSource]
+    channel_data = [x % NUM_COLORS for x in source]
 
     # normalise magnitude for plotting
-    min_size = np.min(maskMagnitude)
-    max_size = np.max(maskMagnitude)
-    normSize = [100*((x - min_size)/(max_size - min_size)) for x in maskMagnitude]
+    min_size = np.min(magnitude)
+    max_size = np.max(magnitude)
+    #normSize = [100*((x - min_size)/(max_size - min_size)) for x in magnitude]
+    normSize = 100 * (magnitude - min_size)/(max_size - min_size)
 
     # now get the channel profiles that correspond to each knickpoint source and basin
     # PointData.ThinDataFromKey('basin_key',basin_key)
@@ -110,7 +102,7 @@ def plot_knickpoint_elevations(PointData, DataDirectory, basin_key=0, kp_thresho
 
     # now plot the knickpoint elevations and flow distances
     #ax.scatter(channel_dist, channel_elev, s=0.1, c='k')
-    ax.scatter(maskFlowDistance, maskElevation, c = channel_data, cmap=this_cmap, s = normSize, lw=0.5,edgecolors='k',zorder=100)
+    ax.scatter(flow_distance, elevation, c = channel_data, cmap=this_cmap, s = normSize, lw=0.5,edgecolors='k',zorder=100)
     ax.set_xlabel('Flow distance (m)')
     ax.set_ylabel('Elevation (m)')
 
