@@ -578,6 +578,58 @@ class LSDMap_PointData(object):
 
         #print("The updated data is:")
         #print(self.PointData[data_name])
+##==============================================================================
+##==============================================================================
+## Data manipulation
+##==============================================================================
+##==============================================================================
+    def selectValue(self,data_name,value = 0, operator = "=="):
+        """
+        This function masks the dataset to one or several specific value for a column. Only work for PANDEX mode.
+
+        Args:
+            data_name (str): The name of the data member to select
+            value([int]): list of values to select or unselect
+            operator (str): "==", ">", "<" or "!="
+
+
+        Returns:
+            nothing, just change the PointData forever
+
+        Author: BG
+
+        """
+
+
+        print("I am selecting your data for specific " +data_name)
+
+        # Get the data for thinning
+        if data_name not in self.VariableList:
+            print("The data " + data_name + " is not one of the data elements in this point data")
+        else:
+            if(self.PANDEX == False):
+                print("You need to be in PANDEX mode to sort this data as I am trying to get everyone use it, sorry not sorry. To do so, add PANDEX = True when loading the data.")
+        if(self.PANDEX):
+            if(operator == "=="):
+                if(isinstance(value,list) == False):
+                    value = [value]
+                self.PointData = self.PointData[self.PointData[data_name].isin(value)]
+            else:
+                if(operator ==">" and isinstance(value,list)==False):
+                    self.PointData = self.PointData[self.PointData[data_name]>value]
+                else:
+                    if(operator =="<" and isinstance(value,list)==False):
+                        self.PointData = self.PointData[self.PointData[data_name]<value]
+                    else:
+                        if(operator == "!="):
+                            if(isinstance(value,list) == False):
+                                value = [value]
+                            self.PointData = self.PointData[~self.PointData[data_name].isin(value)]
+                        else:
+                            print("Something wrong happened, are you trying to select your data using < or > with a list rather than a single value??? in this case I cannot do it yet I am so sorry.")
+            self.Longitude = self.PointData["longitude"]
+            self.Latitude = self.PointData["latitude"]
+
 
     def ThinDataFromKey(self,data_name,data_key):
         """This function takes a key for a value and retains the members in data name corresponding to that selection.
