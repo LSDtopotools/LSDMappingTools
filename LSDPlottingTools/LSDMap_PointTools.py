@@ -105,133 +105,163 @@ class LSDMap_PointData(object):
 
             self.FilePrefix = file_prefix
             print("The object file prefix is: " + self.FilePrefix)
+
         self.PANDEX = PANDEX
+
+        ######################### THIS PART OF THE CODE IS ONLY USING PANDAS #########################
         if(self.PANDEX == True):
             print("Warning, you are using an experimental version of LSDMT that is implementing Pandas dataframe to improve the performance. It is still unstable, switch PANDEX to False in your PointData parameters to use the regular way")
-        #See if the parameter files exist
-        native_way = False # Switch to TRUE if pandasif creating bugs
-        if (data_type == "pandas"):
-            FileNameCheck = "ok"
-        else:
-            FileNameCheck = FileName
-        if (os.access(FileNameCheck,os.F_OK) or FileNameCheck == "ok"):
-            if(native_way):
-                this_file = open(FileName, 'r')
-                lines = this_file.readlines()
-
-                # get rid of the control characters
-                this_line = LSDOst.RemoveEscapeCharacters(lines[0])
-
-                # Now get a list with the names of the parameters
-                self.VariableList = []
-
-                TestList = this_line.split(',')
-
-                for name in TestList:
-                    this_name = LSDOst.RemoveEscapeCharacters(name)
-                    self.VariableList.append(this_name.lower())
-
-
-                print("Variable list is: ")
-                print(self.VariableList)
-
-                # get rid of the names
-                del lines[0]
-
-                # now you need to make a dict that contains a list for each varaible name
-                DataDict = {}
-                TypeList = []
-                for name in self.VariableList:
-                    DataDict[name] = []
-
-                # now get the data into the dict
-                #firstline = True
-                for line in lines:
-                    this_line = LSDOst.RemoveEscapeCharacters(line)
-                    split_line = this_line.split(',')
-
-                    for index,name in enumerate(self.VariableList):
-                        this_var = LSDOst.RemoveEscapeCharacters(split_line[index])
-                        #this_variable = LSDOst.ParseStringToType(this_var)
-                        DataDict[name].append(this_var)
-
-                # now go back and get the correct type
-                DataDictTyped = {}
-                for name in self.VariableList:
-                    this_list = DataDict[name]
-                    typed_list = LSDOst.ParseListToType(this_list)
-                    DataDictTyped[name] = typed_list
-
-                    TypeList.append(type(typed_list[0]))
-
-                self.PointData = DataDictTyped
-                self.DataTypes = TypeList
-                print(self.PointData)
-                print(self.DataTypes)
+            print("Loading your file from " + data_type)
+            if(data_type == "csv"):
+                data = pandas.read_csv(FileName, sep=",")
             else:
-                print("I am loading data using pandas, I haven't been widely tested yet, you can switch to the old way if you have troubles by looking for native_way in LSDMap_PointData")
-                #Loading the file
-                print("Loading")
-                if(data_type == "csv"):
-                    data = pandas.read_csv(FileName, sep=",")
-                else:
-                    if(data_type == "pandas"):
-                        data = FileName
-                print("Loaded")
-                #Extracting the headers
-                self.VariableList = list(data.columns.values)
-                #Correcting the names
-                for names in self.VariableList:
-                    names =  LSDOst.RemoveEscapeCharacters(names).lower()
-
-                print("Your Variable list is : ")
+                if(data_type == "pandas"):
+                    data = FileName
+            #Extracting the headers
+            self.VariableList = list(data.columns.values)
+            self.PointData = data
+            self.DataTypes = data.dtypes
+            # now make sure the data has latitude and longitude entries
+            if "latitude" not in self.VariableList:
+                print("Something has gone wrong, latitude is not in the variable list")
+                print("Here is the variable list: ")
                 print(self.VariableList)
-                #ingesting data values
-                dataPoints = np.array(data.values)
-                DataDict = {}
-                #Feeding the dictionnary[header][table of values]
-                print("I am ingesting the data")
-                for i in range(len(self.VariableList)):
-                    DataDict[self.VariableList[i]] = dataPoints[:,i]
-                #dealing with the types
-                DataDictTyped = {}
-                TypeList = []
-                for name in self.VariableList:
-                    this_list = DataDict[name]
-                    typed_list = LSDOst.ParseListToType(this_list)
-                    DataDictTyped[name] = typed_list
+            else:
+               self.Latitude = self.PointData["latitude"].values
+            if "longitude" not in self.VariableList:
+                print("Something has gone wrong, longitude is not in the variable list")
+                print("Here is the variable list: ")
+                print(self.VariableList)
+            else:
+               self.Longitude = self.PointData["longitude"].values
+            print("done")
 
-                    TypeList.append(type(typed_list[0]))
-
-                self.PointData = DataDict
-                self.DataTypes = TypeList
-                #print(self.PointData)
-                print("The points data are successfully loaded")
-                print("DEBUG, pointdata:")
-                print(self.PointData)
-                print("DEBUG, DataTypes:")
-                print(self.DataTypes)
-
-
+        ######################## THIS THE END OF THE PANDEX TEST #######################################
         else:
-            print("Uh oh I could not open that file")
-            self.VariableList = []
-            self.DataTypes = []
-            self.PointData = {}
+            #See if the parameter files exist
+            native_way = False # Switch to TRUE if pandasif creating bugs
+            if (data_type == "pandas"):
+                FileNameCheck = "ok"
+            else:
+                FileNameCheck = FileName
+            if (os.access(FileNameCheck,os.F_OK) or FileNameCheck == "ok"):
+                if(native_way):
+                    this_file = open(FileName, 'r')
+                    lines = this_file.readlines()
 
-        # now make sure the data has latitude and longitude entries
-        if "latitude" not in self.VariableList:
-            print("Something has gone wrong, latitude is not in the variable list")
-            print("Here is the variable list: ")
-            print(self.VariableList)
-        else:
-           self.Latitude = self.PointData["latitude"]
-        if "longitude" not in self.VariableList:
-            print("Something has gone wrong, longitude is not in the variable list")
-            print("Here is the variable list: ")
-            print(self.VariableList)
-        else:
-           self.Longitude = self.PointData["longitude"]
+                    # get rid of the control characters
+                    this_line = LSDOst.RemoveEscapeCharacters(lines[0])
+
+                    # Now get a list with the names of the parameters
+                    self.VariableList = []
+
+                    TestList = this_line.split(',')
+
+                    for name in TestList:
+                        this_name = LSDOst.RemoveEscapeCharacters(name)
+                        self.VariableList.append(this_name.lower())
+
+
+                    print("Variable list is: ")
+                    print(self.VariableList)
+
+                    # get rid of the names
+                    del lines[0]
+
+                    # now you need to make a dict that contains a list for each varaible name
+                    DataDict = {}
+                    TypeList = []
+                    for name in self.VariableList:
+                        DataDict[name] = []
+
+                    # now get the data into the dict
+                    #firstline = True
+                    for line in lines:
+                        this_line = LSDOst.RemoveEscapeCharacters(line)
+                        split_line = this_line.split(',')
+
+                        for index,name in enumerate(self.VariableList):
+                            this_var = LSDOst.RemoveEscapeCharacters(split_line[index])
+                            #this_variable = LSDOst.ParseStringToType(this_var)
+                            DataDict[name].append(this_var)
+
+                    # now go back and get the correct type
+                    DataDictTyped = {}
+                    for name in self.VariableList:
+                        this_list = DataDict[name]
+                        typed_list = LSDOst.ParseListToType(this_list)
+                        DataDictTyped[name] = typed_list
+
+                        TypeList.append(type(typed_list[0]))
+
+                    self.PointData = DataDictTyped
+                    self.DataTypes = TypeList
+                    print(self.PointData)
+                    print(self.DataTypes)
+                else:
+                    print("I am loading data using pandas, I haven't been widely tested yet, you can switch to the old way if you have troubles by looking for native_way in LSDMap_PointData")
+                    #Loading the file
+                    print("Loading")
+                    if(data_type == "csv"):
+                        data = pandas.read_csv(FileName, sep=",")
+                    else:
+                        if(data_type == "pandas"):
+                            data = FileName
+                    print("Loaded")
+                    #Extracting the headers
+                    self.VariableList = list(data.columns.values)
+                    #Correcting the names
+                    for names in self.VariableList:
+                        names =  LSDOst.RemoveEscapeCharacters(names).lower()
+
+                    print("Your Variable list is : ")
+                    print(self.VariableList)
+                    #ingesting data values
+                    dataPoints = np.array(data.values)
+                    DataDict = {}
+                    #Feeding the dictionnary[header][table of values]
+                    print("I am ingesting the data")
+                    for i in range(len(self.VariableList)):
+                        DataDict[self.VariableList[i]] = dataPoints[:,i]
+                    #dealing with the types
+                    DataDictTyped = {}
+                    TypeList = []
+                    for name in self.VariableList:
+                        this_list = DataDict[name]
+                        typed_list = LSDOst.ParseListToType(this_list)
+                        DataDictTyped[name] = typed_list
+
+                        TypeList.append(type(typed_list[0]))
+
+                    self.PointData = DataDict
+                    self.DataTypes = TypeList
+                    #print(self.PointData)
+                    print("The points data are successfully loaded")
+                    print("DEBUG, pointdata:")
+                    print(self.PointData)
+                    print("DEBUG, DataTypes:")
+                    print(self.DataTypes)
+
+
+            else:
+                print("Uh oh I could not open that file")
+                self.VariableList = []
+                self.DataTypes = []
+                self.PointData = {}
+
+            # now make sure the data has latitude and longitude entries
+            if "latitude" not in self.VariableList:
+                print("Something has gone wrong, latitude is not in the variable list")
+                print("Here is the variable list: ")
+                print(self.VariableList)
+            else:
+               self.Latitude = self.PointData["latitude"]
+            if "longitude" not in self.VariableList:
+                print("Something has gone wrong, longitude is not in the variable list")
+                print("Here is the variable list: ")
+                print(self.VariableList)
+            else:
+               self.Longitude = self.PointData["longitude"]
 
 
 ##==============================================================================
@@ -294,6 +324,7 @@ class LSDMap_PointData(object):
             print(self.Latitude)
 
         return self.Latitude
+
 
     # Get data elements
     def GetLongitude(self,PrintToScreen = False):
@@ -364,12 +395,14 @@ class LSDMap_PointData(object):
 
         easting =[]
         northing = []
-
-        for idx, Lon in enumerate(self.Longitude):
-            Lat = self.Latitude[idx]
-            ea,no = transform(inProj,outProj,Lon,Lat)
-            easting.append(ea)
-            northing.append(no)
+        if(PANDEX == True):
+            easting,northing = transform(inProj,outProj,self.Longitude,self.Latitude)
+        else:
+            for idx, Lon in enumerate(self.Longitude):
+                Lat = self.Latitude[idx]
+                ea,no = transform(inProj,outProj,Lon,Lat)
+                easting.append(ea)
+                northing.append(no)
 
         return easting,northing
 
@@ -436,36 +469,42 @@ class LSDMap_PointData(object):
         if data_name not in self.VariableList:
             print("The data " + data_name + " is not one of the data elements in this point data")
         else:
-            this_data = self.PointData[data_name]
+            if(self.PANDEX == False):
+                this_data = self.PointData[data_name]
 
-        this_data = [float(x) for x in this_data]
-
-
-        # Start a new data dict
-        NewDataDict = {}
-        NewLat = []
-        NewLon = []
-        for name in self.VariableList:
-            NewDataDict[name] = []
+        if(self.PANDEX):
+            self.PointData = self.PointData[self.PointData[data_name]<Threshold_value]
+            self.Longitude = self.PointData["longitude"]
+            self.Latitude = self.PointData["latitude"]
+        else:
+            this_data = [float(x) for x in this_data]
 
 
-        # Get all the data to be delelted
-        delete_indices = []
-        for index, data in enumerate(this_data):
-            if data<Threshold_value:
-                delete_indices.append(index)
-            else:
-                NewLat.append(self.Latitude[index])
-                NewLon.append(self.Longitude[index])
-                for name in self.VariableList:
-                    this_element = self.PointData[name][index]
-                    NewDataDict[name].append(this_element)
+            # Start a new data dict
+            NewDataDict = {}
+            NewLat = []
+            NewLon = []
+            for name in self.VariableList:
+                NewDataDict[name] = []
 
 
-        # Now reset the data dict
-        self.PointData = NewDataDict
-        self.Latitude = NewLat
-        self.Longitude = NewLon
+            # Get all the data to be delelted
+            delete_indices = []
+            for index, data in enumerate(this_data):
+                if data<Threshold_value:
+                    delete_indices.append(index)
+                else:
+                    NewLat.append(self.Latitude[index])
+                    NewLon.append(self.Longitude[index])
+                    for name in self.VariableList:
+                        this_element = self.PointData[name][index]
+                        NewDataDict[name].append(this_element)
+
+
+            # Now reset the data dict
+            self.PointData = NewDataDict
+            self.Latitude = NewLat
+            self.Longitude = NewLon
 
 
 ##==============================================================================
@@ -494,50 +533,56 @@ class LSDMap_PointData(object):
         if data_name not in self.VariableList:
             print("The data " + data_name + " is not one of the data elements in this point data")
         else:
-            this_data = self.PointData[data_name]
-
-        this_data = [int(x) for x in this_data]
-        #print("The original data I need to thin is: ")
-        #print(this_data)
-
-
-        # Start a new data dict
-        NewDataDict = {}
-        NewLat = []
-        NewLon = []
-        for name in self.VariableList:
-            NewDataDict[name] = []
+            if(self.PANDEX == False):
+                this_data = self.PointData[data_name]
+        if(self.PANDEX):
+            self.PointData = self.PointData[self.PointData[data_name].isin(data_for_selection_list)]
+            self.Longitude = self.PointData["longitude"]
+            self.Latitude = self.PointData["latitude"]
+        else:
+            this_data = [int(x) for x in this_data]
+            #print("The original data I need to thin is: ")
+            #print(this_data)
 
 
-        # Get all the data to be deleted
-        print("The data I am keeping is: ")
-        print(data_for_selection_list)
-        delete_indices = []
-        for index, data in enumerate(this_data):
-            #print("Data: "+str(data))
-            if data not in data_for_selection_list:
-                #print("I'm not keeping it")
-                delete_indices.append(index)
-            else:
-                #print("I'll have that one. ")
-                NewLat.append(self.Latitude[index])
-                NewLon.append(self.Longitude[index])
-                for name in self.VariableList:
-                    this_element = self.PointData[name][index]
-                    NewDataDict[name].append(this_element)
+            # Start a new data dict
+            NewDataDict = {}
+            NewLat = []
+            NewLon = []
+            for name in self.VariableList:
+                NewDataDict[name] = []
 
 
-        # Now reset the data dict
-        self.PointData = NewDataDict
-        self.Latitude = NewLat
-        self.Longitude = NewLon
+            # Get all the data to be deleted
+            print("The data I am keeping is: ")
+            print(data_for_selection_list)
+            delete_indices = []
+            for index, data in enumerate(this_data):
+                #print("Data: "+str(data))
+                if data not in data_for_selection_list:
+                    #print("I'm not keeping it")
+                    delete_indices.append(index)
+                else:
+                    #print("I'll have that one. ")
+                    NewLat.append(self.Latitude[index])
+                    NewLon.append(self.Longitude[index])
+                    for name in self.VariableList:
+                        this_element = self.PointData[name][index]
+                        NewDataDict[name].append(this_element)
+
+
+            # Now reset the data dict
+            self.PointData = NewDataDict
+            self.Latitude = NewLat
+            self.Longitude = NewLon
 
         #print("The updated data is:")
         #print(self.PointData[data_name])
 
     def ThinDataFromKey(self,data_name,data_key):
         """This function takes a key for a value and retains the members in data name corresponding to that selection.
-        Similar to ThinDataSelection but just takes one key rather than a list
+        Similar to ThinDataSelection but just takes one key rather than a list.
+        Not compatible with PANDEX
 
         Args:
             data_name (str): The name of the data member to select
