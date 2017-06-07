@@ -372,7 +372,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
                     color='black', fontsize=10)
 
             # add the colorbar
-            colorbarlabel = "MLE"
+            colorbarlabel = "$MLE$"
             cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             cbar.set_label(colorbarlabel, fontsize=10)
             ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
