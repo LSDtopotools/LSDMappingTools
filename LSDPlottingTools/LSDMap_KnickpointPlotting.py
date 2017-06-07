@@ -11,7 +11,7 @@ from matplotlib import rcParams
 from matplotlib import colors
 import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
 
-def plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key=0, kp_threshold=0,
+def plot_knickpoint_elevations(PointData, DataDirectory, basin_key=0, kp_threshold=0,
                                FigFileName='Image.pdf', FigFormat='pdf', size_format='ESURF', kp_type = "diff"):
     """
     Function to create a plot of knickpoint elevation vs flow distance for each

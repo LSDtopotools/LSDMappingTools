@@ -180,8 +180,27 @@ def select_main_basin(pd):
     pd = pd[pd["basin_key"] == biggest_basin]
     return pd
 
+def load_Point_Tool(thing):
+    """
+    Returns a PointTools object from a csv_file or a pandas dataframe (automatically detects the type)
 
-def knickpoint_plotter(DataDirectory = "none", DEM_prefix ="none" , kp_type = "diff", FigFormat='pdf', processed = False, pd_name = "none"):
+    Author:
+        PointTools object
+    """
+    if(isinstance(thing, pandas.DataFrame)):
+        PointData = PointTools.LSDMap_PointData(thing,data_type ="pandas", PANDEX = True)
+    else:
+        if(isinstance(thing, str)):
+            if(thing[-3:] == "csv"):
+                tdf = read_MChi_file(thing)
+                PointData = PointTools.LSDMap_PointData(tdf,data_type ="pandas", PANDEX = True)
+            else:
+                print("Hum, your file does not exists or your pandas is not a pandas (then what is it???), anyway I am aborting")
+                quit()
+    return PointData
+
+
+def knickpoint_plotter_by_basin(name ,DataDirectory, save_name = "kn_by_Basins", kp_type = "diff", FigFormat='pdf', processed = False):
     """
     Function to test LSDMap_KnickpointPlotting
 
@@ -201,21 +220,7 @@ def knickpoint_plotter(DataDirectory = "none", DEM_prefix ="none" , kp_type = "d
     from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
 
     # read in the raw csv file
-    if(processed):
-        if(DEM_prefix !="none" and DataDirectory != "none"):
-            print("I will directly load your pandas dataframe, or at least try")
-            kp_csv_fname = read_MChi_file(DataDirectory,DEM_prefix+'_KsnKn.csv')
-            # get the point data objects
-            PointData = PointTools.LSDMap_PointData(kp_csv_fname,data_type ="pandas", PANDEX = True)
-        else:
-            if(isinstance(pd_name, pandas.DataFrame)):
-                PointData = PointTools.LSDMap_PointData(pd_name,data_type ="pandas", PANDEX = True)
-    else:
-        kp_csv_fname = DataDirectory+DEM_prefix+'_KsnKn.csv'
-        print("I'm reading in the csv file "+kp_csv_fname)
-
-        # get the point data objects
-        PointData = PointTools.LSDMap_PointData(+kp_csv_fname, data_type ="csv", PANDEX = True)
+    PointData = load_Point_Tool(name)
 
     # get the basin keys
     basin = PointData.QueryData('basin_key')
@@ -226,8 +231,8 @@ def knickpoint_plotter(DataDirectory = "none", DEM_prefix ="none" , kp_type = "d
 
     # loop through each basin and make the figure
     for basin_key in basin_keys:
-        FileName = DEM_prefix+"_KP_elevations_%s.%s" %(str(basin_key),FigFormat)
-        KP.plot_knickpoint_elevations(PointData, DataDirectory, DEM_prefix, basin_key, kp_type, FileName, FigFormat)
+        FileName = save_name+"_KP_elevations_%s.%s" %(str(basin_key),FigFormat)
+        KP.plot_knickpoint_elevations(PointData, DataDirectory, basin_key, kp_type, FileName, FigFormat)
 
 if __name__ == "__main__":
 
@@ -240,4 +245,4 @@ if __name__ == "__main__":
     FigFormat = 'png'
     #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_type)
     #get_data_column_from_csv(DataDirectory,csv_name,kp_type,column_name="latitude")
-    knickpoint_plotter(kp_type=kp_type,FigFormat=FigFormat, processed = True, pd_name = dfp)
+    knickpoint_plotter_by_basin(dfp, DataDirectory,kp_type=kp_type,FigFormat=FigFormat)
