@@ -65,7 +65,7 @@ def plot_knickpoint_elevations(PointData, DataDirectory, basin_key=0, kp_thresho
     flow_distance = KPData.QueryData('flow distance')
     flow_distance = [float(x) for x in flow_distance]
     magnitude = KPData.QueryData(kp_type)
-    magnitude = [float(x) for x in magnitude]
+    print("For the plotting, if you want to manage the scale, " +kp_type + " max is "+ str(magnitude.max()) +" and min is " + str(magnitude.min()))
     basin = KPData.QueryData('basin_key')
     basin = [int(x) for x in basin]
     source = KPData.QueryData('source_key')
