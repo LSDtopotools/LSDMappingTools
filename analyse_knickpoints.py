@@ -180,12 +180,17 @@ def knickpoint_plotter(DataDirectory, DEM_prefix, kp_type = "diff", FigFormat='p
     from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
 
     # read in the raw csv file
-    if(processed == False):
+    if(processed):
+        print("I will directly load your pandas dataframe, or at least try")
+        kp_csv_fname = read_MChi_file(DataDirectory,DEM_prefix+'_KsnKn.csv')
+        # get the point data objects
+        PointData = PointTools.LSDMap_PointData(kp_csv_fname,data_type ="pandas")
+    else:
         kp_csv_fname = DataDirectory+DEM_prefix+'_KsnKn.csv'
         print("I'm reading in the csv file "+kp_csv_fname)
 
         # get the point data objects
-        PointData = PointTools.LSDMap_PointData(kp_csv_fname)
+        PointData = PointTools.LSDMap_PointData(+kp_csv_fname, data_type ="csv")
 
     # get the basin keys
     basin = PointData.QueryData('basin_key')
@@ -208,4 +213,4 @@ if __name__ == "__main__":
     FigFormat = 'png'
     #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_type)
     #get_data_column_from_csv(DataDirectory,csv_name,kp_type,column_name="latitude")
-    knickpoint_plotter(DataDirectory,baseName,kp_type=kp_type,FigFormat=FigFormat)
+    knickpoint_plotter(DataDirectory,baseName,kp_type=kp_type,FigFormat=FigFormat, processed = True)

@@ -108,7 +108,11 @@ class LSDMap_PointData(object):
 
         #See if the parameter files exist
         native_way = False # Switch to TRUE if pandasif creating bugs
-        if os.access(FileName,os.F_OK):
+        if (data_type == "pandas"):
+            FileNameCheck = "ok"
+        else:
+            FileNameCheck = FileName
+        if (os.access(FileNameCheck,os.F_OK) or FileNameCheck == "ok"):
             if(native_way):
                 this_file = open(FileName, 'r')
                 lines = this_file.readlines()
