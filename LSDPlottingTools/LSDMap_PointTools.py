@@ -395,7 +395,7 @@ class LSDMap_PointData(object):
 
         easting =[]
         northing = []
-        if(PANDEX == True):
+        if(self.PANDEX == True):
             easting,northing = transform(inProj,outProj,self.Longitude,self.Latitude)
         else:
             for idx, Lon in enumerate(self.Longitude):
