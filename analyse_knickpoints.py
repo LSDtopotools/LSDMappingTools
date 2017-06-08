@@ -51,6 +51,7 @@ import matplotlib
 import pandas
 from LSDPlottingTools import LSDMap_PointTools as PointTools
 from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
+from LSDPlottingTools import statsutilities as lst
 
 def read_MChi_file(DataDirectory, csv_name):
     """
@@ -301,14 +302,14 @@ if __name__ == "__main__":
     dfp = select_main_basin(dfp)
     flat_values = sort_ratio_0_data(dfp, mode = "extract")
     dfp = sort_ratio_0_data(dfp, mode = "delete")
-    outliers = return_outlier(dfp)
-    #dfp = dfp[dfp["diff"].abs()< 35 *dfp["diff"].sem() ]
-    #dfp = dfp[dfp["ratio"].abs()< 10 *dfp["ratio"].sem() ]
+    dfp = lst.add_outlier_column_to_PD(dfp, column = ["diff","ratio"], threshold = [4,4])
+    dfpo = dfp[dfp["diff_outlier"]]
+    dfpo = dfpo[dfpo["ratio_outlier"]]
 
     PT = load_Point_Tool(dfp) # If you need actual pointdata
     PTflat = load_Point_Tool(flat_values)
     PTriver = load_Point_Tool(river_net)
-    PTO = load_Point_Tool(outliers)
+    PTO = load_Point_Tool(dfpo)
     #KP.plot_diff_ratio(PTO, DataDirectory, saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
     KP.plot_outliers_vs_others(PT,PTO,DataDirectory,saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
     #KP.map_custom()
