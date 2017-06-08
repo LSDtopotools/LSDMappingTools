@@ -125,6 +125,41 @@ def plot_knickpoint_elevations(DataDirectory, csv_name, kp_type = "diff"):
     plt.savefig(DataDirectory+write_name+"."+file_ext,dpi=300)
     plt.clf()
 
+def return_outlier(df,data = "diff", thresh=3.5):
+    """
+    Returns a boolean array with True if points are outliers and False
+    otherwise.
+
+    Parameters:
+    -----------
+        points : An numobservations by numdimensions array of observations
+        thresh : The modified z-score to use as a threshold. Observations with
+            a modified z-score (based on the median absolute deviation) greater
+            than this value will be classified as outliers.
+
+    Returns:
+    --------
+        mask : A numobservations-length boolean array.
+
+    References:
+    ----------
+        Boris Iglewicz and David Hoaglin (1993), "Volume 16: How to Detect and
+        Handle Outliers", The ASQC Basic References in Quality Control:
+        Statistical Techniques, Edward F. Mykytka, Ph.D., Editor.
+    """
+    points = df[data]
+    if len(points.shape) == 1:
+        points = points[:,None]
+    median = np.median(points, axis=0)
+    diff = np.sum((points - median)**2, axis=-1)
+    diff = np.sqrt(diff)
+    med_abs_deviation = np.median(diff)
+
+    modified_z_score = 0.6745 * diff / med_abs_deviation
+    msk =  modified_z_score > thresh
+    df = df[msk]
+    return df
+
 def knickpoint_plots_for_basins(DataDirectory, csv_name, kp_type = "diff"):
     """
     This function creates subplots of knickpoint characteristics for each individual
@@ -266,17 +301,20 @@ if __name__ == "__main__":
     dfp = select_main_basin(dfp)
     flat_values = sort_ratio_0_data(dfp, mode = "extract")
     dfp = sort_ratio_0_data(dfp, mode = "delete")
+    outliers = return_outlier(dfp)
     #dfp = dfp[dfp["diff"].abs()< 35 *dfp["diff"].sem() ]
     #dfp = dfp[dfp["ratio"].abs()< 10 *dfp["ratio"].sem() ]
 
     PT = load_Point_Tool(dfp) # If you need actual pointdata
     PTflat = load_Point_Tool(flat_values)
     PTriver = load_Point_Tool(river_net)
-    KP.plot_diff_ratio(PT, DataDirectory, saveName = "Basic_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
+    PTO = load_Point_Tool(outliers)
+    #KP.plot_diff_ratio(PTO, DataDirectory, saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
+    KP.plot_outliers_vs_others(PT,PTO,DataDirectory,saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
     #KP.map_custom()
     #KP.map_knickpoint_sign(PT, DataDirectory, baseName, Time_in_name = False, river_network = PTriver)
     #KP.map_knickpoint_sign(PTflat, DataDirectory, baseName, Time_in_name = False, river_network = PTriver, saveName = "flat_", size = 0.1)
-    KP.map_knickpoint_diff_sized_colored_ratio(PT, DataDirectory, baseName, river_network = PTriver, log = True)
+    KP.map_knickpoint_diff_sized_colored_ratio(PTO, DataDirectory, baseName, river_network = PTriver, log = False, saveName = "OUTLIERS_map")
     kp_type = "diff" # every knickpoint below this will be erased
     FigFormat = 'png'
     #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_type)

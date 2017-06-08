@@ -176,6 +176,60 @@ def plot_diff_ratio(PointData, DataDirectory, saveName = "Basic_diff_ratio", sav
 
     plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
 
+def plot_outliers_vs_others(PointData,PointDataOut, DataDirectory, saveName = "Basic_diff_ratio", save_fmt = ".png", size_format = "ESURF", log_data = False):
+    """
+    Basic plot to have a general view of the knickpoints: diff against ratio colored by elevation
+
+    Args:
+        PointData: A PointData object
+        DataDirectory: Where the data is saved
+        saveName: save name
+
+    returns:
+        Nothing, sorry.
+    Author: BG
+    """
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+
+    diff = PointData.QueryData("diff")
+    ratio = PointData.QueryData("ratio")
+    diffout = PointDataOut.QueryData("diff")
+    ratioout = PointDataOut.QueryData("ratio")
+
+
+    if(log_data):
+        print("I am logging the data")
+        diff = np.log10(diff)
+        ratio = np.log10(ratio)
+        diffout = np.log10(diffout)
+
+        ratioout = np.log10(ratioout)
+
+    elevation =PointDataOut.QueryData("elevation")
+    ax.scatter(diff,ratio, s=0.5, lw = 0, c = 'gray')
+    ax.scatter(diffout,ratioout, s = 0.5,c = elevation,lw = 0)
+    ax.set_xlabel("Diff")
+    ax.set_ylabel("Ratio")
+
+    plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
+
 
 
 
@@ -385,7 +439,7 @@ def map_knickpoint_diff_sized_colored_ratio(PointData, DataDirectory, Raster_bas
                        scale_points = True, # All the point will have the same size if False
                        column_for_scaling = "diff", # If scale point True, you can scale the size of your points using one of the columns
                        scaled_data_in_log = log, # If scale point True, you can log the scaling
-                       max_point_size = 5, # max size if scale point True again
+                       max_point_size = 10, # max size if scale point True again
                        min_point_size = 0.5, # You should be able to guess that one now
                        coulor_log = log, # do you want a log scale for your colorbar ?
                        coulor_manual_scale = [], #Do you want to manually limit the scale of your colorbar? if not let is false
