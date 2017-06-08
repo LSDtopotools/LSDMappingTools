@@ -80,6 +80,17 @@ def add_outlier_column_to_PD(df, column = "none", threshold = "none"):
 
     return df
 
+    def binning_PD(df, column = "", values = []):
+        """
+        takes a dataframe (Pandas) and return a list of dataframes binned by one columns.
+        Args:
+            df: The pandas dataframe
+            column (str): name of the column that hold the data
+            values (list): list of the upper values of each benning, another binning category will incorporate everything superior to the last value
+        return:
+            dictionnary of pandas dataframe, the key being the upper value
+        """
+        print("I'll do it tomorrow")
 
 
 
