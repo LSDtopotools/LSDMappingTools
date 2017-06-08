@@ -181,6 +181,29 @@ def select_main_basin(pd):
     pd = pd[pd["basin_key"] == biggest_basin]
     return pd
 
+def sort_ratio_0_data(pd, mode = "extract"):
+    """
+    Function that separate from the dataset the data where the ratio = -9999 meaning that it included a /0 (aka a very flat area).
+
+    Args:
+    pd = pandas dataframe to mask
+    mode (str): "extract" for returning a new DF with these values (default)
+                "delete" for returning a dataframe without these values
+    Returns:
+        The new pandas dataframe selected
+
+    Author: BG
+    """
+    if(mode =="extract"):
+        pd = pd[pd["ratio"] == -9999]
+    else:
+        if(mode == "delete"):
+            pd = pd[pd["ratio"] != -9999]
+        else:
+            print("Invalid mode argument for the sort_ratio_0_data function, please put mode = extract or delete")
+            quit()
+    return pd
+
 def load_Point_Tool(thing):
     """
     Returns a PointTools object from a csv_file or a pandas dataframe (automatically detects the type)
@@ -239,15 +262,21 @@ if __name__ == "__main__":
     DataDirectory = '/home/s1675537/PhD/DataStoreBoris/GIS/Data/Carpathian/knickpoint/'
     baseName = "Buzau"
     dfp = read_MChi_file(DataDirectory,baseName+"_KsnKn.csv")
+    river_net = read_MChi_file(DataDirectory,baseName+"_MChiSegmented.csv")
     dfp = select_main_basin(dfp)
-
+    flat_values = sort_ratio_0_data(dfp, mode = "extract")
+    dfp = sort_ratio_0_data(dfp, mode = "delete")
     #dfp = dfp[dfp["diff"].abs()< 35 *dfp["diff"].sem() ]
     #dfp = dfp[dfp["ratio"].abs()< 10 *dfp["ratio"].sem() ]
 
     PT = load_Point_Tool(dfp) # If you need actual pointdata
-    KP.plot_diff_ratio(PT, DataDirectory, saveName = "Basic_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True)
+    PTflat = load_Point_Tool(flat_values)
+    PTriver = load_Point_Tool(river_net)
+    KP.plot_diff_ratio(PT, DataDirectory, saveName = "Basic_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
     #KP.map_custom()
-    KP.map_knickpoint_sign(PT, DataDirectory, baseName, Time_in_name = True)
+    #KP.map_knickpoint_sign(PT, DataDirectory, baseName, Time_in_name = False, river_network = PTriver)
+    #KP.map_knickpoint_sign(PTflat, DataDirectory, baseName, Time_in_name = False, river_network = PTriver, saveName = "flat_", size = 0.1)
+    KP.map_knickpoint_diff_sized_colored_ratio(PT, DataDirectory, baseName, river_network = PTriver, log = True)
     kp_type = "diff" # every knickpoint below this will be erased
     FigFormat = 'png'
     #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_type)
