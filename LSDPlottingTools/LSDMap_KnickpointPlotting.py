@@ -237,12 +237,16 @@ def map_custom():
 
 def map_knickpoint_sign(PointData, DataDirectory, Raster_base_name, HS_name = "none",Time_in_name = False):
     """
-    Testing function to plot custom maps before creating real function for mapping routines
+    Will create a map of the knickpoint simply colored by sign.
 
     Args:
-        Yes.
+        PointData (PointTools object)
+        DataDirectory (str): directory where the data will be saved and loaded.
+        Raster_base_name (str): Base name of your files without the .bil
+        HS_name (str): name of your Hillshade file, by default baseName + _hs.bil like LSDTT create it
+        Time_in_name (bool): Option to add timing info in the nae of the figure. Can be useful if you test loads of parameters and you want to be sure that your files names are different (but awful).
     returns:
-        No.
+        No, but creates a map named map_knickpoint_sign.png
     Author:
         BG
     """
