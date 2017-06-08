@@ -80,17 +80,37 @@ def add_outlier_column_to_PD(df, column = "none", threshold = "none"):
 
     return df
 
-    def binning_PD(df, column = "", values = []):
-        """
-        takes a dataframe (Pandas) and return a list of dataframes binned by one columns.
-        Args:
-            df: The pandas dataframe
-            column (str): name of the column that hold the data
-            values (list): list of the upper values of each benning, another binning category will incorporate everything superior to the last value
-        return:
-            dictionnary of pandas dataframe, the key being the upper value
-        """
-        print("I'll do it tomorrow")
+def binning_PD(df, column = "", values = [], log = False):
+    """
+    takes a dataframe (Pandas) and return a list of dataframes binned by one columns.
+    Args:
+        df: The pandas dataframe
+        column (str): name of the column that hold the data
+        values (list): list of the upper values of each binning, another binning category will incorporate everything superior to the last value
+        log (bool): if you want to compare values to log of column
+    return:
+        dictionnary of pandas dataframe, the key being the upper value
+    """
+    if(column == ""):
+        print("You need to give a valid column name")
+    if(len(values) < 2):
+        print("You need at least two values to bin the dataframe")
+
+    if(log):
+        return_DF = [df[np.log10(df[column])<values[0]]]
+        for i in range(1,len(values)):
+            tempdf = df[np.log10(df[column])<values[i]]
+            return_DF.append(tempdf)
+        return_DF.append(df[np.log10(df[column])>=values[-1]])
+    else:
+        return_DF = [df[df[column]<values[0]]]
+        for i in range(1,len(values)):
+            tempdf = df[df[column]<values[i]]
+            return_DF.append(tempdf)
+        return_DF.append(df[df[column]>=values[-1]])
+
+    return return_DF
+
 
 
 
