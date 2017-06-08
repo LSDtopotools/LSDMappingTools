@@ -50,6 +50,7 @@ import os
 import matplotlib
 import pandas
 from LSDPlottingTools import LSDMap_PointTools as PointTools
+from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
 
 def read_MChi_file(DataDirectory, csv_name):
     """
@@ -216,8 +217,7 @@ def knickpoint_plotter_by_basin(name ,DataDirectory, save_name = "kn_by_Basins",
 
     Author: FJC
     """
-    from LSDPlottingTools import LSDMap_PointTools as PointTools
-    from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
+
 
     # read in the raw csv file
     PointData = load_Point_Tool(name)
@@ -240,9 +240,16 @@ if __name__ == "__main__":
     baseName = "Buzau"
     dfp = read_MChi_file(DataDirectory,baseName+"_KsnKn.csv")
     dfp = select_main_basin(dfp)
-    #csv_name = baseName + "_MChi.csv"
+
+    #dfp = dfp[dfp["diff"].abs()< 35 *dfp["diff"].sem() ]
+    #dfp = dfp[dfp["ratio"].abs()< 10 *dfp["ratio"].sem() ]
+
+    PT = load_Point_Tool(dfp) # If you need actual pointdata
+    KP.plot_diff_ratio(PT, DataDirectory, saveName = "Basic_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True)
+    #KP.map_custom()
+    KP.map_knickpoint_sign(PT, DataDirectory, baseName, Time_in_name = True)
     kp_type = "diff" # every knickpoint below this will be erased
     FigFormat = 'png'
     #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_type)
-    #get_data_column_from_csv(DataDirectory,csv_name,kp_type,column_name="latitude")
-    knickpoint_plotter_by_basin(dfp, DataDirectory,kp_type=kp_type,FigFormat=FigFormat)
+
+    #knickpoint_plotter_by_basin(dfp, DataDirectory,kp_type=kp_type,FigFormat=FigFormat)
