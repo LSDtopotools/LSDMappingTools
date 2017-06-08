@@ -442,7 +442,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
    
     for m_over_n in m_over_n_values:
         full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n)+"_fullstats.csv"
-        print("Filename is: ")
+        print("\n\n\nFilename is: ")
         print(full_filename)
         
         #load the file
@@ -473,10 +473,51 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             # now get the outliers
             MLE_array = np.asarray(MLE_values)
             RMSE_array = np.asarray(RMSE_values)
-            outliers = LSDP.lsdstatsutilities.is_outlier(MLE_array)
+            RMSE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
+            MLE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
+ 
+
+
+            print("The RMSE outliers are:")
+            print(RMSE_outliers)
             
-            print("The outliers are:")
-            print(outliers)
+            import itertools
+            filtered = list(itertools.compress(RMSE_array, RMSE_outliers))
+            print("The filtered array is: ")
+            print(filtered)
+           
+            # now check each of the outlier arrays to see if e need to flip the array
+            RMSE_index_min = np.argmin(RMSE_array)
+            RMSE_min = np.min(RMSE_array)
+ 
+            # if the max MLE is an outlier, flip the outlier vector
+            if (RMSE_outliers[RMSE_index_min]):
+                RMSE_outliers = [not i for i in RMSE_outliers]
+                
+            filtered = list(itertools.compress(RMSE_array, RMSE_outliers))
+            print("Now the filtered is: ")
+            print(filtered)              
+            
+            
+            print("\nThe MLE outliers are:")
+            print(MLE_outliers)
+            
+            filtered = list(itertools.compress(MLE_array, MLE_outliers))
+            print("The filtered array is: ")
+            print(filtered)
+           
+            MLE_index_max = np.argmax(MLE_array) 
+            MLE_max = np.argmax(MLE_array)
+            
+            # if the max MLE is an outlier, flip the outlier vector
+            if (MLE_outliers[MLE_index_max]):
+                MLE_outliers = [not i for i in MLE_outliers]
+                
+            filtered = list(itertools.compress(MLE_array, MLE_outliers))
+            print("Now the filtered is: ")
+            print(filtered)            
+            
+
            
             # some formatting of the figure
             ax.spines['top'].set_linewidth(1)
@@ -490,7 +531,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             
             # make a pretty seaborn plot
             sns.distplot(MLE_array, ax=ax, rug=True, hist=False)
-            ax.plot(outliers, np.zeros_like(outliers), 'ro', clip_on=False)
+            ax.plot(MLE_outliers, np.zeros_like(MLE_outliers), 'ro', clip_on=False)
 
             kwargs = dict(y=0.95, x=0.05, ha='left', va='top')
             ax.set_title('MAD-based Outliers', **kwargs)
@@ -527,7 +568,7 @@ if __name__ == "__main__":
     FigFormat = 'png'
 
     # either specify a list of the basins, or set as empty to get all of them
-    basin_list = [6]
+    basin_list = [11]
 
     # specify the m/n values tested
     start_movern = 0.2
