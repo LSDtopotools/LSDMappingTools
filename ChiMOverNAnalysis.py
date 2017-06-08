@@ -14,6 +14,7 @@
 import numpy as np
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
+import seaborn as sns
 from matplotlib import rcParams
 import pandas as pd
 from matplotlib import colors
@@ -390,23 +391,153 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             ax2.cla()
 
 
+def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
+    """
+    This function uses the fullstas files to search for outliers in the 
+    channels, and also give statistics of the distribution of MLE values. 
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+
+    Returns:
+        Plot of each m/n value for each basin.
+
+    Author: SMM
+    """
+
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[10:95,5:80])
+
+
+
+    # Get a vector of the m over n values
+    end_movern = start_movern+d_movern*(n_movern-1)
+    m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
+    
+   
+    for m_over_n in m_over_n_values:
+        full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n)+"_fullstats.csv"
+        print("Filename is: ")
+        print(full_filename)
+        
+        #load the file
+        FullStatsDF = pd.read_csv(full_filename)
+
+        # get the number of basins
+        basin_keys = list(FullStatsDF['basin_key'])
+        basin_keys = [float(x) for x in basin_keys]
+
+        # get the list of basins
+        if basin_list == []:
+            print("You didn't give me a list of basins, so I'll just run the analysis on all of them!")
+            basin_list = basin_keys    
+         
+        # loop through the basins
+        for basin in basin_list:
+            
+            # mask the data so you only get the correct basin
+            FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin]
+
+            # extract the relevant data
+            MLE_values = list(FullStatsDF_basin['MLE'])
+            RMSE_values = list(FullStatsDF_basin['RMSE'])
+            trib_values = list(FullStatsDF_basin['test_source_key']) 
+            #print("The MLE values are: ")
+            #print(MLE_values)          
+            
+            # now get the outliers
+            MLE_array = np.asarray(MLE_values)
+            RMSE_array = np.asarray(RMSE_values)
+            outliers = LSDP.lsdstatsutilities.is_outlier(MLE_array)
+            
+            print("The outliers are:")
+            print(outliers)
+           
+            # some formatting of the figure
+            ax.spines['top'].set_linewidth(1)
+            ax.spines['left'].set_linewidth(1)
+            ax.spines['right'].set_linewidth(1)
+            ax.spines['bottom'].set_linewidth(1)
+
+            # make the lables
+            ax.set_xlabel("$\chi$ (m)")
+            ax.set_ylabel("Elevation (m)")
+            
+            # make a pretty seaborn plot
+            sns.distplot(MLE_array, ax=ax, rug=True, hist=False)
+            ax.plot(outliers, np.zeros_like(outliers), 'ro', clip_on=False)
+
+            kwargs = dict(y=0.95, x=0.05, ha='left', va='top')
+            ax.set_title('MAD-based Outliers', **kwargs)
+
+            title_string = "Basin "+str(basin)+", $m/n$ = "+str(m_over_n)
+            ax.text(0.05, 0.95, title_string,
+                    verticalalignment='top', horizontalalignment='left',
+                    transform=ax.transAxes,
+                    color='black', fontsize=10)            
+        
+            #save the plot
+            newFilename = DataDirectory+"MLE_outliers"+str(basin)+"_"+str(m_over_n)+".png"
+
+            # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+            ax.tick_params(axis='both', width=1, pad = 2)
+            for tick in ax.xaxis.get_major_ticks():
+                tick.set_pad(2)
+
+            plt.savefig(newFilename,format=FigFormat,dpi=300)
+            ax.cla()  
+    
+    
+    
+
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
-    DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
-    fname_prefix = 'Kentucky_chi'
+    #DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
+    #fname_prefix = 'Kentucky_chi'
+    DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
+    fname_prefix = 'Irian_Jaya_PP'    
+    
     size_format='ESURF'
     FigFormat = 'png'
 
     # either specify a list of the basins, or set as empty to get all of them
-    basin_list = [0]
+    basin_list = [6]
 
     # specify the m/n values tested
     start_movern = 0.2
     d_movern = 0.1
-    n_movern = 8
+    n_movern = 7
+    
+    CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
+    
 
     # run the plotting function
     #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-    MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
-                        size_format=size_format, FigFormat=FigFormat)
+    #MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
+    #                    size_format=size_format, FigFormat=FigFormat)
