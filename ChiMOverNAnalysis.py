@@ -548,7 +548,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             
             
 
-           
+            '''
             # some formatting of the figure
             ax.spines['top'].set_linewidth(1)
             ax.spines['left'].set_linewidth(1)
@@ -573,15 +573,16 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
                     color='black', fontsize=10)            
         
             #save the plot
-            newFilename = DataDirectory+"MLE_outliers"+str(basin)+"_"+str(m_over_n)+".png"
+            #newFilename = DataDirectory+"MLE_outliers"+str(basin)+"_"+str(m_over_n)+".png"
 
             # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
-            ax.tick_params(axis='both', width=1, pad = 2)
-            for tick in ax.xaxis.get_major_ticks():
-                tick.set_pad(2)
+            #ax.tick_params(axis='both', width=1, pad = 2)
+            #for tick in ax.xaxis.get_major_ticks():
+            #    tick.set_pad(2)
 
-            plt.savefig(newFilename,format=FigFormat,dpi=300)
-            ax.cla()  
+            #plt.savefig(newFilename,format=FigFormat,dpi=300)
+            #ax.cla() 
+            '''
     
     # now show the outlier counter
     for basin in basin_list:
