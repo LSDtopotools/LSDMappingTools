@@ -451,7 +451,13 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     # get the list of basins
     if basin_list == []:
         print("You didn't give me a list of basins, so I'll just run the analysis on all of them!")
-        basin_list = basin_keys     
+        basin_list = basin_keys
+        basin_set = set(basin_list)
+        basin_list = list(basin_set)
+        basin_list = [int(i) for i in basin_list]
+        
+        print("The basin list is now: ")
+        print(basin_list)
     
     # make a data object that will hold the counters
     Outlier_counter = {}
@@ -471,8 +477,8 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     # Now we loop through all the files, calulating the outliers
     for m_over_n in m_over_n_values:
         full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n)+"_fullstats.csv"
-        print("\n\n\nFilename is: ")
-        print(full_filename)
+        #print("\n\n\nFilename is: ")
+        #print(full_filename)
         
         #load the file
         FullStatsDF = pd.read_csv(full_filename)
@@ -496,51 +502,47 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             RMSE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
             MLE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
  
-
-
-            print("The RMSE outliers are:")
-            print(RMSE_outliers)
-            
-            import itertools
-            filtered = list(itertools.compress(RMSE_array, RMSE_outliers))
-            print("The filtered array is: ")
-            print(filtered)
+            #print("The RMSE outliers are:")
+            #print(RMSE_outliers)            
+            #import itertools
+            #filtered = list(itertools.compress(RMSE_array, RMSE_outliers))
+            #print("The filtered array is: ")
+            #print(filtered)
            
             # now check each of the outlier arrays to see if e need to flip the array
             RMSE_index_min = np.argmin(RMSE_array)
-            RMSE_min = np.min(RMSE_array)
+            #RMSE_min = np.min(RMSE_array)
  
             # if the max MLE is an outlier, flip the outlier vector
             if (RMSE_outliers[RMSE_index_min]):
                 RMSE_outliers = [not i for i in RMSE_outliers]
                 
-            filtered = list(itertools.compress(RMSE_array, RMSE_outliers))
-            print("Now the filtered is: ")
-            print(filtered)              
+            #filtered = list(itertools.compress(RMSE_array, RMSE_outliers))
+            #print("Now the filtered is: ")
+            #print(filtered)              
             
             
-            print("\nThe MLE outliers are:")
-            print(MLE_outliers)
-            
-            filtered = list(itertools.compress(MLE_array, MLE_outliers))
-            print("The filtered array is: ")
-            print(filtered)
+            #print("\nThe MLE outliers are:")
+            #print(MLE_outliers)            
+            #filtered = list(itertools.compress(MLE_array, MLE_outliers))
+            #print("The filtered array is: ")
+            #print(filtered)
            
             MLE_index_max = np.argmax(MLE_array) 
-            MLE_max = np.argmax(MLE_array)
+            #MLE_max = np.argmax(MLE_array)
             
             # if the max MLE is an outlier, flip the outlier vector
             if (MLE_outliers[MLE_index_max]):
                 MLE_outliers = [not i for i in MLE_outliers]
                 
-            filtered = list(itertools.compress(MLE_array, MLE_outliers))
-            print("Now the filtered is: ")
-            print(filtered)            
+            #filtered = list(itertools.compress(MLE_array, MLE_outliers))
+            #print("Now the filtered is: ")
+            #print(filtered)            
             
             # turn the outliers vector into an integer
             int_Outlier = [int(i) for i in MLE_outliers]
-            print("Integer outliers are: ")
-            print(int_Outlier)
+            #print("Integer outliers are: ")
+            #print(int_Outlier)
             
             Outlier_counter[basin] = Outlier_counter[basin]+int_Outlier
             
@@ -581,7 +583,11 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             plt.savefig(newFilename,format=FigFormat,dpi=300)
             ax.cla()  
     
-    
+    # now show the outlier counter
+    for basin in basin_list:
+        print("The outlier counter in basin: "+str(basin)+" is: ")
+        print(Outlier_counter[basin])
+        
     
 
 if __name__ == "__main__":
@@ -589,15 +595,15 @@ if __name__ == "__main__":
     # Change these filenames and paths to suit your own files
     #DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
     #fname_prefix = 'Kentucky_chi'
-    #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
-    DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
+    DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
+    #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
     fname_prefix = 'Irian_Jaya_PP'    
     
     size_format='ESURF'
     FigFormat = 'png'
 
     # either specify a list of the basins, or set as empty to get all of them
-    basin_list = [11]
+    basin_list = []
 
     # specify the m/n values tested
     start_movern = 0.2
