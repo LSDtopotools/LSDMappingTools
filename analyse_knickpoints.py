@@ -326,7 +326,7 @@ if __name__ == "__main__":
     PTriver = load_Point_Tool(river_net)
     #PTO = load_Point_Tool(dfpo)
     #KP.plot_diff_ratio(PTO, DataDirectory, saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
-    KP.plot_outliers_vs_others(PT,PTBD,DataDirectory,saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
+    KP.plot_outliers_vs_others(PT, PTBD,DataDirectory,saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
     #KP.map_custom()
     #KP.map_knickpoint_sign(PT, DataDirectory, baseName, Time_in_name = False, river_network = PTriver)
     #KP.map_knickpoint_sign(PTflat, DataDirectory, baseName, Time_in_name = False, river_network = PTriver, saveName = "flat_", size = 0.1)

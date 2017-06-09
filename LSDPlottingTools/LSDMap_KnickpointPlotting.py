@@ -177,6 +177,56 @@ def plot_diff_ratio(PointData, DataDirectory, saveName = "Basic_diff_ratio", sav
 
     plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
 
+def plot_basic_DA(PointData, DataDirectory, saveName = "Basic_DA", save_fmt = ".png", size_format = "ESURF", log_data = False):
+    """
+    Basic plot to have a general view of the knickpoints: drainage area against ratio and diff colored by elevation
+
+    Args:
+        PointData: A PointData object
+        DataDirectory: Where the data is saved
+        saveName: save name
+
+    returns:
+        Nothing, sorry.
+    Author: BG
+    """
+    plt.clf()
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[25:100,10:95])
+
+    diff = PointData.QueryData("diff")
+    ratio = PointData.QueryData("ratio")
+    DA = PointData.QueryData("drainage area")
+
+    if(log_data):
+        print("I am logging the data")
+        diff = np.log10(diff)
+        ratio = np.log10(ratio)
+
+    elevation = PointData.QueryData("elevation")
+
+    ax.scatter(diff,ratio, s=0.5, lw = 0, c = elevation)
+    ax.set_xlabel("Diff")
+    ax.set_ylabel("Ratio")
+
+    plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
+
 def plot_outliers_vs_others(PointData,PointDataOut, DataDirectory, saveName = "Basic_diff_ratio", save_fmt = ".png", size_format = "ESURF", log_data = False):
     """
     Basic plot to have a general view of the knickpoints: diff against ratio colored by elevation
