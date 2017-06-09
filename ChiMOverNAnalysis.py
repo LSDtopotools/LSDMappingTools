@@ -439,7 +439,36 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     end_movern = start_movern+d_movern*(n_movern-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
     
-   
+    
+    # we open the first file just so that we can get a counter list
+    full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n_values[0])+"_fullstats.csv"
+    FirstDF = pd.read_csv(full_filename)
+
+    # get the number of basins
+    basin_keys = list(FirstDF['basin_key'])
+    basin_keys = [float(x) for x in basin_keys]
+    
+    # get the list of basins
+    if basin_list == []:
+        print("You didn't give me a list of basins, so I'll just run the analysis on all of them!")
+        basin_list = basin_keys     
+    
+    # make a data object that will hold the counters
+    Outlier_counter = {}
+    # loop through the basins
+    for basin in basin_list:
+        # mask the data so you only get the correct basin
+        FirstDF_basin = FirstDF[FirstDF['basin_key'] == basin]
+
+        trib_values = list(FirstDF_basin['test_source_key']) 
+        n_nodes = len(trib_values)
+        # make the counter with zeros
+        this_counter = np.zeros(n_nodes)
+        Outlier_counter[basin] = this_counter
+        
+        
+    
+    # Now we loop through all the files, calulating the outliers
     for m_over_n in m_over_n_values:
         full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n)+"_fullstats.csv"
         print("\n\n\nFilename is: ")
@@ -447,16 +476,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         
         #load the file
         FullStatsDF = pd.read_csv(full_filename)
-
-        # get the number of basins
-        basin_keys = list(FullStatsDF['basin_key'])
-        basin_keys = [float(x) for x in basin_keys]
-
-        # get the list of basins
-        if basin_list == []:
-            print("You didn't give me a list of basins, so I'll just run the analysis on all of them!")
-            basin_list = basin_keys    
-         
+        
         # loop through the basins
         for basin in basin_list:
             
@@ -517,6 +537,14 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             print("Now the filtered is: ")
             print(filtered)            
             
+            # turn the outliers vector into an integer
+            int_Outlier = [int(i) for i in MLE_outliers]
+            print("Integer outliers are: ")
+            print(int_Outlier)
+            
+            Outlier_counter[basin] = Outlier_counter[basin]+int_Outlier
+            
+            
 
            
             # some formatting of the figure
@@ -561,7 +589,8 @@ if __name__ == "__main__":
     # Change these filenames and paths to suit your own files
     #DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
     #fname_prefix = 'Kentucky_chi'
-    DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
+    #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
+    DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
     fname_prefix = 'Irian_Jaya_PP'    
     
     size_format='ESURF'
