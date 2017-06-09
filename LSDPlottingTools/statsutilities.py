@@ -100,14 +100,17 @@ def binning_PD(df, column = "", values = [], log = False):
     if(isinstance(values,str) and values == "auto_power_10"):
         print("I am automatically choosing the binning values each 10**n, thanks for trusting me")
         max_val = df[column].max()
+        min_value = df[column].min()
+
         po = 0
         values = []
+
         while(max_val>10**po):
-            print("Test")
-            values.append(10**po)
+            if(min_value<10**po):
+                values.append(10**po)
             po +=1
 
-        del values[-1]
+        del values[-1] # delete the last value to keep last bin > to last value
         print("Your binning values are: ")
         print(values)
     # log the data if required
@@ -115,14 +118,22 @@ def binning_PD(df, column = "", values = [], log = False):
         return_DF = [df[np.log10(df[column])<values[0]]]
         for i in range(1,len(values)):
             tempdf = df[np.log10(df[column])<values[i]]
+            tempdf = tempdf[tempdf[column]>values[i-1]]
             return_DF.append(tempdf)
-        return_DF.append(df[np.log10(df[column])>=values[-1]])
+        tempdf= df[np.log10(df[column])>=values[-1]]
+        return_DF.append(tempdf)
     else:
         return_DF = [df[df[column]<values[0]]]
         for i in range(1,len(values)):
             tempdf = df[df[column]<values[i]]
+            tempdf = tempdf[tempdf[column]>values[i-1]]
             return_DF.append(tempdf)
+            print("DEBUUUUUUUUUUUUUUUUUUGGGGGGGGGGGGGGG: " )
+            print(values[i])
+            print(tempdf.shape)
+            print ("(DEBUUUUUUUUUUUUUUUUUUGGGGGGGGGGGGGGG)")
         return_DF.append(df[df[column]>=values[-1]]) # last overweight bin
+
 
     # compile the results in a dictionnary
     dict_return = {}
