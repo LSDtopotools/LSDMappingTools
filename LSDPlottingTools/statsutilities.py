@@ -77,7 +77,7 @@ def add_outlier_column_to_PD(df, column = "none", threshold = "none"):
     for i in range(len(column)):
         is_outliers = is_outlier(df[column[i]],threshold[i])
         coln =column[i]+"_outlier"
-        df[coln] = pd.Series(is_outliers, index = df.index)
+        df[coln] = pd.Series(is_outliers,index = df.index)
 
     return df
 

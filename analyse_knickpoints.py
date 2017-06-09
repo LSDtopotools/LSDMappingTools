@@ -302,20 +302,35 @@ if __name__ == "__main__":
     dfp = select_main_basin(dfp)
     flat_values = sort_ratio_0_data(dfp, mode = "extract")
     dfp = sort_ratio_0_data(dfp, mode = "delete")
-    dfp = lst.add_outlier_column_to_PD(dfp, column = ["diff","ratio"], threshold = [4,4])
-    dfpo = dfp[dfp["diff_outlier"]]
-    dfpo = dfpo[dfpo["ratio_outlier"]]
+
+
+    binned_by_DA = lst.binning_PD(dfp,column = "drainage area",values =  "auto_power_10")
+    print("Binned :")
+    print binned_by_DA.keys()
+    is_created = True
+    tet_lines = 0
+    PTBD = {}
+    for key in binned_by_DA.keys():
+        binned_by_DA[key] = lst.add_outlier_column_to_PD(binned_by_DA[key], column = ["diff", "ratio"], threshold =[3.6,3.6])
+        binned_by_DA[key] = binned_by_DA[key][binned_by_DA[key]["diff_outlier"]]
+        binned_by_DA[key] = binned_by_DA[key][binned_by_DA[key]["ratio_outlier"]]
+        PTBD[key] = load_Point_Tool(binned_by_DA[key])
+        #PTt = load_Point_Tool(tempDFOT)
+        #KP.plot_diff_ratio(PTt, DataDirectory, saveName = "OUTLIERS_test_bin_"+str(key), save_fmt = ".png", size_format = "ESURF", log_data = True
+
+
+
 
     PT = load_Point_Tool(dfp) # If you need actual pointdata
     PTflat = load_Point_Tool(flat_values)
     PTriver = load_Point_Tool(river_net)
-    PTO = load_Point_Tool(dfpo)
+    #PTO = load_Point_Tool(dfpo)
     #KP.plot_diff_ratio(PTO, DataDirectory, saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
-    KP.plot_outliers_vs_others(PT,PTO,DataDirectory,saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
+    KP.plot_outliers_vs_others(PT,PTBD,DataDirectory,saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
     #KP.map_custom()
     #KP.map_knickpoint_sign(PT, DataDirectory, baseName, Time_in_name = False, river_network = PTriver)
     #KP.map_knickpoint_sign(PTflat, DataDirectory, baseName, Time_in_name = False, river_network = PTriver, saveName = "flat_", size = 0.1)
-    KP.map_knickpoint_diff_sized_colored_ratio(PTO, DataDirectory, baseName, river_network = PTriver, log = False, saveName = "OUTLIERS_map")
+    #KP.map_knickpoint_diff_sized_colored_ratio(PTO, DataDirectory, baseName, river_network = PTriver, log = False, saveName = "OUTLIERS_map")
     kp_type = "diff" # every knickpoint below this will be erased
     FigFormat = 'png'
     #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_type)

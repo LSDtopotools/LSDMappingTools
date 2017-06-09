@@ -142,6 +142,7 @@ def plot_diff_ratio(PointData, DataDirectory, saveName = "Basic_diff_ratio", sav
         Nothing, sorry.
     Author: BG
     """
+    plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
@@ -189,6 +190,7 @@ def plot_outliers_vs_others(PointData,PointDataOut, DataDirectory, saveName = "B
         Nothing, sorry.
     Author: BG
     """
+    plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
@@ -208,23 +210,45 @@ def plot_outliers_vs_others(PointData,PointDataOut, DataDirectory, saveName = "B
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
 
+
     diff = PointData.QueryData("diff")
     ratio = PointData.QueryData("ratio")
-    diffout = PointDataOut.QueryData("diff")
-    ratioout = PointDataOut.QueryData("ratio")
-
+    if(isinstance(PointDataOut,dict)):
+        diffout = []
+        ratioout = []
+        elevation = []
+        for key in PointDataOut.keys():
+            diffout.append(PointDataOut[key].QueryData("diff"))
+            ratioout.append(PointDataOut[key].QueryData("ratio"))
+            elevation.append(PointDataOut[key].QueryData("elevation"))
+    else:
+        diffout = PointDataOut.QueryData("diff")
+        ratioout = PointDataOut.QueryData("ratio")
+        elevation =PointDataOut.QueryData("elevation")
 
     if(log_data):
         print("I am logging the data")
+
         diff = np.log10(diff)
         ratio = np.log10(ratio)
-        diffout = np.log10(diffout)
+        if(isinstance(diffout, list) == False):
+            diffout = [diffout]
+            ratioout = [ ratioout]
 
-        ratioout = np.log10(ratioout)
+        for i in range(len(diffout)):
 
-    elevation =PointDataOut.QueryData("elevation")
-    ax.scatter(diff,ratio, s=0.5, lw = 0, c = 'gray')
-    ax.scatter(diffout,ratioout, s = 0.5,c = elevation,lw = 0)
+            diffout[i]= np.log10(diffout[i])
+
+            ratioout[i]= np.log10(ratioout[i])
+
+    if(isinstance(PointDataOut,dict)):
+        ax.scatter(diff,ratio, s=0.5, lw = 0, c = 'gray')
+        for inst in range(len(diffout)):
+
+            ax.scatter(diffout[inst],ratioout[inst], s = 0.5,c = elevation[inst],lw = 0)
+    else:
+        ax.scatter(diff,ratio, s=0.5, lw = 0, c = 'gray')
+        ax.scatter(diffout,ratioout, s = 0.5,c = elevation,lw = 0)
     ax.set_xlabel("Diff")
     ax.set_ylabel("Ratio")
 
