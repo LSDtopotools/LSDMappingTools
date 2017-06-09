@@ -315,8 +315,8 @@ if __name__ == "__main__":
         binned_by_DA[key] = binned_by_DA[key][binned_by_DA[key]["diff_outlier"]]
         binned_by_DA[key] = binned_by_DA[key][binned_by_DA[key]["ratio_outlier"]]
         PTBD[key] = load_Point_Tool(binned_by_DA[key])
-        #PTt = load_Point_Tool(tempDFOT)
-        #KP.plot_diff_ratio(PTt, DataDirectory, saveName = "OUTLIERS_test_bin_"+str(key), save_fmt = ".png", size_format = "ESURF", log_data = True
+        PTt = load_Point_Tool(binned_by_DA[key])
+        KP.plot_diff_ratio(PTt, DataDirectory, saveName = "OUTLIERS_test_bin_"+str(key), save_fmt = ".png", size_format = "ESURF", log_data = True)
 
 
 
