@@ -87,6 +87,7 @@ def binning_PD(df, column = "", values = [], log = False):
         df: The pandas dataframe
         column (str): name of the column that hold the data
         values (list): list of the upper values of each binning, another binning category will incorporate everything superior to the last value
+                        you also can give the value "auto_power_10" to this. it will automatically bin the data each 10**n until the max
         log (bool): if you want to compare values to log of column
     return:
         dictionnary of pandas dataframe, the key being the upper value
@@ -94,8 +95,21 @@ def binning_PD(df, column = "", values = [], log = False):
     # check the function parameters
     if(column == ""):
         print("You need to give a valid column name")
-    if(len(values) < 2):
+    if(isinstance(values, list) and len(values) < 2):
         print("You need at least two values to bin the dataframe")
+    if(isinstance(values,str) and values == "auto_power_10"):
+        print("I am automatically choosing the binning values each 10**n, thanks for trusting me")
+        max_val = df[column].max()
+        po = 0
+        values = []
+        while(max_val>10**po):
+            print("Test")
+            values.append(10**po)
+            po +=1
+
+        del values[-1]
+        print("Your binning values are: ")
+        print(values)
     # log the data if required
     if(log):
         return_DF = [df[np.log10(df[column])<values[0]]]
