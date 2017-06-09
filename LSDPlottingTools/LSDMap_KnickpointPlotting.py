@@ -198,21 +198,24 @@ def plot_basic_DA(PointData, DataDirectory, saveName = "Basic_DA", save_fmt = ".
 
     # make a figure
     if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        fig = plt.figure(2, facecolor='white',figsize=(6.25,3.5))
         l_pad = -40
     elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        fig = plt.figure(2, facecolor='white',figsize=(16,9))
         l_pad = -50
     else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        fig = plt.figure(2, facecolor='white',figsize=(4.92126,3.5))
         l_pad = -35
-
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
-    ax = fig.add_subplot(gs[25:100,10:95])
 
     diff = PointData.QueryData("diff")
     ratio = PointData.QueryData("ratio")
     DA = PointData.QueryData("drainage area")
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax1 = fig.add_subplot(gs[10:50,10:95])
+    ax2 = fig.add_subplot(gs[50:100,10:95])
+
+
 
     if(log_data):
         print("I am logging the data")
@@ -220,10 +223,19 @@ def plot_basic_DA(PointData, DataDirectory, saveName = "Basic_DA", save_fmt = ".
         ratio = np.log10(ratio)
 
     elevation = PointData.QueryData("elevation")
-
-    ax.scatter(diff,ratio, s=0.5, lw = 0, c = elevation)
-    ax.set_xlabel("Diff")
-    ax.set_ylabel("Ratio")
+    DA = np.log10(DA)
+    ax1.scatter(DA,ratio, s=0.7, lw = 0, c = elevation)
+    ax1.set_ylabel("Ratio")
+    ax1.tick_params(axis = 'x', length = 0, width = 0, labelsize = 0)
+    ax1.spines['bottom'].set_visible(False)
+    ax2.scatter(DA,diff,s=0.7, lw = 0, c = elevation)
+    ax2.set_ylabel("Diff")
+    ax2.set_xlabel("Drainage area")
+    #ax2.set_xticks([1,2,3,4,5,6,7])
+    ax2.tick_params(axis = 'x', labelsize = 6)
+    ax1.set_xticks([4,5,6,7,8,9,10])
+    ax2.set_xticks([4,5,6,7,8,9,10])
+    ax2.set_xticklabels([ur"$10^{4}$",ur"$10^{5}$",ur"$10^{6}$",ur"$10^{7}$",ur"$10^{8}$",ur"$10^{9}$",ur"$10^{10}$"])
 
     plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
 
