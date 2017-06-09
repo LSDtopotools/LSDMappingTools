@@ -91,11 +91,12 @@ def binning_PD(df, column = "", values = [], log = False):
     return:
         dictionnary of pandas dataframe, the key being the upper value
     """
+    # check the function parameters
     if(column == ""):
         print("You need to give a valid column name")
     if(len(values) < 2):
         print("You need at least two values to bin the dataframe")
-
+    # log the data if required
     if(log):
         return_DF = [df[np.log10(df[column])<values[0]]]
         for i in range(1,len(values)):
@@ -107,9 +108,16 @@ def binning_PD(df, column = "", values = [], log = False):
         for i in range(1,len(values)):
             tempdf = df[df[column]<values[i]]
             return_DF.append(tempdf)
-        return_DF.append(df[df[column]>=values[-1]])
+        return_DF.append(df[df[column]>=values[-1]]) # last overweight bin
 
-    return return_DF
+    # compile the results in a dictionnary
+    dict_return = {}
+    for i in range(len(values)):
+        dict_return[str(values[i])] = return_DF[i]
+
+    dict_return['>'+str(values[-1])] = return_DF[-1]
+
+    return dict_return
 
 
 
