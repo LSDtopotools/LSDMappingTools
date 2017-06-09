@@ -76,7 +76,8 @@ def add_outlier_column_to_PD(df, column = "none", threshold = "none"):
 
     for i in range(len(column)):
         is_outliers = is_outlier(df[column[i]],threshold[i])
-        df[column[i]+"_outlier"] = pd.Series(is_outliers, index = df.index)
+        coln =column[i]+"_outlier"
+        df[coln] = pd.Series(is_outliers, index = df.index)
 
     return df
 
@@ -113,28 +114,34 @@ def binning_PD(df, column = "", values = [], log = False):
         del values[-1] # delete the last value to keep last bin > to last value
         print("Your binning values are: ")
         print(values)
+        cumul_lines = 0# check if all the values are inside bins
+
+
     # log the data if required
     if(log):
         return_DF = [df[np.log10(df[column])<values[0]]]
+        cumul_lines += return_DF[0].shape[0]
         for i in range(1,len(values)):
             tempdf = df[np.log10(df[column])<values[i]]
             tempdf = tempdf[tempdf[column]>values[i-1]]
             return_DF.append(tempdf)
+            cumul_lines += return_DF[i].shape[0]
         tempdf= df[np.log10(df[column])>=values[-1]]
+        cumul_lines += tempdf.shape[0]
         return_DF.append(tempdf)
     else:
         return_DF = [df[df[column]<values[0]]]
+        cumul_lines += return_DF[0].shape[0]
         for i in range(1,len(values)):
             tempdf = df[df[column]<values[i]]
             tempdf = tempdf[tempdf[column]>values[i-1]]
             return_DF.append(tempdf)
-            print("DEBUUUUUUUUUUUUUUUUUUGGGGGGGGGGGGGGG: " )
-            print(values[i])
-            print(tempdf.shape)
-            print ("(DEBUUUUUUUUUUUUUUUUUUGGGGGGGGGGGGGGG)")
+            cumul_lines += return_DF[i].shape[0]
+
+        cumul_lines += df[df[column]>=values[-1]].shape[0]
         return_DF.append(df[df[column]>=values[-1]]) # last overweight bin
 
-
+        print("DEBUG: " +str(cumul_lines) +" lines detected over " +str(df.shape[0]))
     # compile the results in a dictionnary
     dict_return = {}
     for i in range(len(values)):
