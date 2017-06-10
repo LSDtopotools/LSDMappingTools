@@ -297,7 +297,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
 
     # get the number of basins
     basin_keys = list(BasinStatsDF['basin_key'])
-    basin_keys = [float(x) for x in basin_keys]
+    basin_keys = [int(x) for x in basin_keys]
 
     # get the list of basins
     if basin_list == []:
@@ -325,6 +325,10 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             # mask the data frames for this basin
             ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_key]
             FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin_key]
+
+            print FullStatsDF_basin
+
+            print(FullStatsDF_basin['reference_source_key'][0])
 
             # get the data frame for the main stem
             ProfileDF_MS = ProfileDF_basin[ProfileDF_basin['source_key'] == FullStatsDF_basin['reference_source_key'][0]]
@@ -393,8 +397,8 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
 
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
-    This function uses the fullstas files to search for outliers in the 
-    channels, and also give statistics of the distribution of MLE values. 
+    This function uses the fullstas files to search for outliers in the
+    channels, and also give statistics of the distribution of MLE values.
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
@@ -438,8 +442,8 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     # Get a vector of the m over n values
     end_movern = start_movern+d_movern*(n_movern-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
-    
-    
+
+
     # we open the first file just so that we can get a counter list
     full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n_values[0])+"_fullstats.csv"
     FirstDF = pd.read_csv(full_filename)
@@ -447,7 +451,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     # get the number of basins
     basin_keys = list(FirstDF['basin_key'])
     basin_keys = [float(x) for x in basin_keys]
-    
+
     # get the list of basins
     if basin_list == []:
         print("You didn't give me a list of basins, so I'll just run the analysis on all of them!")
@@ -455,10 +459,10 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         basin_set = set(basin_list)
         basin_list = list(basin_set)
         basin_list = [int(i) for i in basin_list]
-        
+
         print("The basin list is now: ")
         print(basin_list)
-    
+
     # make a data object that will hold the counters
     Outlier_counter = {}
     # loop through the basins
@@ -466,87 +470,87 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         # mask the data so you only get the correct basin
         FirstDF_basin = FirstDF[FirstDF['basin_key'] == basin]
 
-        trib_values = list(FirstDF_basin['test_source_key']) 
+        trib_values = list(FirstDF_basin['test_source_key'])
         n_nodes = len(trib_values)
         # make the counter with zeros
         this_counter = np.zeros(n_nodes)
         Outlier_counter[basin] = this_counter
-        
-        
-    
+
+
+
     # Now we loop through all the files, calulating the outliers
     for m_over_n in m_over_n_values:
         full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n)+"_fullstats.csv"
         #print("\n\n\nFilename is: ")
         #print(full_filename)
-        
+
         #load the file
         FullStatsDF = pd.read_csv(full_filename)
-        
+
         # loop through the basins
         for basin in basin_list:
-            
+
             # mask the data so you only get the correct basin
             FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin]
 
             # extract the relevant data
             MLE_values = list(FullStatsDF_basin['MLE'])
             RMSE_values = list(FullStatsDF_basin['RMSE'])
-            trib_values = list(FullStatsDF_basin['test_source_key']) 
+            trib_values = list(FullStatsDF_basin['test_source_key'])
             #print("The MLE values are: ")
-            #print(MLE_values)          
-            
+            #print(MLE_values)
+
             # now get the outliers
             MLE_array = np.asarray(MLE_values)
             RMSE_array = np.asarray(RMSE_values)
             RMSE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
             MLE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
- 
+
             #print("The RMSE outliers are:")
-            #print(RMSE_outliers)            
+            #print(RMSE_outliers)
             #import itertools
             #filtered = list(itertools.compress(RMSE_array, RMSE_outliers))
             #print("The filtered array is: ")
             #print(filtered)
-           
+
             # now check each of the outlier arrays to see if e need to flip the array
             RMSE_index_min = np.argmin(RMSE_array)
             #RMSE_min = np.min(RMSE_array)
- 
+
             # if the max MLE is an outlier, flip the outlier vector
             if (RMSE_outliers[RMSE_index_min]):
                 RMSE_outliers = [not i for i in RMSE_outliers]
-                
+
             #filtered = list(itertools.compress(RMSE_array, RMSE_outliers))
             #print("Now the filtered is: ")
-            #print(filtered)              
-            
-            
+            #print(filtered)
+
+
             #print("\nThe MLE outliers are:")
-            #print(MLE_outliers)            
+            #print(MLE_outliers)
             #filtered = list(itertools.compress(MLE_array, MLE_outliers))
             #print("The filtered array is: ")
             #print(filtered)
-           
-            MLE_index_max = np.argmax(MLE_array) 
+
+            MLE_index_max = np.argmax(MLE_array)
             #MLE_max = np.argmax(MLE_array)
-            
+
             # if the max MLE is an outlier, flip the outlier vector
             if (MLE_outliers[MLE_index_max]):
                 MLE_outliers = [not i for i in MLE_outliers]
-                
+
             #filtered = list(itertools.compress(MLE_array, MLE_outliers))
             #print("Now the filtered is: ")
-            #print(filtered)            
-            
+            #print(filtered)
+
             # turn the outliers vector into an integer
             int_Outlier = [int(i) for i in MLE_outliers]
             #print("Integer outliers are: ")
             #print(int_Outlier)
-            
+
             Outlier_counter[basin] = Outlier_counter[basin]+int_Outlier
-            
-            
+
+
 
             '''
             # some formatting of the figure
@@ -558,7 +562,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             # make the lables
             ax.set_xlabel("$\chi$ (m)")
             ax.set_ylabel("Elevation (m)")
-            
+
             # make a pretty seaborn plot
             sns.distplot(MLE_array, ax=ax, rug=True, hist=False)
             ax.plot(MLE_outliers, np.zeros_like(MLE_outliers), 'ro', clip_on=False)
@@ -570,8 +574,8 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             ax.text(0.05, 0.95, title_string,
                     verticalalignment='top', horizontalalignment='left',
                     transform=ax.transAxes,
-                    color='black', fontsize=10)            
-        
+                    color='black', fontsize=10)
+
             #save the plot
             #newFilename = DataDirectory+"MLE_outliers"+str(basin)+"_"+str(m_over_n)+".png"
 
@@ -581,25 +585,25 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             #    tick.set_pad(2)
 
             #plt.savefig(newFilename,format=FigFormat,dpi=300)
-            #ax.cla() 
+            #ax.cla()
             '''
-    
+
     # now show the outlier counter
     for basin in basin_list:
         print("The outlier counter in basin: "+str(basin)+" is: ")
         print(Outlier_counter[basin])
-        
-    
+
+
 
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
-    #DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
-    #fname_prefix = 'Kentucky_chi'
+    # DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
+    # fname_prefix = 'Kentucky_chi'
     DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
-    fname_prefix = 'Irian_Jaya_PP'    
-    
+    fname_prefix = 'Irian_Jaya_PP'
+
     size_format='ESURF'
     FigFormat = 'png'
 
@@ -610,11 +614,11 @@ if __name__ == "__main__":
     start_movern = 0.2
     d_movern = 0.1
     n_movern = 7
-    
+
     CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
-    
+
 
     # run the plotting function
     #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-    #MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
-    #                    size_format=size_format, FigFormat=FigFormat)
+    # MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
+    #                     size_format=size_format, FigFormat=FigFormat)
