@@ -413,33 +413,10 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     Author: SMM
     """
 
-    # Set up fonts for plots
-    label_size = 10
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = label_size
-
-    # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
-
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
-    ax = fig.add_subplot(gs[10:95,5:80])
-
-
-
     # Get a vector of the m over n values
     end_movern = start_movern+d_movern*(n_movern-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
-    
-    
+        
     # we open the first file just so that we can get a counter list
     full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n_values[0])+"_fullstats.csv"
     FirstDF = pd.read_csv(full_filename)
@@ -472,13 +449,10 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         this_counter = np.zeros(n_nodes)
         Outlier_counter[basin] = this_counter
         
-        
     
     # Now we loop through all the files, calulating the outliers
     for m_over_n in m_over_n_values:
         full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n)+"_fullstats.csv"
-        #print("\n\n\nFilename is: ")
-        #print(full_filename)
         
         #load the file
         FullStatsDF = pd.read_csv(full_filename)
@@ -501,14 +475,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             RMSE_array = np.asarray(RMSE_values)
             RMSE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
             MLE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
- 
-            #print("The RMSE outliers are:")
-            #print(RMSE_outliers)            
-            #import itertools
-            #filtered = list(itertools.compress(RMSE_array, RMSE_outliers))
-            #print("The filtered array is: ")
-            #print(filtered)
-           
+          
             # now check each of the outlier arrays to see if e need to flip the array
             RMSE_index_min = np.argmin(RMSE_array)
             #RMSE_min = np.min(RMSE_array)
@@ -516,79 +483,92 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             # if the max MLE is an outlier, flip the outlier vector
             if (RMSE_outliers[RMSE_index_min]):
                 RMSE_outliers = [not i for i in RMSE_outliers]
-                
-            #filtered = list(itertools.compress(RMSE_array, RMSE_outliers))
-            #print("Now the filtered is: ")
-            #print(filtered)              
-            
-            
-            #print("\nThe MLE outliers are:")
-            #print(MLE_outliers)            
-            #filtered = list(itertools.compress(MLE_array, MLE_outliers))
-            #print("The filtered array is: ")
-            #print(filtered)
-           
+          
             MLE_index_max = np.argmax(MLE_array) 
             #MLE_max = np.argmax(MLE_array)
             
             # if the max MLE is an outlier, flip the outlier vector
             if (MLE_outliers[MLE_index_max]):
                 MLE_outliers = [not i for i in MLE_outliers]
-                
-            #filtered = list(itertools.compress(MLE_array, MLE_outliers))
-            #print("Now the filtered is: ")
-            #print(filtered)            
-            
+          
             # turn the outliers vector into an integer
             int_Outlier = [int(i) for i in MLE_outliers]
-            #print("Integer outliers are: ")
-            #print(int_Outlier)
-            
+
+            # add this outlier counter to the outlier dict
             Outlier_counter[basin] = Outlier_counter[basin]+int_Outlier
-            
-            
 
-            '''
-            # some formatting of the figure
-            ax.spines['top'].set_linewidth(1)
-            ax.spines['left'].set_linewidth(1)
-            ax.spines['right'].set_linewidth(1)
-            ax.spines['bottom'].set_linewidth(1)
-
-            # make the lables
-            ax.set_xlabel("$\chi$ (m)")
-            ax.set_ylabel("Elevation (m)")
-            
-            # make a pretty seaborn plot
-            sns.distplot(MLE_array, ax=ax, rug=True, hist=False)
-            ax.plot(MLE_outliers, np.zeros_like(MLE_outliers), 'ro', clip_on=False)
-
-            kwargs = dict(y=0.95, x=0.05, ha='left', va='top')
-            ax.set_title('MAD-based Outliers', **kwargs)
-
-            title_string = "Basin "+str(basin)+", $m/n$ = "+str(m_over_n)
-            ax.text(0.05, 0.95, title_string,
-                    verticalalignment='top', horizontalalignment='left',
-                    transform=ax.transAxes,
-                    color='black', fontsize=10)            
-        
-            #save the plot
-            #newFilename = DataDirectory+"MLE_outliers"+str(basin)+"_"+str(m_over_n)+".png"
-
-            # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
-            #ax.tick_params(axis='both', width=1, pad = 2)
-            #for tick in ax.xaxis.get_major_ticks():
-            #    tick.set_pad(2)
-
-            #plt.savefig(newFilename,format=FigFormat,dpi=300)
-            #ax.cla() 
-            '''
-    
     # now show the outlier counter
     for basin in basin_list:
         print("The outlier counter in basin: "+str(basin)+" is: ")
         print(Outlier_counter[basin])
+
+    # Now try to calculate MLE by removing outliers 
+    basin_number = 11      
+    RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
+
+
+    
+def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern=0.2, d_movern=0.1, n_movern=7):
+    """
+    This function takes the outlier counter and incrementally removes the MLE for
+    the removed channels
+    
+    Args:
+        Outlier_counter (dict): The dictionary containing the outlier lists for each basin
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_number (list): a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
         
+    Returns:
+        The MLE data the removed tributaries
+    """
+    
+    # get the outlier counter for this basin
+    thisBasinOutlierCounter = Outlier_counter[basin_number]
+    
+    print("I am going to recalcualte MLE for basin: ")
+    print(basin_number)
+    print("The counter is:")
+    print(thisBasinOutlierCounter)
+    
+    # Figure out how many nonzero entries are in the counter
+    basin_nonzero = []
+    for count in thisBasinOutlierCounter:
+        if(count<0):
+            basin_nonzero.append(1)
+        else:
+            basin_nonzero.append(0)    
+    total_nonzero = sum(basin_nonzero)
+    
+    # Get the sroted version and the indices into the sorted version
+    sort_index = np.argsort(thisBasinOutlierCounter)
+    sorted_outliers = np.sort(thisBasinOutlierCounter)
+
+    # now search for duplicate counters    
+    from collections import Counter
+    duplicates = [item for item, count in Counter(sorted_outliers).iteritems() if count > 1]
+    
+    print("sourted_outliers are: ")
+    print(sorted_outliers)
+    print("And the duplicates are: ")
+    print(duplicates)
+    
+    
+    
+
+    
+    """
+    # Loop through the files, recalculating the MLE
+    for m_over_n in m_over_n_values:
+        full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n)+"_fullstats.csv"
+        #print("\n\n\nFilename is: ")
+        #print(full_filename)        
+    """
+    
     
 
 if __name__ == "__main__":
@@ -596,8 +576,8 @@ if __name__ == "__main__":
     # Change these filenames and paths to suit your own files
     #DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
     #fname_prefix = 'Kentucky_chi'
-    DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
-    #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
+    #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
+    DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
     fname_prefix = 'Irian_Jaya_PP'    
     
     size_format='ESURF'
