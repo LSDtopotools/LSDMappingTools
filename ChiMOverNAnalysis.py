@@ -503,7 +503,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         print(Outlier_counter[basin])
 
     # Now try to calculate MLE by removing outliers 
-    basin_number = 11      
+    basin_number = 16      
     RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
 
 
@@ -547,15 +547,23 @@ def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_numb
     # Get the sroted version and the indices into the sorted version
     sort_index = np.argsort(thisBasinOutlierCounter)
     sorted_outliers = np.sort(thisBasinOutlierCounter)
-
-    # now search for duplicate counters    
-    from collections import Counter
-    duplicates = [item for item, count in Counter(sorted_outliers).iteritems() if count > 1]
+    
+    # make sure the sourted outliers are ints
+    int_sorted_outliers = [int(i) for i in sorted_outliers]
+    
+    # get all the duplicates, with the total number of duplicates for each counter  
+    # This uses the unbelievably handy collections.Counter tool
+    from collections import Counter    
+    all_counter_dict=Counter(int_sorted_outliers)
+    
+    # pop out the zero duplicates: we don't exclude non-outlier data
+    all_counter_dict.pop(0, None)
+    
     
     print("sourted_outliers are: ")
-    print(sorted_outliers)
-    print("And the duplicates are: ")
-    print(duplicates)
+    print(sorted_outliers)    
+    print("And the all duplicates counter dict is: ")
+    print(all_counter_dict)
     
     
     
