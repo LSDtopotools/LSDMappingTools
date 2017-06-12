@@ -49,14 +49,21 @@ def add_outlier_column_to_PD(df, column = "none", threshold = "none"):
 
     """
     Takes a pandas dataframe and returns the same with added boolean columns (True if outlier).
-    Uses the function is_outlier to detect the outliers.
+    Uses the function is_outlier to detect the outliers. Can also take a list of dataframes
     Args:
-        df (Pandas dataframe): The dataframe
+        df (Pandas dataframe): The dataframe or a list of dataframe
         column (list or string): name of the column(s) you want to outlier-check
         threshold  (list or float): list of threshold for each columns (must be same size as column)
     returns
         Pandas.DataFrame
     """
+    print("DEBUG")
+
+    if(isinstance(df,list) == False and isinstance(df,dict) == False):
+        lst_df = [df]
+
+    else:
+        lst_df = df
 
     if(isinstance(column,str) and column =="none"):
         print("you need to give me the name of at least a column, or a list ([])")
@@ -65,21 +72,27 @@ def add_outlier_column_to_PD(df, column = "none", threshold = "none"):
         print("you need to give me the name of at least a column, or a list ([])")
         quit()
 
-    if(isinstance(column,str)):
-        column = [column]
+    for instance in lst_df:
 
-    if(isinstance(threshold,float) or isinstance(threshold,int)):
-        threshold = [threshold]
+        if(isinstance(column,str)):
+            column = [column]
 
-    if(len(threshold) != len(column)):
-        print("You need to assign one threshold per columns name")
+        if(isinstance(threshold,float) or isinstance(threshold,int)):
+            threshold = [threshold]
 
-    for i in range(len(column)):
-        is_outliers = is_outlier(df[column[i]],threshold[i])
-        coln =column[i]+"_outlier"
-        df[coln] = pd.Series(is_outliers,index = df.index)
+        if(len(threshold) != len(column)):
+            print("You need to assign one threshold per columns name")
 
-    return df
+        for i in range(len(column)):
+            # print(lst_df[instance])
+            is_outliers = is_outlier(lst_df[instance][column[i]],threshold[i])
+            coln =column[i]+"_outlier"
+            lst_df[instance][coln] = pd.Series(is_outliers,index = lst_df[instance].index)
+
+    if len(lst_df) == 1:
+        return lst_df[0]
+    else:
+        return lst_df
 
 def binning_PD(df, column = "", values = [], log = False):
     """
@@ -114,7 +127,7 @@ def binning_PD(df, column = "", values = [], log = False):
         del values[-1] # delete the last value to keep last bin > to last value
         print("Your binning values are: ")
         print(values)
-        cumul_lines = 0# check if all the values are inside bins
+    cumul_lines = 0# check if all the values are inside bins
 
 
     # log the data if required

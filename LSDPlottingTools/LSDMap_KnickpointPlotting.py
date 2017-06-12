@@ -239,6 +239,202 @@ def plot_basic_DA(PointData, DataDirectory, saveName = "Basic_DA", save_fmt = ".
 
     plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
 
+def plot_basic_FD(PointData, DataDirectory, saveName = "Basic_FD", save_fmt = ".png", size_format = "ESURF", log_data = False):
+    """
+    Basic plot to have a general view of the knickpoints: flow distance against ratio and diff colored by elevation
+
+    Args:
+        PointData: A PointData object
+        DataDirectory: Where the data is saved
+        saveName: save name
+
+    returns:
+        Nothing, sorry.
+    Author: BG
+    """
+    plt.clf()
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(2, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(2, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(2, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+    diff = PointData.QueryData("diff")
+    ratio = PointData.QueryData("ratio")
+    FD = PointData.QueryData("flow distance")
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax1 = fig.add_subplot(gs[10:50,10:95])
+    ax2 = fig.add_subplot(gs[50:100,10:95])
+
+
+
+    if(log_data):
+        print("I am logging the data")
+        diff = np.log10(diff)
+        ratio = np.log10(ratio)
+
+    elevation = PointData.QueryData("elevation")
+
+    ax1.scatter(FD,ratio, s=0.7, lw = 0, c = elevation)
+    ax1.set_ylabel("Ratio")
+    ax1.tick_params(axis = 'x', length = 0, width = 0, labelsize = 0)
+    ax1.spines['bottom'].set_visible(False)
+    ax2.scatter(FD,diff,s=0.7, lw = 0, c = elevation)
+    ax2.set_ylabel("Diff")
+    ax2.set_xlabel("Flow distance")
+
+    #ax2.tick_params(axis = 'x', labelsize = 6)
+    #ax1.set_xticks([4,5,6,7,8,9,10])
+    #ax2.set_xticks([4,5,6,7,8,9,10])
+    #ax2.set_xticklabels([ur"$10^{4}$",ur"$10^{5}$",ur"$10^{6}$",ur"$10^{7}$",ur"$10^{8}$",ur"$10^{9}$",ur"$10^{10}$"])
+
+    plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
+
+def plot_basic_Z(PointData, DataDirectory, saveName = "Basic_Z", save_fmt = ".png", size_format = "ESURF", log_data = False):
+    """
+    Basic plot to have a general view of the knickpoints: flow distance against ratio and diff colored by elevation
+
+    Args:
+        PointData: A PointData object
+        DataDirectory: Where the data is saved
+        saveName: save name
+
+    returns:
+        Nothing, sorry.
+    Author: BG
+    """
+    plt.clf()
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(2, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(2, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(2, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+    diff = PointData.QueryData("diff")
+    ratio = PointData.QueryData("ratio")
+    Z = PointData.QueryData("elevation")
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax1 = fig.add_subplot(gs[10:50,10:95])
+    ax2 = fig.add_subplot(gs[50:100,10:95])
+
+
+
+    if(log_data):
+        print("I am logging the data")
+        diff = np.log10(diff)
+        ratio = np.log10(ratio)
+
+    sign = PointData.QueryData("sign")
+
+    ax1.scatter(Z,ratio, s=0.7, lw = 0, c = sign)
+    ax1.set_ylabel("Ratio")
+    ax1.tick_params(axis = 'x', length = 0, width = 0, labelsize = 0)
+    ax1.spines['bottom'].set_visible(False)
+    ax2.scatter(Z,diff,s=0.7, lw = 0, c = sign)
+    ax2.set_ylabel("Diff")
+    ax2.set_xlabel("elevation")
+
+    #ax2.tick_params(axis = 'x', labelsize = 6)
+    #ax1.set_xticks([4,5,6,7,8,9,10])
+    #ax2.set_xticks([4,5,6,7,8,9,10])
+    #ax2.set_xticklabels([ur"$10^{4}$",ur"$10^{5}$",ur"$10^{6}$",ur"$10^{7}$",ur"$10^{8}$",ur"$10^{9}$",ur"$10^{10}$"])
+
+    plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
+
+def plot_outliers_x_vs_diff_ratio(PointDataOut,PointData, DataDirectory,x_col = "elevation", saveName = "Outliers", save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_ratio = [], ylim_diff = []):
+    """
+    Basic plot to have a general view of the knickpoints: flow distance against ratio and diff colored by elevation
+
+    Args:
+        PointData: A PointData object
+        DataDirectory: Where the data is saved
+        saveName: save name
+
+    returns:
+        Nothing, sorry.
+    Author: BG
+    """
+    plt.clf()
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(2, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(2, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(2, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+    diff = PointData.QueryData("diff")
+    ratio = PointData.QueryData("ratio")
+    Z = PointData.QueryData(x_col)
+
+    diff_out = PointDataOut.QueryData("diff")
+    ratio_out = PointDataOut.QueryData("ratio")
+    Z_out = PointDataOut.QueryData(x_col)
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax1 = fig.add_subplot(gs[10:50,10:95])
+    ax2 = fig.add_subplot(gs[50:100,10:95])
+
+
+
+    if(log_data):
+        print("I am logging the data")
+        diff = np.log10(diff)
+        ratio = np.log10(ratio)
+
+    sign = PointDataOut.QueryData("sign")
+
+    ax1.scatter(Z,ratio, s=1.5, lw = 0, c = "gray")
+    ax1.scatter(Z_out,ratio_out, s=1.5, lw = 0, c = sign)
+    ax1.set_ylabel("Ratio")
+    ax1.tick_params(axis = 'x', length = 0, width = 0, labelsize = 0)
+    ax1.spines['bottom'].set_visible(False)
+    ax2.scatter(Z,diff,s=1.5, lw = 0, c = "gray")
+    ax2.scatter(Z_out,diff_out,s=1.5, lw = 0, c = sign)
+    ax2.set_ylabel("Diff")
+    ax2.set_xlabel("Elevation")
+    if(ylim_diff != []):
+        ax2.set_ylim(ylim_diff[0],ylim_diff[1])
+    if ylim_ratio != []:
+        ax.set_ylim(ylim_ratio[0],ylim_ratio[1])
+
+    #ax2.tick_params(axis = 'x', labelsize = 6)
+    #ax1.set_xticks([4,5,6,7,8,9,10])
+    #ax2.set_xticks([4,5,6,7,8,9,10])
+    #ax2.set_xticklabels([ur"$10^{4}$",ur"$10^{5}$",ur"$10^{6}$",ur"$10^{7}$",ur"$10^{8}$",ur"$10^{9}$",ur"$10^{10}$"])
+
+    plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
+
 def plot_outliers_vs_others(PointData,PointDataOut, DataDirectory, saveName = "Basic_diff_ratio", save_fmt = ".png", size_format = "ESURF", log_data = False):
     """
     Basic plot to have a general view of the knickpoints: diff against ratio colored by elevation
@@ -525,7 +721,7 @@ def map_knickpoint_diff_sized_colored_ratio(PointData, DataDirectory, Raster_bas
                        scale_points = True, # All the point will have the same size if False
                        column_for_scaling = "diff", # If scale point True, you can scale the size of your points using one of the columns
                        scaled_data_in_log = log, # If scale point True, you can log the scaling
-                       max_point_size = 10, # max size if scale point True again
+                       max_point_size = 20, # max size if scale point True again
                        min_point_size = 0.5, # You should be able to guess that one now
                        coulor_log = log, # do you want a log scale for your colorbar ?
                        coulor_manual_scale = [], #Do you want to manually limit the scale of your colorbar? if not let is false
