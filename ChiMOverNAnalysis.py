@@ -437,8 +437,8 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         basin_list = list(basin_set)
         basin_list = [int(i) for i in basin_list]
 
-        print("The basin list is now: ")
-        print(basin_list)
+        #print("The basin list is now: ")
+        #print(basin_list)
 
     # make a data object that will hold the counters
     Outlier_counter = {}
@@ -477,11 +477,12 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             MLE_array = np.asarray(MLE_values)
             RMSE_array = np.asarray(RMSE_values)
             
-            print("The length of the RMSE array is: ")
-            print(len(RMSE_array))
+
             
             """
-            Working here: need to fix the divide by zero problem if the array is only one tributary
+            # Working here: need to fix the divide by zero problem if the array is only one tributary
+            #print("The length of the RMSE array is: ")
+            #print(len(RMSE_array))
             if(len(RMSE_array) == 1):
                 RMSE_outliers = False
                 MLE_outliers = False
@@ -518,15 +519,16 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             Outlier_counter[basin] = Outlier_counter[basin]+int_Outlier
 
     # now show the outlier counter
-    for basin in basin_list:
-        print("The outlier counter in basin: "+str(basin)+" is: ")
-        print(Outlier_counter[basin])
+    #for basin in basin_list:
+    #    print("The outlier counter in basin: "+str(basin)+" is: ")
+    #    print(Outlier_counter[basin])
 
 
     # Now try to calculate MLE by removing outliers 
-    basin_number = 16      
-    RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
-
+    for basin_number in basin_list:
+        RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
+    #basin_number = 0
+    #RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
     
 def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern=0.2, d_movern=0.1, n_movern=7):
     """
@@ -550,9 +552,8 @@ def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_numb
     # get the outlier counter for this basin
     thisBasinOutlierCounter = Outlier_counter[basin_number]
     
-    print("I am going to recalcualte MLE for basin: ")
-    print(basin_number)
-    print("The counter is:")
+    print("I am going to recalcualte MLE for basin: "+str(basin_number))
+    print("The counter list is:")
     print(thisBasinOutlierCounter)
     
     # Figure out how many nonzero entries are in the counter
@@ -570,7 +571,11 @@ def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_numb
     
     # make sure the sourted outliers are ints
     int_sorted_outliers = [int(i) for i in sorted_outliers]
-    
+
+    # we need to reverse these lists so that the biggest outlier counts come first
+    sort_index = sort_index[::-1]
+    sorted_outliers = sorted_outliers[::-1]
+   
     # get all the duplicates, with the total number of duplicates for each counter  
     # This uses the unbelievably handy collections.Counter tool
     from collections import Counter    
@@ -579,18 +584,51 @@ def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_numb
     # pop out the zero duplicates: we don't exclude non-outlier data
     all_counter_dict.pop(0, None)
     
+    # now we need to iteratively remove the offending counters.    
+    remove_list = []
+    remove_list_index = []
+    last_count = -1
+        
+    # Only enter the loop if there are positive counts
+    if all_counter_dict != 0:
+        
+        # Now loop through the sorted outlier count
+        for idx,sorted_outlier_count in enumerate(sorted_outliers):
+
+            # first check if this has more than one count
+            if sorted_outlier_count == 0:
+                all_removed = True
+            else:
+                # if this is the first element, add it to the remove list
+                #if len(remove_list) == 0:
+                #    remove_list.append([])
+                #    remove_list_index.append([])
+                    
+                # get the number of counts
+                #n_counts = all_counter_dict[sorted_outlier_count]
+                
+                # either append the count and index to the current count
+                # or make a new list for the next count
+                if sorted_outlier_count != last_count:
+                    remove_list.append([])    
+                    remove_list_index.append([])
+                    
+                remove_list[-1].append(int(sorted_outlier_count))
+                remove_list_index[-1].append(sort_index[idx])
+                
+                last_count = sorted_outlier_count
+                
+    # now print out the lists
+    print("remove list is: ")
+    print(remove_list)
     
-    # now check the size of the all_counter dict. 
-    # If it is zero, it means we didn't get any 
-    
-    print("The all counter dict is length:")
-    print(len(all_counter_dict))
-    
-    
-    print("sourted_outliers are: ")
-    print(sorted_outliers)    
-    print("And the all duplicates counter dict is: ")
-    print(all_counter_dict)
+    print("and index of this list is: ")
+    print(remove_list_index)
+                
+
+                    
+                
+
 
 
 if __name__ == "__main__":
