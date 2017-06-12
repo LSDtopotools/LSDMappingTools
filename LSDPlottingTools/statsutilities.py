@@ -100,8 +100,9 @@ def binning_PD(df, column = "", values = [], log = False):
     Args:
         df: The pandas dataframe
         column (str): name of the column that hold the data
-        values (list): list of the upper values of each binning, another binning category will incorporate everything superior to the last value
-                        you also can give the value "auto_power_10" to this. it will automatically bin the data each 10**n until the max
+        values (list): _ list of the upper values of each binning, another binning category will incorporate everything superior to the last value
+                       _ you also can give the value "auto_power_10" to this. it will automatically bin the data each 10**n until the max
+                       _ "unique" will bin the df for each values of the column (Basin/ source key for example)
         log (bool): if you want to compare values to log of column
     return:
         dictionnary of pandas dataframe, the key being the upper value
@@ -127,6 +128,12 @@ def binning_PD(df, column = "", values = [], log = False):
         del values[-1] # delete the last value to keep last bin > to last value
         print("Your binning values are: ")
         print(values)
+    else:
+        if(isinstance(values,str) and values == "unique"):
+            print("I am automatically choosing the binning values for each unique values, thanks for trusting me")
+            values = df[column].unique()
+            print("Your binning values are: ")
+            print(values)
     cumul_lines = 0# check if all the values are inside bins
 
 

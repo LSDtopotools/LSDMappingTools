@@ -305,34 +305,39 @@ if __name__ == "__main__":
 
 
     ######## I am binning the elevation using an interval to test
-    for i in [5,10,25,50,75,100,200]:
-        Z_interval = []
-        interval = i
-        rangelev = interval
-        while(rangelev<dfp.elevation.max()):
-            Z_interval.append(rangelev)
-            rangelev += interval
-        binned_by_Z = lst.binning_PD(dfp,column = "elevation",values =  Z_interval)
-        ######## done
 
-        ######## I am selecting the outliers for each lists
+    Z_interval = []
+    interval = 50
+    rangelev = interval
+    while(rangelev<dfp.elevation.max()):
+        Z_interval.append(rangelev)
+        rangelev += interval
+    binned_by_Z = lst.binning_PD(dfp,column = "elevation",values =  Z_interval)
+    ######## done
 
-        binned_by_Z_Outliers = lst.add_outlier_column_to_PD(binned_by_Z, column = ["diff", "ratio"], threshold =[2,2])
+    ######## I am selecting the outliers for each lists
 
-        ZOUT = pandas.concat(binned_by_Z)
+    binned_by_Z_Outliers = lst.add_outlier_column_to_PD(binned_by_Z, column = ["diff", "ratio"], threshold =[2,2])
 
-        ZOUT = ZOUT[ZOUT['diff_outlier']]
+    ZOUT = pandas.concat(binned_by_Z_Outliers)
 
-
-        #Loading the pt
-        PTZOUT = load_Point_Tool(ZOUT)
-        PT = load_Point_Tool(dfp) # If you need actual pointdata
-        #PTflat = load_Point_Tool(flat_values)
-        PTriver = load_Point_Tool(river_net)
-        KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "elevation", saveName = "Outliers_bin_Z_int_"+str(i), save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
+    ZOUT = ZOUT[ZOUT['diff_outlier']]
 
 
+    #Loading the pt
+    PTZOUT = load_Point_Tool(ZOUT)
+    PT = load_Point_Tool(dfp) # If you need actual pointdata
+    #PTflat = load_Point_Tool(flat_values)
+    PTriver = load_Point_Tool(river_net)
+    KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "elevation", saveName = "Outliers_bin_Z_int_"+str(interval), save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
 
+    ########### Now binning by Source key ################
+
+    binned_by_S = lst.binning_PD(dfp,column = "source_key",values =  "unique")
+    binned_by_S_outliers = lst.add_outlier_column_to_PD(binned_by_Z, column = ["diff", "ratio"], threshold =[2,2])
+    SOUT = pandas.concat(binned_by_S_outliers)
+    PTSOUT = load_Point_Tool(SOUT)
+    KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "source_key", saveName = "Outliers_bin_S", save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
     ############################################## I am too lazy to delete the following code but I don't need it for the moment
     quit()
 

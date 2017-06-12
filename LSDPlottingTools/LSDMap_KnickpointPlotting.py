@@ -422,7 +422,7 @@ def plot_outliers_x_vs_diff_ratio(PointDataOut,PointData, DataDirectory,x_col = 
     ax2.scatter(Z,diff,s=1.5, lw = 0, c = "gray")
     ax2.scatter(Z_out,diff_out,s=1.5, lw = 0, c = sign)
     ax2.set_ylabel("Diff")
-    ax2.set_xlabel("Elevation")
+    ax2.set_xlabel(x_col)
     if(ylim_diff != []):
         ax2.set_ylim(ylim_diff[0],ylim_diff[1])
     if ylim_ratio != []:
