@@ -453,7 +453,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         this_counter = np.zeros(n_nodes)
         Outlier_counter[basin] = this_counter      
     
-    # Now we loop through all the files, calulating the outliers
+    # Now we loop through all the files, calculating the outliers
     for m_over_n in m_over_n_values:
         full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n)+"_fullstats.csv"
         
@@ -525,10 +525,10 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
 
 
     # Now try to calculate MLE by removing outliers 
-    for basin_number in basin_list:
-        RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
-    #basin_number = 0
-    #RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
+    #for basin_number in basin_list:
+    #    RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
+    basin_number = 0
+    RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
     
 def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern=0.2, d_movern=0.1, n_movern=7):
     """
@@ -555,15 +555,6 @@ def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_numb
     print("I am going to recalcualte MLE for basin: "+str(basin_number))
     print("The counter list is:")
     print(thisBasinOutlierCounter)
-    
-    # Figure out how many nonzero entries are in the counter
-    basin_nonzero = []
-    for count in thisBasinOutlierCounter:
-        if(count<0):
-            basin_nonzero.append(1)
-        else:
-            basin_nonzero.append(0)    
-    total_nonzero = sum(basin_nonzero)
     
     # Get the sroted version and the indices into the sorted version
     sort_index = np.argsort(thisBasinOutlierCounter)
@@ -625,10 +616,131 @@ def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_numb
     print("and index of this list is: ")
     print(remove_list_index)
                 
+    # now we loop through m over n, incrementally removing the tributaries
+    # this is done by copying the MLE vector and then replacing 
+    # the offending channels with an MLE of 1
+    # Get a vector of the m over n values
+    end_movern = start_movern+d_movern*(n_movern-1)
+    m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
-                    
-                
 
+    #movern = 0.5
+    #RecalculateTotalMLEWithRemoveList(movern,basin_number, remove_list_index)
+    RemoveAllBadTribs(m_over_n_values,basin_number, remove_list_index)
+    
+    """
+    # we just start with the first of the remove list
+    for m_over_n in m_over_n_values:
+        full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n)+"_fullstats.csv" 
+
+        #load the file
+        FullStatsDF = pd.read_csv(full_filename)
+
+        # mask the data so you only get the correct basin
+        FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin]
+
+            # extract the relevant data
+            MLE_values = list(FullStatsDF_basin['MLE'])
+            trib_values = list(FullStatsDF_basin['test_source_key'])
+    """
+
+
+def RemoveAllBadTribs(movern_list,basin_number, remove_list_index):
+    """
+    This function takes the remove list index and then recalculates MLE by incrementally
+    removing tributaries
+    
+    Args:
+        movern_list (float): m/n value.
+        basin_number (int): The basin you want
+        remove_list_index (list of lists): This contains information about what tributaries to remove
+        
+    Returns:
+        The MLE data the removed tributaries
+    """
+    
+    All_MLE = []
+    for m_over_n in movern_list:
+        MLE_vals = RecalculateTotalMLEWithRemoveList(m_over_n,basin_number, remove_list_index)
+        All_MLE.append(MLE_vals)
+   
+         
+    MLEs = np.asarray(All_MLE)
+    print("All_MLE are:")
+    print(MLEs)
+    
+    print("Size of array is: ")
+    print(MLEs.shape)
+    
+    print("Array_slices: ")
+    print(MLEs[:,0])
+    
+    print("Maximums")
+    print(np.amax(MLEs,0))
+    
+    print("Index of maximums: ")
+    print(np.argmax(MLEs,0))
+    
+    #print("Max MLE is at m over n of: ")
+    #print(movern_list[])
+    
+    #print(np.amax(MLEs,1))
+    #print(np.amin(MLEs,2))
+    
+      
+
+
+           
+def RecalculateTotalMLEWithRemoveList(movern,basin_number, remove_list_index):
+    """
+    This function takes the remove list index and then recalculates MLE by incrementally
+    removing tributaries
+    
+    Args:
+        movern (float): m/n value.
+        basin_number (int): The basin you want
+        remove_list_index (list of lists): This contains information about what tributaries to remove
+        
+    Returns:
+        The MLE data with incrementally removed tributaries
+    """
+    full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(movern)+"_fullstats.csv"                 
+
+    #load the file
+    FullStatsDF = pd.read_csv(full_filename)
+    
+    # mask the data so you only get the correct basin
+    FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin_number]
+
+    # extract the relevant data
+    MLE_values = list(FullStatsDF_basin['MLE'])
+    #trib_values = list(FullStatsDF_basin['test_source_key']) 
+    
+    # get the MLE_values as an array
+    MLE_values = np.asarray(MLE_values)
+    
+    print("The total MLE is: ")
+    print(np.prod(MLE_values))
+    
+    MLE_vals = []
+    MLE_vals.append(np.prod(MLE_values))
+    
+    # now loop through the remove list
+    for stuff_to_remove in remove_list_index:
+        this_MLE = MLE_values
+        for idx in stuff_to_remove:
+            this_MLE[idx] = 1
+
+        print("\n REMOVING; The total MLE is: ")
+        print(np.prod(this_MLE)) 
+        MLE_vals.append(np.prod(this_MLE))
+         
+         
+    return MLE_vals
+        
+        
+            
+        
 
 
 if __name__ == "__main__":
