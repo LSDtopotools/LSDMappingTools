@@ -476,6 +476,20 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             # now get the outliers
             MLE_array = np.asarray(MLE_values)
             RMSE_array = np.asarray(RMSE_values)
+            
+            print("The length of the RMSE array is: ")
+            print(len(RMSE_array))
+            
+            """
+            Working here: need to fix the divide by zero problem if the array is only one tributary
+            if(len(RMSE_array) == 1):
+                RMSE_outliers = False
+                MLE_outliers = False
+                RMSE_outlies = np.asarray(RMSE_outliers)
+                MLE_outliers = np.asarray(MLE_outliers)
+            else:
+            """
+            
             RMSE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
             MLE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
 
@@ -566,6 +580,13 @@ def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_numb
     all_counter_dict.pop(0, None)
     
     
+    # now check the size of the all_counter dict. 
+    # If it is zero, it means we didn't get any 
+    
+    print("The all counter dict is length:")
+    print(len(all_counter_dict))
+    
+    
     print("sourted_outliers are: ")
     print(sorted_outliers)    
     print("And the all duplicates counter dict is: ")
@@ -577,8 +598,8 @@ if __name__ == "__main__":
     # Change these filenames and paths to suit your own files
     # DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
     # fname_prefix = 'Kentucky_chi'
-    #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
-    DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
+    DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
+    #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
     fname_prefix = 'Irian_Jaya_PP'
 
     size_format='ESURF'
