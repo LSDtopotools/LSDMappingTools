@@ -21,6 +21,7 @@ from LSDPlottingTools import init_plotting_DV
 import LSDPlottingTools as LSDP
 import sys
 import pandas as pd
+from scipy.stats import norm
 
 def plot_knickpoint_elevations(PointData, DataDirectory, basin_key=0, kp_threshold=0,
                                FigFileName='Image.pdf', FigFormat='pdf', size_format='ESURF', kp_type = "diff"):
@@ -735,6 +736,68 @@ def map_knickpoint_diff_sized_colored_ratio(PointData, DataDirectory, Raster_bas
         ImageName = wDirectory+wname+".png" # Ignore this
     ax_style = "Normal" # Ignore this
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = dpi) # Save the figure
+
+
+def plot_pdf_diff_ratio(df, DataDirectory, saveName = "pdf_diff_ratio", save_fmt = ".png", size_format = "ESURF",  xlim =[]):
+    """
+    Basic plot to have a general view of the knickpoints: flow distance against ratio and diff colored by elevation
+
+    Args:
+        PointData: A PointData object
+        DataDirectory: Where the data is saved
+        saveName: save name
+
+    returns:
+        Nothing, sorry.
+    Author: BG
+    """
+    plt.clf()
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(2, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(2, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(2, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax1 = fig.add_subplot(gs[10:50,10:95])
+    ax2 = fig.add_subplot(gs[50:100,10:95])
+
+
+    ax1.scatter(df["ratio"],norm.pdf(df["ratio"]),lw =0, s = 1, c = "red")
+    ax1.set_ylabel("Ratio")
+    ax1.tick_params(axis = 'x', length = 0, width = 0, labelsize = 0)
+    ax1.spines['bottom'].set_visible(False)
+    ax2.scatter(df["diff"],norm.pdf(df["diff"]),lw =0, s = 1, c = "red")
+    ax2.set_ylabel("Diff")
+    ax2.set_xlabel("PDF")
+
+
+    #'###### Setting the limits
+    if(xlim != []):
+        ax2.set_xlim(xlim[0],xlim[1])
+        ax1.set_xlim(xlim[0],xlim[1])
+    else:
+        ax2.set_xlim(np.percentile(df["diff"], 0),np.percentile(df["diff"], 25))
+        ax1.set_xlim(np.percentile(df["diff"], 0),np.percentile(df["diff"], 25))
+
+
+    #ax2.tick_params(axis = 'x', labelsize = 6)
+    #ax1.set_xticks([4,5,6,7,8,9,10])
+    #ax2.set_xticks([4,5,6,7,8,9,10])
+    #ax2.set_xticklabels([ur"$10^{4}$",ur"$10^{5}$",ur"$10^{6}$",ur"$10^{7}$",ur"$10^{8}$",ur"$10^{9}$",ur"$10^{10}$"])
+
+    plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
 
 
 

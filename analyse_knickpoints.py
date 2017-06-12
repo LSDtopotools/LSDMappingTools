@@ -302,7 +302,7 @@ if __name__ == "__main__":
     dfp = select_main_basin(dfp)
     flat_values = sort_ratio_0_data(dfp, mode = "extract")
     dfp = sort_ratio_0_data(dfp, mode = "delete")
-
+    KP.plot_pdf_diff_ratio(dfp, DataDirectory, saveName = "General_pdf", save_fmt = ".png", size_format = "ESURF",  xlim = [])
 
     ######## I am binning the elevation using an interval to test
 
@@ -321,7 +321,9 @@ if __name__ == "__main__":
 
     ZOUT = pandas.concat(binned_by_Z_Outliers)
 
-    ZOUT = ZOUT[ZOUT['diff_outlier']]
+    #ZOUT = ZOUT[ZOUT['diff_outlier']]
+    ZOUT = ZOUT[ZOUT['ratio_outlier']]
+
 
 
     #Loading the pt
@@ -329,7 +331,7 @@ if __name__ == "__main__":
     PT = load_Point_Tool(dfp) # If you need actual pointdata
     #PTflat = load_Point_Tool(flat_values)
     PTriver = load_Point_Tool(river_net)
-    KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "elevation", saveName = "Outliers_bin_Z_int_"+str(interval), save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
+    KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "elevation", saveName = "Outliers_bin_Z_ratio_int_"+str(interval), save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
 
     ########### Now binning by Source key ################
 

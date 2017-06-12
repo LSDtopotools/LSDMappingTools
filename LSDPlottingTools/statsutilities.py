@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 import pandas as pd
+import scipy.stats as ss
 
 # This function comes from
 # https://github.com/joferkington/oost_paper_code/blob/master/utilities.py
@@ -171,7 +172,7 @@ def binning_PD(df, column = "", values = [], log = False):
 
     return dict_return
 
-def dixon_test(data, left=True, right=True, q_dict):
+def dixon_test(data, left=True, right=True, q_dict = ""):
     """
     Keyword arguments:
         data = A ordered or unordered list of data points (int or float).
