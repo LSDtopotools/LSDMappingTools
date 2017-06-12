@@ -524,13 +524,29 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     #    print(Outlier_counter[basin])
 
 
-    # Now try to calculate MLE by removing outliers 
-    #for basin_number in basin_list:
-    #    RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
-    basin_number = 0
-    RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern, d_movern, n_movern)
+    # Now try to calculate MLE by removing outliers
     
-def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern=0.2, d_movern=0.1, n_movern=7):
+    # Set up dicts where the keys are the basin numbers and the
+    # elements tell the m/n values of the best fit MLE, with each element
+    # representing incrementally removed tributaries
+    # The removed_sources_dict refers to the sources being removed each step    
+    best_fit_movern_dict = {}
+    removed_sources_dict = {}
+    for basin_number in basin_list:
+        remove_list_index,movern_of_max_MLE = Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, 
+                                                                                DataDirectory, 
+                                                                                fname_prefix, 
+                                                                                basin_number, 
+                                                                                start_movern, 
+                                                                                d_movern, 
+                                                                                n_movern)
+        best_fit_movern_dict[basin_number] = movern_of_max_MLE
+        removed_sources_dict[basin_number] = remove_list_index
+    
+    print("Here are the vitalstatisix, chief: ")
+    print(best_fit_movern_dict)
+    
+def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern=0.2, d_movern=0.1, n_movern=7):
     """
     This function takes the outlier counter and incrementally removes the MLE for
     the removed channels
@@ -553,8 +569,8 @@ def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_numb
     thisBasinOutlierCounter = Outlier_counter[basin_number]
     
     print("I am going to recalcualte MLE for basin: "+str(basin_number))
-    print("The counter list is:")
-    print(thisBasinOutlierCounter)
+    #print("The counter list is:")
+    #print(thisBasinOutlierCounter)
     
     # Get the sroted version and the indices into the sorted version
     sort_index = np.argsort(thisBasinOutlierCounter)
@@ -610,11 +626,11 @@ def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_numb
                 last_count = sorted_outlier_count
                 
     # now print out the lists
-    print("remove list is: ")
-    print(remove_list)
+    #print("remove list is: ")
+    #print(remove_list)
     
-    print("and index of this list is: ")
-    print(remove_list_index)
+    #print("and index of this list is: ")
+    #print(remove_list_index)
                 
     # now we loop through m over n, incrementally removing the tributaries
     # this is done by copying the MLE vector and then replacing 
@@ -623,29 +639,23 @@ def RecalculateTotalMLE(Outlier_counter, DataDirectory, fname_prefix, basin_numb
     end_movern = start_movern+d_movern*(n_movern-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
-
-    #movern = 0.5
-    #RecalculateTotalMLEWithRemoveList(movern,basin_number, remove_list_index)
-    RemoveAllBadTribs(m_over_n_values,basin_number, remove_list_index)
+    # Now get the movern values
+    movern_of_max_MLE = Calculate_movern_after_iteratively_removing_outliers(m_over_n_values,
+                                                                             DataDirectory,                                                         
+                                                                             fname_prefix,                                                          
+                                                                             basin_number, 
+                                                                             remove_list_index)
     
-    """
-    # we just start with the first of the remove list
-    for m_over_n in m_over_n_values:
-        full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(m_over_n)+"_fullstats.csv" 
-
-        #load the file
-        FullStatsDF = pd.read_csv(full_filename)
-
-        # mask the data so you only get the correct basin
-        FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin]
-
-            # extract the relevant data
-            MLE_values = list(FullStatsDF_basin['MLE'])
-            trib_values = list(FullStatsDF_basin['test_source_key'])
-    """
+    # Returns the remove_list_index, which is a list where each element
+    # is a list of tributaries removed in an iteration, 
+    # And the maximum MLE values in each iteration.                                                     
+    return remove_list_index,movern_of_max_MLE
+ 
 
 
-def RemoveAllBadTribs(movern_list,basin_number, remove_list_index):
+def Calculate_movern_after_iteratively_removing_outliers(movern_list, DataDirectory,                                                         
+                                                         fname_prefix, basin_number, 
+                                                         remove_list_index):
     """
     This function takes the remove list index and then recalculates MLE by incrementally
     removing tributaries
@@ -659,35 +669,29 @@ def RemoveAllBadTribs(movern_list,basin_number, remove_list_index):
         The MLE data the removed tributaries
     """
     
+    # Loop through m over n values and recalculate MLE values after removing
+    # the outlying data
     All_MLE = []
     for m_over_n in movern_list:
         MLE_vals = RecalculateTotalMLEWithRemoveList(m_over_n,basin_number, remove_list_index)
         All_MLE.append(MLE_vals)
    
          
-    MLEs = np.asarray(All_MLE)
-    print("All_MLE are:")
-    print(MLEs)
+    MLEs = np.asarray(All_MLE)    
+    index_of_maximums = np.argmax(MLEs,0)
     
-    print("Size of array is: ")
-    print(MLEs.shape)
-    
-    print("Array_slices: ")
-    print(MLEs[:,0])
-    
-    print("Maximums")
-    print(np.amax(MLEs,0))
-    
-    print("Index of maximums: ")
-    print(np.argmax(MLEs,0))
-    
+    movern_of_max_MLE = []
+    for index in index_of_maximums:
+        movern_of_max_MLE.append(movern_list[index])
+     
+    # This is required because linspace gives floating point errors 
+    movern_of_max_MLE = np.around(movern_of_max_MLE,4)   
+
     #print("Max MLE is at m over n of: ")
-    #print(movern_list[])
+    #print(movern_of_max_MLE)
+        
+    return movern_of_max_MLE
     
-    #print(np.amax(MLEs,1))
-    #print(np.amin(MLEs,2))
-    
-      
 
 
            
@@ -719,8 +723,8 @@ def RecalculateTotalMLEWithRemoveList(movern,basin_number, remove_list_index):
     # get the MLE_values as an array
     MLE_values = np.asarray(MLE_values)
     
-    print("The total MLE is: ")
-    print(np.prod(MLE_values))
+    #print("The total MLE is: ")
+    #print(np.prod(MLE_values))
     
     MLE_vals = []
     MLE_vals.append(np.prod(MLE_values))
@@ -731,8 +735,8 @@ def RecalculateTotalMLEWithRemoveList(movern,basin_number, remove_list_index):
         for idx in stuff_to_remove:
             this_MLE[idx] = 1
 
-        print("\n REMOVING; The total MLE is: ")
-        print(np.prod(this_MLE)) 
+        #print("\n REMOVING; The total MLE is: ")
+        #print(np.prod(this_MLE)) 
         MLE_vals.append(np.prod(this_MLE))
          
          
@@ -748,8 +752,8 @@ if __name__ == "__main__":
     # Change these filenames and paths to suit your own files
     # DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
     # fname_prefix = 'Kentucky_chi'
-    DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
-    #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
+    #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
+    DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
     fname_prefix = 'Irian_Jaya_PP'
 
     size_format='ESURF'
