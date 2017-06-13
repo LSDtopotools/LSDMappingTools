@@ -42,7 +42,12 @@ def is_outlier(points, thresh=3.5):
     diff = np.sqrt(diff)
     med_abs_deviation = np.median(diff)
 
-    modified_z_score = 0.6745 * diff / med_abs_deviation
+    # make sure that you don't get a divide by zero. 
+    # If MAD is 0, then there are no outliers
+    if med_abs_deviation == 0:
+        modified_z_score = diff * 0
+    else:
+        modified_z_score = 0.6745 * diff / med_abs_deviation
 
     return modified_z_score > thresh
 
