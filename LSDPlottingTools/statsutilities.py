@@ -242,5 +242,4 @@ def dixon_test(data, left=True, right=True, q_dict = ""):
 
 
 
-
 #

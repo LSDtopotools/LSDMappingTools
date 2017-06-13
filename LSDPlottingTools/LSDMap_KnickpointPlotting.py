@@ -787,9 +787,7 @@ def plot_pdf_diff_ratio(df, DataDirectory, saveName = "pdf_diff_ratio", save_fmt
     if(xlim != []):
         ax2.set_xlim(xlim[0],xlim[1])
         ax1.set_xlim(xlim[0],xlim[1])
-    else:
-        ax2.set_xlim(np.percentile(df["diff"], 0),np.percentile(df["diff"], 25))
-        ax1.set_xlim(np.percentile(df["diff"], 0),np.percentile(df["diff"], 25))
+
 
 
     #ax2.tick_params(axis = 'x', labelsize = 6)
@@ -799,10 +797,166 @@ def plot_pdf_diff_ratio(df, DataDirectory, saveName = "pdf_diff_ratio", save_fmt
 
     plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
 
+def violin_by_bin(ldf, DataDirectory, saveName = "Violin", column = "elevation", size_format = "ESURF"):
+
+    """
+    Will plot violin from a list of bins. NOT READY YET.
+
+    Author: BG
+
+    matplotlib description:
+        Violin plots are similar to histograms and box plots in that they show
+    an abstract representation of the probability distribution of the
+    sample. Rather than showing counts of data points that fall into bins
+    or order statistics, violin plots use kernel density estimation (KDE) to
+    compute an empirical distribution of the sample. That computation
+    is controlled by several parameters. This example demonstrates how to
+    modify the number of points at which the KDE is evaluated (``points``)
+    and how to modify the band-width of the KDE (``bw_method``).
+
+    For more information on violin plots and KDE, the scikit-learn docs
+    have a great section: http://scikit-learn.org/stable/modules/density.html
+    """
+
+    plt.clf()
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(2, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(2, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(2, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax1 = fig.add_subplot(gs[10:50,10:95])
+    ax2 = fig.add_subplot(gs[50:100,10:95])
+
+
+    ax2.set_ylabel("Ratio")
+    ax1.set_ylabel("Diff")
+    ax2.set_xlabel(column)
+    plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
+
+
+def pdf_from_bin(ldf, DataDirectory, saveName = "BasicPDF_", column = "elevation", size_format = "ESURF" ):
+
+    """
+    Produce some simple pdf plots from a list of pandas dataframe.
+
+    Arg:
+
+    Returns: nothing, but produce a plot.
+
+    Author: BG
+    """
+
+    for inch in ldf:
+        plt.clf()
+        label_size = 10
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.size'] = label_size
+
+        # make a figure
+        if size_format == "geomorphology":
+            fig = plt.figure(2, facecolor='white',figsize=(6.25,3.5))
+            l_pad = -40
+        elif size_format == "big":
+            fig = plt.figure(2, facecolor='white',figsize=(16,9))
+            l_pad = -50
+        else:
+            fig = plt.figure(2, facecolor='white',figsize=(4.92126,3.5))
+            l_pad = -35
+
+
+
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+        ax1 = fig.add_subplot(gs[10:50,10:95])
+        ax2 = fig.add_subplot(gs[50:100,10:95])
+
+        ax2.scatter(ldf[inch]["diff"],norm.pdf(ldf[inch]["diff"]), s = 1.5, lw = 0)
+        ax1.scatter(ldf[inch]["ratio"],norm.pdf(ldf[inch]["ratio"]), s = 1.5, lw = 0)
+
+        ax2.set_ylabel("PDF (Diff)")
+        ax1.set_ylabel("PDF (Ratio)")
+        ax2.set_xlabel("Diff/ratio binned by " + column + "_" + inch)
+        plt.savefig(DataDirectory+saveName+inch+"_"+column+".png",dpi=500)
+
+
+def pdf_from_bin_one_col(ldf, DataDirectory, saveName = "BasicPDF_", column = "elevation", size_format = "ESURF", pdf_col = "diff", combine_diff_sign = False, argsort = False ):
+
+    """
+    Produce some simple pdf plots from a dict of pandas dataframe.
+
+    Arg:
+
+    Returns: nothing, but produce a plot.
+
+    Author: BG
+    """
 
 
 
 
+    for inch in ldf:
+        plt.clf()
+        label_size = 10
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.size'] = label_size
+
+
+
+        if(combine_diff_sign):
+            ldf[inch]["diff"][ldf[inch]["sign"] == -1] = -ldf[inch]["diff"][ldf[inch]["sign"] == -1]
+
+        data = np.array(ldf[inch][pdf_col].values)
+
+
+        # make a figure
+        if size_format == "geomorphology":
+            fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+            l_pad = -40
+        elif size_format == "big":
+            fig = plt.figure(1, facecolor='white',figsize=(16,9))
+            l_pad = -50
+        else:
+            fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+            l_pad = -35
+
+
+
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+        ax1 = fig.add_subplot(gs[10:100,5:95])
+
+        print(data.shape)
+        if(data.shape[0]>0):
+            ax1.hist(data, 100, normed=1, facecolor='green', alpha=0.75)
+
+
+
+        #data = np.argsort(data)
+        order = np.argsort(data)
+        xs = np.array(data)[order]
+        ys = np.array(norm.pdf(data))[order]
+
+        ax1.plot(xs,ys,  lw = 1)
+
+
+
+        ax1.set_ylabel("PDF")
+        ax1.set_xlabel("elevation by " + pdf_col)
+        ax1.set_xlim(-100,100)
+        plt.savefig(DataDirectory+saveName+inch+"_"+column+".png",dpi=500)
 
 
 

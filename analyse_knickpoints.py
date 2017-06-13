@@ -302,17 +302,20 @@ if __name__ == "__main__":
     dfp = select_main_basin(dfp)
     flat_values = sort_ratio_0_data(dfp, mode = "extract")
     dfp = sort_ratio_0_data(dfp, mode = "delete")
-    KP.plot_pdf_diff_ratio(dfp, DataDirectory, saveName = "General_pdf", save_fmt = ".png", size_format = "ESURF",  xlim = [])
+
 
     ######## I am binning the elevation using an interval to test
 
     Z_interval = []
-    interval = 50
+    interval = 100
     rangelev = interval
     while(rangelev<dfp.elevation.max()):
         Z_interval.append(rangelev)
         rangelev += interval
     binned_by_Z = lst.binning_PD(dfp,column = "elevation",values =  Z_interval)
+    #KP.pdf_from_bin(binned_by_Z, DataDirectory, column = "elevation", size_format = "ESURF")
+    KP.pdf_from_bin_one_col(binned_by_Z, DataDirectory, column = "elevation", size_format = "ESURF", combine_diff_sign = True, argsort = True)
+        #KP.plot_pdf_diff_ratio(dfp, DataDirectory, saveName = "pdf_Z_bin_"+each.keys, save_fmt = ".png", size_format = "ESURF",  xlim = [])
     ######## done
 
     ######## I am selecting the outliers for each lists
@@ -339,7 +342,8 @@ if __name__ == "__main__":
     binned_by_S_outliers = lst.add_outlier_column_to_PD(binned_by_Z, column = ["diff", "ratio"], threshold =[2,2])
     SOUT = pandas.concat(binned_by_S_outliers)
     PTSOUT = load_Point_Tool(SOUT)
-    KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "source_key", saveName = "Outliers_bin_S", save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
+    #KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "source_key", saveName = "Outliers_bin_S", save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
+
     ############################################## I am too lazy to delete the following code but I don't need it for the moment
     quit()
 
