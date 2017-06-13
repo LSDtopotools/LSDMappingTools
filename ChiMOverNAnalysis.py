@@ -416,10 +416,35 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
 
     Author: SMM
     """ 
+
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[10:95,5:80])
+    #colorbar axis
+    ax2 = fig.add_subplot(gs[10:95,82:85])
+
    
     # First we get all the information about outliers, m/n values and MLE
     # values from the CheckMLEOutliers function
     Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
+
+
 
 
     # Now get the chi profiles of all the basins and channels
@@ -431,14 +456,105 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
     # now we need to get a plot for each basin, showing the incremental removal of outlying tribs
     for basin_number in basin_list:
         
+        # Get the removed sources indices and the MLEs for this particular basin
+        these_removed_sources = removed_sources_dict[basin_number]
+        these_MLEs = MLEs_dict[basin_number]
+        
         # loop through the best fit moverns
-        for best_fit_movern in best_fit_movern_dict[basin_number]:
+        # each value represents the MLE for a given number of removed outlying tributaries
+        for idx,best_fit_movern in enumerate(best_fit_movern_dict[basin_number]):
             
             # mask the data frames for this basin
             ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_number]
-            
-            ## WORKING HERE
 
+            # We also need to get the fullstats MLE file. This will be used
+            # to colour tribs as well as get the source numbers from
+            # the outlier list
+            full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(best_fit_movern)+"_fullstats.csv"
+            FullStatsDF = pd.read_csv(full_filename)
+            
+            # mask the data so you only get the correct basin
+            FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin_number]
+
+            # extract the relevant data
+            MLE_values = list(FullStatsDF_basin['MLE'])
+            RMSE_values = list(FullStatsDF_basin['RMSE'])
+            trib_values = list(FullStatsDF_basin['test_source_key'])  
+            
+            # Now get the excluded tributaries for this iteration
+            removed_sources_list = these_removed_sources[idx]
+            removed_MLE = these_MLEs[idx]
+            
+            print("The main stem is: ")
+            print( FullStatsDF_basin['reference_source_key'][0])
+            
+            
+            # get the data frame for the main stem
+            ProfileDF_MS = ProfileDF_basin[ProfileDF_basin['source_key'] == FullStatsDF_basin['reference_source_key'][0]]
+
+            # get the data frame for the tributaries
+            ProfileDF_basin = ProfileDF_basin[ProfileDF_basin['source_key'] != FullStatsDF_basin['reference_source_key'][0]]
+            # merge with the full data to get the MLE for the tributaries
+            ProfileDF_tribs = ProfileDF_basin.merge(FullStatsDF_basin, left_on = "source_key", right_on = "test_source_key")
+
+            # get the chi and elevation data for the main stem
+            movern_key = 'm_over_n = %s' %(str(best_fit_movern))
+            MainStemX = list(ProfileDF_MS[movern_key])
+            MainStemElevation = list(ProfileDF_MS['elevation'])
+
+            # get the chi, elevation, and MLE for the tributaries
+            TributariesX = list(ProfileDF_tribs[movern_key])
+            TributariesElevation = list(ProfileDF_tribs['elevation'])
+            TributariesMLE = list(ProfileDF_tribs['MLE'])
+            
+            # now reset the 
+
+            # get the colourmap to colour channels by the MLE value
+            #NUM_COLORS = len(MLE)
+            MLE_array = np.asarray(TributariesMLE)
+            this_cmap = plt.cm.Reds
+            cNorm  = colors.Normalize(vmin=np.min(MLE_array), vmax=np.max(MLE_array))
+            plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+
+            # now plot the data with a colourmap
+            sc = ax.scatter(TributariesX,TributariesElevation,c=TributariesMLE,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+            ax.plot(MainStemX,MainStemElevation,lw=2, c='k')
+
+            # some formatting of the figure
+            ax.spines['top'].set_linewidth(1)
+            ax.spines['left'].set_linewidth(1)
+            ax.spines['right'].set_linewidth(1)
+            ax.spines['bottom'].set_linewidth(1)
+
+            # make the lables
+            ax.set_xlabel("$\chi$ (m)")
+            ax.set_ylabel("Elevation (m)")
+
+            # label with the basin and m/n
+            title_string = "Basin "+str(basin_number)+", best fit $m/n$ = "+str(best_fit_movern)
+            ax.text(0.05, 0.95, title_string,
+                    verticalalignment='top', horizontalalignment='left',
+                    transform=ax.transAxes,
+                    color='black', fontsize=10)
+
+            # add the colorbar
+            colorbarlabel = "$MLE$"
+            cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
+            cbar.set_label(colorbarlabel, fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+
+            #save the plot
+            newFilename = DataDirectory+"MLE_profiles"+str(basin_number)+"_"+str(best_fit_movern)+"_removed+"+str(idx)+".png"
+
+            # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+            ax.tick_params(axis='both', width=1, pad = 2)
+            for tick in ax.xaxis.get_major_ticks():
+                tick.set_pad(2)
+
+            plt.savefig(newFilename,format=FigFormat,dpi=300)
+            ax.cla()
+            ax2.cla()            
+            
 
 
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
@@ -833,15 +949,16 @@ if __name__ == "__main__":
     FigFormat = 'png'
 
     # either specify a list of the basins, or set as empty to get all of them
-    basin_list = []
+    basin_list = [0]
 
     # specify the m/n values tested
     start_movern = 0.2
     d_movern = 0.1
     n_movern = 7
 
-    CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
-
+    #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
+    
+    PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
 
     # run the plotting function
     #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
