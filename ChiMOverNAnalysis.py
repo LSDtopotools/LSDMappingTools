@@ -395,6 +395,52 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             ax2.cla()
 
 
+
+def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
+    """
+    This function is used to plot the chi profiles as they have outliers removed. 
+    It calls thefunction CheckMLEOutliers, which you should read to get details
+    on how outliers are calculated and removed
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+
+    Returns:
+        Plots of chi profiles with basins removed        
+
+    Author: SMM
+    """ 
+   
+    # First we get all the information about outliers, m/n values and MLE
+    # values from the CheckMLEOutliers function
+    Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
+
+
+    # Now get the chi profiles of all the basins and channels
+    # Load from file and put into a pandas data frame
+    profile_suffix = "_movern.csv"
+    movern_profile_file = fname_prefix+profile_suffix
+    ProfileDF = pd.read_csv(DataDirectory+movern_profile_file)
+
+    # now we need to get a plot for each basin, showing the incremental removal of outlying tribs
+    for basin_number in basin_list:
+        
+        # loop through the best fit moverns
+        for best_fit_movern in best_fit_movern_dict[basin_number]:
+            
+            # mask the data frames for this basin
+            ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_number]
+            
+            ## WORKING HERE
+
+
+
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
     This function uses the fullstats files to search for outliers in the
@@ -435,8 +481,10 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         number and the values lists of the m/n ratio that has the lowest MLE. These are lists beacuse 
         each element in the list represents the number of outlying tributaries removed. 
         The first element is where no tributaries are removed.
-        MLEs (array): This is an array containing all the MLE values for each m/n and 
-        each iterated removed tributary. To get the MLEs of, say, the first removal you would use MLEs[:,1]        
+        MLEs_dict (dictionary of arrays): The key is the basin number and the value is an a
+        rray containing all the MLE values for each m/n and 
+        each iterated removed tributary. 
+        To get the MLEs of, say, the first removal for the 3rd basin you would use MLEs_dict[2][:,1]        
 
     Author: SMM
     """
@@ -530,6 +578,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     # The removed_sources_dict refers to the sources being removed each step    
     best_fit_movern_dict = {}
     removed_sources_dict = {}
+    MLEs_dict = {}
     for basin_number in basin_list:
         remove_list_index,movern_of_max_MLE,MLEs = Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, 
                                                                                 DataDirectory, 
@@ -540,11 +589,12 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
                                                                                 n_movern)
         best_fit_movern_dict[basin_number] = movern_of_max_MLE
         removed_sources_dict[basin_number] = remove_list_index
+        MLEs_dict[basin_number] = MLEs
     
     print("Here are the vitalstatisix, chief: ")
     print(best_fit_movern_dict)
     
-    return Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs
+    return Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict
     
 def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern=0.2, d_movern=0.1, n_movern=7):
     """
