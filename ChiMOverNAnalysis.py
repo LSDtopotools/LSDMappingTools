@@ -439,6 +439,23 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
     #colorbar axis
     ax2 = fig.add_subplot(gs[10:95,82:85])
 
+
+    # we open the first file just so that we can get a counter list
+    full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(start_movern)+"_fullstats.csv"
+    FirstDF = pd.read_csv(full_filename)
+
+    # get the number of basins
+    basin_keys = list(FirstDF['basin_key'])
+    basin_keys = [float(x) for x in basin_keys]
+
+    # get the list of basins
+    if basin_list == []:
+        print("You didn't give me a list of basins, so I'll just run the analysis on all of them!")
+        basin_list = basin_keys
+        basin_set = set(basin_list)
+        basin_list = list(basin_set)
+        basin_list = [int(i) for i in basin_list]
+
    
     # First we get all the information about outliers, m/n values and MLE
     # values from the CheckMLEOutliers function
@@ -462,7 +479,10 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
         
         # loop through the best fit moverns
         # each value represents the MLE for a given number of removed outlying tributaries
+        removed_sources_list = []
         for idx,best_fit_movern in enumerate(best_fit_movern_dict[basin_number]):
+            
+            print("The best fit m/n is: "+ str(best_fit_movern)+" and the index is "+str(idx))
             
             # mask the data frames for this basin
             ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_number]
@@ -477,25 +497,51 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
             FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin_number]
 
             # extract the relevant data
-            MLE_values = list(FullStatsDF_basin['MLE'])
-            RMSE_values = list(FullStatsDF_basin['RMSE'])
-            trib_values = list(FullStatsDF_basin['test_source_key'])  
+            #MLE_values = list(FullStatsDF_basin['MLE'])
+            #RMSE_values = list(FullStatsDF_basin['RMSE'])
+            trib_values = list(FullStatsDF_basin['test_source_key']) 
+            ref_values = list(FullStatsDF_basin['reference_source_key']) 
             
-            # Now get the excluded tributaries for this iteration
-            removed_sources_list = these_removed_sources[idx]
-            removed_MLE = these_MLEs[idx]
+            # Now get the excluded tributaries for this iteration            
+            #removed_MLE = these_MLEs[idx]
+            
+            # Note that index 0 is the basin with no removed tributaries. 
+            if idx != 0:
+                removed_sources_list.extend(these_removed_sources[idx-1])    
+            
+            # now you need to get the actual source numbers by indexing into the source list
+            the_removed_sources = []
+            for source_index in removed_sources_list:
+                the_removed_sources.append( trib_values[source_index]  )    
             
             print("The main stem is: ")
-            print( FullStatsDF_basin['reference_source_key'][0])
+            print( ref_values[0])
+            
+            print("The removed tribs are: ")
+            print(the_removed_sources)
+            
             
             
             # get the data frame for the main stem
-            ProfileDF_MS = ProfileDF_basin[ProfileDF_basin['source_key'] == FullStatsDF_basin['reference_source_key'][0]]
+            # It does this because the main stem source is always the 0 element in the trib_values list 
+            ProfileDF_MS = ProfileDF_basin[ProfileDF_basin['source_key'] == ref_values[0]]
 
             # get the data frame for the tributaries
-            ProfileDF_basin = ProfileDF_basin[ProfileDF_basin['source_key'] != FullStatsDF_basin['reference_source_key'][0]]
+            ProfileDF_basin = ProfileDF_basin[ProfileDF_basin['source_key'] != ref_values[0]]
+            
+            # now split the tributaries into exluded and non excluded tribs
+            #ProfileDF_outliers = ProfileDF_basin.filter(items=removed_sources_list)
+            #ProfileDF_kept = ProfileDF_basin.filter(items=removed_sources_list)
+            ProfileDF_outliers = ProfileDF_basin[ProfileDF_basin.source_key.isin(the_removed_sources)]
+            ProfileDF_kept = ProfileDF_basin[~ProfileDF_basin.source_key.isin(the_removed_sources)]
+
+            #ProfileDF_basin = ProfileDF_basin[ProfileDF_basin.source_key.isin(removed_sources_list)]
+            #ProfileDF_basin = ProfileDF_basin[ProfileDF_basin.source_key.isin([2,3,4])] 
+            #print(ProfileDF_basin)
+            
             # merge with the full data to get the MLE for the tributaries
-            ProfileDF_tribs = ProfileDF_basin.merge(FullStatsDF_basin, left_on = "source_key", right_on = "test_source_key")
+            ProfileDF_trib_outliers = ProfileDF_outliers.merge(FullStatsDF_basin, left_on = "source_key", right_on = "test_source_key")
+            ProfileDF_trib_kept = ProfileDF_kept.merge(FullStatsDF_basin, left_on = "source_key", right_on = "test_source_key")
 
             # get the chi and elevation data for the main stem
             movern_key = 'm_over_n = %s' %(str(best_fit_movern))
@@ -503,21 +549,30 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
             MainStemElevation = list(ProfileDF_MS['elevation'])
 
             # get the chi, elevation, and MLE for the tributaries
-            TributariesX = list(ProfileDF_tribs[movern_key])
-            TributariesElevation = list(ProfileDF_tribs['elevation'])
-            TributariesMLE = list(ProfileDF_tribs['MLE'])
+            TributariesX_outliers = list(ProfileDF_trib_outliers[movern_key])
+            TributariesElevation_outliers = list(ProfileDF_trib_outliers['elevation'])
+            #TributariesMLE_outliers = list(ProfileDF_trib_outliers['MLE'])
+            
+            TributariesX_kept = list(ProfileDF_trib_kept[movern_key])
+            TributariesElevation_kept = list(ProfileDF_trib_kept['elevation'])
+            TributariesMLE_kept = list(ProfileDF_trib_kept['MLE'])            
             
             # now reset the 
 
             # get the colourmap to colour channels by the MLE value
             #NUM_COLORS = len(MLE)
-            MLE_array = np.asarray(TributariesMLE)
+            MLE_array = np.asarray(TributariesMLE_kept)
             this_cmap = plt.cm.Reds
             cNorm  = colors.Normalize(vmin=np.min(MLE_array), vmax=np.max(MLE_array))
             plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
 
             # now plot the data with a colourmap
-            sc = ax.scatter(TributariesX,TributariesElevation,c=TributariesMLE,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+            sc = ax.scatter(TributariesX_kept,TributariesElevation_kept,c=TributariesMLE_kept,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+            
+            # Add the outliers if the basin has them
+            if(len(removed_sources_list)>0):
+                ax.scatter(TributariesX_outliers,TributariesElevation_outliers,c="b", norm=cNorm, s=2.5, edgecolors='none', alpha = 0.3)
+            
             ax.plot(MainStemX,MainStemElevation,lw=2, c='k')
 
             # some formatting of the figure
@@ -544,7 +599,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
             ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
 
             #save the plot
-            newFilename = DataDirectory+"MLE_profiles"+str(basin_number)+"_"+str(best_fit_movern)+"_removed+"+str(idx)+".png"
+            newFilename = DataDirectory+"MLE_profiles"+str(basin_number)+"_"+str(best_fit_movern)+"_removed_"+str(idx)+".png"
 
             # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
             ax.tick_params(axis='both', width=1, pad = 2)
@@ -949,7 +1004,7 @@ if __name__ == "__main__":
     FigFormat = 'png'
 
     # either specify a list of the basins, or set as empty to get all of them
-    basin_list = [0]
+    basin_list = []
 
     # specify the m/n values tested
     start_movern = 0.2
