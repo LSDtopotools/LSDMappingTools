@@ -397,8 +397,21 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
 
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
-    This function uses the fullstas files to search for outliers in the
-    channels, and also give statistics of the distribution of MLE values.
+    This function uses the fullstats files to search for outliers in the
+    channels. It loops through m/n values and for each m/n value calculates which 
+    tributaries have outlying MLE and RMSE values. Each time a tibutary has an outlying value,
+    an outlier counter is incremented so that for each basin we end up with the number
+    of times each of its tributaries has been selected as an outlier. This outlier counter is
+    returned. From this outlier counter, the tributaries with outliers are ranked in
+    descending order of outlier counts. These are iteratively removed. So for example, 
+    if one tributary has 4 outlier counts and another has 2, the first trib is removed, 
+    and MLE is recalculated, and then the second is also removed and MLE is recalculated again.
+    The removed tributaries and the order in which they are removed is contained within
+    the dictionary removed_sources_dict. Finally, a dictionary with the m/n value
+    for each basin with the lowest MLE is returned. Each basin has a list where the first
+    element is the MLE with no tributaries removed, the second with the first outlier
+    count removed, etc. Note that if two tributaries ahve the same outlier counts
+    then these are removed at the same time. The key into the dictionaries are the basin numbers.
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
@@ -408,11 +421,21 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         start_movern (float): the starting m/n value. Default is 0.2
         d_movern (float): the increment between the m/n values. Default is 0.1
         n_movern (float): the number of m/n values analysed. Default is 7.
-        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
-        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
 
     Returns:
-        Plot of each m/n value for each basin.
+        Outlier_counter (dict): This is a dictionary where the key is the basin
+        number and the values are lists that have the cumulative number of times
+        each tributary in the basin is detected to be an outlier.
+        removed_sources_dict (dict): This is a dictionary where the key is the basin
+        number and the values are lists of lists where the top level list is the steps of removing channels
+        and the second level are the channels themselves. The reason there are nested
+        lists and not individual channels being removed is because sometimes two
+        channels have the same outlier counts and so they are removed at the same time.
+        best_fit_movern_dict (dict): This is a dictionary where the key is the basin
+        number and the values lists of the m/n ratio that has the lowest MLE. These are lists beacuse 
+        each element in the list represents the number of outlying tributaries removed. 
+        The first element is where no tributaries are removed.
+        
 
     Author: SMM
     """
@@ -436,9 +459,6 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         basin_set = set(basin_list)
         basin_list = list(basin_set)
         basin_list = [int(i) for i in basin_list]
-
-        #print("The basin list is now: ")
-        #print(basin_list)
 
     # make a data object that will hold the counters
     Outlier_counter = {}
@@ -470,27 +490,12 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
             MLE_values = list(FullStatsDF_basin['MLE'])
             RMSE_values = list(FullStatsDF_basin['RMSE'])
             trib_values = list(FullStatsDF_basin['test_source_key'])
-            #print("The MLE values are: ")
-            #print(MLE_values)
 
             # now get the outliers
             MLE_array = np.asarray(MLE_values)
             RMSE_array = np.asarray(RMSE_values)
             
-
-            
-            """
-            # Working here: need to fix the divide by zero problem if the array is only one tributary
-            #print("The length of the RMSE array is: ")
-            #print(len(RMSE_array))
-            if(len(RMSE_array) == 1):
-                RMSE_outliers = False
-                MLE_outliers = False
-                RMSE_outlies = np.asarray(RMSE_outliers)
-                MLE_outliers = np.asarray(MLE_outliers)
-            else:
-            """
-            
+            # Get the outliers using the MAD-based outlier function
             RMSE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
             MLE_outliers = LSDP.lsdstatsutilities.is_outlier(RMSE_array)
 
@@ -504,8 +509,6 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
 
             MLE_index_max = np.argmax(MLE_array) 
 
-            #MLE_max = np.argmax(MLE_array)
-
             # if the max MLE is an outlier, flip the outlier vector
             if (MLE_outliers[MLE_index_max]):
                 MLE_outliers = [not i for i in MLE_outliers]
@@ -517,12 +520,6 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
 
             # add this outlier counter to the outlier dict
             Outlier_counter[basin] = Outlier_counter[basin]+int_Outlier
-
-    # now show the outlier counter
-    #for basin in basin_list:
-    #    print("The outlier counter in basin: "+str(basin)+" is: ")
-    #    print(Outlier_counter[basin])
-
 
     # Now try to calculate MLE by removing outliers
     
@@ -546,10 +543,13 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     print("Here are the vitalstatisix, chief: ")
     print(best_fit_movern_dict)
     
+    return Outlier_counter, removed_sources_dict, best_fit_movern_dict
+    
 def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern=0.2, d_movern=0.1, n_movern=7):
     """
-    This function takes the outlier counter and incrementally removes the MLE for
-    the removed channels
+    This function drives the calculations for removing outliers incrementally 
+    from the MLE calculations. This is specific to a basin. 
+    It calls functions for specific m/n values
     
     Args:
         Outlier_counter (dict): The dictionary containing the outlier lists for each basin
@@ -562,7 +562,10 @@ def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, Dat
         n_movern (float): the number of m/n values analysed. Default is 7.
         
     Returns:
-        The MLE data the removed tributaries
+        remove_list_index (list of list): This is the sequence of tributaries that will be removed
+        movern_of_max_MLE (list): The m over n values of the maximum MLE sequentially for removed tributaries 
+
+    Author: SMM
     """
     
     # get the outlier counter for this basin
@@ -657,16 +660,23 @@ def Calculate_movern_after_iteratively_removing_outliers(movern_list, DataDirect
                                                          fname_prefix, basin_number, 
                                                          remove_list_index):
     """
-    This function takes the remove list index and then recalculates MLE by incrementally
-    removing tributaries
+    This function takes the remove list index, which contains information about
+    the sequence of tributaries to be removed, and then recalculates MLE by incrementally
+    removing tributaries.
     
     Args:
         movern_list (float): m/n value.
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
         basin_number (int): The basin you want
         remove_list_index (list of lists): This contains information about what tributaries to remove
         
     Returns:
-        The MLE data the removed tributaries
+        movern_of_max_MLE (list): A list containing the m/n values of the basin after outlying 
+        tributaries have been removed. Each element in the list represents an increment of 
+        tributary removed. The first element is with no tributaries removed. 
+    
+    Author: SMM    
     """
     
     # Loop through m over n values and recalculate MLE values after removing
@@ -695,18 +705,23 @@ def Calculate_movern_after_iteratively_removing_outliers(movern_list, DataDirect
 
 
            
-def RecalculateTotalMLEWithRemoveList(movern,basin_number, remove_list_index):
+def RecalculateTotalMLEWithRemoveList(DataDirectory, fname_prefix, 
+                                      movern,basin_number, remove_list_index):
     """
     This function takes the remove list index and then recalculates MLE by incrementally
     removing tributaries
     
     Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files        
         movern (float): m/n value.
         basin_number (int): The basin you want
         remove_list_index (list of lists): This contains information about what tributaries to remove
         
     Returns:
-        The MLE data with incrementally removed tributaries
+        MLE_vals (list): The MLE data with incrementally removed tributaries
+        
+    Author: SMM
     """
     full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(movern)+"_fullstats.csv"                 
 
