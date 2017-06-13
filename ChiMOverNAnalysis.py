@@ -435,7 +435,8 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         number and the values lists of the m/n ratio that has the lowest MLE. These are lists beacuse 
         each element in the list represents the number of outlying tributaries removed. 
         The first element is where no tributaries are removed.
-        
+        MLEs (array): This is an array containing all the MLE values for each m/n and 
+        each iterated removed tributary. To get the MLEs of, say, the first removal you would use MLEs[:,1]        
 
     Author: SMM
     """
@@ -530,7 +531,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     best_fit_movern_dict = {}
     removed_sources_dict = {}
     for basin_number in basin_list:
-        remove_list_index,movern_of_max_MLE = Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, 
+        remove_list_index,movern_of_max_MLE,MLEs = Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, 
                                                                                 DataDirectory, 
                                                                                 fname_prefix, 
                                                                                 basin_number, 
@@ -543,7 +544,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     print("Here are the vitalstatisix, chief: ")
     print(best_fit_movern_dict)
     
-    return Outlier_counter, removed_sources_dict, best_fit_movern_dict
+    return Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs
     
 def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern=0.2, d_movern=0.1, n_movern=7):
     """
@@ -564,7 +565,9 @@ def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, Dat
     Returns:
         remove_list_index (list of list): This is the sequence of tributaries that will be removed
         movern_of_max_MLE (list): The m over n values of the maximum MLE sequentially for removed tributaries 
-
+        MLEs (array): This is an array containing all the MLE values for each m/n and 
+        each iterated removed tributary. To get the MLEs of, say, the first removal you would use MLEs[:,1]
+        
     Author: SMM
     """
     
@@ -643,7 +646,7 @@ def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, Dat
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
     # Now get the movern values
-    movern_of_max_MLE = Calculate_movern_after_iteratively_removing_outliers(m_over_n_values,
+    movern_of_max_MLE, MLEs = Calculate_movern_after_iteratively_removing_outliers(m_over_n_values,
                                                                              DataDirectory,                                                         
                                                                              fname_prefix,                                                          
                                                                              basin_number, 
@@ -652,7 +655,7 @@ def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, Dat
     # Returns the remove_list_index, which is a list where each element
     # is a list of tributaries removed in an iteration, 
     # And the maximum MLE values in each iteration.                                                     
-    return remove_list_index,movern_of_max_MLE
+    return remove_list_index,movern_of_max_MLE, MLEs
  
 
 
@@ -674,7 +677,9 @@ def Calculate_movern_after_iteratively_removing_outliers(movern_list, DataDirect
     Returns:
         movern_of_max_MLE (list): A list containing the m/n values of the basin after outlying 
         tributaries have been removed. Each element in the list represents an increment of 
-        tributary removed. The first element is with no tributaries removed. 
+        tributary removed. The first element is with no tributaries removed.
+        MLEs (array): This is an array containing all the MLE values for each m/n and 
+        each iterated removed tributary. To get the MLEs of, say, the first removal you would use MLEs[:,1]
     
     Author: SMM    
     """
@@ -683,7 +688,8 @@ def Calculate_movern_after_iteratively_removing_outliers(movern_list, DataDirect
     # the outlying data
     All_MLE = []
     for m_over_n in movern_list:
-        MLE_vals = RecalculateTotalMLEWithRemoveList(m_over_n,basin_number, remove_list_index)
+        MLE_vals = RecalculateTotalMLEWithRemoveList(DataDirectory, fname_prefix,
+                                                     m_over_n,basin_number, remove_list_index)
         All_MLE.append(MLE_vals)
    
          
@@ -697,10 +703,12 @@ def Calculate_movern_after_iteratively_removing_outliers(movern_list, DataDirect
     # This is required because linspace gives floating point errors 
     movern_of_max_MLE = np.around(movern_of_max_MLE,4)   
 
-    #print("Max MLE is at m over n of: ")
-    #print(movern_of_max_MLE)
-        
-    return movern_of_max_MLE
+    print("The MLEs for no removal are: ")
+    print(MLEs[:,0])
+
+    # Return the m/n ratio with the biggest MLE, but also the array
+    # with all the MLE values
+    return movern_of_max_MLE, MLEs
     
 
 
@@ -767,8 +775,8 @@ if __name__ == "__main__":
     # Change these filenames and paths to suit your own files
     # DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
     # fname_prefix = 'Kentucky_chi'
-    #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
-    DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
+    DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
+    #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
     fname_prefix = 'Irian_Jaya_PP'
 
     size_format='ESURF'
