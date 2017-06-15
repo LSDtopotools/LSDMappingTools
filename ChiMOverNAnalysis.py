@@ -1097,7 +1097,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             ratio_MLEs = [x/best_fit_MLE for x in these_MLEs]
 
             # plot the data
-            ax.plot(m_over_n_values,ratio_MLEs, label = str(i))
+            ax.plot(m_over_n_values,ratio_MLEs, lw=2, label = str(i))
 
         # set the axes labels
         ax.set_xlabel('$m/n$')
@@ -1159,5 +1159,5 @@ if __name__ == "__main__":
 
     # run the plotting function
     #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-    # MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
-    #                     size_format=size_format, FigFormat=FigFormat)
+    MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
+                         size_format=size_format, FigFormat=FigFormat)
