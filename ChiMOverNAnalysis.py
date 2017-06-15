@@ -1008,12 +1008,17 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 
     Author: FJC
     """
+    from cycler import cycler
 
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
+
+    # set colours for tributaries
+    plt.rc('axes', prop_cycle=(cycler('color', ['k', '0.5', '0.5', '0.5']) +
+                           cycler('linestyle', ['-', '--', '-.', '..'])))
 
     # make a figure
     if size_format == "geomorphology":
