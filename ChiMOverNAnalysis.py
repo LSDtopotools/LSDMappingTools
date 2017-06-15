@@ -1067,22 +1067,36 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         # Get the removed sources indices and the MLEs for this particular basin
         basin_removed_sources = removed_sources_dict[basin_number]
         n_removed_sources = len(basin_removed_sources)
-        print n_removed_sources
         basin_MLEs = MLEs_dict[basin_number]
+
+        # get the best fit m over ns for this basin
+        best_fit_moverns = best_fit_movern_dict[basin_number]
+        print best_fit_moverns
 
         #change line width depending on how many sources have been removed
         lw = np.linspace(n_removed_sources*10,0,10)
 
         # loop through the number of removed tributaires and get the MLE for each m/n for each iteration
         for i in range(n_removed_sources+1):
+
+            # get the MLE of the best fit m over n
+            best_fit_movern = best_fit_moverns[i]
+            idx = int(np.where(m_over_n_values == best_fit_movern)[0])
+            best_fit_MLE = basin_MLEs[idx][i]
+            print ("The best fit MLE is: "+str(best_fit_MLE)+", where m/n = " +str(best_fit_movern))
+
+            # get the MLEs for this iteration
             these_MLEs = basin_MLEs[:,i]
-            print these_MLEs
-            print ("N moverns: "+str(len(m_over_n_values)) + " N MLEs: " + str(len(these_MLEs)))
-            ax.plot(m_over_n_values,these_MLEs, label = str(i))
+
+            # get the ratio of these MLEs to the best fit
+            ratio_MLEs = [x/best_fit_MLE for x in these_MLEs]
+
+            # plot the data
+            ax.plot(m_over_n_values,ratio_MLEs, label = str(i))
 
         # set the axes labels
         ax.set_xlabel('$m/n$')
-        ax.set_ylabel('$MLE$')
+        ax.set_ylabel('$MLE$ ratio')
 
         # add the legend
         ax.legend(loc='right', bbox_to_anchor=(1.25,0.5), title = 'Iterations', frameon=False)
