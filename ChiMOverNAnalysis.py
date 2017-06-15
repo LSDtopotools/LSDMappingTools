@@ -14,7 +14,7 @@
 import numpy as np
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
-import seaborn as sns
+#import seaborn as sns
 from matplotlib import rcParams
 import pandas as pd
 from matplotlib import colors
@@ -1026,14 +1026,16 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
         #l_pad = -35
 
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
-    ax = fig.add_subplot(gs[10:95,5:80])
-    #colorbar axis
-    ax2 = fig.add_subplot(gs[10:95,82:85])
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
+    ax = fig.add_subplot(gs[5:100,10:95])
 
     # we open the first file just so that we can get a counter list
     full_filename = DataDirectory+fname_prefix+"_movernstats_"+str(start_movern)+"_fullstats.csv"
     FirstDF = pd.read_csv(full_filename)
+
+    # get the list of m over n values
+    end_movern = start_movern+d_movern*(n_movern-1)
+    m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
     # get the number of basins
     basin_keys = list(FirstDF['basin_key'])
@@ -1060,15 +1062,55 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
     # loop through each basin and each number of removed tributaries
     for basin_number in basin_list:
 
+        print ("This basin is: " +str(basin_number))
+
         # Get the removed sources indices and the MLEs for this particular basin
-        these_removed_sources = removed_sources_dict[basin_number]
-        print these_removed_sources
-        these_MLEs = MLEs_dict[basin_number]
+        basin_removed_sources = removed_sources_dict[basin_number]
+        n_removed_sources = len(basin_removed_sources)
+        print n_removed_sources
+        basin_MLEs = MLEs_dict[basin_number]
 
+        #change line width depending on how many sources have been removed
+        lw = np.linspace(n_removed_sources*10,0,10)
 
+        # loop through the number of removed tributaires and get the MLE for each m/n for each iteration
+        for i in range(n_removed_sources+1):
+            these_MLEs = basin_MLEs[:,i]
+            print these_MLEs
+            print ("N moverns: "+str(len(m_over_n_values)) + " N MLEs: " + str(len(these_MLEs)))
+            ax.plot(m_over_n_values,these_MLEs, label = str(i))
 
+        # set the axes labels
+        ax.set_xlabel('$m/n$')
+        ax.set_ylabel('$MLE$')
 
+        # add the legend
+        ax.legend(loc='right', bbox_to_anchor=(1.25,0.5), title = 'Iterations', frameon=False)
 
+        # some formatting of the figure
+        ax.spines['top'].set_linewidth(1)
+        ax.spines['left'].set_linewidth(1)
+        ax.spines['right'].set_linewidth(1)
+        ax.spines['bottom'].set_linewidth(1)
+
+        # label with the basin and m/n
+        title_string = "Basin "+str(basin_number)+"\nBest fit $m/n$: "+str(best_fit_movern_dict[basin_number][0])
+        #ax.set_title(title_string)
+        ax.text(0.05, 0.15, title_string,
+                verticalalignment='top', horizontalalignment='left',
+                transform=ax.transAxes,
+                color='black', fontsize=10)
+
+        #save the plot
+        newFilename = DataDirectory+"MLE_fxn_movern_"+str(basin_number)+".png"
+
+        # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+        ax.tick_params(axis='both', width=1, pad = 2)
+        for tick in ax.xaxis.get_major_ticks():
+            tick.set_pad(2)
+
+        plt.savefig(newFilename,format=FigFormat,dpi=300)
+        ax.cla()
 
 if __name__ == "__main__":
 
@@ -1092,9 +1134,9 @@ if __name__ == "__main__":
 
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
 
-    PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
+    #PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
 
-    #PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+    PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
 
     # run the plotting function
     #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
