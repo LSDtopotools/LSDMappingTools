@@ -980,11 +980,11 @@ def RecalculateTotalMLEWithRemoveList(DataDirectory, fname_prefix,
     remove_list = []
     for stuff_to_remove in remove_list_index:
         this_MLE = MLE_values
-        
+
         # need to extend the remove list with these tribs
         remove_list.extend(stuff_to_remove)
-        
-        # now set the MLE of the removed tribs to 1 
+
+        # now set the MLE of the removed tribs to 1
         for idx in remove_list:
             this_MLE[idx] = 1
 
@@ -1017,6 +1017,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
     Author: FJC
     """
     from cycler import cycler
+    from matplotlib import lines
 
     # Set up fonts for plots
     label_size = 10
@@ -1025,8 +1026,8 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
     rcParams['font.size'] = label_size
 
     # set colours for tributaries
-    plt.rc('axes', prop_cycle=(cycler('color', ['k', '0.5', '0.5', '0.5']) +
-                           cycler('linestyle', ['-', '--', ':', '-.'])))
+    # plt.rc('axes', prop_cycle=(cycler('color', ['k', '0.5', '0.5', '0.5', '0.5']) +
+    #                        cycler('linestyle', ['-', '--', ':', '-.', '--'])))
 
     # make a figure
     if size_format == "geomorphology":
@@ -1072,6 +1073,11 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
     movern_profile_file = fname_prefix+profile_suffix
     ProfileDF = pd.read_csv(DataDirectory+movern_profile_file)
 
+    # get list of line styles for plotting. This is hacky but not sure how else to do this.
+    ls = lines.lineStyles.keys()
+    ls = ls[3:]
+    ls = ls + ls
+
     # loop through each basin and each number of removed tributaries
     for basin_number in basin_list:
 
@@ -1086,15 +1092,16 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         best_fit_moverns = best_fit_movern_dict[basin_number]
         print best_fit_moverns
 
-        #change line width depending on how many sources have been removed
-        lw = np.linspace(n_removed_sources*10,0,10)
+        #change line style depending on how many sources have been removed
+
 
         # loop through the number of removed tributaires and get the MLE for each m/n for each iteration
         for i in range(n_removed_sources+1):
 
             # get the MLE of the best fit m over n
             best_fit_movern = best_fit_moverns[i]
-            idx = int(np.where(m_over_n_values == best_fit_movern)[0])
+            # get the index in the MLE list
+            idx = int((best_fit_movern - start_movern)/d_movern)
             best_fit_MLE = basin_MLEs[idx][i]
             print ("The best fit MLE is: "+str(best_fit_MLE)+", where m/n = " +str(best_fit_movern))
 
@@ -1104,13 +1111,16 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             # get the ratio of these MLEs to the best fit
             ratio_MLEs = [x/best_fit_MLE for x in these_MLEs]
 
-            # plot the data
-            ax.plot(m_over_n_values,ratio_MLEs, lw=2, label = str(i))
-
-            # add arrow at best fit m/n
+            # no removed tributaries
             if i == 0:
+                # plot the data
+                ax.plot(m_over_n_values,ratio_MLEs, lw=1.5, label = str(i), c='k', linestyle = '-', zorder=100)
                 # add arrow at best fit m/n
-                ax.annotate("", xy=(best_fit_movern, 1), xytext=(best_fit_movern, 0.9995), arrowprops=dict(arrowstyle="-|>",facecolor='r', ec='r', lw=1.5))
+                ax.annotate("", xy=(best_fit_movern, 1), xytext=(best_fit_movern, 0.9995), arrowprops=dict(arrowstyle="-|>",facecolor='r', ec='r', lw=1.5)) #need to scale this by MLE??
+            #remove tribs
+            else:
+                # plot the data
+                ax.plot(m_over_n_values,ratio_MLEs, lw=1, label = str(i), c='0.5', linestyle = ls[i]) # different linestyle for each iteration?
 
         # set the axes labels
         ax.set_xlabel('$m/n$')
@@ -1127,12 +1137,12 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 
         # label with the basin and m/n
         best_fit_movern = best_fit_movern_dict[basin_number][0]
-        title_string = "Basin "+str(basin_number)+"\nBest fit $m/n$: "+str(best_fit_movern)
+        title_string = "Basin "+str(basin_number)+"; Best fit $m/n$: "+str(best_fit_movern)
         #ax.set_title(title_string)
-        ax.text(0.05, 0.15, title_string,
-                verticalalignment='top', horizontalalignment='left',
-                transform=ax.transAxes,
-                color='red', fontsize=10)
+        ax.text(0, 1.1, title_string,
+            verticalalignment='top', horizontalalignment='left',
+            transform=ax.transAxes,
+            color='red', fontsize=10)
 
         #save the plot
         newFilename = DataDirectory+"MLE_fxn_movern_"+str(basin_number)+"."+FigFormat
@@ -1189,7 +1199,7 @@ if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
     DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
-    fname_prefix = 'Kentucky_clip'
+    fname_prefix = 'Kentucky_DEM'
     #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
     #fname_prefix = 'Irian_Jaya_PP'
@@ -1198,7 +1208,7 @@ if __name__ == "__main__":
     FigFormat = 'png'
 
     # either specify a list of the basins, or set as empty to get all of them
-    basin_list = [0]
+    basin_list = []
 
     # specify the m/n values tested
     start_movern = 0.2
@@ -1208,12 +1218,12 @@ if __name__ == "__main__":
     #analyse the MLE
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
     #PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-    #PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+    PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
 
     # run the plotting function
     #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
     # MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
-    #                      size_format=size_format, FigFormat=FigFormat)
+    #                  size_format=size_format, FigFormat=FigFormat)
 
     # run the raster plotting
-    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format, FigFormat)
+    #MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format, FigFormat)
