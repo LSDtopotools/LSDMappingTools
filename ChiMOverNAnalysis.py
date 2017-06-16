@@ -1099,6 +1099,11 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             # plot the data
             ax.plot(m_over_n_values,ratio_MLEs, lw=2, label = str(i))
 
+            # add arrow at best fit m/n
+            if i == 0:
+                # add arrow at best fit m/n
+                ax.annotate("HELLO!!", xy=(best_fit_movern, 1), xytext=(best_fit_movern, 1.0001), arrowprops=dict(arrowstyle="->",facecolor='r', ec='r'))
+
         # set the axes labels
         ax.set_xlabel('$m/n$')
         ax.set_ylabel('$MLE$ ratio')
@@ -1113,7 +1118,8 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         ax.spines['bottom'].set_linewidth(1)
 
         # label with the basin and m/n
-        title_string = "Basin "+str(basin_number)+"\nBest fit $m/n$: "+str(best_fit_movern_dict[basin_number][0])
+        best_fit_movern = best_fit_movern_dict[basin_number][0]
+        title_string = "Basin "+str(basin_number)+"\nBest fit $m/n$: "+str(best_fit_movern)
         #ax.set_title(title_string)
         ax.text(0.05, 0.15, title_string,
                 verticalalignment='top', horizontalalignment='left',
@@ -1159,5 +1165,5 @@ if __name__ == "__main__":
 
     # run the plotting function
     #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-    MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
-                         size_format=size_format, FigFormat=FigFormat)
+    # MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
+    #                      size_format=size_format, FigFormat=FigFormat)
