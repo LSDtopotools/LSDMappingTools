@@ -977,9 +977,15 @@ def RecalculateTotalMLEWithRemoveList(DataDirectory, fname_prefix,
     MLE_vals.append(np.prod(MLE_values))
 
     # now loop through the remove list
+    remove_list = []
     for stuff_to_remove in remove_list_index:
         this_MLE = MLE_values
-        for idx in stuff_to_remove:
+        
+        # need to extend the remove list with these tribs
+        remove_list.extend(stuff_to_remove)
+        
+        # now set the MLE of the removed tribs to 1 
+        for idx in remove_list:
             this_MLE[idx] = 1
 
         #print("\n REMOVING; The total MLE is: ")
