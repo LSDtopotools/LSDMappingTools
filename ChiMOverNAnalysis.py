@@ -1173,6 +1173,10 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # create the map figure
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km")
+    MF.add_drape_image(HillshadeName,Directory, # Calling the function will add a draped raster on the top of the background one
+                        colourmap = "gray", # colormap used for this raster, see http://matplotlib.org/users/colormaps.html for examples, put _r at the end of a colormap to get the reversed version
+                        alpha=0.5, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
+                        show_colourbar = False) # Well, this one is explicit I think # Name of your Colourbar, it might bug though
 
 
 if __name__ == "__main__":
