@@ -999,6 +999,8 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         fname_prefix (str): The prefix for the m/n csv files
         basin_list: a list of the basins to make the plots for. If an empty list is passed then
         all the basins will be analysed. Default = basin 0.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
         start_movern (float): the starting m/n value. Default is 0.2
         d_movern (float): the increment between the m/n values. Default is 0.1
         n_movern (float): the number of m/n values analysed. Default is 7.
@@ -1018,7 +1020,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 
     # set colours for tributaries
     plt.rc('axes', prop_cycle=(cycler('color', ['k', '0.5', '0.5', '0.5']) +
-                           cycler('linestyle', ['-', '--', '-.', '..'])))
+                           cycler('linestyle', ['-', '--', ':', '-.'])))
 
     # make a figure
     if size_format == "geomorphology":
@@ -1102,7 +1104,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             # add arrow at best fit m/n
             if i == 0:
                 # add arrow at best fit m/n
-                ax.annotate("HELLO!!", xy=(best_fit_movern, 1), xytext=(best_fit_movern, 1.0001), arrowprops=dict(arrowstyle="->",facecolor='r', ec='r'))
+                ax.annotate("", xy=(best_fit_movern, 1), xytext=(best_fit_movern, 0.9995), arrowprops=dict(arrowstyle="-|>",facecolor='r', ec='r', lw=1.5))
 
         # set the axes labels
         ax.set_xlabel('$m/n$')
@@ -1124,7 +1126,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         ax.text(0.05, 0.15, title_string,
                 verticalalignment='top', horizontalalignment='left',
                 transform=ax.transAxes,
-                color='black', fontsize=10)
+                color='red', fontsize=10)
 
         #save the plot
         newFilename = DataDirectory+"MLE_fxn_movern_"+str(basin_number)+".png"
