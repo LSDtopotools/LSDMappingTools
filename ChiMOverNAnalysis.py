@@ -1129,7 +1129,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
                 color='red', fontsize=10)
 
         #save the plot
-        newFilename = DataDirectory+"MLE_fxn_movern_"+str(basin_number)+".png"
+        newFilename = DataDirectory+"MLE_fxn_movern_"+str(basin_number)+"."+FigFormat
 
         # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
         ax.tick_params(axis='both', width=1, pad = 2)
@@ -1138,6 +1138,42 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 
         plt.savefig(newFilename,format=FigFormat,dpi=300)
         ax.cla()
+
+def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
+    """
+    This function makes a shaded relief plot of the DEM with the basins coloured
+    by the best fit m/n value
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+
+    Returns:
+        Shaded relief plot with the basins
+
+    Author: FJC
+    """
+    #import modules
+    from LSDMapFigure.PlottingRaster import MapFigure
+    from LSDMapFigure.PlottingRaster import BaseRaster
+
+    # going to make the basin plots - need to have bil extensions.
+    print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
+
+    # get the rasters
+    raster_ext = '.bil'
+    BackgroundRasterName = fname_prefix+raster_ext
+    HillshadeName = fname_prefix+'_hs'+raster_ext
+    BasinsName = fname_prefix+'_AllBasins'+raster_ext
+    print (BasinsName)
+
+    # create the map figure
+    MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km")
+
 
 if __name__ == "__main__":
 
@@ -1159,13 +1195,15 @@ if __name__ == "__main__":
     d_movern = 0.1
     n_movern = 8
 
+    #analyse the MLE
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
-
     #PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-
-    PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+    #PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
 
     # run the plotting function
     #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
     # MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
     #                      size_format=size_format, FigFormat=FigFormat)
+
+    # run the raster plotting
+    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format, FigFormat)
