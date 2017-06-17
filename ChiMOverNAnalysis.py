@@ -1245,14 +1245,18 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
         fig_width_inches = 4.92126
 
     # get the basin IDs to make a discrete colourmap for each ID
-    basin_file = fname_prefix+'_movernstats_basinstats.csv'
-    BasinDF = pd.read_csv(DataDirectory+basin_file)
+    BasinDF = ReadBasinStatsCSV(DataDirectory,fname_prefix)
+
     basin_keys = list(BasinDF['basin_key'])
     basin_keys = [float(x) for x in basin_keys]
 
+    basin_junctions = list(BasinDF['outlet_jn'])
+    basin_junctions = [float(x) for x in basin_junctions]
+
+
+
     print ('Basin keys are: ')
     print basin_keys
-
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -1268,7 +1272,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km")
     # add the basins drape
     basin_cmap = plt.cm.jet
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = basin_cmap, alpha = 0.5, colorbarlabel='Basin ID', show_colourbar = True)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = basin_cmap, alpha = 0.5, colorbarlabel='Basin ID', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
 
     ImageName = DataDirectory+fname_prefix+'basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
@@ -1297,7 +1301,7 @@ if __name__ == "__main__":
 
     # analyse the MLE
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
-    PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
+    #PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
     #PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
 
     # run the plotting functions
