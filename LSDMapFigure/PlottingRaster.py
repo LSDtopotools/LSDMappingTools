@@ -169,6 +169,18 @@ class BaseRaster(object):
                    extent=self.extents)
         plt.show()
 
+    def replace_raster_values(self, old_values = [], new_values = []):
+        """
+        Function to take a list of raster values and replace it with
+        a new list. Can be used to overwrite basin junction IDs with other
+        information about the basin, for example.
+        FJC 17/06/17
+        """
+        for idx, value in enumerate(old_values):
+            old_values_index = self._RasterArray == value
+            self._RasterArray[old_values_index] = new_values[idx]
+
+
 class MapFigure(object):
     """
     This is the main object used for plotting. It contains the underlying axes of the figures.
@@ -381,12 +393,12 @@ class MapFigure(object):
     def add_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar", norm = "None"):
+                        colorbarlabel = "Colourbar", norm = "None", modify_raster_values=False, old_values=[], new_values=[]):
 
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,norm)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,norm,modify_raster_values,old_values,new_values)
         #print("Getting axis limits in drape function: ")
         #print(self.ax_list[0].get_xlim())
 
@@ -394,9 +406,13 @@ class MapFigure(object):
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
                          alpha=0.5,
-                         colorbarlabel = "Colourbar", nroma = "None"):
+                         colorbarlabel = "Colourbar", nroma = "None", modify_raster_values = False, old_values=[], new_values = []):
 
-        self._RasterList.append(BaseRaster(RasterName,Directory))
+        Raster = BaseRaster(RasterName,Directory)
+        if modify_raster_values == True:
+            Raster.replace_raster_values(old_values, new_values)
+
+        self._RasterList.append(Raster)
         self._RasterList[-1].set_colourmap(colourmap)
 
         # We need to initiate with a figure
