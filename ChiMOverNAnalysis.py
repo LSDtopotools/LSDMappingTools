@@ -1101,15 +1101,18 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             # get the MLE of the best fit m over n
             best_fit_movern = best_fit_moverns[i]
             # get the index in the MLE list
-            idx = int((best_fit_movern - start_movern)/d_movern)
+            idx = int(round((best_fit_movern - start_movern)/d_movern,0))
+            print idx
             best_fit_MLE = basin_MLEs[idx][i]
             print ("The best fit MLE is: "+str(best_fit_MLE)+", where m/n = " +str(best_fit_movern))
 
             # get the MLEs for this iteration
             these_MLEs = basin_MLEs[:,i]
+            print these_MLEs
 
             # get the ratio of these MLEs to the best fit
             ratio_MLEs = [x/best_fit_MLE for x in these_MLEs]
+            print ratio_MLEs
 
             # no removed tributaries
             if i == 0:
@@ -1199,10 +1202,10 @@ if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
     DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
-    fname_prefix = 'Kentucky_DEM'
+    #fname_prefix = 'Kentucky_DEM'
     #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
-    #fname_prefix = 'Irian_Jaya_PP'
+    fname_prefix = 'Kentucky_DEM'
 
     size_format='ESURF'
     FigFormat = 'png'
