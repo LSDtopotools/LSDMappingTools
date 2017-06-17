@@ -1213,7 +1213,9 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
-    by the basin ID
+    by the basin ID.
+
+    WORK IN PROGRESS - NEED TO GET LABELLING OR A COLOUR BAR WORKING
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
@@ -1253,8 +1255,6 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     basin_junctions = list(BasinDF['outlet_jn'])
     basin_junctions = [float(x) for x in basin_junctions]
 
-
-
     print ('Basin keys are: ')
     print basin_keys
 
@@ -1277,6 +1277,68 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     ImageName = DataDirectory+fname_prefix+'basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
+def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
+    """
+    This function makes a shaded relief plot of the DEM with the basins coloured
+    by the best fit m/n
+
+    WORK IN PROGRESS - NEED TO GET LABELLING OR A COLOUR BAR WORKING
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+
+    Returns:
+        Shaded relief plot with the basins coloured by best fit m/n
+
+    Author: FJC
+    """
+    #import modules
+    from LSDMapFigure.PlottingRaster import MapFigure
+    from LSDMapFigure.PlottingRaster import BaseRaster
+
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_width_inches = 6.25
+    elif size_format == "big":
+        fig_width_inches = 16
+    else:
+        fig_width_inches = 4.92126
+
+    # get the basin IDs to make a discrete colourmap for each ID
+    BasinDF = ReadBasinStatsCSV(DataDirectory,fname_prefix)
+
+    basin_junctions = list(BasinDF['outlet_jn'])
+    basin_junctions = [float(x) for x in basin_junctions]
+
+    # get the best fit m/n for each junction - WORKING HERE!!!!!
+
+    # going to make the basin plots - need to have bil extensions.
+    print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
+
+    # get the rasters
+    raster_ext = '.bil'
+    BackgroundRasterName = fname_prefix+raster_ext
+    HillshadeName = fname_prefix+'_hs'+raster_ext
+    BasinsName = fname_prefix+'_AllBasins'+raster_ext
+    print (BasinsName)
+
+    # create the map figure
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km")
+    # add the basins drape
+    basin_cmap = plt.cm.jet
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = basin_cmap, alpha = 0.5, colorbarlabel='Basin ID', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
+
+    ImageName = DataDirectory+fname_prefix+'basins_movern.'+FigFormat
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
 if __name__ == "__main__":
 
