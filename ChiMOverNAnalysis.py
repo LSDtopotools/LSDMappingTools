@@ -119,6 +119,16 @@ def SimpleMaxMLECheck(DataDirectory,fname_prefix, basin_list=[0], start_movern=0
     """
     # read in the basin csv
     BasinDF = ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    print BasinDF
+
+    # remove the first 2 columns from DF
+    del BasinDF['basin_key']
+    del BasinDF['outlet_jn']
+
+    # now find the index and value of the max MLE in each row
+    max_idx = BasinDF.idxmax()
+    print max_idx
+
 
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
@@ -1163,9 +1173,6 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         best_fit_moverns = best_fit_movern_dict[basin_number]
         print best_fit_moverns
 
-        #change line style depending on how many sources have been removed
-
-
         # loop through the number of removed tributaires and get the MLE for each m/n for each iteration
         for i in range(n_removed_sources+1):
 
@@ -1397,4 +1404,5 @@ if __name__ == "__main__":
     #                  size_format=size_format, FigFormat=FigFormat)
 
     # run the raster plotting
-    MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
+    #MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
+    SimpleMaxMLECheck(DataDirectory, fname_prefix)
