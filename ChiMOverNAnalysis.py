@@ -95,6 +95,31 @@ def ReadChiProfileCSV(DataDirectory, fname_prefix):
 # ANALYSIS FUNCTIONS
 # These functions analyse the data (for example, doing the outlier checking)
 #=============================================================================
+def SimpleMaxMLECheck(DataDirectory,fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
+    """
+    This function checks through the basin CSV file and returns a dict with the basin key and the best fit
+    m/n
+
+    I need to go now so will finish this later.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+
+    Returns:
+        m_over_n_dict: dictionary with the best fit m/n for each basin, the key is the basin key
+        and the value is the best fit m/n
+
+    Author: FJC
+    """
+    # read in the basin csv
+    BasinDF = ReadBasinStatsCSV(DataDirectory,fname_prefix)
+
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
     This function uses the fullstats files to search for outliers in the
@@ -1335,7 +1360,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km")
     # add the basins drape
     basin_cmap = plt.cm.jet
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = basin_cmap, alpha = 0.5, colorbarlabel='Basin ID', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = basin_cmap, alpha = 0.5, colorbarlabel='Best fit m/n', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
 
     ImageName = DataDirectory+fname_prefix+'basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
