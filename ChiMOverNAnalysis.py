@@ -1180,6 +1180,14 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigF
     from LSDMapFigure.PlottingRaster import MapFigure
     from LSDMapFigure.PlottingRaster import BaseRaster
 
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_width_inches = 6.25
+    elif size_format == "big":
+        fig_width_inches = 16
+    else:
+        fig_width_inches = 4.92126
+
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
 
@@ -1192,10 +1200,13 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # create the map figure
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km")
-    MF.add_drape_image(HillshadeName,Directory, # Calling the function will add a draped raster on the top of the background one
+    MF.add_drape_image(HillshadeName,DataDirectory, # Calling the function will add a draped raster on the top of the background one
                         colourmap = "gray", # colormap used for this raster, see http://matplotlib.org/users/colormaps.html for examples, put _r at the end of a colormap to get the reversed version
                         alpha=0.5, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
                         show_colourbar = False) # Well, this one is explicit I think # Name of your Colourbar, it might bug though
+
+    ImageName = DataDirectory+fname_prefix+'basins_movern.'+FigFormat
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
 
 if __name__ == "__main__":
@@ -1221,7 +1232,7 @@ if __name__ == "__main__":
     #analyse the MLE
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
     #PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-    PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+    #PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
 
     # run the plotting function
     #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
@@ -1229,4 +1240,4 @@ if __name__ == "__main__":
     #                  size_format=size_format, FigFormat=FigFormat)
 
     # run the raster plotting
-    #MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format, FigFormat)
+    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format, FigFormat)
