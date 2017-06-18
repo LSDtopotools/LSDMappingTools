@@ -119,15 +119,20 @@ def SimpleMaxMLECheck(DataDirectory,fname_prefix, basin_list=[0], start_movern=0
     """
     # read in the basin csv
     BasinDF = ReadBasinStatsCSV(DataDirectory,fname_prefix)
-    print BasinDF
+    basin_keys = list(BasinDF['basin_key'])
+    #print BasinDF
 
     # remove the first 2 columns from DF
     del BasinDF['basin_key']
     del BasinDF['outlet_jn']
 
     # now find the index and value of the max MLE in each row
-    max_idx = BasinDF.idxmax()
-    print max_idx
+    MOverNs = list(BasinDF.idxmax(axis=1))
+    MOverNs = [float(x.split()[-1]) for x in MOverNs]
+
+    # zip into a dictionary
+    MOverNDict = dict(zip(basin_keys, MOverNs))
+    return MOverNDict
 
 
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
