@@ -95,21 +95,13 @@ def ReadChiProfileCSV(DataDirectory, fname_prefix):
 # ANALYSIS FUNCTIONS
 # These functions analyse the data (for example, doing the outlier checking)
 #=============================================================================
-def SimpleMaxMLECheck(DataDirectory,fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
+def SimpleMaxMLECheck(BasinDF):
     """
-    This function checks through the basin CSV file and returns a dict with the basin key and the best fit
+    This function checks through the basin dataframe and returns a dict with the basin key and the best fit
     m/n
 
-    I need to go now so will finish this later.
-
     Args:
-        DataDirectory (str): the data directory with the m/n csv files
-        fname_prefix (str): The prefix for the m/n csv files
-        basin_list: a list of the basins to make the plots for. If an empty list is passed then
-        all the basins will be analysed. Default = basin 0.
-        start_movern (float): the starting m/n value. Default is 0.2
-        d_movern (float): the increment between the m/n values. Default is 0.1
-        n_movern (float): the number of m/n values analysed. Default is 7.
+        BasinDF: pandas dataframe from the basin csv file.
 
     Returns:
         m_over_n_dict: dictionary with the best fit m/n for each basin, the key is the basin key
@@ -118,7 +110,6 @@ def SimpleMaxMLECheck(DataDirectory,fname_prefix, basin_list=[0], start_movern=0
     Author: FJC
     """
     # read in the basin csv
-    BasinDF = ReadBasinStatsCSV(DataDirectory,fname_prefix)
     basin_keys = list(BasinDF['basin_key'])
     #print BasinDF
 
@@ -1247,6 +1238,34 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 # spatial data.
 #=============================================================================
 
+def cmap_discretize(cmap, N):
+    """
+    Return a discrete colormap from the continuous colormap cmap.
+    From http://scipy.github.io/old-wiki/pages/Cookbook/Matplotlib/ColormapTransformations
+
+    Args:
+         cmap: colormap instance, eg. cm.jet.
+         N: number of colors.
+
+    Returns:
+        discrete colourmap
+
+    """
+
+    if type(cmap) == str:
+     cmap = get_cmap(cmap)
+
+    colors_i = np.concatenate((np.linspace(0, 1., N), (0.,0.,0.,0.)))
+    colors_rgba = cmap(colors_i)
+    indices = np.linspace(0, 1., N+1)
+    cdict = {}
+
+    for ki,key in enumerate(('red','green','blue')):
+     cdict[key] = [ (indices[i], colors_rgba[i-1,ki], colors_rgba[i,ki]) for i in xrange(N+1) ]
+
+    # Return colormap object.
+    return colors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
+
 def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
@@ -1295,6 +1314,10 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     print ('Basin keys are: ')
     print basin_keys
 
+    # get a discrete colormap
+    cmap = plt.cm.jet
+    discrete_cmap = cmap_discretize(cmap, len(basin_keys))
+
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
 
@@ -1306,12 +1329,11 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     print (BasinsName)
 
     # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km")
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
-    basin_cmap = plt.cm.jet
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = basin_cmap, alpha = 0.5, colorbarlabel='Basin ID', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = discrete_cmap, alpha = 0.8, colorbarlabel='Basin ID', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
 
-    ImageName = DataDirectory+fname_prefix+'basins_movern.'+FigFormat
+    ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
 def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
@@ -1356,10 +1378,18 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigF
     basin_junctions = list(BasinDF['outlet_jn'])
     basin_junctions = [float(x) for x in basin_junctions]
 
-    # get the best fit m/n for each junction - WORKING HERE!!!!!
+    # get the best fit m/n for each junction
+    MOverNDict = SimpleMaxMLECheck(BasinDF)
+    print MOverNDict
+
+    m_over_ns = MOverNDict.values()
+
+    # get a discrete colormap
+    cmap = plt.cm.Reds
+    discrete_cmap = cmap_discretize(cmap, len(m_over_ns))
 
     # going to make the basin plots - need to have bil extensions.
-    print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
+    print("I'm going to make the basin m/n plots. Your topographic data must be in ENVI bil format or I'll break!!")
 
     # get the rasters
     raster_ext = '.bil'
@@ -1369,12 +1399,12 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigF
     print (BasinsName)
 
     # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km")
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
     basin_cmap = plt.cm.jet
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = basin_cmap, alpha = 0.5, colorbarlabel='Best fit m/n', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = discrete_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns)
 
-    ImageName = DataDirectory+fname_prefix+'basins_movern.'+FigFormat
+    ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
 if __name__ == "__main__":
@@ -1409,5 +1439,6 @@ if __name__ == "__main__":
     #                  size_format=size_format, FigFormat=FigFormat)
 
     # run the raster plotting
-    #MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    SimpleMaxMLECheck(DataDirectory, fname_prefix)
+    MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
+    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format, FigFormat)
+    #SimpleMaxMLECheck(DataDirectory, fname_prefix)

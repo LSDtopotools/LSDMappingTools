@@ -418,7 +418,7 @@ class MapFigure(object):
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
         if(nroma != "None"):
-            im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, vmin = nroma[0],vmax = nroma[1])
+            im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, norm = nroma)
         else:
             im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha)
         # This affects all axes because we set share_all = True.
@@ -438,7 +438,7 @@ class MapFigure(object):
 
     def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar"):
         fig = matplotlib.pyplot.gcf()
-        ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
+        ax_list.append(fig.add_axes([0.1,0.8,0.05,0.2]))
         cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation=self.colourbar_orientation,cax=ax_list[-1])
         #cbar.set_label(colorbarlabel, fontsize=10)
 

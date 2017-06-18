@@ -6,8 +6,8 @@ Created on Sun Feb 12 10:29:18 2017
 """
 
 #==============================================================================
-def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", 
-                   cbar_width = 0.5, 
+def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
+                   cbar_width = 0.2, 
                    cbar_text_width = 0.4,
                    cbar_padding = 0.1,
                    cbar_fraction = 1,
@@ -44,31 +44,31 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
 
 
     # This gets returned, we use it to make the figure.
-    
+
     #======================================================
 
     # Now we need to figure out where the axis are. Sadly this requires
     # a load of tedious conditional statments about the location of the axes
-    
+
     #Will's changes:
     #1/ Make space for the colourbar label on the left
     #2/ Double the cbar_padding to leave space for the colourbar values on the right.
     # NB: this should later be a function of font size
     #3/ Changed rotation of colourbar text to 90 and the labelpad to -75 in PlottingRaster.py
-    
+
     if cbar_loc == "left":
-        cbar_left_inches = whitespace_padding + cbar_text_width       
-        #cbar_left_inches = whitespace_padding        
-        map_left_inches = cbar_left_inches+cbar_width+map_text_width + 2*cbar_padding  
+        cbar_left_inches = whitespace_padding + cbar_text_width
+        #cbar_left_inches = whitespace_padding
+        map_left_inches = cbar_left_inches+cbar_width+map_text_width + 2*cbar_padding
         #map_left_inches = cbar_left_inches+cbar_width+cbar_text_width+map_text_width+cbar_padding
         map_width_inches = figure_width_inches-map_left_inches-whitespace_padding
         map_height_inches = map_width_inches/aspect_ratio
-        
-        
-        
+
+
+
         map_bottom_inches = whitespace_padding+map_text_height
         cbar_bottom_inches = map_bottom_inches
-        figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding 
+        figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding
 
         fig_size_inches = [figure_width_inches,figure_height_inches]
 
@@ -88,14 +88,14 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
 
         map_left_inches = whitespace_padding+map_text_width
         cbar_left_inches= figure_width_inches-whitespace_padding-cbar_width-cbar_text_width
-        map_right_inches = cbar_left_inches-cbar_padding 
-      
+        map_right_inches = cbar_left_inches-cbar_padding
+
         map_width_inches = map_right_inches-map_left_inches
         map_height_inches = map_width_inches/aspect_ratio
-        
+
         map_bottom_inches = whitespace_padding+map_text_height
         cbar_bottom_inches = map_bottom_inches
-        figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding 
+        figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding
 
         fig_size_inches = [figure_width_inches,figure_height_inches]
 
@@ -116,16 +116,16 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
         print("I am placing the colourbar on the top")
 
         map_left_inches = whitespace_padding+map_text_width
-        map_right_inches = figure_width_inches-whitespace_padding 
+        map_right_inches = figure_width_inches-whitespace_padding
         map_width_inches = map_right_inches-map_left_inches
         map_height_inches = map_width_inches/aspect_ratio
-        
+
         cbar_left_inches= map_left_inches
-        
+
         map_bottom_inches = whitespace_padding+map_text_height
         cbar_bottom_inches = map_bottom_inches+map_height_inches+cbar_padding+cbar_text_width
-        
-        figure_height_inches = cbar_bottom_inches+cbar_width+whitespace_padding 
+
+        figure_height_inches = cbar_bottom_inches+cbar_width+whitespace_padding
 
         fig_size_inches = [figure_width_inches,figure_height_inches]
 
@@ -144,20 +144,20 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
 
     elif cbar_loc == "bottom":
         print("I am placing the colourbar on the bottom")
-        
+
         map_left_inches = whitespace_padding+map_text_width
-        map_right_inches = figure_width_inches-whitespace_padding 
+        map_right_inches = figure_width_inches-whitespace_padding
         map_width_inches = map_right_inches-map_left_inches
         map_height_inches = map_width_inches/aspect_ratio
-        
+
         cbar_left_inches= map_left_inches
-        
-        cbar_bottom_inches = whitespace_padding+cbar_text_width 
+
+        cbar_bottom_inches = whitespace_padding+cbar_text_width
         map_bottom_inches = cbar_bottom_inches+cbar_width+cbar_padding+map_text_height
-        
+
         whitespace_padding+map_text_height
-     
-        figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding 
+
+        figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding
 
         fig_size_inches = [figure_width_inches,figure_height_inches]
 
@@ -172,19 +172,19 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
         cbar_axes = [cbar_left_inches/figure_width_inches,
                     cbar_bottom_inches/figure_height_inches,
                     cbar_fraction*(map_width_inches/figure_width_inches),
-                    cbar_width/figure_height_inches]          
+                    cbar_width/figure_height_inches]
 
     else:
         print("No colourbar")
-        
+
         map_left_inches = whitespace_padding+map_text_width
-        map_right_inches = figure_width_inches-whitespace_padding 
+        map_right_inches = figure_width_inches-whitespace_padding
         map_width_inches = map_right_inches-map_left_inches
         map_height_inches = map_width_inches/aspect_ratio
-        
+
         map_bottom_inches = whitespace_padding+map_text_height
- 
-        figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding 
+
+        figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding
 
         fig_size_inches = [figure_width_inches,figure_height_inches]
 
