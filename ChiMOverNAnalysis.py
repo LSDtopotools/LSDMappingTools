@@ -1238,34 +1238,6 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 # spatial data.
 #=============================================================================
 
-def cmap_discretize(cmap, N):
-    """
-    Return a discrete colormap from the continuous colormap cmap.
-    From http://scipy.github.io/old-wiki/pages/Cookbook/Matplotlib/ColormapTransformations
-
-    Args:
-         cmap: colormap instance, eg. cm.jet.
-         N: number of colors.
-
-    Returns:
-        discrete colourmap
-
-    """
-
-    if type(cmap) == str:
-     cmap = get_cmap(cmap)
-
-    colors_i = np.concatenate((np.linspace(0, 1., N), (0.,0.,0.,0.)))
-    colors_rgba = cmap(colors_i)
-    indices = np.linspace(0, 1., N+1)
-    cdict = {}
-
-    for ki,key in enumerate(('red','green','blue')):
-     cdict[key] = [ (indices[i], colors_rgba[i-1,ki], colors_rgba[i,ki]) for i in xrange(N+1) ]
-
-    # Return colormap object.
-    return colors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
-
 def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
@@ -1315,8 +1287,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     print basin_keys
 
     # get a discrete colormap
-    cmap = plt.cm.jet
-    discrete_cmap = cmap_discretize(cmap, len(basin_keys))
+    cmap = plt.get_cmap('jet')
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -1331,7 +1302,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = discrete_cmap, alpha = 0.8, colorbarlabel='Basin ID', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
 
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
@@ -1387,7 +1358,6 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
 
     # get a discrete colormap
     cmap = plt.cm.Reds
-    discrete_cmap = cmap_discretize(cmap, n_movern)
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin m/n plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -1403,7 +1373,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
     basin_cmap = plt.cm.jet
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = discrete_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Best fit m/n', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
