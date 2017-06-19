@@ -1336,7 +1336,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
-def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
+def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the best fit m/n
@@ -1346,6 +1346,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigF
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
+        n_movern (int): The number of m/n values tested, default = 7.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
 
@@ -1386,7 +1387,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # get a discrete colormap
     cmap = plt.cm.Reds
-    discrete_cmap = cmap_discretize(cmap, len(m_over_ns))
+    discrete_cmap = cmap_discretize(cmap, n_movern)
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin m/n plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -1440,5 +1441,5 @@ if __name__ == "__main__":
 
     # run the raster plotting
     MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, size_format, FigFormat)
+    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
     #SimpleMaxMLECheck(DataDirectory, fname_prefix)
