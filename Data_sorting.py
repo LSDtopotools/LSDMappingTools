@@ -40,8 +40,8 @@ def crop_point_data_to_base_raster(raster_name, raster_directory, csv_file, EPSG
                 info = info.split(",")
                 x_min = float(info[3])
                 y_max = float(info[4])
-                x_res = int(info[5])
-                y_res = int(info[6])
+                x_res = float(info[5])
+                y_res = float(info[6])
                 utm_zone = int(info[7])
                 utm_hemisphere = info[8]
             else:
@@ -172,3 +172,49 @@ def quick_load_bil_raster(raster_name, raster_path):
     y_min = y_max - y_res*num_lines
     print("I am returning the raster array and info")
     return raster_data,x_min,x_max,y_min,y_max,x_res,y_res
+
+def get_basin_middle(df,wdir = "", key = "basin_key", keyDA = "drainage area"):
+    """
+    Create a dataframe containing the lat/long of the center of a basin and the key of this one. Usefull to visualize basin key when QGIS is not working...
+    Default values adapted for output from chi_mapping tool
+    Author: Boris
+    """
+
+    dfbasin = []
+
+    lst_basins = df[key].unique()
+    nb_basin = lst_basins.shape[0]
+    for bas in lst_basins:
+        print("I am processing basin %s/%s " %(bas, nb_basin))
+        temp = []
+        long_max = df["longitude"][df[key] == bas].max()
+        long_min = df["longitude"][df[key] == bas].min()
+        lat_max = df["latitude"][df[key] == bas].max()
+        lat_min = df["latitude"][df[key] == bas].min()
+        DA = df[keyDA][df[key] == bas].max()
+        BK = bas
+        temp = [(lat_min+lat_max)/2,(long_min+long_max)/2,BK,DA]
+        dfbasin.append(temp)
+
+    header = ["latitude", "longitude", "basin_key", "drainage area"]
+    print("I am now creating a dataframe")
+    dfbasin = bamboo_bears.DataFrame(dfbasin,columns = header)
+    print("I am saving a csv file f you want to reload directly this data as %sBASIN_LOCA.csv" %(wdir))
+    dfbasin.to_csv(wdir+"BASIN_LOCA.csv", index = False)
+    print(dfbasin)
+    print("done with the basin location")
+    return dfbasin
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #
