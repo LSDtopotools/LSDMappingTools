@@ -1287,7 +1287,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     print basin_keys
 
     # get a discrete colormap
-    cmap = plt.get_cmap('jet')
+    cmap = plt.cm.jet
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -1357,7 +1357,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     m_over_ns = MOverNDict.values()
 
     # get a discrete colormap
-    cmap = plt.cm.Reds
+    mn_cmap = plt.cm.Reds
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin m/n plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -1372,8 +1372,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
-    basin_cmap = plt.cm.jet
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Best fit m/n', show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
@@ -1381,11 +1380,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
-    DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
+    DataDirectory = '/home/s0923330/DEMs_for_analysis/Irian_jaya/'
     #fname_prefix = 'Kentucky_DEM'
     #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
-    fname_prefix = 'Kentucky_DEM'
+    fname_prefix = 'Irian_Jaya_PP'
 
     # specify the figure size and format
     size_format='ESURF'
@@ -1397,7 +1396,7 @@ if __name__ == "__main__":
     # specify the m/n values tested
     start_movern = 0.2
     d_movern = 0.1
-    n_movern = 8
+    n_movern = 7
 
     # analyse the MLE
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
@@ -1411,5 +1410,5 @@ if __name__ == "__main__":
 
     # run the raster plotting
     MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
+    #MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
     #SimpleMaxMLECheck(DataDirectory, fname_prefix)
