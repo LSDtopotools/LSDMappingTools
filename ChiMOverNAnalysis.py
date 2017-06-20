@@ -1238,6 +1238,30 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 # spatial data.
 #=============================================================================
 
+def GetBasinOutlines(DataDirectory, fname_prefix):
+    """
+    This function takes in the raster of basins and gets a shapefile of their
+    outlines
+
+    Args:
+        DataDirectory (str): the data directory with the basin raster
+        fname_prefix (str): the prefix for the DEM
+
+    Returns:
+        basin outline shapefile
+
+    Author: FJC
+    """
+    from LSDPlottingTools import LSDMap_GDALIO as IO
+
+    # read in the basins raster
+    basin_name = DataDirectory+fname_prefix+"_AllBasins.bil"
+    OutputShapefile = fname_prefix+'basins.shp'
+
+    # polygonise the raster
+    IO.PolygoniseRaster(DataDirectory, basin_name, OutputShapefile)
+
+
 def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
@@ -1409,6 +1433,7 @@ if __name__ == "__main__":
     #                  size_format=size_format, FigFormat=FigFormat)
 
     # run the raster plotting
-    MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
+    #MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
+    #MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
+    GetBasinOutlines(DataDirectory, fname_prefix)
     #SimpleMaxMLECheck(DataDirectory, fname_prefix)
