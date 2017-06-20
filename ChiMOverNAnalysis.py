@@ -1255,7 +1255,7 @@ def GetBasinOutlines(DataDirectory, fname_prefix):
     from LSDPlottingTools import LSDMap_GDALIO as IO
 
     # read in the basins raster
-    basin_name = DataDirectory+fname_prefix+"_AllBasins.bil"
+    basin_name = fname_prefix+"_AllBasins.bil"
     OutputShapefile = fname_prefix+'basins.shp'
 
     # polygonise the raster

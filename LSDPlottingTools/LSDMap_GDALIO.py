@@ -567,35 +567,70 @@ def RasterDifference(RasterFile1, RasterFile2, raster_band=1, OutFileName="Test.
     gdal_array.BandWriteArray(bandOut, difference_raster_array)
 
 #==============================================================================
-def PolygoniseRaster(DataDirectory, RasterFile, raster_band=1, OutputShapefile='polygons.shp'):
+def PolygoniseRaster(DataDirectory, RasterFile, raster_band=1, OutputShapefile='polygons'):
     """
-    This function takes in a raster and converts to a polygon shapefile
+    This function takes in a raster and converts to a polygon shapefile.
+    This calls gdal from the command line since I can't get gdal_polygonize to work properly
+    within python. YOU MUST HAVE GDAL INSTALLED FOR THIS TO WORK!!!!
 
     Args:
         DataDirectory (str): the data directory with the basin raster
         RasterFile (str): the name of the raster
         raster_band (int): the band of the raster, default = 1
-        OutputShapefile (str): the name of the output shapefile with the extension '.shp'. Default = 'polygons.shp'
+        OutputShapefile (str): the name of the output shapefile WITHOUT EXTENSION. Default = 'polygons'
 
     Returns:
-        Polygon shapefile of the raster
+        None but writes a shapefile of the basins
 
     Author: FJC
     """
     from osgeo import ogr
     import sys
+    import subprocess
 
-    # open the raster
-    Raster = gdal.Open(RasterFile)
-    RasterBand = Raster.GetRasterBand(1)
+    # get the filename
+    system_call = "gdal_polygonize.py -mask " + RasterFile + " " + RasterFile + " -b " + raster_band + " -f 'ESRI Shapefile' " + OutputShapefile + ".shp " + OutputShapefile
+    print(system_call)
 
-    # get spatial reference system
-    NDV, xsize, ysize, GeoT, Projection, DataType = GetGeoInfo(RasterFile)
+def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
+    """
+    This function takes in a raster and converts to a polygon shapefile using rasterio
+    This is a work in progress!!!!!
+    from https://gis.stackexchange.com/questions/187877/how-to-polygonize-raster-to-shapely-polygons/187883#187883?newreg=8b1f507529724a8488ce4789ba787363
 
-    # define output shapefile
-    driver_name = "ESRI Shapefile"
-    drv = ogr.GetDriverByName(driver_name)
-    dst_ds = drv.CreateDataSource(DataDirectory+OutputShapefile)
-    dst_layer = dst_ds.CreateLayer(DataDirectory+dst_layername, srs = Projection)
+    Args:
+        DataDirectory (str): the data directory with the basin raster
+        RasterFile (str): the name of the raster
+        OutputShapefile (str): the name of the output shapefile WITHOUT EXTENSION. Default = 'polygons'
 
-    gdal.Polygonize(RasterBand, None, dst_layer, -1, [], callback=None)
+    Returns:
+        List of shapely polygons with the basins
+
+    Author: FJC
+    """
+    # import modules
+    import rasterio
+    from rasterio.features import shapes
+    from shapely.geometry import shape, Polygon
+
+    # define the mask
+    mask = None
+    raster_band = 1
+
+    # load in the raster using rasterio
+    with rasterio.drivers():
+        with rasterio.open(DataDirectory+RasterFile) as src:
+            image = src.read(raster_band)
+            results = (
+            {'properties': {'raster_val': v}, 'geometry': s}
+            for i, (s, v)
+            in enumerate(
+                shapes(image, mask=mask, transform=src.affine)))
+
+    # transform results into shapely geometries
+    geoms = list(results)
+    Basins = []
+    for f in geoms:
+        Basins.append(Polygon(shape(f['geometry'])))
+
+    return Basins
