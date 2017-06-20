@@ -23,6 +23,7 @@ import matplotlib.cm as _cm
 import matplotlib.colors as _mcolors
 import matplotlib.axes
 import numpy as np
+from matplotlib import ticker
 from matplotlib import rcParams
 
 
@@ -393,7 +394,7 @@ class MapFigure(object):
     def add_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=0, norm = "None", modify_raster_values=False, old_values=[], new_values=[]):
+                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[]):
 
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
@@ -406,11 +407,15 @@ class MapFigure(object):
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
                          alpha=0.5,
-                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=0, nroma = "None", modify_raster_values = False, old_values=[], new_values = []):
+                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = []):
 
         Raster = BaseRaster(RasterName,Directory)
         if modify_raster_values == True:
             Raster.replace_raster_values(old_values, new_values)
+
+        if discrete_cmap == True:
+            print("N colours: "+str(n_colours))
+            colourmap = self.cmap_discretize(colourmap, n_colours)
 
         self._RasterList.append(Raster)
         self._RasterList[-1].set_colourmap(colourmap)
@@ -436,30 +441,6 @@ class MapFigure(object):
 
         return self.ax_list
 
-    def colourbar_index(self, im, n_colours, cmap, cax, spacing='uniform'):
-        """
-        Fix ticks on discrete cmap
-        From https://stackoverflow.com/questions/18704353/correcting-matplotlib-colorbar-ticks
-
-        Args:
-             cmap: colormap instance, eg. cm.jet.
-             n_colours: number of colours
-
-        Returns:
-            None but fixes cbar ticks
-
-        Author: FJC
-
-        """
-        this_cmap = self.cmap_discretize(cmap, n_colours)
-        mappable = _cm.ScalarMappable(cmap=cmap)
-        mappable.set_array([])
-        mappable.set_clim(-0.5, n_colours+0.5)
-        colorbar = plt.colorbar(im,cmap=this_cmap,spacing='uniform', orientation=self.colourbar_orientation,cax=cax)
-        colorbar.set_ticks(np.linspace(0, n_colours, n_colours))
-        colorbar.set_ticklabels(range(n_colours))
-
-        return colorbar
 
     def cmap_discretize(self, cmap, N):
         """
@@ -491,16 +472,14 @@ class MapFigure(object):
         # Return colormap object.
         return _mcolors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
 
-    def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar", discrete=False, n_colours=0):
+    def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar",discrete=False, n_colours=10):
         fig = matplotlib.pyplot.gcf()
         ax_list.append(fig.add_axes([0.1,0.8,0.05,0.2]))
-        this_cmap = BaseRaster._colourmap
-        print this_cmap
-        if discrete == False:
-            cbar = plt.colorbar(im,cmap=this_cmap,spacing='uniform', orientation=self.colourbar_orientation,cax=ax_list[-1])
-        else:
-            discrete_cmap = self.cmap_discretize(this_cmap, n_colours)
-            cbar = plt.colorbar(im,cmap=discrete_cmap,spacing='uniform', orientation=self.colourbar_orientation,cax=ax_list[-1])
+        cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation=self.colourbar_orientation,cax=ax_list[-1])
+
+        if discrete==True:
+            # change ticks
+            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours)
 
         #Will's changes:
         # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
@@ -514,6 +493,44 @@ class MapFigure(object):
         elif self.colourbar_location == 'right':
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
         return ax_list
+
+    def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours):
+        """
+        This function takes a discrete colourbar and fixes the ticks so they are
+        in the middle of each colour
+
+        Args:
+            cbar: the colourbar
+        Returns:
+            None but fixes ticks
+
+        Author: FJC
+        """
+        # get the min and the max of the colourbar
+        vmin = np.nanmin(BaseRaster._RasterArray)
+        vmax = np.nanmax(BaseRaster._RasterArray)
+        print vmin, vmax
+
+        # get the additional end spacing for colourbar
+        tick_spacing = (vmax-vmin)/(n_colours)
+        print tick_spacing
+        new_vmin = vmin-(tick_spacing/2)
+        new_vmax = vmax+(tick_spacing/2)+tick_spacing
+
+        #get list of tick locations
+        tick_locs = np.arange(new_vmin, new_vmax, step=tick_spacing)
+
+        # update ticks
+        tick_locator = ticker.FixedLocator(tick_locs)
+        cbar.locator = tick_locator
+        cbar.update_ticks()
+
+        print BaseRaster._RasterArray[np.isnan(BaseRaster._RasterArray) == False]
+
+        # get tick labels
+        tick_labels = np.linspace(vmin, vmax, n_colours)
+        tick_labels = [str(x) for x in tick_labels]
+        cbar.set_ticklabels(tick_labels)
 
     def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar"):
         fig = matplotlib.pyplot.gcf()

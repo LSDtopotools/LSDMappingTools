@@ -1410,5 +1410,5 @@ if __name__ == "__main__":
 
     # run the raster plotting
     MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    #MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
+    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
     #SimpleMaxMLECheck(DataDirectory, fname_prefix)
