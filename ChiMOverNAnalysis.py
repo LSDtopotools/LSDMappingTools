@@ -1099,6 +1099,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
     """
     from cycler import cycler
     from matplotlib import lines
+    import matplotlib.patches as patches
 
     # Set up fonts for plots
     label_size = 10
@@ -1193,8 +1194,27 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             if i == 0:
                 # plot the data
                 ax.plot(m_over_n_values,ratio_MLEs, lw=1.5, label = str(i), c='k', linestyle = '-', zorder=100)
+
+                # get the limits for the arrow
+                max_MLE = max(ratio_MLEs)
+                min_MLE = min(ratio_MLEs)
+                dy = (max_MLE-min_MLE)/8
+                spacing = 1.1
+                print (max_MLE, min_MLE)
+                print("DY: "+str(dy))
                 # add arrow at best fit m/n
-                ax.annotate("", xy=(best_fit_movern, 1), xytext=(best_fit_movern, 0.9995), arrowprops=dict(arrowstyle="-|>",facecolor='r', ec='r', lw=1.5)) #need to scale this by MLE??
+                #ax.annotate("", xy=(best_fit_movern, 1), xytext=(best_fit_movern, 0.9995), arrowprops=dict(arrowstyle="-|>",facecolor='r', ec='r', lw=1.5)) #need to scale this by MLE??
+                ax.add_patch(
+                    patches.Arrow(
+                        best_fit_movern, #x
+                        max_MLE+(dy*spacing), #y
+                        0, #dx
+                        -dy, #dy
+                        width = 0.05,
+                        facecolor = 'r',
+                        edgecolor = 'r'
+                    )
+                )
             #remove tribs
             else:
                 # plot the data
@@ -1203,6 +1223,9 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         # set the axes labels
         ax.set_xlabel('$m/n$')
         ax.set_ylabel('$MLE$ ratio')
+
+        # set the ylim
+        ax.set_ylim(min_MLE,max_MLE+(dy*spacing))
 
         # add the legend
         ax.legend(loc='right', bbox_to_anchor=(1.25,0.5), title = 'Iterations', frameon=False)
@@ -1432,7 +1455,7 @@ if __name__ == "__main__":
     # analyse the MLE
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
     #PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-    #PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+    PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
 
     # run the plotting functions
     # MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
@@ -1440,7 +1463,7 @@ if __name__ == "__main__":
     #                  size_format=size_format, FigFormat=FigFormat)
 
     # run the raster plotting
-    MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
+    #MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
+    #MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
     #GetBasinOutlines(DataDirectory, fname_prefix)
     #SimpleMaxMLECheck(DataDirectory, fname_prefix)
