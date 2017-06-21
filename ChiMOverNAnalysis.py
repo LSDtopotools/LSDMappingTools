@@ -1256,7 +1256,7 @@ def GetBasinOutlines(DataDirectory, fname_prefix):
 
     # read in the basins raster
     basin_name = fname_prefix+"_AllBasins.bil"
-    OutputShapefile = fname_prefix+'basins.shp'
+    OutputShapefile = fname_prefix+'_basins.shp'
 
     # polygonise the raster
     IO.PolygoniseRaster(DataDirectory, basin_name, OutputShapefile)

@@ -567,31 +567,6 @@ def RasterDifference(RasterFile1, RasterFile2, raster_band=1, OutFileName="Test.
     gdal_array.BandWriteArray(bandOut, difference_raster_array)
 
 #==============================================================================
-def PolygoniseRaster(DataDirectory, RasterFile, raster_band=1, OutputShapefile='polygons'):
-    """
-    This function takes in a raster and converts to a polygon shapefile.
-    This calls gdal from the command line since I can't get gdal_polygonize to work properly
-    within python. YOU MUST HAVE GDAL INSTALLED FOR THIS TO WORK!!!!
-
-    Args:
-        DataDirectory (str): the data directory with the basin raster
-        RasterFile (str): the name of the raster
-        raster_band (int): the band of the raster, default = 1
-        OutputShapefile (str): the name of the output shapefile WITHOUT EXTENSION. Default = 'polygons'
-
-    Returns:
-        None but writes a shapefile of the basins
-
-    Author: FJC
-    """
-    from osgeo import ogr
-    import sys
-    import subprocess
-
-    # get the filename
-    system_call = "gdal_polygonize.py -mask " + RasterFile + " " + RasterFile + " -b " + raster_band + " -f 'ESRI Shapefile' " + OutputShapefile + ".shp " + OutputShapefile
-    print(system_call)
-
 def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     """
     This function takes in a raster and converts to a polygon shapefile using rasterio
@@ -604,14 +579,15 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
         OutputShapefile (str): the name of the output shapefile WITHOUT EXTENSION. Default = 'polygons'
 
     Returns:
-        List of shapely polygons with the basins
+        List of shapely polygons
 
     Author: FJC
     """
     # import modules
     import rasterio
     from rasterio.features import shapes
-    from shapely.geometry import shape, Polygon
+    from shapely.geometry import shape, Polygon, mapping
+    import fiona
 
     # define the mask
     mask = None
@@ -627,10 +603,21 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
             in enumerate(
                 shapes(image, mask=mask, transform=src.affine)))
 
-    # transform results into shapely geometries
-    geoms = list(results)
-    Basins = []
-    for f in geoms:
-        Basins.append(Polygon(shape(f['geometry'])))
+    # define shapefile attributes
+    crs = src.crs.wkt
+    #print (crs)
+    schema = {'geometry': 'Polygon',
+              'properties': { 'ID': 'float'}}
 
-    return Basins
+    # transform results into shapely geometries and write to shapefile using fiona
+    geoms = list(results)
+    Shapes = []
+    vals = []
+    with fiona.open(DataDirectory+OutputShapefile, 'w', crs=crs, driver='ESRI Shapefile', schema=schema) as output:
+        for f in geoms:
+            this_shape = Polygon(shape(f['geometry']))
+            this_val = float(f['properties']['raster_val'])
+            if this_val > 0:
+                output.write({'geometry': mapping(this_shape), 'properties':{'ID': this_val}})
+
+    return Shapes
