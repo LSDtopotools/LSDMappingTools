@@ -687,6 +687,24 @@ class MapFigure(object):
 
         return texts
 
+    def plot_polygon_outlines(self,polygons):
+        """
+        This function plots an outline of a series of shapely polygons
+
+        Args:
+            ax_list: list of axes
+            polygons: list of shapely polygons
+
+        Author: FJC
+        """
+        from shapely.geometry import Polygon
+        print('Plotting the polygon outlines...')
+
+
+        for poly in polygons:
+            x,y = poly.exterior.xy
+            self.ax_list[0].plot(x,y, c='k', lw = 1)
+
     def _set_coord_type(self, coord_type):
         """Sets the coordinate type"""
         if coord_type == "UTM":
@@ -720,9 +738,9 @@ class MapFigure(object):
 
         map_aspect_ratio = self._RasterList[0]._RasterAspectRatio
         print("The aspect ratio is: "+str(map_aspect_ratio))
-        
-        # We have to make some adjustments for the colourbar labels since if 
-        # they have lots of digits we need more space. 
+
+        # We have to make some adjustments for the colourbar labels since if
+        # they have lots of digits we need more space.
         # This is a fantastic thing you have to do when you are hard coding the
         # layout of the figure. Don't worry, this will all be worth it when we have awsome
         # figures every time.
@@ -735,26 +753,26 @@ class MapFigure(object):
                 if len(label) > max_cbar_characters:
                     max_cbar_characters = len(label)
             print("The longest colourbar label has "+str(max_cbar_characters)+" characters.")
-            
+
 
 
         fig = matplotlib.pyplot.gcf()
-        
-        # Now we size the figure. This requires some finessing since we are 
+
+        # Now we size the figure. This requires some finessing since we are
         # hard coding the widths of everything
         if max_cbar_characters <= 3:
             cbar_width = 0.2
-            cbar_text_width = 0.4   # This is in inches. Because yanks wrote matplotlib. 
+            cbar_text_width = 0.4   # This is in inches. Because yanks wrote matplotlib.
         else:
             cbar_width = 0.2
             cbar_text_width = 0.4+0.15*(max_cbar_characters-3)   # This is in inches. Because yanks wrote matplotlib.
             print("I'm adjusting the colourbar text width to "+str(cbar_text_width)+" inches")
-            
+
         fig_size_inches, map_axes, cbar_axes = phelp.MapFigureSizer(fig_width_inches,
                                                               map_aspect_ratio,
-                                                              self.colourbar_location, 
-                                                              cbar_width, 
-                                                              cbar_text_width)            
+                                                              self.colourbar_location,
+                                                              cbar_width,
+                                                              cbar_text_width)
 
         fig.set_size_inches(fig_size_inches[0], fig_size_inches[1])
         self.ax_list[0].set_position(map_axes)

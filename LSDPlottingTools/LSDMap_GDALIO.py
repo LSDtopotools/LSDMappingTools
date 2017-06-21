@@ -619,5 +619,6 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
             this_val = float(f['properties']['raster_val'])
             if this_val > 0:
                 output.write({'geometry': mapping(this_shape), 'properties':{'ID': this_val}})
+            Shapes.append(this_shape)
 
     return Shapes
