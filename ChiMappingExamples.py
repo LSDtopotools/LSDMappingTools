@@ -50,7 +50,7 @@ def ExampleOne_SimpleHillshade(DataDirectory,Base_file):
     
     # set up the base image and the map
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
-    MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = "jet", alpha = 0.6)
+    MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = "jet", alpha = 0.6, colorbarlabel = "Elevation (m)")
     
     # Save the image
     ImageName = DataDirectory+"Xian_example1.png" 

@@ -720,10 +720,41 @@ class MapFigure(object):
 
         map_aspect_ratio = self._RasterList[0]._RasterAspectRatio
         print("The aspect ratio is: "+str(map_aspect_ratio))
+        
+        # We have to make some adjustments for the colourbar labels since if 
+        # they have lots of digits we need more space. 
+        # This is a fantastic thing you have to do when you are hard coding the
+        # layout of the figure. Don't worry, this will all be worth it when we have awsome
+        # figures every time.
+        max_cbar_characters = 0
+        if self.colourbar_location == "left" or self.colourbar_location == "right":
+            print("You have a colourbar on the left or right, I need to check the number of characters in the labels.")
+            labels = [item.get_text() for item in self.ax_list[-1].get_yticklabels()]
+            print(labels)
+            for label in labels:
+                if len(label) > max_cbar_characters:
+                    max_cbar_characters = len(label)
+            print("The longest colourbar label has "+str(max_cbar_characters)+" characters.")
+            
+
 
         fig = matplotlib.pyplot.gcf()
+        
+        # Now we size the figure. This requires some finessing since we are 
+        # hard coding the widths of everything
+        if max_cbar_characters <= 3:
+            cbar_width = 0.2
+            cbar_text_width = 0.4   # This is in inches. Because yanks wrote matplotlib. 
+        else:
+            cbar_width = 0.2
+            cbar_text_width = 0.4+0.15*(max_cbar_characters-3)   # This is in inches. Because yanks wrote matplotlib.
+            print("I'm adjusting the colourbar text width to "+str(cbar_text_width)+" inches")
+            
         fig_size_inches, map_axes, cbar_axes = phelp.MapFigureSizer(fig_width_inches,
-                                                              map_aspect_ratio,cbar_loc = self.colourbar_location)
+                                                              map_aspect_ratio,
+                                                              self.colourbar_location, 
+                                                              cbar_width, 
+                                                              cbar_text_width)            
 
         fig.set_size_inches(fig_size_inches[0], fig_size_inches[1])
         self.ax_list[0].set_position(map_axes)
