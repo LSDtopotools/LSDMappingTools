@@ -56,7 +56,31 @@ def ExampleOne_SimpleHillshade(DataDirectory,Base_file):
     ImageName = DataDirectory+"Xian_example1.png" 
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = 250)
 
+def ExampleTwo_Basins(DataDirectory,Base_file):
 
+    # specify the figure size and format
+    size_format='ESURF'
+    FigFormat = 'png'
+    fig_size_inches = 12
+    ax_style = "Normal"
+    
+    # Get the filenames you want    
+    BackgroundRasterName = Base_file+"_hs.bil"    
+    DrapeRasterName = Base_file+".bil"
+
+    # clear the plot
+    plt.clf() 
+    
+    # this is where we want the colourbar
+    cbar_loc = "right"
+    
+    # set up the base image and the map
+    MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
+    MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = "jet", alpha = 0.6, colorbarlabel = "Elevation (m)")
+    
+    # Save the image
+    ImageName = DataDirectory+"Xian_example1.png" 
+    MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = 250)
 
 
 
