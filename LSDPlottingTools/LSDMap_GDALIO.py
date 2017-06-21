@@ -477,6 +477,96 @@ def ReadRasterArrayBlocks(raster_file,raster_band=1):
 #==============================================================================
 
 #==============================================================================
+def ReadRasterArrayBlocks_numpy(raster_file,raster_band=1):
+    """
+    This reads a raster file into an array using numpy. The "blocks" bit makes it efficient.
+    Args:
+        FileName (str): The filename (with path and extension) of the raster.
+        raster_band (int): the band of the raster (almost all uses with LSDTopoTools will have a 1 band raster) Doesn't work yet for more than one band.
+
+    Return:
+        np.array: A numpy array with the data from the raster.
+
+    Author: SMM
+    """
+
+
+    if exists(raster_file) is False:
+            raise Exception('[Errno 2] No such file or directory: \'' + raster_file + '\'')
+
+    with open(raster_file[:-3]+"hdr","r") as hdr_file:
+        print("I am opening your raster info")
+        for line in hdr_file:
+            #testing the data type
+            if(line[0:9] == "data type"):
+                info_dtype = line[-2:]
+                info_dtype = int(info_dtype)
+            else:
+                if(line[0:8] == "map info"):
+                    info = line[12:-2]
+                    info = info.split(",")
+                    x_min = float(info[3])
+                    y_max = float(info[4])
+                    x_res = int(info[5])
+                    y_res = int(info[6])
+                    utm_zone = int(info[7])
+                    utm_hemisphere = info[8]
+                else:
+                    if(line[0:7] == "samples"):
+                        num_col = line.replace(" ","").split("=")[1]
+                        print("there are " + str(num_col) + " columns")
+                        num_col = int(num_col)
+                    else:
+                        if(line[0:5] == "lines"):
+                            num_lines = line.replace(" ","").split("=")[1]
+                            print("there are " + str(num_lines) + " lines")
+                            num_lines = int(num_lines)
+
+        #The type of data representation:
+        #1 = Byte: 8-bit unsigned integer
+        #2 = Integer: 16-bit signed integer
+        #3 = Long: 32-bit signed integer
+        #4 = Floating-point: 32-bit single-precision
+        #5 = Double-precision: 64-bit double-precision floating-point
+        #6 = Complex: Real-imaginary pair of single-precision floating-point
+        #9 = Double-precision complex: Real-imaginary pair of double precision floating-point
+        #12 = Unsigned integer: 16-bit
+        #13 = Unsigned long integer: 32-bit
+        #14 = 64-bit long integer (signed)
+        #15 = 64-bit unsigned long integer (unsigned)
+
+    if(info_dtype == 1):
+        data_type = np.dtype('uint8')
+    else:
+        if(info_dtype == 2):
+            data_type = np.dtype('int16')
+        else:
+            if(info_dtype == 3):
+                data_type = np.dtype('int32')
+            else:
+                if(info_dtype == 4):
+                    data_type = np.dtype('Float32')
+                else:
+                    if(info_dtype == 5):
+                        data_type = np.dtype('Float64')
+                    else:
+                        if(info_dtype == 12):
+                            data_type = np.dtype('uint16')
+    print("your data type is "  + str(data_type))
+    # Alright now loading and converting the data
+    print("I am now ingesting your raster")
+    data_array = np.fromfile(raster_file,data_type).reshape(num_lines,num_col)
+    print("I nailed it")
+    x_max = x_min + x_res*num_col
+    y_min = y_max - y_res*num_lines
+    print("I am returning the raster array and info")
+
+
+
+    return data_array
+#==============================================================================
+
+#==============================================================================
 def array2raster(rasterfn,newRasterfn,array,driver_name = "ENVI", noDataValue = -9999):
     """Takes an array and writes to a GDAL compatible raster. It needs another raster to map the dimensions.
 
