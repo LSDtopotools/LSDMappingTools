@@ -1184,11 +1184,9 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 
             # get the MLEs for this iteration
             these_MLEs = basin_MLEs[:,i]
-            print these_MLEs
 
             # get the ratio of these MLEs to the best fit
             ratio_MLEs = [x/best_fit_MLE for x in these_MLEs]
-            print ratio_MLEs
 
             # no removed tributaries
             if i == 0:
@@ -1200,10 +1198,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
                 min_MLE = min(ratio_MLEs)
                 dy = (max_MLE-min_MLE)/8
                 spacing = 1.1
-                print (max_MLE, min_MLE)
-                print("DY: "+str(dy))
                 # add arrow at best fit m/n
-                #ax.annotate("", xy=(best_fit_movern, 1), xytext=(best_fit_movern, 0.9995), arrowprops=dict(arrowstyle="-|>",facecolor='r', ec='r', lw=1.5)) #need to scale this by MLE??
                 ax.add_patch(
                     patches.Arrow(
                         best_fit_movern, #x
@@ -1354,7 +1349,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
     # add the basin outlines
     Basins = GetBasinOutlines(DataDirectory, fname_prefix)
-    MF.plot_polygon_outlines(Basins)
+    MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
@@ -1426,7 +1421,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     # add the basins drape
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns)
     Basins = GetBasinOutlines(DataDirectory, fname_prefix)
-    MF.plot_polygon_outlines(Basins)
+    MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
@@ -1463,7 +1458,5 @@ if __name__ == "__main__":
     #                  size_format=size_format, FigFormat=FigFormat)
 
     # run the raster plotting
-    #MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    #MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
-    #GetBasinOutlines(DataDirectory, fname_prefix)
-    #SimpleMaxMLECheck(DataDirectory, fname_prefix)
+    MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
+    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
