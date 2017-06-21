@@ -604,8 +604,9 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
                 shapes(image, mask=mask, transform=src.affine)))
 
     # define shapefile attributes
-    crs = src.crs.wkt
-    #print (crs)
+    # crs = src.crs.wkt
+    # print (crs)
+    crs = GetUTMEPSG(DataDirectory+RasterFile)
     schema = {'geometry': 'Polygon',
               'properties': { 'ID': 'float'}}
 

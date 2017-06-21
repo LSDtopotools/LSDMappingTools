@@ -180,6 +180,7 @@ class BaseRaster(object):
         for idx, value in enumerate(old_values):
             old_values_index = self._RasterArray == value
             self._RasterArray[old_values_index] = new_values[idx]
+        #print self._RasterArray
 
 
 class MapFigure(object):
@@ -519,6 +520,7 @@ class MapFigure(object):
 
         #get list of tick locations
         tick_locs = np.arange(new_vmin, new_vmax, step=tick_spacing)
+        print tick_locs
 
         # update ticks
         tick_locator = ticker.FixedLocator(tick_locs)
