@@ -1427,7 +1427,7 @@ if __name__ == "__main__":
     # specify the m/n values tested
     start_movern = 0.2
     d_movern = 0.1
-    n_movern = 7
+    n_movern = 8
 
     # analyse the MLE
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
@@ -1440,7 +1440,7 @@ if __name__ == "__main__":
     #                  size_format=size_format, FigFormat=FigFormat)
 
     # run the raster plotting
-    #MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
+    MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
     MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
     #GetBasinOutlines(DataDirectory, fname_prefix)
     #SimpleMaxMLECheck(DataDirectory, fname_prefix)

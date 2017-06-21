@@ -532,6 +532,7 @@ class MapFigure(object):
         # get tick labels
         tick_labels = np.linspace(vmin, vmax, n_colours)
         tick_labels = [str(x) for x in tick_labels]
+        print tick_labels
         cbar.set_ticklabels(tick_labels)
 
     def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar"):
@@ -689,7 +690,7 @@ class MapFigure(object):
 
         return texts
 
-    def plot_polygon_outlines(self,polygons):
+    def plot_polygon_outlines(self,polygons, colour='black', linewidth=1):
         """
         This function plots an outline of a series of shapely polygons
 
@@ -702,10 +703,30 @@ class MapFigure(object):
         from shapely.geometry import Polygon
         print('Plotting the polygon outlines...')
 
-
         for poly in polygons:
             x,y = poly.exterior.xy
-            self.ax_list[0].plot(x,y, c='k', lw = 1)
+            self.ax_list[0].plot(x,y, c=colour, lw = linewidth)
+
+    def plot_filled_polygons(self,polygons, facecolour='blue', edgecolour='black', linewidth=1, alpha=0.5):
+        """
+        This function plots a series of shapely polygons but fills them in
+
+        Args:
+            ax_list: list of axes
+            polygons: list of shapely polygons
+
+        Author: FJC
+        """
+        from shapely.geometry import Polygon
+        from descartes import PolygonPatch
+        from matplotlib.collections import PatchCollection
+
+        print('Plotting the polygons...')
+
+        patches = []
+        for poly in polygons:
+            this_patch = PolygonPatch(poly, fc=facecolour, ec=edgecolour, alpha=alpha)
+            self.ax_list[0].add_patch(this_patch)
 
     def _set_coord_type(self, coord_type):
         """Sets the coordinate type"""

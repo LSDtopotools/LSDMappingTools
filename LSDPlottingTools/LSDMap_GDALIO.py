@@ -610,6 +610,9 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     schema = {'geometry': 'Polygon',
               'properties': { 'ID': 'float'}}
 
+    # get raster no data value
+    NDV = getNoDataValue(DataDirectory+RasterFile)
+
     # transform results into shapely geometries and write to shapefile using fiona
     geoms = list(results)
     Shapes = []
@@ -618,7 +621,7 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
         for f in geoms:
             this_shape = Polygon(shape(f['geometry']))
             this_val = float(f['properties']['raster_val'])
-            if this_val > 0:
+            if this_val != NDV: # remove no data values
                 output.write({'geometry': mapping(this_shape), 'properties':{'ID': this_val}})
             Shapes.append(this_shape)
 
