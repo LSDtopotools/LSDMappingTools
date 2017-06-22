@@ -504,3 +504,29 @@ def BasicMassBalance(path, file1, file2):
     print("linear dif " + str(np.sum(NewRaster)))    
         
     return mass_balance       
+
+
+
+def GetBasinOutlines(DataDirectory, fname_prefix):
+    """
+    This function takes in the raster of basins and gets a shapefile of their
+    outlines
+
+    Args:
+        DataDirectory (str): the data directory with the basin raster
+        fname_prefix (str): the prefix for the DEM
+
+    Returns:
+        basin outline shapefile
+
+    Author: FJC
+    """
+
+    # read in the basins raster
+    basin_name = fname_prefix+"_AllBasins.bil"
+    OutputShapefile = fname_prefix+'_basins.shp'
+
+    # polygonise the raster
+    Basins = LSDMap_IO.PolygoniseRaster(DataDirectory, basin_name, OutputShapefile)
+    return Basins
+

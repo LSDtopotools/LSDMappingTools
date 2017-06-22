@@ -684,14 +684,13 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     raster_band = 1
 
     # load in the raster using rasterio
-    with rasterio.drivers():
-        with rasterio.open(DataDirectory+RasterFile) as src:
-            image = src.read(raster_band)
-            results = (
-            {'properties': {'raster_val': v}, 'geometry': s}
-            for i, (s, v)
-            in enumerate(
-                shapes(image, mask=mask, transform=src.affine)))
+    with rasterio.open(DataDirectory+RasterFile) as src:
+        image = src.read(raster_band)
+        results = (
+        {'properties': {'raster_val': v}, 'geometry': s}
+        for i, (s, v)
+        in enumerate(
+            shapes(image, mask=mask, transform=src.affine)))
 
     # define shapefile attributes
     # crs = src.crs.wkt

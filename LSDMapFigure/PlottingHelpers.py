@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Feb 12 10:29:18 2017
+This file contains are a series of helper functions that interact with 
+LSDTopoTools spatial data. 
 
-@author: smudd
+Written by Simon M. Mudd and Fiona J Clubb at the University of Edinburgh
+Released under GPL3
+
+22/06/2017
 """
+
+
+import pandas as pd
 
 #==============================================================================
 def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
@@ -336,3 +343,30 @@ def GetTicksForUTMNoInversion(FileName,x_max,x_min,y_max,y_min,n_target_tics):
     #return xlocs,ylocs,new_x_labels,new_y_labels
     return new_xlocs,new_ylocs,x_labels,y_labels
 #==============================================================================
+
+
+#=============================================================================
+# CSV READERS
+# Read in the csv files to pandas dataframes
+#=============================================================================
+def ReadBaselevelKeysCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix '__BaselevelKeys.csv'
+    to a pandas dataframe
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    # get the csv filename
+    basin_stats_suffix = '_BaselevelKeys.csv'
+    fname = fname_prefix+basin_stats_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
