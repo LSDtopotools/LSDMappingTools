@@ -45,7 +45,7 @@ def ConvertAllCSVToGeoJSON(path):
     print("The formatted path is: " + NewPath)
 
 
-    for FileName in glob(NewPath+"*.csv"):
+    for FileName in glob.glob(NewPath+"*.csv"):
         print("filename is: " + FileName)
 
         thisPointData = LSDMap_PointData(FileName)
