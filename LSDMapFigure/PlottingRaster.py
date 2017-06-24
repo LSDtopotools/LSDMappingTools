@@ -773,7 +773,7 @@ class MapFigure(object):
         print('Plotting the polygons...')
 
         patches = []
-        for poly in polygons:
+        for key, poly in polygons.iteritems():
             this_patch = PolygonPatch(poly, fc=facecolour, ec=edgecolour, alpha=alpha)
             self.ax_list[0].add_patch(this_patch)
 
