@@ -1206,6 +1206,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     from LSDMapFigure.PlottingRaster import MapFigure
     from LSDMapFigure.PlottingRaster import BaseRaster
     import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
+    import LSDPlottingTools.LSDMap_PointTools as LSDMap_PT
 
     # Set up fonts for plots
     label_size = 10
@@ -1248,14 +1249,22 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
+
     # add the basins drape
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
+
     # add the basin outlines
     Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
+    # add the basin labelling
+    # get basin keys as a point data object
+    basin_points = LSDMap_PT.LSDMap_PointData(BaseLevelDF, data_type='pandas', PANDEX=True)
+    MF.add_text_annotation_from_points(basin_points,column_for_plotting='baselevel_key', PANDEX=True)
+
+    # Save the figure
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
-    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
 
 def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='ESURF', FigFormat='png'):
     """
@@ -1361,4 +1370,4 @@ if __name__ == "__main__":
 
     # run the raster plotting
     MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
+    #MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)

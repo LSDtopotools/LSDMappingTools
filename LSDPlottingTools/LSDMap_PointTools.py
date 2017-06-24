@@ -345,13 +345,14 @@ class LSDMap_PointData(object):
 
         return self.Longitude
 
-    def QueryData(self,data_name,PrintToScreen = False):
+    def QueryData(self,data_name,PrintToScreen = False, PANDEX=False):
 
         """Returns the list of the data that has the column header data_name
 
         Args:
             PrintToScreen (bool): If true, prints to screen.
             data_name (str): The header of the column you want
+            PANDEX (bool): set to true if you got your point data in pandex mode.
 
         Return:
             float: A list of the data
@@ -363,12 +364,18 @@ class LSDMap_PointData(object):
             empty_list = []
             return empty_list
         else:
-
-            if PrintToScreen:
-                print("The " + data_name + "data is: ")
-                print(self.PointData[data_name])
-
-            return self.PointData[data_name]
+            if PANDEX == False:
+                if PrintToScreen:
+                    print("The " + data_name + "data is: ")
+                    print(self.PointData[data_name])
+                return self.PointData[data_name]
+            else:
+                # get data from the DF to a list
+                if PrintToScreen:
+                    print("The " + data_name + "data is: ")
+                    print(self.PointData[data_name].tolist())
+                this_list = self.PointData[data_name].tolist()
+                return this_list
 
     def GetUTMEastingNorthing(self,EPSG_string):
         """Returns two lists: the latitude and longitude converted to northing and easting.

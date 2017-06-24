@@ -651,7 +651,7 @@ class MapFigure(object):
             self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
     def add_text_annotation_from_points(self, thisPointData,column_for_plotting = "None",
-                                        selection_criteria = []):
+                                        selection_criteria = [], PANDEX=False):
         """
         This adds annotations to points. Used for annotating basins or sources, for example.
         """
@@ -667,7 +667,7 @@ class MapFigure(object):
         bbox_props = dict(boxstyle="round,pad=0.1", fc="w", ec="b", lw=0.5,alpha = 0.5)
 
         # see if the data column exists
-        test_data = thisPointData.QueryData(column_for_plotting)
+        test_data = thisPointData.QueryData(column_for_plotting, PANDEX=PANDEX)
 
         if len(test_data) == 0:
             print("There is no data with the column name: "+column_for_plotting)
@@ -683,9 +683,13 @@ class MapFigure(object):
             EPSG_string = self._RasterList[0]._EPSGString
             print("EPSG_string is: "+EPSG_string)
             [this_easting,this_northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
-            thinned_data = thisPointData.QueryData(column_for_plotting)
+            print (this_easting, this_northing)
+            thinned_data = thisPointData.QueryData(column_for_plotting, PANDEX=PANDEX)
+            print thinned_data
 
-            texts.append(self.ax_list[0].text(this_easting,this_northing, str(thinned_data),fontsize = 8, color= "r",alpha=0.7,bbox=bbox_props))
+            for idx, data in enumerate(thinned_data):
+                texts.append(self.ax_list[0].text(this_easting[idx],this_northing[idx], str(data),fontsize = 8, color= "r",alpha=0.7,bbox=bbox_props))
+            #print ("I'm adding the text, yo")
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
