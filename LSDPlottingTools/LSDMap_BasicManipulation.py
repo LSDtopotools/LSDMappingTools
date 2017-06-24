@@ -509,8 +509,8 @@ def BasicMassBalance(path, file1, file2):
 
 def GetBasinOutlines(DataDirectory, fname_prefix):
     """
-    This function takes in the raster of basins and gets a shapely of their
-    outlines
+    This function takes in the raster of basins and gets a dict of basin polygons,
+    where the key is the basin key and the value is a shapely polygon of the basin
 
     Args:
         DataDirectory (str): the data directory with the basin raster
@@ -527,31 +527,34 @@ def GetBasinOutlines(DataDirectory, fname_prefix):
     OutputShapefile = fname_prefix+'_basins.shp'
 
     # polygonise the raster
-    Basins = LSDMap_IO.PolygoniseRaster(DataDirectory, basin_name, OutputShapefile)
-    return Basins
+    BasinDict = LSDMap_IO.PolygoniseRaster(DataDirectory, basin_name, OutputShapefile)
+    return BasinDict
 
 def GetBasinCentroids(DataDirectory, fname_prefix):
     """
-    This function takes in the raster of basins and returns a list of points
-    with the centroids
+    This function takes in the raster of basins and returns a dict where the
+    key is the basin key and the value is the shapely point of the centroid
 
     Args:
         DataDirectory (str): the data directory with the basin raster
         fname_prefix (str): the prefix for the DEM
 
     Returns:
-        list of centroid points
+        dict of centroid points
 
     Author: FJC
     """
     from shapely.geometry import Point
 
     # get the basin polygons
-    Basins = GetBasinOutlines(DataDirectory, fname_prefix)
+    BasinDict = GetBasinOutlines(DataDirectory, fname_prefix)
 
     # get the centroids
     Centroids = []
-    for poly in Basins:
-        Centroids.append(Point(poly.centroid))
+    basin_keys = []
+    for basin_key, basin in BasinDict.iteritems():
+        Centroids.append(Point(basin.centroid))
+        basin_keys.append(basin_key)
 
-    return Centroids
+    CentroidDict = dict(zip(basin_keys, Centroids))
+    return CentroidDict

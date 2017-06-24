@@ -697,20 +697,52 @@ class MapFigure(object):
 
         return texts
 
+    def add_text_annotation_from_shapely_points(self, points, border_colour='k', text_colour='r', alpha=1):
+        """
+        This adds annotations from a dictionary of shapely points, for annotating basins or sources.
+        In the dictionary the keys are the raster values to annotate and the values are the point objects.
+        FJC 24/06/17
+        """
+        from shapely.geometry import Point
+
+        # A list of text objects
+        texts = []
+
+        # Get the axis limits to assert after
+        this_xlim = self.ax_list[0].get_xlim()
+        this_ylim = self.ax_list[0].get_ylim()
+
+        # Format the bounding box
+        bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
+
+        for key, point in points.iteritems():
+            x = point.x
+            y = point.y
+            texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props))
+            #print ("I'm adding the text, yo")
+
+        # Annoying but the scatter plot resets the extents so you need to reassert them
+        self.ax_list[0].set_xlim(this_xlim)
+        self.ax_list[0].set_ylim(this_ylim)
+
+        return texts
+
     def plot_polygon_outlines(self,polygons, colour='black', linewidth=1):
         """
         This function plots an outline of a series of shapely polygons
 
         Args:
             ax_list: list of axes
-            polygons: list of shapely polygons
+            polygons: dict of shapely polygons
 
         Author: FJC
         """
         from shapely.geometry import Polygon
-        print('Plotting the polygon outlines...')
 
-        for poly in polygons:
+        print('Plotting the polygon outlines...')
+        print polygons
+
+        for key, poly in polygons.iteritems():
             x,y = poly.exterior.xy
             self.ax_list[0].plot(x,y, c=colour, lw = linewidth)
 

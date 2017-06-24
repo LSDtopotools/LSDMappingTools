@@ -660,7 +660,6 @@ def RasterDifference(RasterFile1, RasterFile2, raster_band=1, OutFileName="Test.
 def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     """
     This function takes in a raster and converts to a polygon shapefile using rasterio
-    This is a work in progress!!!!!
     from https://gis.stackexchange.com/questions/187877/how-to-polygonize-raster-to-shapely-polygons/187883#187883?newreg=8b1f507529724a8488ce4789ba787363
 
     Args:
@@ -669,7 +668,7 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
         OutputShapefile (str): the name of the output shapefile WITHOUT EXTENSION. Default = 'polygons'
 
     Returns:
-        List of shapely polygons
+        Dictionary where key is the raster value and the value is a shapely polygon
 
     Author: FJC
     """
@@ -705,7 +704,7 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     # transform results into shapely geometries and write to shapefile using fiona
     geoms = list(results)
     Shapes = []
-    vals = []
+    Vals = []
     with fiona.open(DataDirectory+OutputShapefile, 'w', crs=crs, driver='ESRI Shapefile', schema=schema) as output:
         for f in geoms:
             this_shape = Polygon(shape(f['geometry']))
@@ -713,5 +712,7 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
             if this_val != NDV: # remove no data values
                 output.write({'geometry': mapping(this_shape), 'properties':{'ID': this_val}})
             Shapes.append(this_shape)
+            Vals.append(this_val)
+    PolygonDict = dict(zip(Vals, Shapes))
 
-    return Shapes
+    return PolygonDict
