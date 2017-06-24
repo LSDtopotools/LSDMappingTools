@@ -1260,7 +1260,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     # add the basin labelling
     # get basin keys as a point data object
     basin_points = LSDMap_PT.LSDMap_PointData(BaseLevelDF, data_type='pandas', PANDEX=True)
-    MF.add_text_annotation_from_points(basin_points,column_for_plotting='baselevel_key', PANDEX=True)
+    MF.add_text_annotation_from_points(basin_points,column_for_plotting='baselevel_key', PANDEX=True, text_colour='k')
 
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
