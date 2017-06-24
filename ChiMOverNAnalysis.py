@@ -1260,8 +1260,6 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    # get basin keys as a point data object
-    basin_points = LSDMap_PT.LSDMap_PointData(BaseLevelDF, data_type='pandas', PANDEX=True)
     MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     # Save the figure
@@ -1306,9 +1304,13 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
 
     # get the basin IDs to make a discrete colourmap for each ID
     BasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    BaseLevelDF = Helper.ReadBaselevelKeysCSV(DataDirectory, fname_prefix)
 
-    basin_junctions = list(BasinDF['outlet_jn'])
-    basin_junctions = [float(x) for x in basin_junctions]
+    baselevel_keys = list(BaseLevelDF['baselevel_key'])
+    baselevel_keys = [float(x) for x in baselevel_keys]
+
+    baselevel_junctions = list(BaseLevelDF['baselevel_junction'])
+    baselevel_junctions = [float(x) for x in baselevel_junctions]
 
     # get the best fit m/n for each junction
     MOverNDict = SimpleMaxMLECheck(BasinDF)
@@ -1332,9 +1334,14 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns, cbar_type=float)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=m_over_ns, cbar_type=float)
     Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
+
+    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
+
+    # add the basin labelling
+    MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
@@ -1372,4 +1379,4 @@ if __name__ == "__main__":
 
     # run the raster plotting
     MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    #MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
+    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
