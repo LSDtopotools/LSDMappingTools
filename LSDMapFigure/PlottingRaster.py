@@ -697,7 +697,7 @@ class MapFigure(object):
 
         return texts
 
-    def plot_polygon_outlines(self,polygons, colour='black', linewidth=1):
+    def plot_polygon_outlines(self,polygons, colour='black', linewidth=1, alpha = 1):
         """
         This function plots an outline of a series of shapely polygons
 
@@ -712,7 +712,7 @@ class MapFigure(object):
 
         for poly in polygons:
             x,y = poly.exterior.xy
-            self.ax_list[0].plot(x,y, c=colour, lw = linewidth)
+            self.ax_list[0].plot(x,y, c=colour, lw = linewidth, alpha = alpha)
 
     def plot_filled_polygons(self,polygons, facecolour='blue', edgecolour='black', linewidth=1, alpha=0.5):
         """
