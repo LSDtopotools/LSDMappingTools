@@ -1255,12 +1255,14 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # add the basin outlines
     Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
+    print Basins
+    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
     # get basin keys as a point data object
     basin_points = LSDMap_PT.LSDMap_PointData(BaseLevelDF, data_type='pandas', PANDEX=True)
-    MF.add_text_annotation_from_points(basin_points,column_for_plotting='baselevel_key', PANDEX=True, text_colour='k')
+    MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
