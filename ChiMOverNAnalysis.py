@@ -1186,38 +1186,10 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 # Functions that interface with LSDMapFigure to plot the m/n analysis with
 # spatial data.
 #=============================================================================
-
-def GetBasinOutlines(DataDirectory, fname_prefix):
-    """
-    This function takes in the raster of basins and gets a shapefile of their
-    outlines
-
-    Args:
-        DataDirectory (str): the data directory with the basin raster
-        fname_prefix (str): the prefix for the DEM
-
-    Returns:
-        basin outline shapefile
-
-    Author: FJC
-    """
-    from LSDPlottingTools import LSDMap_GDALIO as IO
-
-    # read in the basins raster
-    basin_name = fname_prefix+"_AllBasins.bil"
-    OutputShapefile = fname_prefix+'_basins.shp'
-
-    # polygonise the raster
-    Basins = IO.PolygoniseRaster(DataDirectory, basin_name, OutputShapefile)
-    return Basins
-
-
 def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
-
-    WORK IN PROGRESS - NEED TO GET LABELLING OR A COLOUR BAR WORKING
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
@@ -1233,6 +1205,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     #import modules
     from LSDMapFigure.PlottingRaster import MapFigure
     from LSDMapFigure.PlottingRaster import BaseRaster
+    import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
 
     # Set up fonts for plots
     label_size = 10
@@ -1278,7 +1251,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     # add the basins drape
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
     # add the basin outlines
-    Basins = GetBasinOutlines(DataDirectory, fname_prefix)
+    Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
@@ -1288,8 +1261,6 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the best fit m/n
-
-    WORK IN PROGRESS - NEED TO GET LABELLING OR A COLOUR BAR WORKING
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
@@ -1306,6 +1277,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     #import modules
     from LSDMapFigure.PlottingRaster import MapFigure
     from LSDMapFigure.PlottingRaster import BaseRaster
+    import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
 
     # Set up fonts for plots
     label_size = 10
@@ -1350,7 +1322,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns, cbar_type=float)
-    Basins = GetBasinOutlines(DataDirectory, fname_prefix)
+    Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
