@@ -697,13 +697,23 @@ class MapFigure(object):
 
         return texts
 
-    def add_text_annotation_from_shapely_points(self, points, border_colour='k', text_colour='r', alpha=1):
+    def add_text_annotation_from_shapely_points(self, points, old_values=[], new_values=[], border_colour='k', text_colour='r', alpha=1):
         """
         This adds annotations from a dictionary of shapely points, for annotating basins or sources.
         In the dictionary the keys are the raster values to annotate and the values are the point objects.
         FJC 24/06/17
         """
         from shapely.geometry import Point
+
+
+        # rewrite with new values if you need to (for basins)
+        new_points = {}
+        if len(new_values) > 0 and len(old_values) > 0:
+            for key, point in points.iteritems():
+                for i, j in enumerate(old_values):
+                    if (j == key):
+                        new_points[int(new_values[i])] = point
+            points = new_points
 
         # A list of text objects
         texts = []

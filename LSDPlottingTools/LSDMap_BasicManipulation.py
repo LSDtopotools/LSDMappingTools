@@ -550,11 +550,8 @@ def GetBasinCentroids(DataDirectory, fname_prefix):
     BasinDict = GetBasinOutlines(DataDirectory, fname_prefix)
 
     # get the centroids
-    Centroids = []
-    basin_keys = []
+    CentroidDict = {}
     for basin_key, basin in BasinDict.iteritems():
-        Centroids.append(Point(basin.centroid))
-        basin_keys.append(basin_key)
-
-    CentroidDict = dict(zip(basin_keys, Centroids))
+        CentroidDict[basin_key] = Point(basin.centroid)
+        
     return CentroidDict

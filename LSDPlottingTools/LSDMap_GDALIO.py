@@ -703,16 +703,13 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
 
     # transform results into shapely geometries and write to shapefile using fiona
     geoms = list(results)
-    Shapes = []
-    Vals = []
+    PolygonDict = {}
     with fiona.open(DataDirectory+OutputShapefile, 'w', crs=crs, driver='ESRI Shapefile', schema=schema) as output:
         for f in geoms:
             this_shape = Polygon(shape(f['geometry']))
             this_val = float(f['properties']['raster_val'])
             if this_val != NDV: # remove no data values
                 output.write({'geometry': mapping(this_shape), 'properties':{'ID': this_val}})
-            Shapes.append(this_shape)
-            Vals.append(this_val)
-    PolygonDict = dict(zip(Vals, Shapes))
+            PolygonDict[this_val] = this_shape
 
     return PolygonDict
