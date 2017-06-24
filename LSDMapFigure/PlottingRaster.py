@@ -36,15 +36,19 @@ class BaseRaster(object):
     Args:
         RasterName (str): The name of the rasters (with extension). It is read by gdal so should cope with mulitple formats
         Directory (str): The path to the raster. Needs to have the trailing slash
+        NFF_opti (bool): experimental test of reading raster using numpy.fromfile() which a super efficient binary reader
     """
-    def __init__(self, RasterName, Directory):
+    def __init__(self, RasterName, Directory, NFF_opti = False):
 
         self._RasterFileName = RasterName
         self._RasterDirectory = Directory
         self._FullPathRaster = self._RasterDirectory + self._RasterFileName
 
         # I think the BaseRaster should contain a numpy array of the Raster
-        self._RasterArray = LSDP.ReadRasterArrayBlocks(self._FullPathRaster)
+        if(NFF_opti):
+            self._RasterArray = LSDP.ReadRasterArrayBlocks_numpy(self._FullPathRaster)
+        else:
+            self._RasterArray = LSDP.ReadRasterArrayBlocks(self._FullPathRaster)
 
         # Get the extents as a list
         self._RasterExtents = LSDP.GetRasterExtent(self._FullPathRaster)
@@ -191,7 +195,7 @@ class MapFigure(object):
     etc.
     """
     def __init__(self, BaseRasterName, Directory,
-                 coord_type="UTM", colourbar_location = "None",*args, **kwargs):
+                 coord_type="UTM", colourbar_location = "None",NFF_opti = False,*args, **kwargs):
 
         # A map figure has one figure
         #self.fig = plt.figure(1, facecolor='white',figsize=(6,3))
@@ -247,7 +251,7 @@ class MapFigure(object):
         # plot that get appended into a list. Each one has its own colourmap
         # and properties
         self._RasterList = []
-        self._RasterList.append(BaseRaster(BaseRasterName,Directory))
+        self._RasterList.append(BaseRaster(BaseRasterName,Directory, NFF_opti = NFF_opti))
 
         # The coordinate type. UTM and UTM with tick in km are supported at the moment
         self._set_coord_type(coord_type)
@@ -395,12 +399,12 @@ class MapFigure(object):
     def add_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[], cbar_type=float):
+                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[], cbar_type=float, NFF_opti = False):
 
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,discrete_cmap,n_colours,norm,modify_raster_values,old_values,new_values,cbar_type)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,discrete_cmap,n_colours,norm,modify_raster_values,old_values,new_values,cbar_type, NFF_opti)
         #print("Getting axis limits in drape function: ")
         #print(self.ax_list[0].get_xlim())
 
@@ -408,9 +412,9 @@ class MapFigure(object):
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
                          alpha=0.5,
-                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = [], cbar_type=float):
+                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = [], cbar_type=float, NFF_opti = False):
 
-        Raster = BaseRaster(RasterName,Directory)
+        Raster = BaseRaster(RasterName,Directory, NFF_opti = NFF_opti)
         if modify_raster_values == True:
             Raster.replace_raster_values(old_values, new_values)
 
