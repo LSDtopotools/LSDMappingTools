@@ -490,7 +490,7 @@ def ReadRasterArrayBlocks_numpy(raster_file,raster_band=1):
     Author: SMM
     """
 
-
+    print("I will now use numpy.fromfile to load your raster, I still need to be tested, If something goes wrong switch back to the classic method by switching NFF_opti = False. Classic method = unefficient.")
     if exists(raster_file) is False:
             raise Exception('[Errno 2] No such file or directory: \'' + raster_file + '\'')
 
