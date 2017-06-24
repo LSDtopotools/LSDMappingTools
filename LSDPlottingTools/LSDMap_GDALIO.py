@@ -507,8 +507,8 @@ def ReadRasterArrayBlocks_numpy(raster_file,raster_band=1):
                     info = info.split(",")
                     x_min = float(info[3])
                     y_max = float(info[4])
-                    x_res = int(info[5])
-                    y_res = int(info[6])
+                    x_res = float(info[5])
+                    y_res = float(info[6])
                     utm_zone = int(info[7])
                     utm_hemisphere = info[8]
                 else:
