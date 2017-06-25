@@ -1255,11 +1255,10 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # add the basin outlines
     Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
-    print Basins
-    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
+    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
     MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     # Save the figure
@@ -1314,7 +1313,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
 
     # get the best fit m/n for each junction
     MOverNDict = SimpleMaxMLECheck(BasinDF)
-    print MOverNDict
+    #print MOverNDict
 
     m_over_ns = MOverNDict.values()
 
@@ -1329,18 +1328,18 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     BackgroundRasterName = fname_prefix+raster_ext
     HillshadeName = fname_prefix+'_hs'+raster_ext
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
-    print (BasinsName)
 
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=m_over_ns, cbar_type=float)
+
+    # plot the basin outlines
     Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
-    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
-
     # add the basin labelling
+    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
     MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
@@ -1349,11 +1348,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
-    DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
+    DataDirectory = '/home/s0923330/DEMs_for_analysis/Irian_jaya/'
     #fname_prefix = 'Kentucky_DEM'
     #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
-    fname_prefix = 'Kentucky_DEM'
+    fname_prefix = 'Irian_Jaya_PP'
 
     # specify the figure size and format
     size_format='ESURF'
@@ -1365,7 +1364,7 @@ if __name__ == "__main__":
     # specify the m/n values tested
     start_movern = 0.2
     d_movern = 0.1
-    n_movern = 8
+    n_movern = 7
 
     # analyse the MLE
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)

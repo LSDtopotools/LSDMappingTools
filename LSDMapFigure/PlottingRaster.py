@@ -754,7 +754,6 @@ class MapFigure(object):
         from shapely.geometry import Polygon
 
         print('Plotting the polygon outlines...')
-        print polygons
 
         for key, poly in polygons.iteritems():
             x,y = poly.exterior.xy
