@@ -3,7 +3,7 @@ This function drives the Chi mapping examples that are used with our documentati
 
 Written by Simon Mudd and Fiona Clubb
 June 2017
-
+git
 GPL3
 """
 
@@ -23,8 +23,9 @@ if __name__ == "__main__":
 
 
     # This is for the first example. Uncomment to get a hillshade image
-    CME.ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file)
-    CME.ExampleOne_PartTwo_PrintBasins(DataDirectory,Base_file)
+    #CME.ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file)
+    #CME.ExampleOne_PartTwo_PrintBasins(DataDirectory,Base_file)
+    CME.ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory,Base_file)
     
     toc = time.clock()
     print("This took: "+str(toc - tic)+" units of time")

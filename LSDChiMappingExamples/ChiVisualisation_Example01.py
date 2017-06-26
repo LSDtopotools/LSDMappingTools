@@ -139,7 +139,7 @@ def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys, cbar_type = int)
     # add the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
@@ -147,3 +147,91 @@ def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
     FigFormat = "png"
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
+    
+    
+def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
+    """
+    This function makes a shaded relief plot of the DEM with the basins coloured
+    by the basin ID.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+
+    Returns:
+        Shaded relief plot with the basins coloured by basin ID
+
+    Author: FJC
+    """
+
+    FigFormat = "png"
+    size_format = "geomorphology"
+
+    #import modules
+    # from LSDMapFigure.PlottingRaster import MapFigure
+    # from LSDMapFigure.PlottingRaster import BaseRaster
+    # import LSDPlottingTools.LSDMap_VectorTools as LSDMap_VT
+    # import LSDPlottingTools.LSDMap_PointTools as LSDMap_PT
+
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_width_inches = 6.25
+    elif size_format == "big":
+        fig_width_inches = 16
+    else:
+        fig_width_inches = 4.92126
+
+
+
+    # get the basin IDs to make a discrete colourmap for each ID
+    BaseLevelDF = PlotHelp.ReadBaselevelKeysCSV(DataDirectory, fname_prefix)
+
+    baselevel_keys = list(BaseLevelDF['baselevel_key'])
+    baselevel_keys = [float(x) for x in baselevel_keys]
+
+    baselevel_junctions = list(BaseLevelDF['baselevel_junction'])
+    baselevel_junctions = [float(x) for x in baselevel_junctions]
+
+    print ('Basin keys are: ')
+    print baselevel_keys
+
+    # get a discrete colormap
+    cmap = plt.cm.jet
+
+    # going to make the basin plots - need to have bil extensions.
+    print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
+
+    # get the rasters
+    raster_ext = '.bil'
+    #BackgroundRasterName = fname_prefix+raster_ext
+    HillshadeName = fname_prefix+'_hs'+raster_ext
+    BasinsName = fname_prefix+'_AllBasins'+raster_ext
+    print (BasinsName)
+
+    # create the map figure
+    # We set colourbar location to none since we are labelling the figures
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='none')
+
+    # add the basins drape
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
+
+    # add the basin outlines
+    Basins = LSDP.GetBasinOutlines(DataDirectory, fname_prefix)
+    MF.plot_polygon_outlines(Basins, linewidth=0.8)
+
+    # add the basin labelling
+    Points = LSDP.GetPointWithinBasins(DataDirectory, fname_prefix)
+    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
+
+    # Save the figure
+    ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)    
+    
