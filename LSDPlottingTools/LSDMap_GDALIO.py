@@ -490,7 +490,7 @@ def ReadRasterArrayBlocks_numpy(raster_file,raster_band=1):
     Author: SMM
     """
 
-
+    print("I will now use numpy.fromfile to load your raster, I still need to be tested, If something goes wrong switch back to the classic method by switching NFF_opti = False. Classic method = unefficient.")
     if exists(raster_file) is False:
             raise Exception('[Errno 2] No such file or directory: \'' + raster_file + '\'')
 
@@ -507,8 +507,8 @@ def ReadRasterArrayBlocks_numpy(raster_file,raster_band=1):
                     info = info.split(",")
                     x_min = float(info[3])
                     y_max = float(info[4])
-                    x_res = int(info[5])
-                    y_res = int(info[6])
+                    x_res = float(info[5])
+                    y_res = float(info[6])
                     utm_zone = int(info[7])
                     utm_hemisphere = info[8]
                 else:
@@ -660,7 +660,6 @@ def RasterDifference(RasterFile1, RasterFile2, raster_band=1, OutFileName="Test.
 def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     """
     This function takes in a raster and converts to a polygon shapefile using rasterio
-    This is a work in progress!!!!!
     from https://gis.stackexchange.com/questions/187877/how-to-polygonize-raster-to-shapely-polygons/187883#187883?newreg=8b1f507529724a8488ce4789ba787363
 
     Args:
@@ -669,7 +668,7 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
         OutputShapefile (str): the name of the output shapefile WITHOUT EXTENSION. Default = 'polygons'
 
     Returns:
-        List of shapely polygons
+        Dictionary where key is the raster value and the value is a shapely polygon
 
     Author: FJC
     """
@@ -704,14 +703,13 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
 
     # transform results into shapely geometries and write to shapefile using fiona
     geoms = list(results)
-    Shapes = []
-    vals = []
+    PolygonDict = {}
     with fiona.open(DataDirectory+OutputShapefile, 'w', crs=crs, driver='ESRI Shapefile', schema=schema) as output:
         for f in geoms:
             this_shape = Polygon(shape(f['geometry']))
             this_val = float(f['properties']['raster_val'])
             if this_val != NDV: # remove no data values
                 output.write({'geometry': mapping(this_shape), 'properties':{'ID': this_val}})
-            Shapes.append(this_shape)
+            PolygonDict[this_val] = this_shape
 
-    return Shapes
+    return PolygonDict

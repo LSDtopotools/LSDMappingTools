@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-This file contains are a series of helper functions that interact with 
-LSDTopoTools spatial data. 
+This file contains are a series of helper functions that interact with
+LSDTopoTools spatial data.
 
 Written by Simon M. Mudd and Fiona J Clubb at the University of Edinburgh
 Released under GPL3
@@ -14,7 +14,7 @@ import pandas as pd
 
 #==============================================================================
 def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
-                   cbar_width = 0.2, 
+                   cbar_width = 0.2,
                    cbar_text_width = 0.4,
                    cbar_padding = 0.1,
                    cbar_fraction = 1,
@@ -364,7 +364,96 @@ def ReadBaselevelKeysCSV(DataDirectory, fname_prefix):
     Author: FJC
     """
     # get the csv filename
-    basin_stats_suffix = '_BaselevelKeys.csv'
+    baselevel_suffix = '_BaselevelKeys.csv'
+    fname = fname_prefix+baselevel_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+def ReadSourceKeysCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix '_SourceKeys.csv'
+    to a pandas dataframe
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    # get the csv filename
+    source_keys_suffix = '_SourceKeys.csv'
+    fname = fname_prefix+source_keys_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+def ReadFullStatsCSV(DataDirectory, fname_prefix, m_over_n):
+    """
+    This function reads in the file with the suffix '_fullstats.csv'
+    to a pandas dataframe. Must specify the m/n value as an argument
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+        m_over_n: the m/n value
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    # get the csv filename
+    fullstats_suffix = '_movernstats_%s_fullstats.csv' %str(m_over_n)
+    fname = fname_prefix+fullstats_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+def ReadChiProfileCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix '_movern.csv', which
+    contains the data for the full chi profiles, to a pandas dataframe.
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    # get the csv filename
+    profile_suffix = '_movern.csv'
+    fname = fname_prefix+profile_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+def ReadBasinStatsCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix '_movernstats_basinstats.csv'
+    to a pandas dataframe
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    # get the csv filename
+    basin_stats_suffix = '_movernstats_basinstats.csv'
     fname = fname_prefix+basin_stats_suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)

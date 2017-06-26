@@ -19,79 +19,8 @@ from matplotlib import rcParams
 import pandas as pd
 from matplotlib import colors
 from shapely.geometry import Polygon
+from LSDMapFigure import PlottingHelpers as Helper
 #=============================================================================
-
-#=============================================================================
-# CSV READERS
-# Read in the csv files to pandas dataframes
-#=============================================================================
-def ReadBasinStatsCSV(DataDirectory, fname_prefix):
-    """
-    This function reads in the file with the suffix '_movernstats_basinstats.csv'
-    to a pandas dataframe
-
-    Args:
-        DataDirectory: the data directory
-        fname_prefix: the file name prefix
-
-    Returns:
-        pandas dataframe with the csv file
-
-    Author: FJC
-    """
-    # get the csv filename
-    basin_stats_suffix = '_movernstats_basinstats.csv'
-    fname = fname_prefix+basin_stats_suffix
-    # read in the dataframe using pandas
-    df = pd.read_csv(DataDirectory+fname)
-
-    return df
-
-def ReadFullStatsCSV(DataDirectory, fname_prefix, m_over_n):
-    """
-    This function reads in the file with the suffix '_fullstats.csv'
-    to a pandas dataframe. Must specify the m/n value as an argument
-
-    Args:
-        DataDirectory: the data directory
-        fname_prefix: the file name prefix
-        m_over_n: the m/n value
-
-    Returns:
-        pandas dataframe with the csv file
-
-    Author: FJC
-    """
-    # get the csv filename
-    fullstats_suffix = '_movernstats_%s_fullstats.csv' %str(m_over_n)
-    fname = fname_prefix+fullstats_suffix
-    # read in the dataframe using pandas
-    df = pd.read_csv(DataDirectory+fname)
-
-    return df
-
-def ReadChiProfileCSV(DataDirectory, fname_prefix):
-    """
-    This function reads in the file with the suffix '_movern.csv', which
-    contains the data for the full chi profiles, to a pandas dataframe.
-
-    Args:
-        DataDirectory: the data directory
-        fname_prefix: the file name prefix
-
-    Returns:
-        pandas dataframe with the csv file
-
-    Author: FJC
-    """
-    # get the csv filename
-    profile_suffix = '_movern.csv'
-    fname = fname_prefix+profile_suffix
-    # read in the dataframe using pandas
-    df = pd.read_csv(DataDirectory+fname)
-
-    return df
-
 #=============================================================================
 # ANALYSIS FUNCTIONS
 # These functions analyse the data (for example, doing the outlier checking)
@@ -180,7 +109,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
     # we open the first file just so that we can get a counter list
-    FirstDF = ReadFullStatsCSV(DataDirectory,fname_prefix,m_over_n_values[0])
+    FirstDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,m_over_n_values[0])
 
     # get the number of basins
     basin_keys = list(FirstDF['basin_key'])
@@ -211,7 +140,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     for m_over_n in m_over_n_values:
 
         #load the file
-        FullStatsDF = ReadFullStatsCSV(DataDirectory,fname_prefix,m_over_n)
+        FullStatsDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,m_over_n)
 
         print("This_m_over_n is: "+str(m_over_n))
 
@@ -465,7 +394,7 @@ def RecalculateTotalMLEWithRemoveList(DataDirectory, fname_prefix,
     Author: SMM
     """
     #load the file
-    FullStatsDF = ReadFullStatsCSV(DataDirectory,fname_prefix,movern)
+    FullStatsDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,movern)
 
     # mask the data so you only get the correct basin
     FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin_number]
@@ -540,7 +469,7 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
     # get the maximum MLE of each basin
-    pd_DF = ReadBasinStatsCSV(DataDirectory, fname_prefix)
+    pd_DF = Helper.ReadBasinStatsCSV(DataDirectory, fname_prefix)
     shp = pd_DF.shape
     max_MLEs = []
     max_MLEs_index = []
@@ -772,8 +701,8 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
     ax2 = fig.add_subplot(gs[10:95,82:85])
 
     # read in the csv files
-    ProfileDF = ReadChiProfileCSV(DataDirectory, fname_prefix)
-    BasinStatsDF = ReadBasinStatsCSV(DataDirectory, fname_prefix)
+    ProfileDF = Helper.ReadChiProfileCSV(DataDirectory, fname_prefix)
+    BasinStatsDF = Helper.ReadBasinStatsCSV(DataDirectory, fname_prefix)
 
     # get the number of basins
     basin_keys = list(BasinStatsDF['basin_key'])
@@ -791,7 +720,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
     for m_over_n in m_over_n_values:
         # read in the full stats file
         print("This m/n is: "+str(m_over_n))
-        FullStatsDF = ReadFullStatsCSV(DataDirectory,fname_prefix,m_over_n)
+        FullStatsDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,m_over_n)
 
         # loop through all the basins in the basin list
         for basin_key in basin_list:
@@ -801,15 +730,16 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_key]
             FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin_key]
 
-            print FullStatsDF_basin
+            #print FullStatsDF_basin
+            print ("Getting the reference_source_key")
 
-            print(FullStatsDF_basin['reference_source_key'][0])
+            print(FullStatsDF_basin.iloc[0]['reference_source_key'])
 
             # get the data frame for the main stem
-            ProfileDF_MS = ProfileDF_basin[ProfileDF_basin['source_key'] == FullStatsDF_basin['reference_source_key'][0]]
+            ProfileDF_MS = ProfileDF_basin[ProfileDF_basin['source_key'] == FullStatsDF_basin.iloc[0]['reference_source_key']]
 
             # get the data frame for the tributaries
-            ProfileDF_basin = ProfileDF_basin[ProfileDF_basin['source_key'] != FullStatsDF_basin['reference_source_key'][0]]
+            ProfileDF_basin = ProfileDF_basin[ProfileDF_basin['source_key'] != FullStatsDF_basin.iloc[0]['reference_source_key']]
             # merge with the full data to get the MLE for the tributaries
             ProfileDF_tribs = ProfileDF_basin.merge(FullStatsDF_basin, left_on = "source_key", right_on = "test_source_key")
 
@@ -915,7 +845,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
     ax2 = fig.add_subplot(gs[10:95,82:85])
 
     # we open the first file just so that we can get a counter list
-    FirstDF = ReadFullStatsCSV(DataDirectory,fname_prefix,start_movern)
+    FirstDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,start_movern)
 
     # get the number of basins
     basin_keys = list(FirstDF['basin_key'])
@@ -935,7 +865,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
 
     # Now get the chi profiles of all the basins and channels
     # Load from file and put into a pandas data frame
-    ProfileDF = ReadChiProfileCSV(DataDirectory,fname_prefix)
+    ProfileDF = Helper.ReadChiProfileCSV(DataDirectory,fname_prefix)
 
     # now we need to get a plot for each basin, showing the incremental removal of outlying tribs
     for basin_number in basin_list:
@@ -957,7 +887,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
             # We also need to get the fullstats MLE file. This will be used
             # to colour tribs as well as get the source numbers from
             # the outlier list
-            FullStatsDF = ReadFullStatsCSV(DataDirectory,fname_prefix,best_fit_movern)
+            FullStatsDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,best_fit_movern)
 
             # mask the data so you only get the correct basin
             FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin_number]
@@ -1126,7 +1056,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
     ax = fig.add_subplot(gs[5:100,10:95])
 
     # we open the first file just so that we can get a counter list
-    FirstDF = ReadFullStatsCSV(DataDirectory,fname_prefix,start_movern)
+    FirstDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,start_movern)
 
     # get the list of m over n values
     end_movern = start_movern+d_movern*(n_movern-1)
@@ -1150,7 +1080,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 
     # Now get the chi profiles of all the basins and channels
     # Load from file and put into a pandas data frame
-    ProfileDF = ReadChiProfileCSV(DataDirectory,fname_prefix)
+    ProfileDF = Helper.ReadChiProfileCSV(DataDirectory,fname_prefix)
 
     # get list of line styles for plotting. This is hacky but not sure how else to do this.
     ls = lines.lineStyles.keys()
@@ -1256,38 +1186,10 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 # Functions that interface with LSDMapFigure to plot the m/n analysis with
 # spatial data.
 #=============================================================================
-
-def GetBasinOutlines(DataDirectory, fname_prefix):
-    """
-    This function takes in the raster of basins and gets a shapefile of their
-    outlines
-
-    Args:
-        DataDirectory (str): the data directory with the basin raster
-        fname_prefix (str): the prefix for the DEM
-
-    Returns:
-        basin outline shapefile
-
-    Author: FJC
-    """
-    from LSDPlottingTools import LSDMap_GDALIO as IO
-
-    # read in the basins raster
-    basin_name = fname_prefix+"_AllBasins.bil"
-    OutputShapefile = fname_prefix+'_basins.shp'
-
-    # polygonise the raster
-    Basins = IO.PolygoniseRaster(DataDirectory, basin_name, OutputShapefile)
-    return Basins
-
-
 def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
-
-    WORK IN PROGRESS - NEED TO GET LABELLING OR A COLOUR BAR WORKING
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
@@ -1303,6 +1205,8 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     #import modules
     from LSDMapFigure.PlottingRaster import MapFigure
     from LSDMapFigure.PlottingRaster import BaseRaster
+    import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
+    import LSDPlottingTools.LSDMap_PointTools as LSDMap_PT
 
     # Set up fonts for plots
     label_size = 10
@@ -1319,16 +1223,16 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
         fig_width_inches = 4.92126
 
     # get the basin IDs to make a discrete colourmap for each ID
-    BasinDF = ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    BaseLevelDF = Helper.ReadBaselevelKeysCSV(DataDirectory, fname_prefix)
 
-    basin_keys = list(BasinDF['basin_key'])
-    basin_keys = [float(x) for x in basin_keys]
+    baselevel_keys = list(BaseLevelDF['baselevel_key'])
+    baselevel_keys = [float(x) for x in baselevel_keys]
 
-    basin_junctions = list(BasinDF['outlet_jn'])
-    basin_junctions = [float(x) for x in basin_junctions]
+    baselevel_junctions = list(BaseLevelDF['baselevel_junction'])
+    baselevel_junctions = [float(x) for x in baselevel_junctions]
 
     print ('Basin keys are: ')
-    print basin_keys
+    print baselevel_keys
 
     # get a discrete colormap
     cmap = plt.cm.jet
@@ -1345,21 +1249,26 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
+
     # add the basins drape
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
+
     # add the basin outlines
-    Basins = GetBasinOutlines(DataDirectory, fname_prefix)
+    Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
+    # add the basin labelling
+    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
+    MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
+
+    # Save the figure
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
-    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
 
 def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the best fit m/n
-
-    WORK IN PROGRESS - NEED TO GET LABELLING OR A COLOUR BAR WORKING
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
@@ -1376,6 +1285,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     #import modules
     from LSDMapFigure.PlottingRaster import MapFigure
     from LSDMapFigure.PlottingRaster import BaseRaster
+    import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
 
     # Set up fonts for plots
     label_size = 10
@@ -1392,14 +1302,18 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
         fig_width_inches = 4.92126
 
     # get the basin IDs to make a discrete colourmap for each ID
-    BasinDF = ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    BasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    BaseLevelDF = Helper.ReadBaselevelKeysCSV(DataDirectory, fname_prefix)
 
-    basin_junctions = list(BasinDF['outlet_jn'])
-    basin_junctions = [float(x) for x in basin_junctions]
+    baselevel_keys = list(BaseLevelDF['baselevel_key'])
+    baselevel_keys = [float(x) for x in baselevel_keys]
+
+    baselevel_junctions = list(BaseLevelDF['baselevel_junction'])
+    baselevel_junctions = [float(x) for x in baselevel_junctions]
 
     # get the best fit m/n for each junction
     MOverNDict = SimpleMaxMLECheck(BasinDF)
-    print MOverNDict
+    #print MOverNDict
 
     m_over_ns = MOverNDict.values()
 
@@ -1414,14 +1328,19 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     BackgroundRasterName = fname_prefix+raster_ext
     HillshadeName = fname_prefix+'_hs'+raster_ext
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
-    print (BasinsName)
 
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns)
-    Basins = GetBasinOutlines(DataDirectory, fname_prefix)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=m_over_ns, cbar_type=float)
+
+    # plot the basin outlines
+    Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
+
+    # add the basin labelling
+    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
+    MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
@@ -1429,11 +1348,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
-    DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
+    DataDirectory = '/home/s0923330/DEMs_for_analysis/Irian_jaya/'
     #fname_prefix = 'Kentucky_DEM'
     #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
-    fname_prefix = 'Kentucky_DEM'
+    fname_prefix = 'Irian_Jaya_PP'
 
     # specify the figure size and format
     size_format='ESURF'
@@ -1445,17 +1364,17 @@ if __name__ == "__main__":
     # specify the m/n values tested
     start_movern = 0.2
     d_movern = 0.1
-    n_movern = 8
+    n_movern = 7
 
     # analyse the MLE
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
     #PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-    PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+    #PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
 
     # run the plotting functions
-    # MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
+    #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
     # MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
-    #                  size_format=size_format, FigFormat=FigFormat)
+    #                   size_format=size_format, FigFormat=FigFormat)
 
     # run the raster plotting
     MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)

@@ -36,15 +36,19 @@ class BaseRaster(object):
     Args:
         RasterName (str): The name of the rasters (with extension). It is read by gdal so should cope with mulitple formats
         Directory (str): The path to the raster. Needs to have the trailing slash
+        NFF_opti (bool): experimental test of reading raster using numpy.fromfile() which a super efficient binary reader
     """
-    def __init__(self, RasterName, Directory):
+    def __init__(self, RasterName, Directory, NFF_opti = False):
 
         self._RasterFileName = RasterName
         self._RasterDirectory = Directory
         self._FullPathRaster = self._RasterDirectory + self._RasterFileName
 
         # I think the BaseRaster should contain a numpy array of the Raster
-        self._RasterArray = LSDP.ReadRasterArrayBlocks(self._FullPathRaster)
+        if(NFF_opti):
+            self._RasterArray = LSDP.ReadRasterArrayBlocks_numpy(self._FullPathRaster)
+        else:
+            self._RasterArray = LSDP.ReadRasterArrayBlocks(self._FullPathRaster)
 
         # Get the extents as a list
         self._RasterExtents = LSDP.GetRasterExtent(self._FullPathRaster)
@@ -191,7 +195,7 @@ class MapFigure(object):
     etc.
     """
     def __init__(self, BaseRasterName, Directory,
-                 coord_type="UTM", colourbar_location = "None",*args, **kwargs):
+                 coord_type="UTM", colourbar_location = "None",NFF_opti = False,*args, **kwargs):
 
         # A map figure has one figure
         #self.fig = plt.figure(1, facecolor='white',figsize=(6,3))
@@ -247,7 +251,7 @@ class MapFigure(object):
         # plot that get appended into a list. Each one has its own colourmap
         # and properties
         self._RasterList = []
-        self._RasterList.append(BaseRaster(BaseRasterName,Directory))
+        self._RasterList.append(BaseRaster(BaseRasterName,Directory, NFF_opti = NFF_opti))
 
         # The coordinate type. UTM and UTM with tick in km are supported at the moment
         self._set_coord_type(coord_type)
@@ -395,12 +399,12 @@ class MapFigure(object):
     def add_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[]):
+                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[], cbar_type=float, NFF_opti = False):
 
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,discrete_cmap,n_colours,norm,modify_raster_values,old_values,new_values)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,discrete_cmap,n_colours,norm,modify_raster_values,old_values,new_values,cbar_type, NFF_opti)
         #print("Getting axis limits in drape function: ")
         #print(self.ax_list[0].get_xlim())
 
@@ -408,9 +412,9 @@ class MapFigure(object):
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
                          alpha=0.5,
-                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = []):
+                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = [], cbar_type=float, NFF_opti = False):
 
-        Raster = BaseRaster(RasterName,Directory)
+        Raster = BaseRaster(RasterName,Directory, NFF_opti = NFF_opti)
         if modify_raster_values == True:
             Raster.replace_raster_values(old_values, new_values)
 
@@ -437,7 +441,7 @@ class MapFigure(object):
 
         if self.colourbar_orientation != "None":
             self.ax_list = self.add_colourbar(self.ax_list,im,self._RasterList[-1],
-                                              colorbarlabel = colorbarlabel, discrete=discrete_cmap, n_colours=n_colours)
+                                              colorbarlabel = colorbarlabel, discrete=discrete_cmap, n_colours=n_colours, cbar_type=cbar_type)
 
 
         return self.ax_list
@@ -473,14 +477,14 @@ class MapFigure(object):
         # Return colormap object.
         return _mcolors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
 
-    def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar",discrete=False, n_colours=10):
+    def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar",discrete=False, n_colours=10, cbar_type=float):
         fig = matplotlib.pyplot.gcf()
         ax_list.append(fig.add_axes([0.1,0.8,0.05,0.2]))
         cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation=self.colourbar_orientation,cax=ax_list[-1])
 
         if discrete==True:
             # change ticks
-            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours)
+            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type)
 
         #Will's changes:
         # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
@@ -495,7 +499,7 @@ class MapFigure(object):
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
         return ax_list
 
-    def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours):
+    def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours, cbar_type=float):
         """
         This function takes a discrete colourbar and fixes the ticks so they are
         in the middle of each colour
@@ -531,7 +535,10 @@ class MapFigure(object):
 
         # get tick labels
         tick_labels = np.linspace(vmin, vmax, n_colours)
-        tick_labels = [str(x) for x in tick_labels]
+        if cbar_type == int:
+            tick_labels = [str(int(x)) for x in tick_labels]
+        else:
+            tick_labels = [str(x) for x in tick_labels]
         print tick_labels
         cbar.set_ticklabels(tick_labels)
 
@@ -648,7 +655,7 @@ class MapFigure(object):
             self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
     def add_text_annotation_from_points(self, thisPointData,column_for_plotting = "None",
-                                        selection_criteria = []):
+                                        selection_criteria = [], PANDEX=False, border_colour='k', text_colour='r', alpha=1):
         """
         This adds annotations to points. Used for annotating basins or sources, for example.
         """
@@ -661,10 +668,10 @@ class MapFigure(object):
         this_ylim = self.ax_list[0].get_ylim()
 
         # Format the bounding box
-        bbox_props = dict(boxstyle="round,pad=0.1", fc="w", ec="b", lw=0.5,alpha = 0.5)
+        bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
 
         # see if the data column exists
-        test_data = thisPointData.QueryData(column_for_plotting)
+        test_data = thisPointData.QueryData(column_for_plotting, PANDEX=PANDEX)
 
         if len(test_data) == 0:
             print("There is no data with the column name: "+column_for_plotting)
@@ -680,9 +687,13 @@ class MapFigure(object):
             EPSG_string = self._RasterList[0]._EPSGString
             print("EPSG_string is: "+EPSG_string)
             [this_easting,this_northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
-            thinned_data = thisPointData.QueryData(column_for_plotting)
+            print (this_easting, this_northing)
+            thinned_data = thisPointData.QueryData(column_for_plotting, PANDEX=PANDEX)
+            print thinned_data
 
-            texts.append(self.ax_list[0].text(this_easting,this_northing, str(thinned_data),fontsize = 8, color= "r",alpha=0.7,bbox=bbox_props))
+            for idx, data in enumerate(thinned_data):
+                texts.append(self.ax_list[0].text(this_easting[idx],this_northing[idx], str(data),fontsize = 8, color= text_colour,alpha=alpha,bbox=bbox_props))
+            #print ("I'm adding the text, yo")
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
@@ -690,22 +701,63 @@ class MapFigure(object):
 
         return texts
 
-    def plot_polygon_outlines(self,polygons, colour='black', linewidth=1):
+    def add_text_annotation_from_shapely_points(self, points, old_values=[], new_values=[], border_colour='k', text_colour='r', alpha=1):
+        """
+        This adds annotations from a dictionary of shapely points, for annotating basins or sources.
+        In the dictionary the keys are the raster values to annotate and the values are the point objects.
+        FJC 24/06/17
+        """
+        from shapely.geometry import Point
+
+
+        # rewrite with new values if you need to (for basins)
+        new_points = {}
+        if len(new_values) > 0 and len(old_values) > 0:
+            for key, point in points.iteritems():
+                for i, j in enumerate(old_values):
+                    if (j == key):
+                        new_points[int(new_values[i])] = point
+            points = new_points
+
+        # A list of text objects
+        texts = []
+
+        # Get the axis limits to assert after
+        this_xlim = self.ax_list[0].get_xlim()
+        this_ylim = self.ax_list[0].get_ylim()
+
+        # Format the bounding box
+        bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
+
+        for key, point in points.iteritems():
+            x = point.x
+            y = point.y
+            texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props))
+            #print ("I'm adding the text, yo")
+
+        # Annoying but the scatter plot resets the extents so you need to reassert them
+        self.ax_list[0].set_xlim(this_xlim)
+        self.ax_list[0].set_ylim(this_ylim)
+
+        return texts
+
+    def plot_polygon_outlines(self,polygons, colour='black', linewidth=1, alpha = 1):
         """
         This function plots an outline of a series of shapely polygons
 
         Args:
             ax_list: list of axes
-            polygons: list of shapely polygons
+            polygons: dict of shapely polygons
 
         Author: FJC
         """
         from shapely.geometry import Polygon
+
         print('Plotting the polygon outlines...')
 
-        for poly in polygons:
+        for key, poly in polygons.iteritems():
             x,y = poly.exterior.xy
-            self.ax_list[0].plot(x,y, c=colour, lw = linewidth)
+            self.ax_list[0].plot(x,y, c=colour, lw = linewidth, alpha = alpha)
 
     def plot_filled_polygons(self,polygons, facecolour='blue', edgecolour='black', linewidth=1, alpha=0.5):
         """
@@ -724,7 +776,7 @@ class MapFigure(object):
         print('Plotting the polygons...')
 
         patches = []
-        for poly in polygons:
+        for key, poly in polygons.iteritems():
             this_patch = PolygonPatch(poly, fc=facecolour, ec=edgecolour, alpha=alpha)
             self.ax_list[0].add_patch(this_patch)
 
