@@ -1251,10 +1251,10 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     print (BasinsName)
 
     # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='None')
 
     # add the basins drape
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = False, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
 
     # add the basin outlines
     Basins = LSDMap_VT.GetBasinOutlines(DataDirectory, fname_prefix)
@@ -1346,11 +1346,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
-    DataDirectory = '/home/s0923330/DEMs_for_analysis/Irian_jaya/'
+    DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
     #fname_prefix = 'Kentucky_DEM'
     #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
-    fname_prefix = 'Irian_Jaya_PP'
+    fname_prefix = 'Kentucky_DEM'
 
     # specify the figure size and format
     size_format='ESURF'
