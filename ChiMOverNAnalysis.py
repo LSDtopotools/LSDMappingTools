@@ -1258,8 +1258,8 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
-    MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
+    Points = LSDMap_BM.GetPointWithinBasins(DataDirectory, fname_prefix)
+    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
@@ -1339,8 +1339,8 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
-    MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
+    Points = LSDMap_BM.GetPointWithinBasins(DataDirectory, fname_prefix)
+    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
