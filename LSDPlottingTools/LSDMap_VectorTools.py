@@ -85,7 +85,7 @@ def GetPointWithinBasins(DataDirectory,fname_prefix):
 
     return PointDict
 
-def GetPointWithinBasinsBuffered(DataDirectory,fname_prefix, buffer_frac=0.1):
+def GetPointWithinBasinsBuffered(DataDirectory,fname_prefix, basin_list = [], buffer_frac=0.1):
     """
     This function takes in the raster of basins, and buffers each basin
     (makes each one smaller). It then gets the centroid of each buffered
