@@ -123,7 +123,8 @@ def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
-    DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\'
+    DataDirectory = "T:\\analysis_for_papers\\Xian\\"
+    #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\'
     Base_file = 'Xian'
 
 
