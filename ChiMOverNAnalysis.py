@@ -14,12 +14,15 @@
 import numpy as np
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
-#import seaborn as sns
 from matplotlib import rcParams
 import pandas as pd
 from matplotlib import colors
-from shapely.geometry import Polygon
+#from shapely.geometry import Polygon
 from LSDMapFigure import PlottingHelpers as Helper
+import LSDPlottingTools.LSDMap_VectorTools as LSDMap_VT
+from LSDMapFigure.PlottingRaster import MapFigure
+from LSDMapFigure.PlottingRaster import BaseRaster
+
 #=============================================================================
 #=============================================================================
 # ANALYSIS FUNCTIONS
@@ -1203,10 +1206,10 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     Author: FJC
     """
     #import modules
-    from LSDMapFigure.PlottingRaster import MapFigure
-    from LSDMapFigure.PlottingRaster import BaseRaster
-    import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
-    import LSDPlottingTools.LSDMap_PointTools as LSDMap_PT
+    # from LSDMapFigure.PlottingRaster import MapFigure
+    # from LSDMapFigure.PlottingRaster import BaseRaster
+    # import LSDPlottingTools.LSDMap_VectorTools as LSDMap_VT
+    # import LSDPlottingTools.LSDMap_PointTools as LSDMap_PT
 
     # Set up fonts for plots
     label_size = 10
@@ -1254,12 +1257,12 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
 
     # add the basin outlines
-    Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
+    Basins = LSDMap_VT.GetBasinOutlines(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
-    MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
+    Points = LSDMap_VT.GetPointWithinBasins(DataDirectory, fname_prefix)
+    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
@@ -1282,11 +1285,6 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
 
     Author: FJC
     """
-    #import modules
-    from LSDMapFigure.PlottingRaster import MapFigure
-    from LSDMapFigure.PlottingRaster import BaseRaster
-    import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
-
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
@@ -1335,12 +1333,12 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=m_over_ns, cbar_type=float)
 
     # plot the basin outlines
-    Basins = LSDMap_BM.GetBasinOutlines(DataDirectory, fname_prefix)
+    Basins = LSDMap_VT.GetBasinOutlines(DataDirectory, fname_prefix)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    Centroids = LSDMap_BM.GetBasinCentroids(DataDirectory, fname_prefix)
-    MF.add_text_annotation_from_shapely_points(Centroids, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
+    Points = LSDMap_VT.GetPointWithinBasins(DataDirectory, fname_prefix)
+    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
