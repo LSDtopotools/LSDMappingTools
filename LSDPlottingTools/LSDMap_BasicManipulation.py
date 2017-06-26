@@ -553,5 +553,32 @@ def GetBasinCentroids(DataDirectory, fname_prefix):
     CentroidDict = {}
     for basin_key, basin in BasinDict.iteritems():
         CentroidDict[basin_key] = Point(basin.centroid)
-        
+
     return CentroidDict
+
+def GetPointWithinBasins(DataDirectory,fname_prefix):
+    """
+    This function takes in the raster of basin and returns a dict where the
+    key is the basin key and the value is a shapely point that is representative
+    of the basin (guaranteed to be within the polygon)
+
+    Args:
+        DataDirectory (str): the data directory with the basin raster
+        fname_prefix (str): the prefix for the DEM
+
+    Returns:
+        dict of representative points
+
+    Author: FJC
+    """
+    from shapely.geometry import Point
+
+    # get the basin polygons
+    BasinDict = GetBasinOutlines(DataDirectory, fname_prefix)
+
+    # get the centroids
+    PointDict = {}
+    for basin_key, basin in BasinDict.iteritems():
+        PointDict[basin_key] = Point(basin.representative_point)
+
+    return PointDict
