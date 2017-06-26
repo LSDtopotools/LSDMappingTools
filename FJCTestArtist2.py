@@ -26,14 +26,13 @@ import sys
 #
 #init_plotting_DV()
 
-Directory = "/home/s0923330/GitHub/Example_plotting_data/"
+Directory = "/home/s0923330/Datastore/5m_dems/scotland/DEM_comparison/river_tay/"
 #Directory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
-Base_file = "Eel_DEM_tiny"
-
+Base_file = "Tay_Nextmap_HS"
 
 BackgroundRasterName = Base_file+".bil"
-DrapeRasterName = Base_file+"_HS.bil"
-ChiRasterName = Base_file+"_SO.bil"
+#DrapeRasterName = Base_file+"_HS.bil"
+#ChiRasterName = Base_file+"_SO.bil"
 
 #BR = BaseRaster(BackgroundRasterName, Directory)
 #BR.set_raster_type("Terrain")
@@ -50,11 +49,11 @@ ChiRasterName = Base_file+"_SO.bil"
 #rcParams['lines.linewidth']  = 1.5
 
 plt.clf()
-MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km",colourbar_location='right')
-MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.4)
-MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4, show_colourbar = True)
+MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km",colourbar_location='None')
+#MF.add_drape_image(DrapeRasterName,Directory,alpha = 0.4)
+#MF.add_drape_image(ChiRasterName,Directory,colourmap = "cubehelix",alpha = 0.4, show_colourbar = True)
 #MF.show_plot()
-MF.save_fig(fig_width_inches = 12)
+MF.save_fig(fig_width_inches = 12, dpi=300, FileName=Base_file+'.png', format='png')
 
 # Customise the DrapePlot
 #dp.make_drape_colourbar(cbar_label=colourbar_label)
