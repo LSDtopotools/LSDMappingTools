@@ -8,6 +8,8 @@ An example of using the LSDMapArtist to create drape plots
 @author: dav
 """
 
+import matplotlib.pyplot as plt
+
 from LSDPlottingTools import colours as lsdcolours
 from LSDPlottingTools import init_plotting_DV
 
@@ -26,3 +28,5 @@ DrapeRasterName = "rainfall_totals_boscastle_downscaled.asc"
 raster = LSDMap_IO.ReadRasterArrayBlocks(Directory + BackgroundRasterName)
 
 hs = LSDMap_BP.Hillshade(raster)
+
+plt.imshow(hs, cmap="gray")

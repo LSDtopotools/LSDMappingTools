@@ -13,8 +13,8 @@ DTYPE = np.float
 # Define a compile type to DTYPE_t
 ctypedef np.int_t DTYPE_t
 
-def Hillshade(np.ndarray terrain_array, azimuth = 315, angle_altitude = 45,
-              NoDataValue = -9999, z_factor = 1, DataResolution):
+def Hillshade(np.ndarray terrain_array, cdef float azimuth = 315, cdef float angle_altitude = 45,
+              cdef float NoDataValue = -9999, cdef float z_factor = 1, cdef float DataResolution):
   """Creates a hillshade raster
 
   Args:
