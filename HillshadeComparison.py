@@ -24,3 +24,5 @@ BackgroundRasterName = "BoscastleElevations0.asc"
 DrapeRasterName = "rainfall_totals_boscastle_downscaled.asc"
 
 raster = LSDMap_IO.ReadRasterArrayBlocks(Directory + BackgroundRasterName)
+
+hs = LSDMap_BP.Hillshade(raster)
