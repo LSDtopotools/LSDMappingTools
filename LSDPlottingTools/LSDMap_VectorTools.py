@@ -14,14 +14,14 @@ from shapely.geometry import Point, Polygon
 # BASIN FUNCTIONS
 # These functions do various operations on basin polygons
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-def GetBasinOutlines(DataDirectory, fname_prefix):
+def GetBasinOutlines(DataDirectory, basins_fname):
     """
     This function takes in the raster of basins and gets a dict of basin polygons,
     where the key is the basin key and the value is a shapely polygon of the basin
 
     Args:
         DataDirectory (str): the data directory with the basin raster
-        fname_prefix (str): the prefix for the DEM
+        basins_fname (str): the basin raster
 
     Returns:
         list of shapely polygons with the basins
@@ -29,11 +29,10 @@ def GetBasinOutlines(DataDirectory, fname_prefix):
     Author: FJC
     """
     # read in the basins raster
-    basin_name = fname_prefix+"_AllBasins.bil"
     OutputShapefile = fname_prefix+'_basins.shp'
 
     # polygonise the raster
-    BasinDict = LSDMap_IO.PolygoniseRaster(DataDirectory, basin_name, OutputShapefile)
+    BasinDict = LSDMap_IO.PolygoniseRaster(DataDirectory, basins_fname, OutputShapefile)
     return BasinDict
 
 def GetBasinCentroids(DataDirectory, fname_prefix):
