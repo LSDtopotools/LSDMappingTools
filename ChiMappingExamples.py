@@ -1,6 +1,7 @@
 """
 This function drives the Chi mapping examples that are used with our documentation.
-
+The website is: https://lsdtopotools.github.io/LSDTopoTools_ChiMudd2014/
+    
 Written by Simon Mudd and Fiona Clubb
 June 2017
 git
