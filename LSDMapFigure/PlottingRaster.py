@@ -806,7 +806,7 @@ class MapFigure(object):
 
         self.fig.show()
 
-    def save_fig(self,fig_width_inches = 4,FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100, axis_style = "Normal"):
+    def save_fig(self,fig_width_inches = 4,FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100, axis_style = "Normal", transparent=False):
 
 
         self.ax_list = self.axis_styler(self.ax_list,axis_style)
@@ -864,7 +864,7 @@ class MapFigure(object):
         else:
             self.ax_list[-1].set_position(cbar_axes)
 
-        fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi)
+        fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi, transparent=transparent)
 
         #self.fig.show()
         #print("The figure format is: " + self.FigFormat)

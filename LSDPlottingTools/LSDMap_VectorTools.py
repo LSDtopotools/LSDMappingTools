@@ -29,7 +29,8 @@ def GetBasinOutlines(DataDirectory, basins_fname):
     Author: FJC
     """
     # read in the basins raster
-    OutputShapefile = fname_prefix+'_basins.shp'
+    this_fname = basins_fname.split('.')
+    OutputShapefile = this_fname[0]+'.shp'
 
     # polygonise the raster
     BasinDict = LSDMap_IO.PolygoniseRaster(DataDirectory, basins_fname, OutputShapefile)
