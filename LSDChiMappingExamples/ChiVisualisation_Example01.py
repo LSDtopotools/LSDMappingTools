@@ -195,7 +195,7 @@ def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
     BaseLevelDF = PlotHelp.ReadBaselevelKeysCSV(DataDirectory, fname_prefix)
 
     baselevel_keys = list(BaseLevelDF['baselevel_key'])
-    baselevel_keys = [float(x) for x in baselevel_keys]
+    baselevel_keys = [int(x) for x in baselevel_keys]
 
     baselevel_junctions = list(BaseLevelDF['baselevel_junction'])
     baselevel_junctions = [float(x) for x in baselevel_junctions]
@@ -228,8 +228,9 @@ def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
+    label_dict = dict(zip(baselevel_junctions,baselevel_keys))
     Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
-    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
+    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
 
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat

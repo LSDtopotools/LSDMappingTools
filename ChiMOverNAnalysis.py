@@ -19,7 +19,6 @@ import pandas as pd
 from matplotlib import colors
 #from shapely.geometry import Polygon
 from LSDMapFigure import PlottingHelpers as Helper
-import LSDPlottingTools.LSDMap_VectorTools as LSDMap_VT
 from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
 
@@ -1229,7 +1228,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     BaseLevelDF = Helper.ReadBaselevelKeysCSV(DataDirectory, fname_prefix)
 
     baselevel_keys = list(BaseLevelDF['baselevel_key'])
-    baselevel_keys = [float(x) for x in baselevel_keys]
+    baselevel_keys = [int(x) for x in baselevel_keys]
 
     baselevel_junctions = list(BaseLevelDF['baselevel_junction'])
     baselevel_junctions = [float(x) for x in baselevel_junctions]
@@ -1256,12 +1255,13 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = False, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
 
     # add the basin outlines
-    Basins = LSDMap_VT.GetBasinOutlines(DataDirectory, BasinsName)
+    Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    Points = LSDMap_VT.GetPointWithinBasins(DataDirectory, BasinsName)
-    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
+    label_dict = dict(zip(baselevel_junctions,baselevel_keys))
+    Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
+    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
 
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
@@ -1303,7 +1303,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     BaseLevelDF = Helper.ReadBaselevelKeysCSV(DataDirectory, fname_prefix)
 
     baselevel_keys = list(BaseLevelDF['baselevel_key'])
-    baselevel_keys = [float(x) for x in baselevel_keys]
+    baselevel_keys = [int(x) for x in baselevel_keys]
 
     baselevel_junctions = list(BaseLevelDF['baselevel_junction'])
     baselevel_junctions = [float(x) for x in baselevel_junctions]
@@ -1332,12 +1332,13 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=m_over_ns, cbar_type=float)
 
     # plot the basin outlines
-    Basins = LSDMap_VT.GetBasinOutlines(DataDirectory, BasinsName)
+    Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    Points = LSDMap_VT.GetPointWithinBasins(DataDirectory, BasinsName)
-    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
+    label_dict = dict(zip(baselevel_junctions,baselevel_keys))
+    Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
+    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
@@ -1361,7 +1362,7 @@ if __name__ == "__main__":
     # specify the m/n values tested
     start_movern = 0.2
     d_movern = 0.1
-    n_movern = 7
+    n_movern = 8
 
     # analyse the MLE
     #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
