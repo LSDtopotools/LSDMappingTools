@@ -1248,7 +1248,6 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     BackgroundRasterName = fname_prefix+raster_ext
     HillshadeName = fname_prefix+'_hs'+raster_ext
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
-    print (BasinsName)
 
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='None')
@@ -1257,11 +1256,11 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = False, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
 
     # add the basin outlines
-    Basins = LSDMap_VT.GetBasinOutlines(DataDirectory, fname_prefix)
+    Basins = LSDMap_VT.GetBasinOutlines(DataDirectory, BasinsName)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    Points = LSDMap_VT.GetPointWithinBasins(DataDirectory, fname_prefix)
+    Points = LSDMap_VT.GetPointWithinBasins(DataDirectory, BasinsName)
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     # Save the figure
@@ -1333,11 +1332,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=m_over_ns, cbar_type=float)
 
     # plot the basin outlines
-    Basins = LSDMap_VT.GetBasinOutlines(DataDirectory, fname_prefix)
+    Basins = LSDMap_VT.GetBasinOutlines(DataDirectory, BasinsName)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    Points = LSDMap_VT.GetPointWithinBasins(DataDirectory, fname_prefix)
+    Points = LSDMap_VT.GetPointWithinBasins(DataDirectory, BasinsName)
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat

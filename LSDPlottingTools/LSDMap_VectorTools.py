@@ -30,13 +30,15 @@ def GetBasinOutlines(DataDirectory, basins_fname):
     """
     # read in the basins raster
     this_fname = basins_fname.split('.')
+    print basins_fname
+    print this_fname[0]
     OutputShapefile = this_fname[0]+'.shp'
 
     # polygonise the raster
     BasinDict = LSDMap_IO.PolygoniseRaster(DataDirectory, basins_fname, OutputShapefile)
     return BasinDict
 
-def GetBasinCentroids(DataDirectory, fname_prefix):
+def GetBasinCentroids(DataDirectory, basins_fname):
     """
     This function takes in the raster of basins and returns a dict where the
     key is the basin key and the value is the shapely point of the centroid
@@ -51,7 +53,7 @@ def GetBasinCentroids(DataDirectory, fname_prefix):
     Author: FJC
     """
     # get the basin polygons
-    BasinDict = GetBasinOutlines(DataDirectory, fname_prefix)
+    BasinDict = GetBasinOutlines(DataDirectory, basins_fname)
 
     # get the centroids
     CentroidDict = {}
@@ -60,7 +62,7 @@ def GetBasinCentroids(DataDirectory, fname_prefix):
 
     return CentroidDict
 
-def GetPointWithinBasins(DataDirectory,fname_prefix):
+def GetPointWithinBasins(DataDirectory,basins_fname):
     """
     This function takes in the raster of basin and returns a dict where the
     key is the basin key and the value is a shapely point that is representative
@@ -76,7 +78,7 @@ def GetPointWithinBasins(DataDirectory,fname_prefix):
     Author: FJC
     """
     # get the basin polygons
-    BasinDict = GetBasinOutlines(DataDirectory, fname_prefix)
+    BasinDict = GetBasinOutlines(DataDirectory, basins_fname)
 
     # get the centroids
     PointDict = {}
@@ -85,7 +87,7 @@ def GetPointWithinBasins(DataDirectory,fname_prefix):
 
     return PointDict
 
-def GetPointWithinBasinsBuffered(DataDirectory,fname_prefix, basin_list = [], buffer_frac=0.1):
+def GetPointWithinBasinsBuffered(DataDirectory,basins_fname, basin_list = [], buffer_frac=0.1):
     """
     This function takes in the raster of basins, and buffers each basin
     (makes each one smaller). It then gets the centroid of each buffered
@@ -107,7 +109,7 @@ def GetPointWithinBasinsBuffered(DataDirectory,fname_prefix, basin_list = [], bu
     Author: FJC
     """
     # get the basin polygons
-    BasinDict = GetBasinOutlines(DataDirectory, fname_prefix)
+    BasinDict = GetBasinOutlines(DataDirectory, basins_fname)
 
     # buffer and get the centre of the buffered polygons
     PointDict = {}
