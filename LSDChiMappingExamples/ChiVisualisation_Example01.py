@@ -1,11 +1,11 @@
 """
-    This contains a series of examples for chi plotting to be used with 
-    the chi_mapping_tool. 
-    
+    This contains a series of examples for chi plotting to be used with
+    the chi_mapping_tool.
+
     Simon Mudd and Fiona Clubb, June 2017
-    
+
     Released under GPL3
-    
+
 
 """
 
@@ -23,9 +23,9 @@ from matplotlib import rcParams
 """
     IMPORTANT: You must call this function from a lower level driectory
     where both LSDPlottingTools and LSDMapFigure are in the python path!
-    
-    That is, it will not work if you call it from outside the directory structure. 
-    
+
+    That is, it will not work if you call it from outside the directory structure.
+
 """
 import LSDPlottingTools as LSDP
 from LSDMapFigure.PlottingRaster import MapFigure
@@ -56,23 +56,23 @@ def ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file):
     #FigFormat = 'png'
     fig_size_inches = 12
     ax_style = "Normal"
-    
-    # Get the filenames you want    
-    BackgroundRasterName = Base_file+"_hs.bil"    
+
+    # Get the filenames you want
+    BackgroundRasterName = Base_file+"_hs.bil"
     DrapeRasterName = Base_file+".bil"
 
     # clear the plot
-    plt.clf() 
-    
+    plt.clf()
+
     # this is where we want the colourbar
     cbar_loc = "right"
-    
+
     # set up the base image and the map
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
     MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = "jet", alpha = 0.6, colorbarlabel = "Elevation (m)")
-    
+
     # Save the image
-    ImageName = DataDirectory+"Xian_example1.png" 
+    ImageName = DataDirectory+"Xian_example1.png"
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = 250)
 
 def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
@@ -102,7 +102,7 @@ def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
     size_format  = "geomorphology"
-    
+
     # set figure sizes based on format
     if size_format == "geomorphology":
         fig_width_inches = 6.25
@@ -141,14 +141,14 @@ def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
     # add the basins drape
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys, cbar_type = int)
     # add the basin outlines
-    Basins = LSDP.GetBasinOutlines(DataDirectory, fname_prefix)
+    Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     FigFormat = "png"
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
-    
-    
+
+
 def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
@@ -224,14 +224,13 @@ def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
 
     # add the basin outlines
-    Basins = LSDP.GetBasinOutlines(DataDirectory, fname_prefix)
+    Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    Points = LSDP.GetPointWithinBasins(DataDirectory, fname_prefix)
+    Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', old_values = baselevel_junctions, new_values = baselevel_keys)
 
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
-    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)    
-    
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
