@@ -118,7 +118,7 @@ def GetPointWithinBasinsBuffered(DataDirectory,fname_prefix, basin_list = [], bu
         bounds = basin.bounds
         lengths.append(bounds[2] - bounds[0])
         lengths.append(bounds[3] - bounds[1])
-        print min(lengths)
+        print(min(lengths))
 
         # buffer with a fraction of the minimum length
         new_basin = Polygon(basin.buffer(min(lengths)*buffer_frac*-1))
