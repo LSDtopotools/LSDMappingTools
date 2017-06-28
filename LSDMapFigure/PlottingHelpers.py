@@ -393,6 +393,28 @@ def ReadSourceKeysCSV(DataDirectory, fname_prefix):
 
     return df
 
+def ReadBasinInfoCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix '_AllBasinsInfo.csv'
+    to a pandas dataframe
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    # get the csv filename
+    basin_suffix = '_AllBasinsInfo.csv'
+    fname = fname_prefix+basin_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
 def ReadFullStatsCSV(DataDirectory, fname_prefix, m_over_n):
     """
     This function reads in the file with the suffix '_fullstats.csv'

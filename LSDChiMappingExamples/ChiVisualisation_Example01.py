@@ -112,13 +112,14 @@ def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
         fig_width_inches = 4.92126
 
     # get the basin IDs to make a discrete colourmap for each ID
-    BasinDF = PlotHelp.ReadBaselevelKeysCSV(DataDirectory,fname_prefix)
+    BasinInfoDF = PlotHelp.ReadBasinInfoCSV(DataDirectory, fname_prefix)
 
-    basin_keys = list(BasinDF['baselevel_key'])
-    basin_keys = [float(x) for x in basin_keys]
+    basin_keys = list(BasinInfoDF['basin_key'])
+    basin_keys = [int(x) for x in basin_keys]
 
-    basin_junctions = list(BasinDF['baselevel_junction'])
+    basin_junctions = list(BasinInfoDF['outlet_junction'])
     basin_junctions = [float(x) for x in basin_junctions]
+
 
     print ('Basin keys are: ')
     print basin_keys
@@ -192,16 +193,16 @@ def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
 
 
     # get the basin IDs to make a discrete colourmap for each ID
-    BaseLevelDF = PlotHelp.ReadBaselevelKeysCSV(DataDirectory, fname_prefix)
+    BasinInfoDF = PlotHelp.ReadBasinInfoCSV(DataDirectory, fname_prefix)
 
-    baselevel_keys = list(BaseLevelDF['baselevel_key'])
-    baselevel_keys = [int(x) for x in baselevel_keys]
+    basin_keys = list(BasinInfoDF['basin_key'])
+    basin_keys = [int(x) for x in basin_keys]
 
-    baselevel_junctions = list(BaseLevelDF['baselevel_junction'])
-    baselevel_junctions = [float(x) for x in baselevel_junctions]
+    basin_junctions = list(BasinInfoDF['outlet_junction'])
+    basin_junctions = [float(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
-    print baselevel_keys
+    print basin_keys
 
     # get a discrete colormap
     cmap = plt.cm.jet
@@ -221,14 +222,14 @@ def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='none')
 
     # add the basins drape
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(baselevel_keys), show_colourbar = True, modify_raster_values=True, old_values=baselevel_junctions, new_values=baselevel_keys, cbar_type = int)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys, cbar_type = int)
 
     # add the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    label_dict = dict(zip(baselevel_junctions,baselevel_keys))
+    label_dict = dict(zip(basin_junctions,basin_keys))
     Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
 
