@@ -41,7 +41,7 @@
 
 #set backend to run on server
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 
 #import modules
 from matplotlib import pyplot as plt
@@ -296,6 +296,8 @@ def knickpoint_plotter_by_basin(name ,DataDirectory, save_name = "kn_by_Basins",
 if __name__ == "__main__":
 
     DataDirectory = '/home/s1675537/PhD/DataStoreBoris/GIS/Data/Santa_cruz/Smugglers/lidar/'
+    #DataDirectory = 'B://GIS/Data/Santa_cruz/Smugglers/lidar/'
+
     baseName = "smugglers_1"
     dfp = read_MChi_file(DataDirectory,baseName+"_KsnKn.csv")
     river_net = read_MChi_file(DataDirectory,baseName+"_MChiSegmented.csv")
@@ -316,7 +318,11 @@ if __name__ == "__main__":
     binned_by_DA = lst.binning_PD(dfp,column = "drainage area",values =  "auto_power_10")
     # Calculation of the outliers
     binned_by_DA = lst.add_outlier_column_to_PD(binned_by_DA, column = ['diff','ratio'], threshold = [2,2])
-    print(binned_by_DA)
+    plt.scatter(binned_by_DA['10000']['diff'],binned_by_DA['10000']['diff'])
+    plt.show()
+    #quit()
+    #print(binned_by_DA)
     # plotting the figure
     KP.plot_outliers_x_vs_diff_ratio(binned_by_DA, DataDirectory,x_col = "drainage area", saveName = "Basic_diff_ratio", save_fmt = ".png", size_format = "ESURF", log_data = True, ylim_diff =[-3,4])
-    KP.map_knickpoint_sign(binned_by_DA, DataDirectory, 'smugglers_1', Time_in_name = False, river_network = PTriver, saveName = "Map_Knickpoint", size = 2, outliers = 'diff_outlier')
+    #KP.map_knickpoint_sign(binned_by_DA, DataDirectory, 'smugglers_1', Time_in_name = False, river_network = PTriver, saveName = "Map_Knickpoint", size = 50000, outliers = 'diff_outlier')
+    KP.map_knickpoint_sign(binned_by_DA, DataDirectory, 'smugglers_1', Time_in_name = False, river_network = PTriver, saveName = "Map_Knickpoint", size = 50000)

@@ -605,9 +605,10 @@ def map_knickpoint_sign(PointData, DataDirectory, Raster_base_name, HS_name = "n
     if(isinstance(PointData, dict)):
         print("Your data is a dictionnary of dataframes, let me create a PointTool object that contains all of these.")
         PointData = pd.concat(PointData)
-        PointData = LSDMap_PD.LSDMap_PointData(PointData,data_type ="pandas", PANDEX = True)
+        PointData = LSDMap_PD.LSDMap_PointData(PointData,data_type ="pandas", PANDEX = False)
     if(outliers != 'none' ):
         PointData.selectValue(outliers, operator = "==", value = True)
+        print PointData
 
     Directory = DataDirectory # reading directory
     wDirectory = Directory # writing directory
@@ -649,7 +650,7 @@ def map_knickpoint_sign(PointData, DataDirectory, Raster_base_name, HS_name = "n
                            min_point_size = 0.5, # You should be able to guess that one now
                            coulor_log = False, # do you want a log scale for your colorbar ?
                            coulor_manual_scale = [], #Do you want to manually limit the scale of your colorbar? if not let is false
-                           manual_size = 0.1, # If none of above is choosen but you want to put another value than 0.5 to scale your point
+                           manual_size = 0.5, # If none of above is choosen but you want to put another value than 0.5 to scale your point
                            alpha = 1, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
                            minimum_log_scale_cut_off = -10) # you probably won't need this
 
