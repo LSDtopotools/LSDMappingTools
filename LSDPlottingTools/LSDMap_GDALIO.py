@@ -496,6 +496,7 @@ def ReadRasterArrayBlocks_numpy(raster_file,raster_band=1):
 
     with open(raster_file[:-3]+"hdr","r") as hdr_file:
         print("I am opening your raster info")
+        no_data_hdr = -9999 # setting the default noData in case there is no value setted in the hdr file
         for line in hdr_file:
             #testing the data type
             if(line[0:9] == "data type"):
@@ -521,6 +522,12 @@ def ReadRasterArrayBlocks_numpy(raster_file,raster_band=1):
                             num_lines = line.replace(" ","").split("=")[1]
                             print("there are " + str(num_lines) + " lines")
                             num_lines = int(num_lines)
+                        else:
+                            if(line[0:17] == "data ignore value"):
+                                no_data_hdr = line.replace(" ","").split("=")[1]
+                                print("No data value is: " + str(no_data_hdr) )
+                                no_data_hdr = float(no_data_hdr)
+
 
         #The type of data representation:
         #1 = Byte: 8-bit unsigned integer
@@ -560,7 +567,9 @@ def ReadRasterArrayBlocks_numpy(raster_file,raster_band=1):
     x_max = x_min + x_res*num_col
     y_min = y_max - y_res*num_lines
     print("I am returning the raster array and info")
-
+    NoDataValue = no_data_hdr
+    if NoDataValue is not None:
+        data_array[data_array==NoDataValue] = np.nan
 
 
     return data_array
