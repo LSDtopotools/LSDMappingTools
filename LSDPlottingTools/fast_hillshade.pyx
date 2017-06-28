@@ -39,9 +39,11 @@ def Hillshade(np.ndarray terrain_array, int ncols, int nrows,
   nodata_mask = terrain_array == NoDataValue
   terrain_array[nodata_mask] = np.nan
 
-  HSarray = np.array(terrain_array)
+  # Ndarray best choice? Will revisit later...
+  HSarray = np.ndarray((ncols,nrows))
+  HSarray.fill(np.nan)
   
-  cdef float M_PI = 3.141
+  cdef float M_PI = np.pi
 
   cdef float zenith_rad = (90 - angle_altitude) * M_PI / 180.0
   cdef float azimuth_math = 360-azimuth + 90
@@ -57,24 +59,24 @@ def Hillshade(np.ndarray terrain_array, int ncols, int nrows,
   cdef int i, j
   i = 1
   j = 1
+  # For loop necessary? Revisit...
   for i in range(0, ncols - 1):
     for j in range(0, nrows - 1):
-
-      if (terrain_array[i][j] != NoDataValue):
+        # No need to check nodata value every iter, they are nans handled by numpy?
         dzdx = (((terrain_array[i][j+1] + 2*terrain_array[i+1][j] + terrain_array[i+1][j+1]) -
                 (terrain_array[i-1][j-1] + 2*terrain_array[i-1][j] + terrain_array[i-1][j+1]))
                 / (8 * DataResolution))
         dzdy = (((terrain_array[i-1][j+1] + 2*terrain_array[i][j+1] + terrain_array[i+1][j+1]) -
                 (terrain_array[i-1][j-1] + 2*terrain_array[i][j-1] + terrain_array[i+1][j-1]))
                 / (8 * DataResolution))
-
+    
         slope_rad = np.arctan(z_factor * np.sqrt((dzdx*dzdx) + (dzdy*dzdy)))
-
+    
         if (dzdx != 0):
           aspect_rad = np.arctan2(dzdy, (dzdx*-1))
           if (aspect_rad < 0):
             aspect_rad = 2*M_PI + aspect_rad
-
+    
         else:
           if (dzdy > 0):
             aspect_rad = M_PI/2
@@ -82,11 +84,12 @@ def Hillshade(np.ndarray terrain_array, int ncols, int nrows,
             aspect_rad = 2 * M_PI - M_PI/2
           else:
             aspect_rad = aspect_rad
-
+        # Same comment as above...for loop assignment? Use array instead of ndarray
+        # and then whole  array operation
         HSarray[i][j] = 255.0 * ((np.cos(zenith_rad) * np.cos(slope_rad)) +
                         (np.sin(zenith_rad) * np.sin(slope_rad) *
                         np.cos(azimuth_rad - aspect_rad)))
-
+        # Necessary?
         if (HSarray[i][j] < 0):
           HSarray[i][j] = 0
 

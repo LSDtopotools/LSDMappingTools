@@ -27,14 +27,18 @@ from LSDPlottingTools import fast_hillshade as fasthill
 import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
 import LSDPlottingTools.LSDMap_BasicPlotting as LSDMap_BP
 
-Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/rainfall_maps/"
-BackgroundRasterName = "BoscastleElevations0.asc"
+#Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/rainfall_maps/"
+Directory = "/mnt/SCRATCH/Dev/ExampleTopoDatasets/"
+BackgroundRasterName = "SanBern.bil"
 
 raster = LSDMap_IO.ReadRasterArrayBlocks(Directory + BackgroundRasterName)
 
+Cellsize = LSDMap_IO.GetGeoInfo(Directory + BackgroundRasterName)[3][1]
+print(Cellsize)
+
 # This could be tidied up (not hard coded data res)
 ncols, nrows = raster.shape
-data_res = 5.0
+data_res = Cellsize
 
 # LSDMappingTools hillshade
 hs = LSDMap_BP.Hillshade(raster)
