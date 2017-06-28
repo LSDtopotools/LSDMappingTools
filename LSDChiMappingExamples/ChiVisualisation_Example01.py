@@ -1,6 +1,9 @@
 """
     This contains a series of examples for chi plotting to be used with
     the chi_mapping_tool.
+    
+    The documentation of the examples can be found here:
+    https://lsdtopotools.github.io/LSDTopoTools_ChiMudd2014/
 
     Simon Mudd and Fiona Clubb, June 2017
 
@@ -38,13 +41,9 @@ def ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file):
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
 
-    WORK IN PROGRESS - NEED TO GET LABELLING OR A COLOUR BAR WORKING
-
     Args:
         DataDirectory (str): the data directory with the m/n csv files
-        fname_prefix (str): The prefix for the m/n csv files
-        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
-        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        Base_file (str): The prefix for the m/n csv files
 
     Returns:
         Shaded relief plot with the basins coloured by basin ID
@@ -52,8 +51,6 @@ def ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file):
     Author: FJC
     """
     # specify the figure size and format
-    #size_format='ESURF'
-    #FigFormat = 'png'
     fig_size_inches = 12
     ax_style = "Normal"
 
@@ -72,7 +69,7 @@ def ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file):
     MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = "jet", alpha = 0.6, colorbarlabel = "Elevation (m)")
 
     # Save the image
-    ImageName = DataDirectory+"Xian_example1.png"
+    ImageName = DataDirectory+"Xian_example1_hillshade.png"
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = 250)
 
 def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
@@ -80,13 +77,9 @@ def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
 
-    WORK IN PROGRESS - NEED TO GET LABELLING OR A COLOUR BAR WORKING
-
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
-        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
-        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
 
     Returns:
         Shaded relief plot with the basins coloured by basin ID
@@ -146,8 +139,8 @@ def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     FigFormat = "png"
-    ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
-    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
+    ImageName = DataDirectory+fname_prefix+'_coloured_basins.'+FigFormat
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 250) # Save the figure
 
 
 def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
@@ -158,8 +151,6 @@ def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
-        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
-        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
 
     Returns:
         Shaded relief plot with the basins coloured by basin ID
@@ -234,5 +225,5 @@ def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
 
     # Save the figure
-    ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
-    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
+    ImageName = DataDirectory+fname_prefix+'_labelled_basins.'+FigFormat
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 250)
