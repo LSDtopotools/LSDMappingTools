@@ -364,7 +364,7 @@ def plot_basic_Z(PointData, DataDirectory, saveName = "Basic_Z", save_fmt = ".pn
 
     plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
 
-def plot_outliers_x_vs_diff_ratio(PointDataOut,PointData, DataDirectory,x_col = "elevation", saveName = "Outliers", save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_ratio = [], ylim_diff = []):
+def plot_outliers_x_vs_diff_ratio(PointData, DataDirectory,x_col = "elevation", saveName = "Outliers", save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_ratio = [], ylim_diff = []):
     """
     Basic plot to have a general view of the knickpoints: flow distance against ratio and diff colored by elevation
 
@@ -377,6 +377,13 @@ def plot_outliers_x_vs_diff_ratio(PointDataOut,PointData, DataDirectory,x_col = 
         Nothing, sorry.
     Author: BG
     """
+    # Merging the dictionnary
+    if(isinstance(PointData, dict)):
+        print("Your data is a dictionnary of dataframes, let me create a PointTool object that contains all of these.")
+        PointData = pd.concat(PointData)
+        PointData = LSDMap_PD.LSDMap_PointData(PointData,data_type ="pandas", PANDEX = True)
+
+
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
@@ -394,34 +401,44 @@ def plot_outliers_x_vs_diff_ratio(PointDataOut,PointData, DataDirectory,x_col = 
         fig = plt.figure(2, facecolor='white',figsize=(4.92126,3.5))
         l_pad = -35
 
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax1 = fig.add_subplot(gs[5:45,10:95])
+    ax2 = fig.add_subplot(gs[55:100,10:95])
+
+
     diff = PointData.QueryData("diff")
     ratio = PointData.QueryData("ratio")
     Z = PointData.QueryData(x_col)
+    PointData.selectValue('diff_outlier',value = True, operator = "==")
+    PointData.selectValue('ratio_outlier',value = True, operator = "==")
 
-    diff_out = PointDataOut.QueryData("diff")
-    ratio_out = PointDataOut.QueryData("ratio")
-    Z_out = PointDataOut.QueryData(x_col)
-
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
-    ax1 = fig.add_subplot(gs[10:50,10:95])
-    ax2 = fig.add_subplot(gs[50:100,10:95])
-
-
-
+    diffout = PointData.QueryData("diff")
+    ratioout = PointData.QueryData("ratio")
+    Z_out = PointData.QueryData(x_col)
     if(log_data):
         print("I am logging the data")
+
         diff = np.log10(diff)
         ratio = np.log10(ratio)
+        if(isinstance(diffout, list) == False):
+            diffout = [diffout]
+            ratioout = [ ratioout]
 
-    sign = PointDataOut.QueryData("sign")
+        for i in range(len(diffout)):
+
+            diffout[i]= np.log10(diffout[i])
+
+            ratioout[i]= np.log10(ratioout[i])
+
+    sign = PointData.QueryData("sign")
 
     ax1.scatter(Z,ratio, s=1.5, lw = 0, c = "gray")
-    ax1.scatter(Z_out,ratio_out, s=1.5, lw = 0, c = sign)
+    ax1.scatter(Z_out,ratioout, s=1.5, lw = 0, c = sign)
     ax1.set_ylabel("Ratio")
     ax1.tick_params(axis = 'x', length = 0, width = 0, labelsize = 0)
     ax1.spines['bottom'].set_visible(False)
     ax2.scatter(Z,diff,s=1.5, lw = 0, c = "gray")
-    ax2.scatter(Z_out,diff_out,s=1.5, lw = 0, c = sign)
+    ax2.scatter(Z_out,diffout,s=1.5, lw = 0, c = sign)
     ax2.set_ylabel("Diff")
     ax2.set_xlabel(x_col)
     if(ylim_diff != []):
@@ -436,12 +453,12 @@ def plot_outliers_x_vs_diff_ratio(PointDataOut,PointData, DataDirectory,x_col = 
 
     plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
 
-def plot_outliers_vs_others(PointData,PointDataOut, DataDirectory, saveName = "Basic_diff_ratio", save_fmt = ".png", size_format = "ESURF", log_data = False):
+def plot_outliers_vs_others(PointData, DataDirectory, saveName = "Basic_diff_ratio", save_fmt = ".png", size_format = "ESURF", log_data = False):
     """
     Basic plot to have a general view of the knickpoints: diff against ratio colored by elevation
 
     Args:
-        PointData: A PointData object
+        PointData: A PointData object or a dictionnary of dataframe containing outliers and none outliers
         DataDirectory: Where the data is saved
         saveName: save name
 
@@ -449,6 +466,13 @@ def plot_outliers_vs_others(PointData,PointDataOut, DataDirectory, saveName = "B
         Nothing, sorry.
     Author: BG
     """
+    # Merging the dictionnary
+    if(isinstance(PointData, dict)):
+        print("Your data is a dictionnary of dataframes, let me create a PointTool object that contains all of these.")
+        PointData = pd.concat(PointData)
+        PointData = LSDMap_PD.LSDMap_PointData(PointData,data_type ="pandas", PANDEX = True)
+
+
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
@@ -472,19 +496,13 @@ def plot_outliers_vs_others(PointData,PointDataOut, DataDirectory, saveName = "B
 
     diff = PointData.QueryData("diff")
     ratio = PointData.QueryData("ratio")
-    if(isinstance(PointDataOut,dict)):
-        diffout = []
-        ratioout = []
-        elevation = []
-        for key in PointDataOut.keys():
-            diffout.append(PointDataOut[key].QueryData("diff"))
-            ratioout.append(PointDataOut[key].QueryData("ratio"))
-            elevation.append(PointDataOut[key].QueryData("elevation"))
-    else:
-        diffout = PointDataOut.QueryData("diff")
-        ratioout = PointDataOut.QueryData("ratio")
-        elevation =PointDataOut.QueryData("elevation")
 
+    PointData.selectValue('diff_outlier',value = True, operator = "==")
+    PointData.selectValue('ratio_outlier',value = True, operator = "==")
+
+    diffout = PointData.QueryData("diff")
+    ratioout = PointData.QueryData("ratio")
+    elevation = PointData.QueryData("elevation")
     if(log_data):
         print("I am logging the data")
 
@@ -499,19 +517,14 @@ def plot_outliers_vs_others(PointData,PointDataOut, DataDirectory, saveName = "B
             diffout[i]= np.log10(diffout[i])
 
             ratioout[i]= np.log10(ratioout[i])
-
-    if(isinstance(PointDataOut,dict)):
-        ax.scatter(diff,ratio, s=0.5, lw = 0, c = 'gray')
-        for inst in range(len(diffout)):
-
-            ax.scatter(diffout[inst],ratioout[inst], s = 0.5,c = elevation[inst],lw = 0)
-    else:
-        ax.scatter(diff,ratio, s=0.5, lw = 0, c = 'gray')
-        ax.scatter(diffout,ratioout, s = 0.5,c = elevation,lw = 0)
+    print("Now plotting the outliers vs the non-outliers")
+    ax.scatter(diff,ratio, s=0.5, lw = 0, c = 'gray')
+    ax.scatter(diffout,ratioout, s = 0.5,c = elevation,lw = 0)
     ax.set_xlabel("Diff")
     ax.set_ylabel("Ratio")
 
     plt.savefig(DataDirectory+saveName+save_fmt,dpi=500)
+    print("Your figure is " +DataDirectory+saveName+save_fmt)
 
 
 
@@ -573,7 +586,7 @@ def map_custom():
     ax_style = "Normal" # Ignore this
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = dpi) # Save the figure
 
-def map_knickpoint_sign(PointData, DataDirectory, Raster_base_name, HS_name = "none",Time_in_name = False, river_network = "none", saveName = "none", size = 2):
+def map_knickpoint_sign(PointData, DataDirectory, Raster_base_name, HS_name = "none",Time_in_name = False, river_network = "none", saveName = "none", size = 2, outliers = 'none'):
     """
     Will create a map of the knickpoint simply colored by sign.
 
@@ -589,6 +602,13 @@ def map_knickpoint_sign(PointData, DataDirectory, Raster_base_name, HS_name = "n
         BG
     """
     ###### Parameters ######
+    if(isinstance(PointData, dict)):
+        print("Your data is a dictionnary of dataframes, let me create a PointTool object that contains all of these.")
+        PointData = pd.concat(PointData)
+        PointData = LSDMap_PD.LSDMap_PointData(PointData,data_type ="pandas", PANDEX = True)
+    if(outliers != 'none' ):
+        PointData.selectValue(outliers, operator = "==", value = True)
+
     Directory = DataDirectory # reading directory
     wDirectory = Directory # writing directory
     Base_file = Raster_base_name # It will be the cabkground raster. Each other raster you want to drap on it will be cropped to its extents including nodata
@@ -607,14 +627,14 @@ def map_knickpoint_sign(PointData, DataDirectory, Raster_base_name, HS_name = "n
     BackgroundRasterName = Base_file + ".bil" # Ignore this line
     plt.clf() # Ignore this line
 
-    MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km") # load the background raster
+    MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km", NFF_opti = True) # load the background raster
 
     MF.add_drape_image(DrapeRasterName,Directory, # Calling the function will add a drapped raster on the top of the background one
                         colourmap = "gray", # colormap used for this raster, see http://matplotlib.org/users/colormaps.html for examples, put _r at the end of a colormap to get the reversed version
                         alpha=0.5, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
                         show_colourbar = False, # Well, this one is explicit I think
-                        colorbarlabel = "Colourbar") # Name of your Colourbar, it might bug though
-
+                        colorbarlabel = "Colourbar", # Name of your Colourbar, it might bug though
+                        NFF_opti = True)
 
 
     if(isinstance(river_network,LSDP.LSDMap_PointData)):
@@ -646,8 +666,8 @@ def map_knickpoint_sign(PointData, DataDirectory, Raster_base_name, HS_name = "n
                        coulor_manual_scale = [], #Do you want to manually limit the scale of your colorbar? if not let is false
                        manual_size = size, # If none of above is choosen but you want to put another value than 0.5 to scale your point
                        alpha = 1, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
-                       minimum_log_scale_cut_off = -10) # you probably won't need this
-
+                       minimum_log_scale_cut_off = -10 # you probably won't need this
+                      )
     if(Time_in_name):
         ImageName = wDirectory+str(int(clock.time()))+wname+".png" # Ignore this
     else:
@@ -944,12 +964,6 @@ def pdf_from_bin_one_col(ldf, DataDirectory, saveName = "BasicPDF_", column = "e
 
 
 
-        #data = np.argsort(data)
-        order = np.argsort(data)
-        xs = np.array(data)[order]
-        ys = np.array(norm.pdf(data))[order]
-
-        ax1.plot(xs,ys,  lw = 1)
 
 
 
@@ -958,6 +972,32 @@ def pdf_from_bin_one_col(ldf, DataDirectory, saveName = "BasicPDF_", column = "e
         ax1.set_xlim(-100,100)
         plt.savefig(DataDirectory+saveName+inch+"_"+column+".png",dpi=500)
 
+def plot_2d_density_map(dataframe, DataDirectory, columns = ["drainage area", "diff"], bin = 50,   saveName = "BasicPDF_", size_format = "ESURF",):
+
+    """
+    Plots a 2d histogram or density plot or heatmap depending how you name it of two variables.
+
+    Args:
+        dataframe: a Pandas dataframe
+        columns (list of str): The x,y columns to plot
+        bin (int): number of bins
+
+    returns:
+        Nothing yet, plot a figure.
+    """
+
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+        l_pad = -35
+
+    X_data = dataframe[columns[0]]
+    Y_data = dataframe[columns[1]]
 
 
 

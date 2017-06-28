@@ -42,7 +42,7 @@ def is_outlier(points, thresh=3.5):
     diff = np.sqrt(diff)
     med_abs_deviation = np.median(diff)
 
-    # make sure that you don't get a divide by zero. 
+    # make sure that you don't get a divide by zero.
     # If MAD is 0, then there are no outliers
     if med_abs_deviation == 0:
         modified_z_score = diff * 0
@@ -63,14 +63,14 @@ def add_outlier_column_to_PD(df, column = "none", threshold = "none"):
     returns
         Pandas.DataFrame
     """
-    print("DEBUG")
 
+    # Check the DataType
     if(isinstance(df,list) == False and isinstance(df,dict) == False):
         lst_df = [df]
 
     else:
         lst_df = df
-
+    # check the data validity
     if(isinstance(column,str) and column =="none"):
         print("you need to give me the name of at least a column, or a list ([])")
         quit()
@@ -78,6 +78,9 @@ def add_outlier_column_to_PD(df, column = "none", threshold = "none"):
         print("you need to give me the name of at least a column, or a list ([])")
         quit()
 
+
+
+    # calculate the outliers
     for instance in lst_df:
 
         if(isinstance(column,str)):

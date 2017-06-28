@@ -295,93 +295,28 @@ def knickpoint_plotter_by_basin(name ,DataDirectory, save_name = "kn_by_Basins",
 
 if __name__ == "__main__":
 
-    DataDirectory = '/home/s1675537/PhD/DataStoreBoris/GIS/Data/Carpathian/knickpoint/'
-    baseName = "Buzau"
+    DataDirectory = '/home/s1675537/PhD/DataStoreBoris/GIS/Data/Santa_cruz/Smugglers/lidar/'
+    baseName = "smugglers_1"
     dfp = read_MChi_file(DataDirectory,baseName+"_KsnKn.csv")
     river_net = read_MChi_file(DataDirectory,baseName+"_MChiSegmented.csv")
     dfp = select_main_basin(dfp)
-    flat_values = sort_ratio_0_data(dfp, mode = "extract")
+    #flat_values = sort_ratio_0_data(dfp, mode = "extract")
     dfp = sort_ratio_0_data(dfp, mode = "delete")
 
-
-    ######## I am binning the elevation using an interval to test
-
-    Z_interval = []
-    interval = 100
-    rangelev = interval
-    while(rangelev<dfp.elevation.max()):
-        Z_interval.append(rangelev)
-        rangelev += interval
-    binned_by_Z = lst.binning_PD(dfp,column = "elevation",values =  Z_interval)
-    #KP.pdf_from_bin(binned_by_Z, DataDirectory, column = "elevation", size_format = "ESURF")
-    KP.pdf_from_bin_one_col(binned_by_Z, DataDirectory, column = "elevation", size_format = "ESURF", combine_diff_sign = True, argsort = True)
-        #KP.plot_pdf_diff_ratio(dfp, DataDirectory, saveName = "pdf_Z_bin_"+each.keys, save_fmt = ".png", size_format = "ESURF",  xlim = [])
-    ######## done
-
-    ######## I am selecting the outliers for each lists
-
-    binned_by_Z_Outliers = lst.add_outlier_column_to_PD(binned_by_Z, column = ["diff", "ratio"], threshold =[2,2])
-
-    ZOUT = pandas.concat(binned_by_Z_Outliers)
-
-    #ZOUT = ZOUT[ZOUT['diff_outlier']]
-    ZOUT = ZOUT[ZOUT['ratio_outlier']]
-
-
-
-    #Loading the pt
-    PTZOUT = load_Point_Tool(ZOUT)
     PT = load_Point_Tool(dfp) # If you need actual pointdata
     #PTflat = load_Point_Tool(flat_values)
     PTriver = load_Point_Tool(river_net)
-    KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "elevation", saveName = "Outliers_bin_Z_ratio_int_"+str(interval), save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
+    #KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "elevation", saveName = "Outliers_bin_Z_ratio_int_"+str(interval), save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
 
-    ########### Now binning by Source key ################
-
-    binned_by_S = lst.binning_PD(dfp,column = "source_key",values =  "unique")
-    binned_by_S_outliers = lst.add_outlier_column_to_PD(binned_by_Z, column = ["diff", "ratio"], threshold =[2,2])
-    SOUT = pandas.concat(binned_by_S_outliers)
-    PTSOUT = load_Point_Tool(SOUT)
-    #KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "source_key", saveName = "Outliers_bin_S", save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
-
-    ############################################## I am too lazy to delete the following code but I don't need it for the moment
-    quit()
 
 
 
     ######## binned by DA
+    # Binning
     binned_by_DA = lst.binning_PD(dfp,column = "drainage area",values =  "auto_power_10")
-    is_created = True
-    tet_lines = 0
-    PTBD = {}
-
-    for key in binned_by_DA.keys():
-        binned_by_DA[key] = lst.add_outlier_column_to_PD(binned_by_DA[key], column = ["diff", "ratio"], threshold =[3.6,3.6])
-        binned_by_DA[key] = binned_by_DA[key][binned_by_DA[key]["diff_outlier"]]
-        binned_by_DA[key] = binned_by_DA[key][binned_by_DA[key]["ratio_outlier"]]
-        #PTBD[key] = load_Point_Tool(binned_by_DA[key])
-        #PTt = load_Point_Tool(binned_by_DA[key])
-        #KP.plot_diff_ratio(PTt, DataDirectory, saveName = "OUTLIERS_test_bin_"+str(key), save_fmt = ".png", size_format = "ESURF", log_data = True)
-    ############ dine
-
-
-
-
-    #PTO = load_Point_Tool(dfpo)
-    #KP.plot_diff_ratio(PTO, DataDirectory, saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
-    #KP.plot_outliers_vs_others(PT, PTBD,DataDirectory,saveName = "OUTLIERS_diff_ratio_test", save_fmt = ".png", size_format = "ESURF", log_data = True )
-    KP.plot_basic_DA(PT, DataDirectory, save_fmt = ".png", size_format = "ESURF", log_data = True )
-    KP.plot_basic_FD(PT, DataDirectory, save_fmt = ".png", size_format = "ESURF", log_data = True)
-    KP.plot_basic_Z(PT, DataDirectory, save_fmt = ".png", size_format = "ESURF", log_data = True)
-    #select = dfp[dfp["elevation"]<600]
-    #select = select[select["elevation"]>500]
-    #PTS = load_Point_Tool(select)
-    #KP.map_custom()
-    #KP.map_knickpoint_sign(PT, DataDirectory, baseName, Time_in_name = False, river_network = PTriver)
-    #KP.map_knickpoint_sign(PTflat, DataDirectory, baseName, Time_in_name = False, river_network = PTriver, saveName = "flat_", size = 0.1)
-    KP.map_knickpoint_diff_sized_colored_ratio(PTS, DataDirectory, baseName, river_network = PTriver, log = True, saveName = "500_700")
-    kp_type = "diff" # every knickpoint below this will be erased
-    FigFormat = 'png'
-    #knickpoint_plots_for_basins(DataDirectory,csv_name, kp_type)
-
-    #knickpoint_plotter_by_basin(dfp, DataDirectory,kp_type=kp_type,FigFormat=FigFormat)
+    # Calculation of the outliers
+    binned_by_DA = lst.add_outlier_column_to_PD(binned_by_DA, column = ['diff','ratio'], threshold = [2,2])
+    print(binned_by_DA)
+    # plotting the figure
+    KP.plot_outliers_x_vs_diff_ratio(binned_by_DA, DataDirectory,x_col = "drainage area", saveName = "Basic_diff_ratio", save_fmt = ".png", size_format = "ESURF", log_data = True, ylim_diff =[-3,4])
+    KP.map_knickpoint_sign(binned_by_DA, DataDirectory, 'smugglers_1', Time_in_name = False, river_network = PTriver, saveName = "Map_Knickpoint", size = 2, outliers = 'diff_outlier')
