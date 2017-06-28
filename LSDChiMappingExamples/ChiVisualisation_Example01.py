@@ -217,10 +217,13 @@ def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
 
     # add the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+    # note that at this stage the Basins are keyed with the junction index
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
     label_dict = dict(zip(basin_junctions,basin_keys))
+    # this dict has the basin junction as the key and the basin_key as the value
+    
     Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
 

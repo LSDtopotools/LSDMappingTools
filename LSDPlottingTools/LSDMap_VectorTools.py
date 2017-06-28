@@ -1,4 +1,4 @@
-## LSDMap_BasicManipulation.py
+## LSDMap_VectorTools.py
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## These functions are tools to deal with vector data using shapely
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -17,7 +17,11 @@ from shapely.geometry import Point, Polygon
 def GetBasinOutlines(DataDirectory, basins_fname):
     """
     This function takes in the raster of basins and gets a dict of basin polygons,
-    where the key is the basin key and the value is a shapely polygon of the basin
+    where the key is the basin key and the value is a shapely polygon of the basin.
+    
+    IMPORTANT: In this case the "basin key" is usually the junction number:
+        this function will use the raster values as keys and in general
+        the basin rasters are output based on junction indices rather than keys
 
     Args:
         DataDirectory (str): the data directory with the basin raster
@@ -43,6 +47,10 @@ def GetBasinCentroids(DataDirectory, basins_fname):
     This function takes in the raster of basins and returns a dict where the
     key is the basin key and the value is the shapely point of the centroid
 
+    In most cases the "basin key" is actually the junction index: it comes
+    from the basins labeled within the basin raster, which is output with 
+    junction indices rather than junction keys
+
     Args:
         DataDirectory (str): the data directory with the basin raster
         fname_prefix (str): the prefix for the DEM
@@ -67,6 +75,10 @@ def GetPointWithinBasins(DataDirectory,basins_fname):
     This function takes in the raster of basin and returns a dict where the
     key is the basin key and the value is a shapely point that is representative
     of the basin (guaranteed to be within the polygon)
+    
+    In most cases the "basin key" is actually the junction index: it comes
+    from the basins labeled within the basin raster, which is output with 
+    junction indices rather than junction keys
 
     Args:
         DataDirectory (str): the data directory with the basin raster
@@ -93,6 +105,10 @@ def GetPointWithinBasinsBuffered(DataDirectory,basins_fname, basin_list = [], bu
     (makes each one smaller). It then gets the centroid of each buffered
     basin and returns as a dict where the key is the basin key and the value
     is a shapely point that is the centroid of the buffered basin.
+
+    In most cases the "basin key" is actually the junction index: it comes
+    from the basins labeled within the basin raster, which is output with 
+    junction indices rather than junction keys
 
     This doesn't work at the moment - need to think of a way to specify the buffer
     distance appropriately.

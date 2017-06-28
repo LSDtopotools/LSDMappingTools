@@ -704,9 +704,13 @@ class MapFigure(object):
     def add_text_annotation_from_shapely_points(self, points, label_dict={}, border_colour='k', text_colour='r', alpha=1):
         """
         This adds annotations from a dictionary of shapely points, for annotating basins or sources.
-        In the dictionary the keys are the raster values to annotate and the values are the point objects.
-        The labels are also stored in a dictionary, where the key is the original value (e.g. basin
-        junction, and the value is a string that you want to label with (e.g. the basin key).
+        
+        
+        Args: 
+            points: This is a dictionary the keys are the raster values to annotate and the values are the point objects.
+            label_dict: The labels are also stored in a dictionary, where the key is the original value (e.g. basin
+                junction, and the value is a string that you want to label with (e.g. the basin key).
+        
         FJC 24/06/17
         """
         from shapely.geometry import Point
