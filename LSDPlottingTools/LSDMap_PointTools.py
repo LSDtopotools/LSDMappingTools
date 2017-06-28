@@ -89,7 +89,7 @@ def ConvertAllCSVToShapefile(path):
 class LSDMap_PointData(object):
 
     # The constructor: it needs a filename to read
-    def __init__(self,FileName, data_type = "csv", PANDEX = False):
+    def __init__(self,FileName, data_type = "csv", PANDEX = True):
         """This is the LSDMap_pointdata object. It loads csv files that have latitude and longitude data (in WGS84) and keeps other data records.
 
         The object can convert to UTM, and it also can print data to other file formats like GeoJSON and shapefiles.
