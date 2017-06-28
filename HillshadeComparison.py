@@ -1,32 +1,48 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jan 31 11:47:22 2017
 
-An example of using the LSDMapArtist to create drape plots
+An example of using the cython version of the hillshade
+algorithm from LSDTopoTools/LSDRaster, compared to the pure python
+module in LSDMappingTools.
+
+(This test version dos on-the-fly-compilation to C and then a C-lib
+but you could bundle a compiled c-object with the code for speed/convenience)
 
 @author: dav
 """
 
 import matplotlib.pyplot as plt
 
-from LSDPlottingTools import colours as lsdcolours
-from LSDPlottingTools import init_plotting_DV
+# For on the fly compilation - remove if you are pre-compiling the Cython-library
+# This MUST come before you import the C hillshade pyx file if you are doing it
+# this way.
+####################
+import pyximport
+pyximport.install()
+####################
+
+from LSDPlottingTools import fast_hillshade as fasthill
 
 import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
 import LSDPlottingTools.LSDMap_BasicPlotting as LSDMap_BP
 
-init_plotting_DV()
-#Directory = "/mnt/SCRATCH/Dev/LSDMappingTools/test_rasters/peak_flow_rasters/"
 Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/rainfall_maps/"
-#Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/Difference_UNIFORM_GRIDDED/"
-#Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/erode_diff/test_raster_diff_func/"
 BackgroundRasterName = "BoscastleElevations0.asc"
-#DrapeRasterName = "BoscastleElevDiff_UNIFORM_TLIM.bil"
-DrapeRasterName = "rainfall_totals_boscastle_downscaled.asc"
 
 raster = LSDMap_IO.ReadRasterArrayBlocks(Directory + BackgroundRasterName)
 
+# This could be tidied up (not hard coded data res)
+ncols, nrows = raster.shape
+data_res = 5.0
+
+# LSDMappingTools hillshade
 hs = LSDMap_BP.Hillshade(raster)
 
 plt.imshow(hs, cmap="gray")
+plt.show()
+
+#LSDRaster Cythonised version pf hillshade
+hs_nice = fasthill.Hillshade(raster, ncols, nrows, data_res)
+plt.imshow(hs_nice, cmap="gray")
+plt.show()

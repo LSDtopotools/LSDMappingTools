@@ -13,8 +13,10 @@ DTYPE = np.float
 # Define a compile type to DTYPE_t
 ctypedef np.int_t DTYPE_t
 
-def Hillshade(np.ndarray terrain_array, cdef float azimuth = 315, cdef float angle_altitude = 45,
-              cdef float NoDataValue = -9999, cdef float z_factor = 1, cdef float DataResolution):
+def Hillshade(np.ndarray terrain_array, int ncols, int nrows,
+              float DataResolution, float azimuth = 315,
+              float angle_altitude = 45,
+              float NoDataValue = -9999, float z_factor = 1):
   """Creates a hillshade raster
 
   Args:
@@ -29,6 +31,7 @@ def Hillshade(np.ndarray terrain_array, cdef float azimuth = 315, cdef float ang
 
   Author:
       DAV, SWDG, SMM
+      
   """
   assert terrain_array.dtype == DTYPE
 
@@ -37,32 +40,38 @@ def Hillshade(np.ndarray terrain_array, cdef float azimuth = 315, cdef float ang
   terrain_array[nodata_mask] = np.nan
 
   HSarray = np.array(terrain_array)
+  
+  cdef float M_PI = 3.141
 
-  cdef float zenith_rad = (90 - altitude) * M_PI / 180.0
+  cdef float zenith_rad = (90 - angle_altitude) * M_PI / 180.0
   cdef float azimuth_math = 360-azimuth + 90
-  if (azimuth_math >= 360.0) azimuth_math = azimuth_math - 360
+  if (azimuth_math >= 360.0):
+    azimuth_math = azimuth_math - 360
   cdef float azimuth_rad = azimuth_math * M_PI  / 180.0
 
+  cdef float slope_rad = 0
+  cdef float aspect_rad = 0
+  cdef float dzdx = 0
+  cdef float dzdy = 0
+
   cdef int i, j
-  for (i = 1; i < m - 1; ++i):
-    for (j = 1; j < n - 1; ++j):
-      cdef float slope_rad = 0
-      cdef float aspect_rad = 0
-      cdef float dzdx = 0
-      cdef float dzdy = 0
+  i = 1
+  j = 1
+  for i in range(0, ncols - 1):
+    for j in range(0, nrows - 1):
 
       if (terrain_array[i][j] != NoDataValue):
-        dzdx = ((terrain_array[i][j+1] + 2*terrain_array[i+1][j] + terrain_array[i+1][j+1]) -
+        dzdx = (((terrain_array[i][j+1] + 2*terrain_array[i+1][j] + terrain_array[i+1][j+1]) -
                 (terrain_array[i-1][j-1] + 2*terrain_array[i-1][j] + terrain_array[i-1][j+1]))
-                / (8 * DataResolution)
-        dzdy = ((terrain_array[i-1][j+1] + 2*terrain_array[i][j+1] + terrain_array[i+1][j+1]) -
+                / (8 * DataResolution))
+        dzdy = (((terrain_array[i-1][j+1] + 2*terrain_array[i][j+1] + terrain_array[i+1][j+1]) -
                 (terrain_array[i-1][j-1] + 2*terrain_array[i][j-1] + terrain_array[i+1][j-1]))
-                / (8 * DataResolution)
+                / (8 * DataResolution))
 
-        slope_rad = np.atan(z_factor * np.sqrt((dzdx*dzdx) + (dzdy*dzdy)))
+        slope_rad = np.arctan(z_factor * np.sqrt((dzdx*dzdx) + (dzdy*dzdy)))
 
         if (dzdx != 0):
-          aspect_rad = np.atan2(dzdy, (dzdx*-1))
+          aspect_rad = np.arctan2(dzdy, (dzdx*-1))
           if (aspect_rad < 0):
             aspect_rad = 2*M_PI + aspect_rad
 
@@ -74,9 +83,9 @@ def Hillshade(np.ndarray terrain_array, cdef float azimuth = 315, cdef float ang
           else:
             aspect_rad = aspect_rad
 
-        HSarray[i][j] = 255.0 * ((cos(zenith_rad) * cos(slope_rad)) +
-                        (sin(zenith_rad) * sin(slope_rad) *
-                        cos(azimuth_rad - aspect_rad)))
+        HSarray[i][j] = 255.0 * ((np.cos(zenith_rad) * np.cos(slope_rad)) +
+                        (np.sin(zenith_rad) * np.sin(slope_rad) *
+                        np.cos(azimuth_rad - aspect_rad)))
 
         if (HSarray[i][j] < 0):
           HSarray[i][j] = 0
