@@ -451,6 +451,7 @@ def ExampleOne_PartFive_MaskBasinsMF(DataDirectory, fname_prefix):
     # add the basins drape
     #MF.add_drape_image(HillshadeName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = False)
     Remove_Basins = [0,8]
+    Rename_Basins = { 1: 'chumbox', 2: 'zeppo'}
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Remove_Basins)
     
     # Save the figure

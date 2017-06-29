@@ -585,13 +585,12 @@ class MapFigure(object):
                 Points[basin_key] = Point(basin.representative_point())
             print("The number of points are: "+str(len(Points)))
             
-            use_keys_not_junctions = False
             # Now check if there is a renaming dictionary
             if len(rename_dict) == 0:
                 if use_keys_not_junctions: 
-                    self.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=junction_to_key_dict)
+                    self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=junction_to_key_dict)
                 else:
-                    self.add_text_annotation_from_shapely_points(Points, text_colour='k')            
+                    self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k')            
             else:
                 print("Wheeehaw this is exciting!")
    
@@ -987,6 +986,55 @@ class MapFigure(object):
         self.ax_list[0].set_ylim(this_ylim)
 
         return texts
+
+    def add_text_annotation_from_shapely_points_v2(self, points, label_dict={}, border_colour='k', text_colour='r', alpha=1):
+        """
+        This adds annotations from a dictionary of shapely points, for annotating basins or sources.
+        
+        NOTE TRYING TO GET THIS TO WORK IN THE NEW USE CASE. 
+        I'm retaining the old one so no to break fionas code
+        
+        
+        
+        Args: 
+            points: This is a dictionary the keys are the raster values to annotate and the values are the point objects.
+            label_dict: The labels are also stored in a dictionary, where the key is the original value (e.g. basin
+                junction, and the value is a string that you want to label with (e.g. the basin key).
+        
+        SMM 24/06/17
+        """
+        from shapely.geometry import Point
+
+        # A list of text objects
+        texts = []
+
+        # Get the axis limits to assert after
+        this_xlim = self.ax_list[0].get_xlim()
+        this_ylim = self.ax_list[0].get_ylim()
+
+        # Format the bounding box
+        bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
+
+        for key, point in points.iteritems():
+            x = point.x
+            y = point.y
+            
+            # If there is no label dict, just append with the text
+            if len(label_dict) == 0:
+                texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props))
+            else:
+                if key in label_dict:
+                    this_label = str(label_dict[key])
+                    texts.append(self.ax_list[0].text(point.x, point.y, this_label, fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props))
+                    
+        # Annoying but the scatter plot resets the extents so you need to reassert them
+        self.ax_list[0].set_xlim(this_xlim)
+        self.ax_list[0].set_ylim(this_ylim)
+
+        return texts
+
+
+
 
     def plot_polygon_outlines(self,polygons, colour='black', linewidth=1, alpha = 1):
         """
