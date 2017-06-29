@@ -1023,7 +1023,7 @@ class MapFigure(object):
         for key, point in points.iteritems():
             x = point.x
             y = point.y
-            texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props))
+            texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center'))
             #print ("I'm adding the text, yo")
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
@@ -1066,11 +1066,11 @@ class MapFigure(object):
             
             # If there is no label dict, just append with the text
             if len(label_dict) == 0:
-                texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props))
+                texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center'))
             else:
                 if key in label_dict:
                     this_label = str(label_dict[key])
-                    texts.append(self.ax_list[0].text(point.x, point.y, this_label, fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props))
+                    texts.append(self.ax_list[0].text(point.x, point.y, this_label, fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center'))
                     
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
