@@ -568,13 +568,22 @@ class MapFigure(object):
         key_to_junction_dict = dict(zip(basin_keys,basin_junctions))
         junction_to_key_dict= dict(zip(basin_junctions,basin_keys))
         
-        # Now mask some basins
+        # Now mask some basins. 
+        # This has a lot of tedious logical statements to ensure there are 
+        # no errors associated with looking for a key in a dict that doens't exist
         for basin in mask_list:
             if use_keys_not_junctions:
-                this_junc = key_to_junction_dict[basin]
-                del Basins[this_junc]
+                if basin in key_to_junction_dict:
+                    this_junc = key_to_junction_dict[basin]
+                    if this_junc in Basins:
+                        del Basins[this_junc]
+                    else:
+                        print("I'm trying to mask a key, " +str(basin)+ ", which has junction " +str(this_junc)+ " that isn't there.")
             else:
-                del Basins[basin]
+                if basin in Basins:  
+                    del Basins[basin]
+                else:
+                    print("I'm trying to mask a basin, " +str(basin)+ " that isn't there.")
 
         # Now label the basins
         if label_basins:
@@ -593,6 +602,42 @@ class MapFigure(object):
                     self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k')            
             else:
                 print("Wheeehaw this is exciting!")
+                # Okay so the way tyhis is going to work is that we ware going to 
+                # look for renamed basins but basins that haven't been renamed are
+                # going to get their old names.
+                
+                # First we see if the renamed basins are in the lists
+                if use_keys_not_junctions:
+                    # We start with a clean dict that will be used for labelling
+                    new_label_dict = junction_to_key_dict                    
+                    
+                    # We are using keys. We need to replace the label dict with 
+                    # with the strings from the renamed basins
+                    for key in rename_dict:
+                        print("I am renaming. The key is" +str(key))
+                        # get the junction number of this key
+                        if key in key_to_junction_dict:
+                            this_junc = key_to_junction_dict[key]
+                            new_label_dict[this_junc] = rename_dict[key]
+                    
+                    # Use this new label dict to rename the junctions
+                    self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
+                                                                   
+                else:
+                    # Now we need a new junction dict for this
+                    new_label_dict = {}                    
+                    for junction in junction_to_key_dict:
+                        new_label_dict[junction] = junction
+                    
+                    for key in rename_dict:
+                        # get the junction number of this key
+                        if key in new_label_dict:
+                            new_label_dict[key] = rename_dict[key]
+                    
+                    # Use this new label dict to rename the junctions
+                    self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
+                    
+                
    
         # now plot the polygons
         print('Plotting the polygons...')

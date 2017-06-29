@@ -398,39 +398,6 @@ def ExampleOne_PartFive_MaskBasinsMF(DataDirectory, fname_prefix):
         fig_width_inches = 4.92126
 
 
-
-    # get the basin IDs to make a discrete colourmap for each ID
-    BasinInfoDF = PlotHelp.ReadBasinInfoCSV(DataDirectory, fname_prefix)
-
-    basin_keys = list(BasinInfoDF['basin_key'])
-    basin_keys = [int(x) for x in basin_keys]
-
-    basin_junctions = list(BasinInfoDF['outlet_junction'])
-    basin_junctions = [float(x) for x in basin_junctions]
-    
-    
-    # get the junctions to mask
-    key_to_index_dict = dict(zip(basin_keys,basin_junctions))
-    junctions_to_mask = []
-    for basin in Basins_to_mask:
-        junctions_to_mask.append( key_to_index_dict[basin])
-    print("The junctions to mask are")
-    print(junctions_to_mask)
-
-    print ('Basin keys are: ')
-    print basin_keys
-    
-    print("Let me mask those for you")
-    new_keys = []
-    for key in basin_keys:
-        if key in Basins_to_mask:
-            new_keys.append(np.nan)
-        else:
-            new_keys.append(key)
-    print("The new keys are: ")
-    print(new_keys)
-    basin_keys = new_keys
-
     # get a discrete colormap
     cmap = plt.cm.gray
 
@@ -452,7 +419,7 @@ def ExampleOne_PartFive_MaskBasinsMF(DataDirectory, fname_prefix):
     #MF.add_drape_image(HillshadeName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = False)
     Remove_Basins = [0,8]
     Rename_Basins = { 1: 'chumbox', 2: 'zeppo'}
-    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Remove_Basins)
+    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Remove_Basins, rename_dict = Rename_Basins, use_keys_not_junctions = True)
     
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_test_MF_basins.'+FigFormat
