@@ -1058,7 +1058,7 @@ class MapFigure(object):
         this_ylim = self.ax_list[0].get_ylim()
 
         # Format the bounding box
-        bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
+        bbox_props = dict(boxstyle="Round4,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
 
         for key, point in points.iteritems():
             x = point.x
