@@ -45,9 +45,9 @@ data_res = Cellsize
 hs = LSDMap_BP.Hillshade(raster)
 
 plt.imshow(hs, cmap="gray")
-plt.show()
+#plt.show()
 
 #LSDRaster Cythonised version pf hillshade
 hs_nice = fasthill.Hillshade(raster, data_res, NoDataValue=NoDataValue)
 plt.imshow(hs_nice, cmap="gray")
-plt.show()
+#plt.show()
