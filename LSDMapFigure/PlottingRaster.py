@@ -509,17 +509,21 @@ class MapFigure(object):
     
     def add_basin_plot(self,RasterName,BasinInfoPrefix,Directory,                         
                          colourmap = "gray",alpha=0.5,
-                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, 
-                         norm = "None", modify_raster_values = False, old_values=[], new_values = [], 
-                         cbar_type=float, 
-                         facecolour='blue', edgecolour='black', linewidth=1,
-                         NFF_opti = False):
+                         show_colourbar = "False", colorbarlabel = "Colourbar", 
+                         discrete_cmap=False, n_colours=10, cbar_type=float, 
+                         use_keys_not_junctions = True,
+                         label_basins = True,
+                         rename_dict = {},
+                         value_dict = {},
+                         mask_list = [],                         
+                         facecolour='blue', edgecolour='black', linewidth=1):
         """
         This is a basin plotting routine. It plots basins as polygons which 
         can be coloured
         
         Args:
             RasterName (string): The name of the raster (no directory, but need extension)
+            BasinInfoPrefix (string): The prefix (before "_BasinInfo.csv") of the basin info file produced by the chi_mapping_tool
             Directory (string): directory of the data
             colourmap (string or colourmap): The colourmap. Can be a strong for default colourmaps
             alpha (float): The transparency of the drape (1 is opaque, 0 totally transparent)
@@ -527,12 +531,12 @@ class MapFigure(object):
             colourbarlabel (string): The label of the colourbar
             discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
             n_colours (int): number of colours in discrete colourbar
-            norm (string): Normalisation of colourbar. I don't understand this so don't change
-            modify_raster_values (bool): If true, it takes old_values in list and replaces them with new_values
-            old_values (list): A list of values to be replaced in raster. Useful for masking and renaming
-            new_values (list): A list of the new values. This probably should be done with a map: TODO
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
-            NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.            
+            use_keys_not_junctions (bool): If true, the basin keys rather than the junction indices are used to map to the basins. f false the junction indices are used.
+            rename_dict (dict): a dictionary where the key is the basin to rename and the value is a string of the new name. 
+            value_dict (dict): the key is the basin and the value is a new value that is used as a colour for the basin
+            mask_list (list of ints): Any basin named in this list (can be either a key or junction index depending on use_keys_not_junctions) is removed from the polgons and not plotted           
+        
         Author: SMM
         """
 
@@ -563,18 +567,40 @@ class MapFigure(object):
         # we need dicts for refering to each of these
         key_to_junction_dict = dict(zip(basin_keys,basin_junctions))
         junction_to_key_dict= dict(zip(basin_junctions,basin_keys))
+        
+        # Now mask some basins
+        for basin in mask_list:
+            if use_keys_not_junctions:
+                this_junc = key_to_junction_dict[basin]
+                del Basins[this_junc]
+            else:
+                del Basins[basin]
 
-
+       
         # now plot the polygons
         print('Plotting the polygons...')
         #patches = []
         for key, poly in Basins.iteritems():
-            this_patch = PolygonPatch(poly, fc=facecolour, ec=edgecolour, alpha=alpha)
+            # We need two patches since we don't want the edges transparent
+            this_patch = PolygonPatch(poly, fc=facecolour, ec="none", alpha=alpha)
+            self.ax_list[0].add_patch(this_patch)
+            this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1)
             self.ax_list[0].add_patch(this_patch)
 
 
 
 
+
+        # THIS IS NOT COMPLETE
+        # We need mapping of this to the colours. Need to think about how to do it
+        if show_colourbar:
+            print("The colourbar orientation for point plotting is: "+self.colourbar_orientation)
+            if self.colourbar_orientation != "None":
+                print("Let me add a colourbar for your point data")
+                self.ax_list = self.add_objectless_colourbar(self,self.ax_list,
+                                                             minimum_value, maximum_value,
+                                                             cmap = colourmap,colorbarlabel = colorbarlabel ,
+                                                             discrete=discrete_cmap, n_colours=n_colours, cbar_type=cbar_type)
 
 
 
@@ -688,9 +714,10 @@ class MapFigure(object):
         print tick_labels
         cbar.set_ticklabels(tick_labels)
 
-    def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar"):
+    def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar",
+                            discrete=False, n_colours=10, cbar_type=float):
         """
-        This adds a colourbar for any potins that are on he DEM. 
+        This adds a colourbar for any points that are on he DEM. 
         
         Args: 
             ax_list: The list of axes objects. Assumes colourbar is in axis_list[-1]
@@ -703,7 +730,47 @@ class MapFigure(object):
         fig = matplotlib.pyplot.gcf()
         ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
         cbar = plt.colorbar(sc,cmap=cmap, orientation=self.colourbar_orientation,cax=ax_list[-1])
-        #cbar.set_label(colorbarlabel, fontsize=10)
+
+        if discrete==True:
+            # change ticks
+            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type)
+
+        if self.colourbar_location == 'top':
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        elif self.colourbar_location == 'bottom':
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        elif self.colourbar_location == 'left':
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
+        elif self.colourbar_location == 'right':
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
+        return ax_list
+
+
+    def add_objectless_colourbar(self,ax_list,minimum_value, maximum_value,
+                                 cmap = "cubehelix",colorbarlabel = "Colourbar",
+                                 discrete=False, n_colours=10, cbar_type=float):
+        """
+        This adds a colourbar that is not attached to any particular object
+        
+        Args: 
+            ax_list: The list of axes objects. Assumes colourbar is in axis_list[-1]
+            minimum_value (float or int): minimum value on colourbar
+            maximum_value (float or int): maximum value on colourbar
+            cmap (string or colourmap): The colourmap.  
+            colorbarlabel (string): The label of the colourbar        
+            
+        Author: SMM
+        """
+        fig = matplotlib.pyplot.gcf()
+        ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
+        norm = plt.colors.Normalize(vmin=minimum_value, vmax=maximum_value)
+        cbar = plt.colorbar.ColorbarBase(ax_list[-1], cmap=cmap,
+                                norm=norm,
+                                orientation=self.colourbar_orientation)
+
+        if discrete==True:
+            # change ticks
+            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type)
 
 
         #Will's changes:

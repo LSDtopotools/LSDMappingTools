@@ -446,11 +446,12 @@ def ExampleOne_PartFive_MaskBasinsMF(DataDirectory, fname_prefix):
 
     # create the map figure
     # We set colourbar location to none since we are labelling the figures
-    MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km", colourbar_location='none',basemap_colourmap = "cubehelix")
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='none',basemap_colourmap = "gray")
 
     # add the basins drape
     #MF.add_drape_image(HillshadeName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = False)
-    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory)
+    Remove_Basins = [0,4,5,6,7,8]
+    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Remove_Basins)
     
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_test_MF_basins.'+FigFormat
