@@ -179,7 +179,15 @@ class BaseRaster(object):
         Function to take a list of raster values and replace it with
         a new list. Can be used to overwrite basin junction IDs with other
         information about the basin, for example.
-        FJC 17/06/17
+        
+        Args: 
+            old_values (list): The old values in the raster
+            new_values (list): The replacement values. Needs to be the same size
+                as the old_values list
+                
+        Author: FJC        
+        
+        Date: 17/06/17
         """
         for idx, value in enumerate(old_values):
             old_values_index = self._RasterArray == value
@@ -376,7 +384,13 @@ class MapFigure(object):
     def make_base_image(self,ax_list):
         """
         This function creates the base image. It creates the axis for the base image,
-        further drapes and point data are placed upon this image .
+        further drapes and point data are placed upon this image.
+        
+        Args:
+            ax_list: A list of axes, we append the base raster to the [0] element
+                of the axis
+                
+        Author: SMM
         """
 
         # We need to initiate with a figure
@@ -400,7 +414,27 @@ class MapFigure(object):
                         alpha=0.5,
                         show_colourbar = False,
                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[], cbar_type=float, NFF_opti = False):
-
+        """
+        This function adds a drape over the base raster. 
+        
+        Args:
+            RasterName (string): The name of the raster (no directory, but need extension)
+            Directory (string): directory of the data
+            colourmap (string or colourmap): The colourmap. Can be a strong for default colourmaps
+            alpha (float): The transparency of the drape (1 is opaque, 0 totally transparent)
+            show_colourbar (bool): True to show colourbar
+            colourbarlabel (string): The label of the colourbar
+            discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
+            n_colours (int): number of colours in discrete colourbar
+            norm (string): Normalisation of colourbar. I don't understand this so don't change
+            modify_raster_values (bool): If true, it takes old_values in list and replaces them with new_values
+            old_values (list): A list of values to be replaced in raster. Useful for masking and renaming
+            new_values (list): A list of the new values. This probably should be done with a map: TODO
+            cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
+            NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.
+        
+        Author: SMM
+        """    
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
@@ -413,7 +447,28 @@ class MapFigure(object):
                          colourmap = "gray",
                          alpha=0.5,
                          colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = [], cbar_type=float, NFF_opti = False):
-
+        """
+        This function adds a drape over the base raster. It does all the dirty work
+        I can't quite remember why I did it in two steps but I vaguely recall trying it in one step and it didn't work. 
+        
+        Args:
+            RasterName (string): The name of the raster (no directory, but need extension)
+            Directory (string): directory of the data
+            colourmap (string or colourmap): The colourmap. Can be a strong for default colourmaps
+            alpha (float): The transparency of the drape (1 is opaque, 0 totally transparent)
+            show_colourbar (bool): True to show colourbar
+            colourbarlabel (string): The label of the colourbar
+            discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
+            n_colours (int): number of colours in discrete colourbar
+            norm (string): Normalisation of colourbar. I don't understand this so don't change
+            modify_raster_values (bool): If true, it takes old_values in list and replaces them with new_values
+            old_values (list): A list of values to be replaced in raster. Useful for masking and renaming
+            new_values (list): A list of the new values. This probably should be done with a map: TODO
+            cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
+            NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.
+        
+        Author: SMM
+        """    
         Raster = BaseRaster(RasterName,Directory, NFF_opti = NFF_opti)
         if modify_raster_values == True:
             Raster.replace_raster_values(old_values, new_values)
@@ -446,6 +501,7 @@ class MapFigure(object):
 
         return self.ax_list
 
+    def add_basins(self)
 
     def cmap_discretize(self, cmap, N):
         """
@@ -478,6 +534,21 @@ class MapFigure(object):
         return _mcolors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
 
     def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar",discrete=False, n_colours=10, cbar_type=float):
+        """
+        This adds the colourbar to the image. 
+        IMPORTANT: It assumes the colourbar occupies the last axis element
+        
+        Args:
+            ax_list: The list of axes objects. Assumes colourbar is in axis_list[-1]
+            im: The image object
+            BaseRaster: The base raster. 
+            colorbarlabel (string): The label of the colourbar
+            discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
+            n_colours (int): number of colours in discrete colourbar.
+            cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int).
+            
+        Author: SMM
+        """
         fig = matplotlib.pyplot.gcf()
         ax_list.append(fig.add_axes([0.1,0.8,0.05,0.2]))
         cbar = plt.colorbar(im,cmap=BaseRaster._colourmap,spacing='uniform', orientation=self.colourbar_orientation,cax=ax_list[-1])
@@ -543,6 +614,17 @@ class MapFigure(object):
         cbar.set_ticklabels(tick_labels)
 
     def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar"):
+        """
+        This adds a colourbar for any potins that are on he DEM. 
+        
+        Args: 
+            ax_list: The list of axes objects. Assumes colourbar is in axis_list[-1]
+            sc: The scatterplot object. Generated by plt.scatter
+            cmap (string or colourmap): The colourmap.  
+            colorbarlabel (string): The label of the colourbar        
+            
+        Author: SMM
+        """
         fig = matplotlib.pyplot.gcf()
         ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
         cbar = plt.colorbar(sc,cmap=cmap, orientation=self.colourbar_orientation,cax=ax_list[-1])
