@@ -29,7 +29,7 @@ import LSDPlottingTools.LSDMap_BasicPlotting as LSDMap_BP
 
 #Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/rainfall_maps/"
 Directory = "/mnt/SCRATCH/Dev/ExampleTopoDatasets/"
-BackgroundRasterName = "indian_creek.bil"
+BackgroundRasterName = "SanBern.bil"
 
 raster = LSDMap_IO.ReadRasterArrayBlocks(Directory + BackgroundRasterName)
 
@@ -45,9 +45,9 @@ data_res = Cellsize
 hs = LSDMap_BP.Hillshade(raster)
 
 plt.imshow(hs, cmap="gray")
-#plt.show()
+plt.show()
 
 #LSDRaster Cythonised version pf hillshade
 hs_nice = fasthill.Hillshade(raster, data_res, NoDataValue=NoDataValue)
 plt.imshow(hs_nice, cmap="gray")
-#plt.show()
+plt.show()
