@@ -34,6 +34,7 @@ BackgroundRasterName = "SanBern.bil"
 raster = LSDMap_IO.ReadRasterArrayBlocks(Directory + BackgroundRasterName)
 
 Cellsize = LSDMap_IO.GetGeoInfo(Directory + BackgroundRasterName)[3][1]
+NoDataValue = LSDMap_IO.getNoDataValue(Directory + BackgroundRasterName)
 print(Cellsize)
 
 # This could be tidied up (not hard coded data res)
@@ -47,6 +48,6 @@ plt.imshow(hs, cmap="gray")
 plt.show()
 
 #LSDRaster Cythonised version pf hillshade
-hs_nice = fasthill.Hillshade(raster, ncols, nrows, data_res)
+hs_nice = fasthill.Hillshade(raster, data_res, NoDataValue=NoDataValue)
 plt.imshow(hs_nice, cmap="gray")
 plt.show()
