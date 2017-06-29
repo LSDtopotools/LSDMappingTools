@@ -688,7 +688,7 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     import fiona
 
     # define the mask
-    mask = None
+    #mask = None
     raster_band = 1
 
     # get raster no data value
@@ -696,16 +696,15 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
 
     # load in the raster using rasterio
     with rasterio.open(DataDirectory+RasterFile) as src:
-        image = src.read(raster_band)
+        image = src.read(raster_band, masked=False)
         
-        # Make sure you get rid of NDVs        
-        if NDV is not None:
-            image[image==NDV] = np.nan
+        msk = src.read_masks(1)
+                   
         results = (
         {'properties': {'raster_val': v}, 'geometry': s}
         for i, (s, v)
         in enumerate(
-            shapes(image, mask=mask, transform=src.affine)))
+            shapes(image, mask=msk, transform=src.affine)))
 
     # define shapefile attributes
     # crs = src.crs.wkt
