@@ -45,7 +45,8 @@ if __name__ == "__main__":
     #CME.ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file)
     #CME.ExampleOne_PartTwo_PrintBasins(DataDirectory,Base_file)
     #CME.ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory,Base_file)
-    CME.ExampleOne_PartFour_MaskBasins(DataDirectory,Base_file)
-
-    toc = time.clock()
+    #CME.ExampleOne_PartFour_MaskBasins(DataDirectory,Base_file)
+    CME.ExampleOne_PartFive_MaskBasinsMF(DataDirectory,Base_file)
+    
+    toc = time.clock() 
     print("This took: "+str(toc - tic)+" units of time")

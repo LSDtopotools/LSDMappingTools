@@ -691,9 +691,16 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     mask = None
     raster_band = 1
 
+    # get raster no data value
+    NDV = getNoDataValue(DataDirectory+RasterFile)
+
     # load in the raster using rasterio
     with rasterio.open(DataDirectory+RasterFile) as src:
         image = src.read(raster_band)
+        
+        # Make sure you get rid of NDVs        
+        if NDV is not None:
+            image[image==NDV] = np.nan
         results = (
         {'properties': {'raster_val': v}, 'geometry': s}
         for i, (s, v)
@@ -707,8 +714,7 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     schema = {'geometry': 'Polygon',
               'properties': { 'ID': 'float'}}
 
-    # get raster no data value
-    NDV = getNoDataValue(DataDirectory+RasterFile)
+
 
     # transform results into shapely geometries and write to shapefile using fiona
     geoms = list(results)

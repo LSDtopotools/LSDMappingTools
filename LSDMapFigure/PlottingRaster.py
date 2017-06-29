@@ -203,7 +203,7 @@ class MapFigure(object):
     etc.
     """
     def __init__(self, BaseRasterName, Directory,
-                 coord_type="UTM", colourbar_location = "None",NFF_opti = False,*args, **kwargs):
+                 coord_type="UTM", colourbar_location = "None", basemap_colourmap = "gray", NFF_opti = False,*args, **kwargs):
 
         # A map figure has one figure
         #self.fig = plt.figure(1, facecolor='white',figsize=(6,3))
@@ -259,7 +259,11 @@ class MapFigure(object):
         # plot that get appended into a list. Each one has its own colourmap
         # and properties
         self._RasterList = []
-        self._RasterList.append(BaseRaster(BaseRasterName,Directory, NFF_opti = NFF_opti))
+        if basemap_colourmap == "gray":
+            self._RasterList.append(BaseRaster(BaseRasterName,Directory, NFF_opti = NFF_opti))
+        else:
+            self._RasterList.append(BaseRaster(BaseRasterName,Directory, NFF_opti = NFF_opti))
+            self._RasterList[-1].set_colourmap(basemap_colourmap)
 
         # The coordinate type. UTM and UTM with tick in km are supported at the moment
         self._set_coord_type(coord_type)
@@ -501,7 +505,78 @@ class MapFigure(object):
 
         return self.ax_list
 
-    def add_basins(self)
+    
+    
+    def add_basin_plot(self,RasterName,BasinInfoPrefix,Directory,                         
+                         colourmap = "gray",alpha=0.5,
+                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, 
+                         norm = "None", modify_raster_values = False, old_values=[], new_values = [], 
+                         cbar_type=float, 
+                         facecolour='blue', edgecolour='black', linewidth=1,
+                         NFF_opti = False):
+        """
+        This is a basin plotting routine. It plots basins as polygons which 
+        can be coloured
+        
+        Args:
+            RasterName (string): The name of the raster (no directory, but need extension)
+            Directory (string): directory of the data
+            colourmap (string or colourmap): The colourmap. Can be a strong for default colourmaps
+            alpha (float): The transparency of the drape (1 is opaque, 0 totally transparent)
+            show_colourbar (bool): True to show colourbar
+            colourbarlabel (string): The label of the colourbar
+            discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
+            n_colours (int): number of colours in discrete colourbar
+            norm (string): Normalisation of colourbar. I don't understand this so don't change
+            modify_raster_values (bool): If true, it takes old_values in list and replaces them with new_values
+            old_values (list): A list of values to be replaced in raster. Useful for masking and renaming
+            new_values (list): A list of the new values. This probably should be done with a map: TODO
+            cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
+            NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.            
+        Author: SMM
+        """
+
+        from shapely.geometry import Polygon
+        from descartes import PolygonPatch
+        from matplotlib.collections import PatchCollection
+        
+        # Get the basin outlines
+        # Basins referes to a dict where the key is the junction index and the
+        # value is a shapely polygon object
+        Basins = LSDP.GetBasinOutlines(Directory, RasterName)
+        
+        # this is a bit weired but nodata becomes a polygon patch
+        #del Basins[-9999]
+        
+        # Now check if you want to mask the basins
+        # get the basin IDs to make a discrete colourmap for each ID
+        BasinInfoDF = phelp.ReadBasinInfoCSV(Directory, BasinInfoPrefix)
+
+        # Extract the basin keys
+        basin_keys = list(BasinInfoDF['basin_key'])
+        basin_keys = [int(x) for x in basin_keys]
+
+        # Extract the junction indices
+        basin_junctions = list(BasinInfoDF['outlet_junction'])
+        basin_junctions = [float(x) for x in basin_junctions]
+        
+        # we need dicts for refering to each of these
+        key_to_junction_dict = dict(zip(basin_keys,basin_junctions))
+        junction_to_key_dict= dict(zip(basin_junctions,basin_keys))
+
+
+        # now plot the polygons
+        print('Plotting the polygons...')
+        #patches = []
+        for key, poly in Basins.iteritems():
+            this_patch = PolygonPatch(poly, fc=facecolour, ec=edgecolour, alpha=alpha)
+            self.ax_list[0].add_patch(this_patch)
+
+
+
+
+
+
 
     def cmap_discretize(self, cmap, N):
         """
@@ -846,7 +921,7 @@ class MapFigure(object):
             x,y = poly.exterior.xy
             self.ax_list[0].plot(x,y, c=colour, lw = linewidth, alpha = alpha)
 
-    def plot_filled_polygons(self,polygons, facecolour='blue', edgecolour='black', linewidth=1, alpha=0.5):
+    def plot_filled_polygons(self,polygons, facecolour='green', edgecolour='black', linewidth=1, alpha=0.5):
         """
         This function plots a series of shapely polygons but fills them in
 
@@ -862,13 +937,19 @@ class MapFigure(object):
 
         print('Plotting the polygons...')
 
-        patches = []
+        #patches = []
         for key, poly in polygons.iteritems():
             this_patch = PolygonPatch(poly, fc=facecolour, ec=edgecolour, alpha=alpha)
             self.ax_list[0].add_patch(this_patch)
 
     def _set_coord_type(self, coord_type):
-        """Sets the coordinate type"""
+        """Sets the coordinate type
+        
+        Args: 
+            coord_type (string): The coordinate type. See options below
+            
+        Author: SMM
+        """
         if coord_type == "UTM":
             self._coord_type = "UTM"
             self._xaxis_label = "Easting (m)"
