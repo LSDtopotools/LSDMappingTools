@@ -540,7 +540,7 @@ class MapFigure(object):
         Author: SMM
         """
 
-        from shapely.geometry import Polygon
+        from shapely.geometry import Polygon, Point
         from descartes import PolygonPatch
         from matplotlib.collections import PatchCollection
         
@@ -562,7 +562,7 @@ class MapFigure(object):
 
         # Extract the junction indices
         basin_junctions = list(BasinInfoDF['outlet_junction'])
-        basin_junctions = [float(x) for x in basin_junctions]
+        basin_junctions = [int(x) for x in basin_junctions]
         
         # we need dicts for refering to each of these
         key_to_junction_dict = dict(zip(basin_keys,basin_junctions))
@@ -576,7 +576,25 @@ class MapFigure(object):
             else:
                 del Basins[basin]
 
-       
+        # Now label the basins
+        if label_basins:
+            # First get the points
+            Points = {}
+            print("The number of basins are: "+str(len(Basins)))
+            for basin_key, basin in Basins.iteritems():
+                Points[basin_key] = Point(basin.representative_point())
+            print("The number of points are: "+str(len(Points)))
+            
+            use_keys_not_junctions = False
+            # Now check if there is a renaming dictionary
+            if len(rename_dict) == 0:
+                if use_keys_not_junctions: 
+                    self.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=junction_to_key_dict)
+                else:
+                    self.add_text_annotation_from_shapely_points(Points, text_colour='k')            
+            else:
+                print("Wheeehaw this is exciting!")
+   
         # now plot the polygons
         print('Plotting the polygons...')
         #patches = []
