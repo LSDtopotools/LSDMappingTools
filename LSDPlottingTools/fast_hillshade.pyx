@@ -12,8 +12,14 @@ from libc.math cimport sin, cos, sqrt, M_PI, atan, atan2
 import cython
 cimport cython
 
+from cython.parallel import prange, parallel
+
 import numpy as np
 cimport numpy as np
+
+# Find out how many cores/CPUs we have available
+import multiprocessing
+cdef int num_threads_use = multiprocessing.cpu_count()
 
 # Fix a data type for our arrays.
 DTYPE = np.float64
@@ -65,39 +71,39 @@ def Hillshade(np.ndarray[DTYPE_t, ndim=2] terrain_array,
   cdef float dzdy = 0
   cdef int i, j = 0
 
+  # We can safely turn off the Python Global Interpreter lock for these for loops
+  with nogil, parallel(num_threads=num_threads_use):
+    # OpenMP threads created for the outer loop.
+    for i in prange(ncols, schedule='default'):
+      for j in range(nrows):
+          if terrain_array[i, j] != NoDataValue:
+            dzdx = (((terrain_array[i, j+1] + 2*terrain_array[i+1, j] + terrain_array[i+1, j+1]) -
+                    (terrain_array[i-1, j-1] + 2*terrain_array[i-1, j] + terrain_array[i-1, j+1]))
+                    / (8 * DataResolution))
+            dzdy = (((terrain_array[i-1, j+1] + 2*terrain_array[i, j+1] + terrain_array[i+1, j+1]) -
+                    (terrain_array[i-1, j-1] + 2*terrain_array[i, j-1] + terrain_array[i+1, j-1]))
+                    / (8 * DataResolution))
 
-  for i in range(0, ncols - 1):
-    for j in range(0, nrows - 1):
-        if terrain_array[i, j] != NoDataValue:
-          # No need to check nodata value every iter, they are nans handled by numpy?
-          dzdx = (((terrain_array[i, j+1] + 2*terrain_array[i+1, j] + terrain_array[i+1, j+1]) -
-                  (terrain_array[i-1, j-1] + 2*terrain_array[i-1, j] + terrain_array[i-1, j+1]))
-                  / (8 * DataResolution))
-          dzdy = (((terrain_array[i-1, j+1] + 2*terrain_array[i, j+1] + terrain_array[i+1, j+1]) -
-                  (terrain_array[i-1, j-1] + 2*terrain_array[i, j-1] + terrain_array[i+1, j-1]))
-                  / (8 * DataResolution))
+            slope_rad = atan(z_factor * sqrt((dzdx * dzdx) + (dzdy * dzdy)))
 
-          slope_rad = atan(z_factor * sqrt((dzdx * dzdx) + (dzdy * dzdy)))
+            if (dzdx != 0):
+              aspect_rad = atan2(dzdy, (dzdx*-1))
+              if (aspect_rad < 0):
+                aspect_rad = 2 * M_PI + aspect_rad
 
-          if (dzdx != 0):
-            aspect_rad = atan2(dzdy, (dzdx*-1))
-            if (aspect_rad < 0):
-              aspect_rad = 2 * M_PI + aspect_rad
-
-          else:
-            if (dzdy > 0):
-              aspect_rad = M_PI / 2
-            elif (dzdy < 0):
-              aspect_rad = 2 * M_PI - M_PI / 2
             else:
-              aspect_rad = aspect_rad
-          # Same comment as above...for loop assignment? Use array instead of ndarray
-          # and then whole  array operation
-          HSarray[i, j] = 255.0 * ((cos(zenith_rad) * cos(slope_rad)) +
-                          (sin(zenith_rad) * sin(slope_rad) *
-                          cos(azimuth_rad - aspect_rad)))
-          # Necessary?
-          if (HSarray[i, j] < 0):
-            HSarray[i, j] = 0
+              if (dzdy > 0):
+                aspect_rad = M_PI / 2
+              elif (dzdy < 0):
+                aspect_rad = 2 * M_PI - M_PI / 2
+              else:
+                aspect_rad = aspect_rad
+
+            HSarray[i, j] = 255.0 * ((cos(zenith_rad) * cos(slope_rad)) +
+                            (sin(zenith_rad) * sin(slope_rad) *
+                            cos(azimuth_rad - aspect_rad)))
+            # Necessary?
+            if (HSarray[i, j] < 0):
+              HSarray[i, j] = 0
 
   return HSarray
