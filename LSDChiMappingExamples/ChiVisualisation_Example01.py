@@ -402,14 +402,18 @@ def ExampleOne_PartFive_MaskBasinsMF(DataDirectory, fname_prefix):
 
     # create the map figure
     # We set colourbar location to none since we are labelling the figures
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='none',basemap_colourmap = "gray")
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom',basemap_colourmap = "gray")
 
     # add the basins drape
     #MF.add_drape_image(HillshadeName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = False)
     Remove_Basins = [0,4,8]
     Rename_Basins = { 12: 'chumbox', 14: 'zeppo'}
     Value_dict= { 1: 0.2, 2:0.3, 3:0.4, 5:0.9,6:0.7, 7:0.3, 9:0.5, 10:0.5}
-    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Remove_Basins, rename_dict = Rename_Basins, value_dict = Value_dict,use_keys_not_junctions = True, colourmap = plt.cm.jet)
+    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Remove_Basins, 
+                      rename_dict = Rename_Basins, value_dict = Value_dict,
+                      use_keys_not_junctions = True, show_colourbar = True, 
+                      discrete_cmap=True, n_colours=8, colorbarlabel = "$m/n$",
+                      colourmap = plt.cm.jet)
     
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_test_MF_basins.'+FigFormat

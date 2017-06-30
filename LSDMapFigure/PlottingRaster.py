@@ -18,6 +18,7 @@ This software is realsed under the Artistic Licence v2.0
 # LSDPlottingTools must be in your pythonpath
 import LSDPlottingTools as LSDP
 from . import PlottingHelpers as phelp
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.cm as _cm
 import matplotlib.colors as _mcolors
@@ -654,6 +655,8 @@ class MapFigure(object):
         min_value = 0
         max_value = n_colours-1        
         if len(value_dict) == 0:
+            # There are no values so we ensure there is a discrete colourmap
+            discrete_cmap = True
             this_cmap = self.cmap_discretize(this_cmap, n_colours)
             
             # The colours go from 0 to number of colours minus 1
@@ -718,13 +721,17 @@ class MapFigure(object):
         # THIS IS NOT COMPLETE
         # We need mapping of this to the colours. Need to think about how to do it
         if show_colourbar:
-            print("The colourbar orientation for point plotting is: "+self.colourbar_orientation)
+            print("The colourbar orientation for basin plotting is: "+self.colourbar_orientation)
             if self.colourbar_orientation != "None":
-                print("Let me add a colourbar for your point data")
-                self.ax_list = self.add_objectless_colourbar(self,self.ax_list,
+                print("Let me add a colourbar for your basin data")
+                this_cbar_type = cbar_type
+                this_cbarlabel = colorbarlabel
+                self.ax_list = self.add_objectless_colourbar(self.ax_list,
                                                              min_value, max_value,
-                                                             cmap = this_cmap,colorbarlabel = colorbarlabel ,
-                                                             discrete=discrete_cmap, n_colours=n_colours, cbar_type=cbar_type)
+                                                             cmap = this_cmap,colorbarlabel = this_cbarlabel,
+                                                             discrete=discrete_cmap, n_colours=n_colours, cbar_type=this_cbar_type)
+            else:
+                print("You have asked me to plot a colourbar but the location is none. Give the mapfigure object a colourbar location.")
 
 
 
@@ -795,21 +802,38 @@ class MapFigure(object):
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
         return ax_list
 
-    def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours, cbar_type=float):
+    def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours, cbar_type=float, 
+                            use_baseraster = True, min_value = 0, max_value = 0):
         """
         This function takes a discrete colourbar and fixes the ticks so they are
         in the middle of each colour
+        
+        UPDATE: SMM, made this more flexible so you can set the minimum and maximum
+         values. Required becase basin plotting and point plotting doesn't use 
+         raster values
 
         Args:
+            BaseRaster: the base raster object
             cbar: the colourbar
+            n_colours (int): number of colours in discrete colourbar.
+            cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int).
+            use_baseraster (bool): True if you want to use the baseraster, otherwise uses the min_value and max_value
+            min_value: the minimum value on the colourbar
+            max_value: the maximum value on the colourbar
+            
         Returns:
             None but fixes ticks
 
         Author: FJC
         """
         # get the min and the max of the colourbar
-        vmin = np.nanmin(BaseRaster._RasterArray)
-        vmax = np.nanmax(BaseRaster._RasterArray)
+        if use_baseraster:
+            vmin = np.nanmin(BaseRaster._RasterArray)
+            vmax = np.nanmax(BaseRaster._RasterArray)
+        else:
+            print("I'm fixing the ticks, but won't use a base raster, since you told me not to.")
+            vmin = min_value
+            vmax = max_value
         print vmin, vmax
 
         # get the additional end spacing for colourbar
@@ -827,7 +851,7 @@ class MapFigure(object):
         cbar.locator = tick_locator
         cbar.update_ticks()
 
-        print BaseRaster._RasterArray[np.isnan(BaseRaster._RasterArray) == False]
+        #print BaseRaster._RasterArray[np.isnan(BaseRaster._RasterArray) == False]
 
         # get tick labels
         tick_labels = np.linspace(vmin, vmax, n_colours)
@@ -841,7 +865,7 @@ class MapFigure(object):
     def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar",
                             discrete=False, n_colours=10, cbar_type=float):
         """
-        This adds a colourbar for any points that are on he DEM. 
+        This adds a colourbar for any points that are on the DEM. 
         
         Args: 
             ax_list: The list of axes objects. Assumes colourbar is in axis_list[-1]
@@ -854,10 +878,6 @@ class MapFigure(object):
         fig = matplotlib.pyplot.gcf()
         ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
         cbar = plt.colorbar(sc,cmap=cmap, orientation=self.colourbar_orientation,cax=ax_list[-1])
-
-        if discrete==True:
-            # change ticks
-            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type)
 
         if self.colourbar_location == 'top':
             ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
@@ -887,14 +907,15 @@ class MapFigure(object):
         """
         fig = matplotlib.pyplot.gcf()
         ax_list.append(fig.add_axes([0.1,0.8,0.2,0.5]))
-        norm = plt.colors.Normalize(vmin=minimum_value, vmax=maximum_value)
-        cbar = plt.colorbar.ColorbarBase(ax_list[-1], cmap=cmap,
-                                norm=norm,
+        cnorm = colors.Normalize(minimum_value, maximum_value)
+        this_cmap = cmap
+        cbar = mpl.colorbar.ColorbarBase(ax_list[-1], cmap=this_cmap,
+                                norm=cnorm,
                                 orientation=self.colourbar_orientation)
 
         if discrete==True:
             # change ticks
-            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type)
+            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type, False, minimum_value, maximum_value)
 
 
         #Will's changes:
