@@ -513,11 +513,9 @@ class MapFigure(object):
                          show_colourbar = "False", colorbarlabel = "Colourbar", 
                          discrete_cmap=False, n_colours=10, cbar_type=float, 
                          use_keys_not_junctions = True,
-                         label_basins = True,
-                         rename_dict = {},
-                         value_dict = {},
-                         mask_list = [],                         
-                         facecolour='blue', edgecolour='black', linewidth=1):
+                         label_basins = True, rename_dict = {},
+                         value_dict = {}, mask_list = [],
+                         edgecolour='black', linewidth=1):
         """
         This is a basin plotting routine. It plots basins as polygons which 
         can be coloured
@@ -640,45 +638,80 @@ class MapFigure(object):
                     
 
 
-        # make a color map of fixed colors
-        NUM_COLORS = 15
+        # Get the appropriate colourmap
+        if type(colourmap) == str:
+            this_cmap=plt.get_cmap(colourmap)
+        else:
+            this_cmap=colourmap
+            
+        """
+        Some notes on colormapping:
+            If the value dict is present, you colour by the value dict.
+            The value dict has 
+            If the value dict is empty, you colour using a discrete cmap
+        """
+        
+        min_value = 0
+        max_value = n_colours-1        
+        if len(value_dict) == 0:
+            this_cmap = self.cmap_discretize(this_cmap, n_colours)
+            
+            # The colours go from 0 to number of colours minus 1
+            min_value = 0
+            max_value = n_colours-1
+            cNorm  = colors.Normalize(min_value, max_value)
+            new_colours = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
 
-        this_cmap = plt.cm.Set1
-        vmin = 0
-        vmax = NUM_COLORS-1
-        cNorm  = colors.Normalize(vmin, vmax)
-        new_colours = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
-        basin_colour = [x % NUM_COLORS for x in Basins]
-        
-        
-        
-        rgba = this_cmap(0.5)
-        print(rgba)
-        rgba2 = new_colours.to_rgba(5)
-        print(rgba2)        
-        
-        for key in basin_colour:
-            colourkey = key % NUM_COLORS
-            fraction = colourkey/(vmax-vmin)
-            print("The key is: "+str(key)+ " and the colour key is:  " + str(colourkey))
-            print("This results in the color: ")
-            print(this_cmap(fraction))
-        #print("The new colours are: ")
-        #print(new_colours)
+            # now plot the polygons
+            print('Plotting the polygons, colouring by basin...')
+            for key, poly in Basins.iteritems():
+                colourkey = key % n_colours
+                # We need two patches since we don't want the edges transparent
+                this_patch = PolygonPatch(poly, fc=new_colours.to_rgba(colourkey), ec="none", alpha=alpha)
+                self.ax_list[0].add_patch(this_patch)
+                this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1)
+                self.ax_list[0].add_patch(this_patch)
+        else:
+            if discrete_cmap:
+                this_cmap = self.cmap_discretize(this_cmap, n_colours)
+            
+            # Now we need to normalise from the values, so we go from the minimum
+            # To the maximum
+            max_value = max([i for i in value_dict.values()]) 
+            min_value = min([i for i in value_dict.values()])
+            
+            # Normalise the colourmap
+            cNorm  = colors.Normalize(min_value, max_value)
+            new_colours = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+            
+            # we need a grayed out value for basins that don't have a value
+            gray_colour = "#D3D3D3"
                 
-   
-        # now plot the polygons
-        print('Plotting the polygons...')
-        #patches = []
-        for key, poly in Basins.iteritems():
-            colourkey = key % NUM_COLORS
-            # We need two patches since we don't want the edges transparent
-            this_patch = PolygonPatch(poly, fc=new_colours.to_rgba(colourkey), ec="none", alpha=alpha)
-            self.ax_list[0].add_patch(this_patch)
-            this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1)
-            self.ax_list[0].add_patch(this_patch)
+            # now plot the polygons
+            print('Plotting the polygons, colouring by value...')
+            for junc, poly in Basins.iteritems():
 
-
+                # If we are using keys, we need to check to see if the key refered to by
+                # this junction is in the value dict
+                if use_keys_not_junctions:
+                    this_key = junction_to_key_dict[junc]
+                    if this_key in value_dict:
+                        this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[this_key] ), ec="none", alpha=alpha)
+                        self.ax_list[0].add_patch(this_patch)
+                    else:
+                        this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha)
+                        self.ax_list[0].add_patch(this_patch)
+                else:
+                    if junc in value_dict:
+                        this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[junc] ), ec="none", alpha=alpha)
+                        self.ax_list[0].add_patch(this_patch)
+                    else:
+                        this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha)
+                        self.ax_list[0].add_patch(this_patch)
+                
+                # We need to add the outline seperately because we don't want it to be transparent
+                this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1)
+                self.ax_list[0].add_patch(this_patch)
 
 
 
@@ -689,8 +722,8 @@ class MapFigure(object):
             if self.colourbar_orientation != "None":
                 print("Let me add a colourbar for your point data")
                 self.ax_list = self.add_objectless_colourbar(self,self.ax_list,
-                                                             minimum_value, maximum_value,
-                                                             cmap = colourmap,colorbarlabel = colorbarlabel ,
+                                                             min_value, max_value,
+                                                             cmap = this_cmap,colorbarlabel = colorbarlabel ,
                                                              discrete=discrete_cmap, n_colours=n_colours, cbar_type=cbar_type)
 
 
@@ -712,7 +745,7 @@ class MapFigure(object):
         """
 
         if type(cmap) == str:
-         cmap = get_cmap(cmap)
+         cmap = plt.get_cmap(cmap)
 
         colors_i = np.concatenate((np.linspace(0, 1., N), (0.,0.,0.,0.)))
         colors_rgba = cmap(colors_i)
