@@ -4,14 +4,14 @@ Created on Mon Jan 16 21:50:53 2017
 
 LSDPlottingRaster
 
-@author: DAV and SMM
+@author: DAV, SMM
 
 Object-oriented plotting module for constructing
 drape maps in a reusable, generic way.
 
 Experimental. Use at your own risk.
 
-This software is realsed under the Artistic Licence v2.0
+This software is released under the Artistic Licence v2.0
 
 """
 
@@ -39,6 +39,8 @@ class BaseRaster(object):
         RasterName (str): The name of the rasters (with extension). It is read by gdal so should cope with mulitple formats
         Directory (str): The path to the raster. Needs to have the trailing slash
         NFF_opti (bool): experimental test of reading raster using numpy.fromfile() which a super efficient binary reader
+        
+    Author: DAV and SMM
     """
     def __init__(self, RasterName, Directory, NFF_opti = False):
 
@@ -113,6 +115,8 @@ class BaseRaster(object):
 
         Args:
             rastertype (str): The type of raster. Not many supported, but basically just changes the colourmap
+            
+        Author: DAV
         """
         self._rastertype = rastertype
         if self._rastertype == "Hillshade":
@@ -132,6 +136,8 @@ class BaseRaster(object):
 
         Args:
             cmap (list or str): the colourmap
+            
+        Author: DAV
         """
         self._colourmap = cmap
 
@@ -229,7 +235,7 @@ class MapFigure(object):
             basemap_colourmap (string or colormap): The colourmap of the base raster.
             NFF_opti (bool): If true, use a fast python native file loading. Much faster but not completely tested. 
             
-        Author: SMM
+        Author: SMM and DAV
         
         """
         fig = plt.figure()
@@ -307,6 +313,8 @@ class MapFigure(object):
         """
         This function makes the tick marks and the tick labels.
         It has been optimised so you get nice looking ticks, so you shouldn't have to mess with them after this is called.
+        
+        Author: SMM
         """
 
         if self._coord_type == "UTM":
@@ -338,6 +346,8 @@ class MapFigure(object):
         
         Args: 
             Ax (object): The axis object
+            
+        Author: SMM
         """
         ax.set_xticklabels(self.tick_x_labels)
         ax.set_yticklabels(self.tick_y_labels)
@@ -354,6 +364,8 @@ class MapFigure(object):
         Args:
             ax_list (axes objects): the list of axis objects
             axis_style (string): The syle of the axis. See options below.
+            
+        Author: SMM
         """
 
         if axis_style == "Normal":
@@ -414,7 +426,7 @@ class MapFigure(object):
             ax_list: A list of axes, we append the base raster to the [0] element
                 of the axis
                 
-        Author: SMM
+        Author: DAV and SMM
         """
 
         # We need to initiate with a figure
@@ -1383,7 +1395,7 @@ class MapFigure(object):
         Args:
             label_size(int): Font size of the labels
             
-        Author: SMM
+        Author: DAV
         
         """
         print("I am setting the font size to: "+str(label_size))
