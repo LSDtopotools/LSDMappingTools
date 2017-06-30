@@ -138,6 +138,8 @@ class BaseRaster(object):
     def _initialise_masks(self):
         """
         Some logic Declan wrote to mask values.
+        
+        Author: DAV
         """
         if self._drapeminthreshold is not None:
             self.mask_low_values()
@@ -149,6 +151,8 @@ class BaseRaster(object):
     def mask_low_values(self):#
         """
         Reads from the self._drapeminthreshold to mask low values.
+        
+        Author: DAV
         """
         low_values_index = self._RasterArray < self._drapeminthreshold
         self._RasterArray[low_values_index] = np.nan
@@ -156,12 +160,18 @@ class BaseRaster(object):
     def mask_high_values(self):
         """
         Reads from the self._drapeminthreshold to mask high values.
+        
+        Author: DAV
         """
         high_values_index = self._RasterArray < self._drapemaxthreshold
         self._RasterArray[high_values_index] = np.nan
 
     def mask_middle_values(self):
-        """Masks a centre range of values."""
+        """
+        Masks a centre range of values.
+        
+        Author: DAV
+        """
         masked_mid_values_index = (np.logical_and(self._RasterArray > self._middlemaskrange[0],
                                    self._RasterArray < self._middlemaskrange[1]))
         self._RasterArray[masked_mid_values_index] = np.nan
@@ -170,6 +180,8 @@ class BaseRaster(object):
         """
         Low level show function. Only really used for debugging since it contains
         no sizing, labelling etc.
+        
+        Author: DAV
         """
         plt.imshow(self._RasterArray,
                    cmap=self._colourmap,
@@ -206,17 +218,20 @@ class MapFigure(object):
     """
     def __init__(self, BaseRasterName, Directory,
                  coord_type="UTM", colourbar_location = "None", basemap_colourmap = "gray", NFF_opti = False,*args, **kwargs):
-
-        # A map figure has one figure
-        #self.fig = plt.figure(1, facecolor='white',figsize=(6,3))
-        #self.fig
-
-        # There can be mulitple axes in the figure. These are maptlotlib artists
-        # that can be used to place plotting elements
-        #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
-        #self.ax = plt.subplots()
-
-        #self.fig, self.ax = plt.subplots()
+        """
+        Initiates the object.
+        
+        Args:
+            BaseRasterName (string): The name of the raster (no directory, but need extension)
+            Directory (string): directory of the data. 
+            coord_type (str): The type of coordinate system. At the moment we only support UTM and UTM_km (the latter makes the tick labels easier to handle).
+            colourbar_location (string): Can be none, top bottom left or right. Controls where the colourbar is located. 
+            basemap_colourmap (string or colormap): The colourmap of the base raster.
+            NFF_opti (bool): If true, use a fast python native file loading. Much faster but not completely tested. 
+            
+        Author: SMM
+        
+        """
         fig = plt.figure()
         self.ax_list = []
         ax = fig.add_axes([0,0,1,1])
@@ -320,6 +335,9 @@ class MapFigure(object):
     def add_ticks_to_axis(self,ax):
         """
         This is a low level function for placing the ticks on the active image axis.
+        
+        Args: 
+            Ax (object): The axis object
         """
         ax.set_xticklabels(self.tick_x_labels)
         ax.set_yticklabels(self.tick_y_labels)
@@ -721,8 +739,7 @@ class MapFigure(object):
 
 
 
-        # THIS IS NOT COMPLETE
-        # We need mapping of this to the colours. Need to think about how to do it
+        # Now plot the colourbar
         if show_colourbar:
             print("The colourbar orientation for basin plotting is: "+self.colourbar_orientation)
             if self.colourbar_orientation != "None":
@@ -904,7 +921,10 @@ class MapFigure(object):
             minimum_value (float or int): minimum value on colourbar
             maximum_value (float or int): maximum value on colourbar
             cmap (string or colourmap): The colourmap.  
-            colorbarlabel (string): The label of the colourbar        
+            colorbarlabel (string): The label of the colourbar 
+            
+        Returns: 
+            The axis list
             
         Author: SMM
         """
@@ -939,8 +959,31 @@ class MapFigure(object):
                        this_colourmap = "cubehelix",colorbarlabel = "Colourbar",
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,
-                       max_point_size = 5,
-                       min_point_size = 0.5, coulor_log = False, coulor_manual_scale = [], manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10):
+                       max_point_size = 5, min_point_size = 0.5, 
+                       colour_log = False, colour_manual_scale = [], 
+                       manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10):
+        """
+        This add point data to the map.
+        
+        Args:
+            thisPointData (object): an LSDMap_PointData object.
+            column_for_plotting (string): The column in the pint data that is used for plotting the points.
+            this_colourmap (string or colourmap): The colourmap.  
+            colorbarlabel (string): The label of the colourbar  
+            scale_point (bool): If true, point size is scaled by the point value.
+            column_for_scaling (string): The column name that is used to scale the point size
+            scaled_data_in_log (bool): If true, the points are scaled in proportion to the logarithm of their value. 
+            max_point_size (float): Maximum size in points of the symbols.
+            min_point_size (float): Minumum size in points of the symbols.
+            colour_log (bool): If the colours are scaled by logarithm.
+            colour_manual_scale (list): A two element list containing the minimum and maximum values of colourbar (i.e. if you want to cut off the colurbar at a certain value).
+            manual_size (float): If scale_points is false then this is the size of the points.
+            alpha (float): transparency (between 0 and 1).
+            minimum_log_scale_cut_off (float): If the log of the value is less than this the point is not plotted. 
+                
+        Author: SMM
+        """
+
 
         # Get the axis limits to assert after
         this_xlim = self.ax_list[0].get_xlim()
@@ -955,7 +998,7 @@ class MapFigure(object):
         # check if the column for plotting exists
         this_data = thisPointData.QueryData(column_for_plotting)
         # Log the color if required
-        if(coulor_log):
+        if(colour_log):
             this_data = np.log10(this_data)
             print("I logged (is it a verb?) your colour data, the minimum is %s and the maximum is %s" %(np.nanmin(this_data), np.nanmax(this_data)))
 
@@ -1001,10 +1044,10 @@ class MapFigure(object):
             print("I am only plotting the points.")
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none', alpha = alpha)
         else:
-            if(coulor_manual_scale != []):
+            if(colour_manual_scale != []):
                 print("let me rescale the data using your array")
-                if(len(coulor_manual_scale) == 2):
-                    cNorm  = _mcolors.Normalize(vmin=coulor_manual_scale[0], vmax=coulor_manual_scale[1])
+                if(len(colour_manual_scale) == 2):
+                    cNorm  = _mcolors.Normalize(vmin=colour_manual_scale[0], vmax=colour_manual_scale[1])
                     scalarMap = _cm.ScalarMappable(norm = cNorm, cmap= this_colourmap)
                     tps_color = scalarMap.to_rgba(this_data)
                     scalarMap.set_array(tps_color)
@@ -1012,7 +1055,7 @@ class MapFigure(object):
                     sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none', alpha = alpha)
 
                 else:
-                    print("Your coulor_log_manual_scale should be something like [min,max], aborting")
+                    print("Your colour_log_manual_scale should be something like [min,max], aborting")
                     quit()
             else:
                 sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha)
@@ -1030,6 +1073,20 @@ class MapFigure(object):
                                         selection_criteria = [], PANDEX=False, border_colour='k', text_colour='r', alpha=1):
         """
         This adds annotations to points. Used for annotating basins or sources, for example.
+        
+        Args:
+            thisPointData (object): an LSDMap_PointData object.
+            column_for_plotting (string): The column in the pint data that is used for plotting the points.
+            selection_critera (list): This selects given values for plotting.
+            PANDEX (bool): If true uses pandas data loading. Much faster but not fully tested. 
+            border_colour (string or colour): The colour of the edges around the textboxes.
+            text_colour (string or colour): The colour of the text.
+            alpha (float): The transparency of the text.
+            
+        Returns: 
+            A text annotation object
+            
+        Author: SMM
         """
 
         # A list of text objects
@@ -1082,6 +1139,9 @@ class MapFigure(object):
             points: This is a dictionary the keys are the raster values to annotate and the values are the point objects.
             label_dict: The labels are also stored in a dictionary, where the key is the original value (e.g. basin
                 junction, and the value is a string that you want to label with (e.g. the basin key).
+
+        Returns: 
+            A text annotation object
         
         FJC 24/06/17
         """

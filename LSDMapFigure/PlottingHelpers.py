@@ -37,7 +37,7 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
         cbar_width (flt): the width of the colorbar
         text_padding (list): the padding around the map from the whitespace and the axis/tick labels
 
-
+    Author: SMM
     """
 
 
