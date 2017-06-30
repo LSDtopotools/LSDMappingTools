@@ -537,7 +537,7 @@ class MapFigure(object):
                          edgecolour='black', linewidth=1):
         """
         This is a basin plotting routine. It plots basins as polygons which 
-        can be coloured
+        can be coloured and labelled in various ways. 
         
         Args:
             RasterName (string): The name of the raster (no directory, but need extension)
@@ -569,9 +569,6 @@ class MapFigure(object):
         # Basins referes to a dict where the key is the junction index and the
         # value is a shapely polygon object
         Basins = LSDP.GetBasinOutlines(Directory, RasterName)
-        
-        # this is a bit weired but nodata becomes a polygon patch
-        #del Basins[-9999]
         
         # Now check if you want to mask the basins
         # get the basin IDs to make a discrete colourmap for each ID
@@ -622,7 +619,6 @@ class MapFigure(object):
                 else:
                     self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k')            
             else:
-                print("Wheeehaw this is exciting!")
                 # Okay so the way tyhis is going to work is that we ware going to 
                 # look for renamed basins but basins that haven't been renamed are
                 # going to get their old names.
@@ -709,13 +705,13 @@ class MapFigure(object):
             new_colours = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
             
             # we need a grayed out value for basins that don't have a value
-            gray_colour = "#D3D3D3"
+            gray_colour = "#a9a9a9"
                 
             # now plot the polygons
             print('Plotting the polygons, colouring by value...')
             for junc, poly in Basins.iteritems():
 
-                # If we are using keys, we need to check to see if the key refered to by
+                # If we are using keys, we need to check to see if the key referred to by
                 # this junction is in the value dict
                 if use_keys_not_junctions:
                     this_key = junction_to_key_dict[junc]
@@ -726,6 +722,7 @@ class MapFigure(object):
                         this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha)
                         self.ax_list[0].add_patch(this_patch)
                 else:
+                    # We are using junction indices so these link directly in to the polygon keys
                     if junc in value_dict:
                         this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[junc] ), ec="none", alpha=alpha)
                         self.ax_list[0].add_patch(this_patch)
