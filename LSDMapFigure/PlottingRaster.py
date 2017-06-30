@@ -21,6 +21,7 @@ from . import PlottingHelpers as phelp
 import matplotlib.pyplot as plt
 import matplotlib.cm as _cm
 import matplotlib.colors as _mcolors
+from matplotlib import colors
 import matplotlib.axes
 import numpy as np
 from matplotlib import ticker
@@ -637,14 +638,42 @@ class MapFigure(object):
                     # Use this new label dict to rename the junctions
                     self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
                     
+
+
+        # make a color map of fixed colors
+        NUM_COLORS = 15
+
+        this_cmap = plt.cm.Set1
+        vmin = 0
+        vmax = NUM_COLORS-1
+        cNorm  = colors.Normalize(vmin, vmax)
+        new_colours = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+        basin_colour = [x % NUM_COLORS for x in Basins]
+        
+        
+        
+        rgba = this_cmap(0.5)
+        print(rgba)
+        rgba2 = new_colours.to_rgba(5)
+        print(rgba2)        
+        
+        for key in basin_colour:
+            colourkey = key % NUM_COLORS
+            fraction = colourkey/(vmax-vmin)
+            print("The key is: "+str(key)+ " and the colour key is:  " + str(colourkey))
+            print("This results in the color: ")
+            print(this_cmap(fraction))
+        #print("The new colours are: ")
+        #print(new_colours)
                 
    
         # now plot the polygons
         print('Plotting the polygons...')
         #patches = []
         for key, poly in Basins.iteritems():
+            colourkey = key % NUM_COLORS
             # We need two patches since we don't want the edges transparent
-            this_patch = PolygonPatch(poly, fc=facecolour, ec="none", alpha=alpha)
+            this_patch = PolygonPatch(poly, fc=new_colours.to_rgba(colourkey), ec="none", alpha=alpha)
             self.ax_list[0].add_patch(this_patch)
             this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1)
             self.ax_list[0].add_patch(this_patch)
