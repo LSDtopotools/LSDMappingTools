@@ -533,9 +533,12 @@ class MapFigure(object):
             n_colours (int): number of colours in discrete colourbar
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
             use_keys_not_junctions (bool): If true, the basin keys rather than the junction indices are used to map to the basins. f false the junction indices are used.
-            rename_dict (dict): a dictionary where the key is the basin to rename and the value is a string of the new name. 
-            value_dict (dict): the key is the basin and the value is a new value that is used as a colour for the basin
-            mask_list (list of ints): Any basin named in this list (can be either a key or junction index depending on use_keys_not_junctions) is removed from the polgons and not plotted           
+            label_basins (bool): If true, add text labels to basins. 
+            rename_dict (dict): a dictionary where the key is the basin to rename (either key or junc, depending on use_keys_not_junctions) and the value is a string of the new name. 
+            value_dict (dict): the key is the basin (either key or junc, depending on use_keys_not_junctions) and the value is a new value that is used as a colour for the basin.
+            mask_list (list of ints): Any basin named in this list (can be either a key or junction index depending on use_keys_not_junctions) is removed from the polgons and not plotted. 
+            edgecolour (string): colour of the lines around the basins.
+            linewidth(float): width of the line around the basins.
         
         Author: SMM
         """
@@ -1232,11 +1235,27 @@ class MapFigure(object):
                              "is not yet supported")
 
     def show_plot(self):
-
+        """
+        Shows the plot. Duh.
+        """
         self.fig.show()
 
-    def save_fig(self,fig_width_inches = 4,FigFileName = 'TestFig.png',FigFormat = 'png',Fig_dpi = 100, axis_style = "Normal", transparent=False):
-
+    def save_fig(self,fig_width_inches = 4,FigFileName = 'TestFig.png',
+                 FigFormat = 'png',Fig_dpi = 100, 
+                 axis_style = "Normal", transparent=False):
+        """
+        This saves the figure to file.
+        
+        Args:
+            fig_width_inches (float): The figure width in inches. It is in inches because yanks wrote matplotlib and that is the unit of measurement. 
+            FigFilename (str): The filename. You will need to add the directory here if you want it somewhere other than your python working directory.
+            FigFormat (str): Figure format. Can be png, svg, pdf, gif, etc.
+            Fig_dpi (int): dots per inch
+            axis_stlye (string): This sets the axis style. Options are "Normal","Thick","Thin","Big", and "Madhouse"
+            transparent (bool): If true the background is transparent (i.e., you don't get a white rectangle in the background)
+        
+        Author: SMM
+        """
 
         self.ax_list = self.axis_styler(self.ax_list,axis_style)
 
@@ -1301,7 +1320,14 @@ class MapFigure(object):
         #self.fig.clf()
 
     def SetRCParams(self,label_size):
-        """This sets a load of RC params
+        """
+        This sets some RC params. 
+        
+        Args:
+            label_size(int): Font size of the labels
+            
+        Author: SMM
+        
         """
         print("I am setting the font size to: "+str(label_size))
         rcParams['font.family'] = 'sans-serif'
