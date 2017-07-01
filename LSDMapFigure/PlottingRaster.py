@@ -670,7 +670,7 @@ class MapFigure(object):
                     # Use this new label dict to rename the junctions
                     texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
             
-            if adjust_text = True:
+            if adjust_text == True:
                 print("I am adjusting the text for you. Warning: this takes a long time!")
                 LSDP.adjust_text(texts)        
                 print("Finished adjusting text.")

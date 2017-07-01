@@ -413,7 +413,7 @@ def ExampleOne_PartFive_MaskBasinsMF(DataDirectory, fname_prefix):
                       rename_dict = Rename_Basins, value_dict = Value_dict,
                       use_keys_not_junctions = True, show_colourbar = True, 
                       discrete_cmap=True, n_colours=8, colorbarlabel = "$m/n$",
-                      colourmap = plt.cm.jet, adjust_text = True)
+                      colourmap = plt.cm.jet, adjust_text = False)
     
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_test_Coloured_basins.'+FigFormat
