@@ -544,7 +544,7 @@ class MapFigure(object):
                          show_colourbar = "False", colorbarlabel = "Colourbar", 
                          discrete_cmap=False, n_colours=10, cbar_type=float, 
                          use_keys_not_junctions = True,
-                         label_basins = True, rename_dict = {},
+                         label_basins = True, adjust_text = False, rename_dict = {},
                          value_dict = {}, mask_list = [],
                          edgecolour='black', linewidth=1):
         """
@@ -564,6 +564,7 @@ class MapFigure(object):
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
             use_keys_not_junctions (bool): If true, the basin keys rather than the junction indices are used to map to the basins. f false the junction indices are used.
             label_basins (bool): If true, add text labels to basins. 
+            adjust_text (bool): If true calls the text adjustment routine. Takes a long time!            
             rename_dict (dict): a dictionary where the key is the basin to rename (either key or junc, depending on use_keys_not_junctions) and the value is a string of the new name. 
             value_dict (dict): the key is the basin (either key or junc, depending on use_keys_not_junctions) and the value is a new value that is used as a colour for the basin.
             mask_list (list of ints): Any basin named in this list (can be either a key or junction index depending on use_keys_not_junctions) is removed from the polgons and not plotted. 
@@ -617,6 +618,9 @@ class MapFigure(object):
 
         # Now label the basins
         if label_basins:
+            # This will hold the labels. Need to initiate here to ensure it lives outside control statements
+            texts = []            
+            
             # First get the points
             Points = {}
             print("The number of basins are: "+str(len(Basins)))
@@ -627,9 +631,9 @@ class MapFigure(object):
             # Now check if there is a renaming dictionary
             if len(rename_dict) == 0:
                 if use_keys_not_junctions: 
-                    self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=junction_to_key_dict)
+                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=junction_to_key_dict)
                 else:
-                    self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k')            
+                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k')            
             else:
                 # Okay so the way tyhis is going to work is that we ware going to 
                 # look for renamed basins but basins that haven't been renamed are
@@ -650,7 +654,7 @@ class MapFigure(object):
                             new_label_dict[this_junc] = rename_dict[key]
                     
                     # Use this new label dict to rename the junctions
-                    self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
+                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
                                                                    
                 else:
                     # Now we need a new junction dict for this
@@ -664,8 +668,12 @@ class MapFigure(object):
                             new_label_dict[key] = rename_dict[key]
                     
                     # Use this new label dict to rename the junctions
-                    self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
-                    
+                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
+            
+            if adjust_text = True:
+                print("I am adjusting the text for you. Warning: this takes a long time!")
+                LSDP.adjust_text(texts)        
+                print("Finished adjusting text.")
 
 
         # Get the appropriate colourmap
@@ -1191,8 +1199,8 @@ class MapFigure(object):
         """
         This adds annotations from a dictionary of shapely points, for annotating basins or sources.
         
-        NOTE TRYING TO GET THIS TO WORK IN THE NEW USE CASE. 
-        I'm retaining the old one so no to break fionas code
+        THIS WORKS IN SMM's USE CASE 
+        I'm retaining the old one so not to break fionas code
         
         
         
@@ -1200,6 +1208,9 @@ class MapFigure(object):
             points: This is a dictionary the keys are the raster values to annotate and the values are the point objects.
             label_dict: The labels are also stored in a dictionary, where the key is the original value (e.g. basin
                 junction, and the value is a string that you want to label with (e.g. the basin key).
+
+        Returns: 
+            A text annotation object
         
         SMM 24/06/17
         """

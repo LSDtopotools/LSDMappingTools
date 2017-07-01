@@ -16,8 +16,10 @@ from .LSDMap_Subplots import *
 from .LSDMap_OSystemTools import *
 from .LSDMap_PlottingDriver import *
 from .LSDMap_VectorTools import *
+from .adjust_text import *
 
 from . import colours as lsdcolours
 from . import labels as lsdlabels
 from . import scalebar as lsdscalebar
 from . import statsutilities as lsdstatsutilities
+

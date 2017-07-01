@@ -704,7 +704,7 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
         {'properties': {'raster_val': v}, 'geometry': s}
         for i, (s, v)
         in enumerate(
-            shapes(image, mask=msk, transform=src.affine)))
+            shapes(image, mask=msk, transform=src.transform)))
 
     # define shapefile attributes
     # crs = src.crs.wkt
