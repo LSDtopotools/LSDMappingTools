@@ -1267,7 +1267,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
 
-def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='ESURF', FigFormat='png'):
+def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the best fit m/n
@@ -1314,9 +1314,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
 
     # get the best fit m/n for each junction
     MOverNDict = SimpleMaxMLECheck(BasinDF)
-    #print MOverNDict
+    print MOverNDict
 
     m_over_ns = MOverNDict.values()
+    n_colours = int((max(m_over_ns)-min(m_over_ns))/d_movern)+1
+    #print m_over_ns
 
     # get a discrete colormap
     mn_cmap = plt.cm.Reds
@@ -1333,7 +1335,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_movern, show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns, cbar_type=float)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_colours, show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns, cbar_type=float)
 
     # plot the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
@@ -1350,7 +1352,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, size_format='
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
-    DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/'
+    DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/Chi_analysis_sigma_50/'
     #fname_prefix = 'Kentucky_DEM'
     #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
@@ -1379,5 +1381,5 @@ if __name__ == "__main__":
     #                   size_format=size_format, FigFormat=FigFormat)
 
     # run the raster plotting
-    MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, size_format, FigFormat)
+    #MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
+    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, d_movern, size_format, FigFormat)

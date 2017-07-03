@@ -39,7 +39,7 @@ class BaseRaster(object):
         RasterName (str): The name of the rasters (with extension). It is read by gdal so should cope with mulitple formats
         Directory (str): The path to the raster. Needs to have the trailing slash
         NFF_opti (bool): experimental test of reading raster using numpy.fromfile() which a super efficient binary reader
-        
+
     Author: DAV and SMM
     """
     def __init__(self, RasterName, Directory, NFF_opti = False):
@@ -115,7 +115,7 @@ class BaseRaster(object):
 
         Args:
             rastertype (str): The type of raster. Not many supported, but basically just changes the colourmap
-            
+
         Author: DAV
         """
         self._rastertype = rastertype
@@ -136,7 +136,7 @@ class BaseRaster(object):
 
         Args:
             cmap (list or str): the colourmap
-            
+
         Author: DAV
         """
         self._colourmap = cmap
@@ -144,7 +144,7 @@ class BaseRaster(object):
     def _initialise_masks(self):
         """
         Some logic Declan wrote to mask values.
-        
+
         Author: DAV
         """
         if self._drapeminthreshold is not None:
@@ -157,7 +157,7 @@ class BaseRaster(object):
     def mask_low_values(self):#
         """
         Reads from the self._drapeminthreshold to mask low values.
-        
+
         Author: DAV
         """
         low_values_index = self._RasterArray < self._drapeminthreshold
@@ -166,7 +166,7 @@ class BaseRaster(object):
     def mask_high_values(self):
         """
         Reads from the self._drapeminthreshold to mask high values.
-        
+
         Author: DAV
         """
         high_values_index = self._RasterArray < self._drapemaxthreshold
@@ -175,7 +175,7 @@ class BaseRaster(object):
     def mask_middle_values(self):
         """
         Masks a centre range of values.
-        
+
         Author: DAV
         """
         masked_mid_values_index = (np.logical_and(self._RasterArray > self._middlemaskrange[0],
@@ -186,7 +186,7 @@ class BaseRaster(object):
         """
         Low level show function. Only really used for debugging since it contains
         no sizing, labelling etc.
-        
+
         Author: DAV
         """
         plt.imshow(self._RasterArray,
@@ -199,14 +199,14 @@ class BaseRaster(object):
         Function to take a list of raster values and replace it with
         a new list. Can be used to overwrite basin junction IDs with other
         information about the basin, for example.
-        
-        Args: 
+
+        Args:
             old_values (list): The old values in the raster
             new_values (list): The replacement values. Needs to be the same size
                 as the old_values list
-                
-        Author: FJC        
-        
+
+        Author: FJC
+
         Date: 17/06/17
         """
         for idx, value in enumerate(old_values):
@@ -226,17 +226,17 @@ class MapFigure(object):
                  coord_type="UTM", colourbar_location = "None", basemap_colourmap = "gray", NFF_opti = False,*args, **kwargs):
         """
         Initiates the object.
-        
+
         Args:
             BaseRasterName (string): The name of the raster (no directory, but need extension)
-            Directory (string): directory of the data. 
+            Directory (string): directory of the data.
             coord_type (str): The type of coordinate system. At the moment we only support UTM and UTM_km (the latter makes the tick labels easier to handle).
-            colourbar_location (string): Can be none, top bottom left or right. Controls where the colourbar is located. 
+            colourbar_location (string): Can be none, top bottom left or right. Controls where the colourbar is located.
             basemap_colourmap (string or colormap): The colourmap of the base raster.
-            NFF_opti (bool): If true, use a fast python native file loading. Much faster but not completely tested. 
-            
+            NFF_opti (bool): If true, use a fast python native file loading. Much faster but not completely tested.
+
         Author: SMM and DAV
-        
+
         """
         fig = plt.figure()
         self.ax_list = []
@@ -313,7 +313,7 @@ class MapFigure(object):
         """
         This function makes the tick marks and the tick labels.
         It has been optimised so you get nice looking ticks, so you shouldn't have to mess with them after this is called.
-        
+
         Author: SMM
         """
 
@@ -343,10 +343,10 @@ class MapFigure(object):
     def add_ticks_to_axis(self,ax):
         """
         This is a low level function for placing the ticks on the active image axis.
-        
-        Args: 
+
+        Args:
             Ax (object): The axis object
-            
+
         Author: SMM
         """
         ax.set_xticklabels(self.tick_x_labels)
@@ -364,7 +364,7 @@ class MapFigure(object):
         Args:
             ax_list (axes objects): the list of axis objects
             axis_style (string): The syle of the axis. See options below.
-            
+
         Author: SMM
         """
 
@@ -421,11 +421,11 @@ class MapFigure(object):
         """
         This function creates the base image. It creates the axis for the base image,
         further drapes and point data are placed upon this image.
-        
+
         Args:
             ax_list: A list of axes, we append the base raster to the [0] element
                 of the axis
-                
+
         Author: DAV and SMM
         """
 
@@ -451,8 +451,8 @@ class MapFigure(object):
                         show_colourbar = False,
                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[], cbar_type=float, NFF_opti = False):
         """
-        This function adds a drape over the base raster. 
-        
+        This function adds a drape over the base raster.
+
         Args:
             RasterName (string): The name of the raster (no directory, but need extension)
             Directory (string): directory of the data
@@ -468,9 +468,9 @@ class MapFigure(object):
             new_values (list): A list of the new values. This probably should be done with a map: TODO
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
             NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.
-        
+
         Author: SMM
-        """    
+        """
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
@@ -485,8 +485,8 @@ class MapFigure(object):
                          colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = [], cbar_type=float, NFF_opti = False):
         """
         This function adds a drape over the base raster. It does all the dirty work
-        I can't quite remember why I did it in two steps but I vaguely recall trying it in one step and it didn't work. 
-        
+        I can't quite remember why I did it in two steps but I vaguely recall trying it in one step and it didn't work.
+
         Args:
             RasterName (string): The name of the raster (no directory, but need extension)
             Directory (string): directory of the data
@@ -502,9 +502,9 @@ class MapFigure(object):
             new_values (list): A list of the new values. This probably should be done with a map: TODO
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
             NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.
-        
+
         Author: SMM
-        """    
+        """
         Raster = BaseRaster(RasterName,Directory, NFF_opti = NFF_opti)
         if modify_raster_values == True:
             Raster.replace_raster_values(old_values, new_values)
@@ -537,20 +537,20 @@ class MapFigure(object):
 
         return self.ax_list
 
-    
-    
-    def add_basin_plot(self,RasterName,BasinInfoPrefix,Directory,                         
+
+
+    def add_basin_plot(self,RasterName,BasinInfoPrefix,Directory,
                          colourmap = "gray",alpha=0.5,
-                         show_colourbar = "False", colorbarlabel = "Colourbar", 
-                         discrete_cmap=False, n_colours=10, cbar_type=float, 
+                         show_colourbar = "False", colorbarlabel = "Colourbar",
+                         discrete_cmap=False, n_colours=10, cbar_type=float,
                          use_keys_not_junctions = True,
                          label_basins = True, adjust_text = False, rename_dict = {},
                          value_dict = {}, mask_list = [],
                          edgecolour='black', linewidth=1):
         """
-        This is a basin plotting routine. It plots basins as polygons which 
-        can be coloured and labelled in various ways. 
-        
+        This is a basin plotting routine. It plots basins as polygons which
+        can be coloured and labelled in various ways.
+
         Args:
             RasterName (string): The name of the raster (no directory, but need extension)
             BasinInfoPrefix (string): The prefix (before "_BasinInfo.csv") of the basin info file produced by the chi_mapping_tool
@@ -563,26 +563,26 @@ class MapFigure(object):
             n_colours (int): number of colours in discrete colourbar
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
             use_keys_not_junctions (bool): If true, the basin keys rather than the junction indices are used to map to the basins. f false the junction indices are used.
-            label_basins (bool): If true, add text labels to basins. 
-            adjust_text (bool): If true calls the text adjustment routine. Takes a long time!            
-            rename_dict (dict): a dictionary where the key is the basin to rename (either key or junc, depending on use_keys_not_junctions) and the value is a string of the new name. 
+            label_basins (bool): If true, add text labels to basins.
+            adjust_text (bool): If true calls the text adjustment routine. Takes a long time!
+            rename_dict (dict): a dictionary where the key is the basin to rename (either key or junc, depending on use_keys_not_junctions) and the value is a string of the new name.
             value_dict (dict): the key is the basin (either key or junc, depending on use_keys_not_junctions) and the value is a new value that is used as a colour for the basin.
-            mask_list (list of ints): Any basin named in this list (can be either a key or junction index depending on use_keys_not_junctions) is removed from the polgons and not plotted. 
+            mask_list (list of ints): Any basin named in this list (can be either a key or junction index depending on use_keys_not_junctions) is removed from the polgons and not plotted.
             edgecolour (string): colour of the lines around the basins.
             linewidth(float): width of the line around the basins.
-        
+
         Author: SMM
         """
 
         from shapely.geometry import Polygon, Point
         from descartes import PolygonPatch
         from matplotlib.collections import PatchCollection
-        
+
         # Get the basin outlines
         # Basins referes to a dict where the key is the junction index and the
         # value is a shapely polygon object
         Basins = LSDP.GetBasinOutlines(Directory, RasterName)
-        
+
         # Now check if you want to mask the basins
         # get the basin IDs to make a discrete colourmap for each ID
         BasinInfoDF = phelp.ReadBasinInfoCSV(Directory, BasinInfoPrefix)
@@ -594,13 +594,13 @@ class MapFigure(object):
         # Extract the junction indices
         basin_junctions = list(BasinInfoDF['outlet_junction'])
         basin_junctions = [int(x) for x in basin_junctions]
-        
+
         # we need dicts for refering to each of these
         key_to_junction_dict = dict(zip(basin_keys,basin_junctions))
         junction_to_key_dict= dict(zip(basin_junctions,basin_keys))
-        
-        # Now mask some basins. 
-        # This has a lot of tedious logical statements to ensure there are 
+
+        # Now mask some basins.
+        # This has a lot of tedious logical statements to ensure there are
         # no errors associated with looking for a key in a dict that doens't exist
         for basin in mask_list:
             if use_keys_not_junctions:
@@ -611,7 +611,7 @@ class MapFigure(object):
                     else:
                         print("I'm trying to mask a key, " +str(basin)+ ", which has junction " +str(this_junc)+ " that isn't there.")
             else:
-                if basin in Basins:  
+                if basin in Basins:
                     del Basins[basin]
                 else:
                     print("I'm trying to mask a basin, " +str(basin)+ " that isn't there.")
@@ -619,32 +619,32 @@ class MapFigure(object):
         # Now label the basins
         if label_basins:
             # This will hold the labels. Need to initiate here to ensure it lives outside control statements
-            texts = []            
-            
+            texts = []
+
             # First get the points
             Points = {}
             print("The number of basins are: "+str(len(Basins)))
             for basin_key, basin in Basins.iteritems():
                 Points[basin_key] = Point(basin.representative_point())
             print("The number of points are: "+str(len(Points)))
-            
+
             # Now check if there is a renaming dictionary
             if len(rename_dict) == 0:
-                if use_keys_not_junctions: 
+                if use_keys_not_junctions:
                     texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=junction_to_key_dict)
                 else:
-                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k')            
+                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k')
             else:
-                # Okay so the way tyhis is going to work is that we ware going to 
+                # Okay so the way tyhis is going to work is that we ware going to
                 # look for renamed basins but basins that haven't been renamed are
                 # going to get their old names.
-                
+
                 # First we see if the renamed basins are in the lists
                 if use_keys_not_junctions:
                     # We start with a clean dict that will be used for labelling
-                    new_label_dict = junction_to_key_dict                    
-                    
-                    # We are using keys. We need to replace the label dict with 
+                    new_label_dict = junction_to_key_dict
+
+                    # We are using keys. We need to replace the label dict with
                     # with the strings from the renamed basins
                     for key in rename_dict:
                         print("I am renaming. The key is" +str(key))
@@ -652,27 +652,27 @@ class MapFigure(object):
                         if key in key_to_junction_dict:
                             this_junc = key_to_junction_dict[key]
                             new_label_dict[this_junc] = rename_dict[key]
-                    
+
                     # Use this new label dict to rename the junctions
                     texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
-                                                                   
+
                 else:
                     # Now we need a new junction dict for this
-                    new_label_dict = {}                    
+                    new_label_dict = {}
                     for junction in junction_to_key_dict:
                         new_label_dict[junction] = junction
-                    
+
                     for key in rename_dict:
                         # get the junction number of this key
                         if key in new_label_dict:
                             new_label_dict[key] = rename_dict[key]
-                    
+
                     # Use this new label dict to rename the junctions
                     texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
-            
+
             if adjust_text == True:
                 print("I am adjusting the text for you. Warning: this takes a long time!")
-                LSDP.adjust_text(texts)        
+                LSDP.adjust_text(texts)
                 print("Finished adjusting text.")
 
 
@@ -681,21 +681,21 @@ class MapFigure(object):
             this_cmap=plt.get_cmap(colourmap)
         else:
             this_cmap=colourmap
-            
+
         """
         Some notes on colormapping:
             If the value dict is present, you colour by the value dict.
-            The value dict has 
+            The value dict has
             If the value dict is empty, you colour using a discrete cmap
         """
-        
+
         min_value = 0
-        max_value = n_colours-1        
+        max_value = n_colours-1
         if len(value_dict) == 0:
             # There are no values so we ensure there is a discrete colourmap
             discrete_cmap = True
             this_cmap = self.cmap_discretize(this_cmap, n_colours)
-            
+
             # The colours go from 0 to number of colours minus 1
             min_value = 0
             max_value = n_colours-1
@@ -714,19 +714,19 @@ class MapFigure(object):
         else:
             if discrete_cmap:
                 this_cmap = self.cmap_discretize(this_cmap, n_colours)
-            
+
             # Now we need to normalise from the values, so we go from the minimum
             # To the maximum
-            max_value = max([i for i in value_dict.values()]) 
+            max_value = max([i for i in value_dict.values()])
             min_value = min([i for i in value_dict.values()])
-            
+
             # Normalise the colourmap
             cNorm  = colors.Normalize(min_value, max_value)
             new_colours = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
-            
+
             # we need a grayed out value for basins that don't have a value
             gray_colour = "#a9a9a9"
-                
+
             # now plot the polygons
             print('Plotting the polygons, colouring by value...')
             for junc, poly in Basins.iteritems():
@@ -749,7 +749,7 @@ class MapFigure(object):
                     else:
                         this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha)
                         self.ax_list[0].add_patch(this_patch)
-                
+
                 # We need to add the outline seperately because we don't want it to be transparent
                 this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1)
                 self.ax_list[0].add_patch(this_patch)
@@ -804,18 +804,18 @@ class MapFigure(object):
 
     def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar",discrete=False, n_colours=10, cbar_type=float):
         """
-        This adds the colourbar to the image. 
+        This adds the colourbar to the image.
         IMPORTANT: It assumes the colourbar occupies the last axis element
-        
+
         Args:
             ax_list: The list of axes objects. Assumes colourbar is in axis_list[-1]
             im: The image object
-            BaseRaster: The base raster. 
+            BaseRaster: The base raster.
             colorbarlabel (string): The label of the colourbar
             discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
             n_colours (int): number of colours in discrete colourbar.
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int).
-            
+
         Author: SMM
         """
         fig = matplotlib.pyplot.gcf()
@@ -839,14 +839,14 @@ class MapFigure(object):
             ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
         return ax_list
 
-    def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours, cbar_type=float, 
+    def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours, cbar_type=float,
                             use_baseraster = True, min_value = 0, max_value = 0):
         """
         This function takes a discrete colourbar and fixes the ticks so they are
         in the middle of each colour
-        
+
         UPDATE: SMM, made this more flexible so you can set the minimum and maximum
-         values. Required becase basin plotting and point plotting doesn't use 
+         values. Required becase basin plotting and point plotting doesn't use
          raster values
 
         Args:
@@ -857,7 +857,7 @@ class MapFigure(object):
             use_baseraster (bool): True if you want to use the baseraster, otherwise uses the min_value and max_value
             min_value: the minimum value on the colourbar
             max_value: the maximum value on the colourbar
-            
+
         Returns:
             None but fixes ticks
 
@@ -902,14 +902,14 @@ class MapFigure(object):
     def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar",
                             discrete=False, n_colours=10, cbar_type=float):
         """
-        This adds a colourbar for any points that are on the DEM. 
-        
-        Args: 
+        This adds a colourbar for any points that are on the DEM.
+
+        Args:
             ax_list: The list of axes objects. Assumes colourbar is in axis_list[-1]
             sc: The scatterplot object. Generated by plt.scatter
-            cmap (string or colourmap): The colourmap.  
-            colorbarlabel (string): The label of the colourbar        
-            
+            cmap (string or colourmap): The colourmap.
+            colorbarlabel (string): The label of the colourbar
+
         Author: SMM
         """
         fig = matplotlib.pyplot.gcf()
@@ -932,17 +932,17 @@ class MapFigure(object):
                                  discrete=False, n_colours=10, cbar_type=float):
         """
         This adds a colourbar that is not attached to any particular object
-        
-        Args: 
+
+        Args:
             ax_list: The list of axes objects. Assumes colourbar is in axis_list[-1]
             minimum_value (float or int): minimum value on colourbar
             maximum_value (float or int): maximum value on colourbar
-            cmap (string or colourmap): The colourmap.  
-            colorbarlabel (string): The label of the colourbar 
-            
-        Returns: 
+            cmap (string or colourmap): The colourmap.
+            colorbarlabel (string): The label of the colourbar
+
+        Returns:
             The axis list
-            
+
         Author: SMM
         """
         fig = matplotlib.pyplot.gcf()
@@ -976,28 +976,28 @@ class MapFigure(object):
                        this_colourmap = "cubehelix",colorbarlabel = "Colourbar",
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,
-                       max_point_size = 5, min_point_size = 0.5, 
-                       colour_log = False, colour_manual_scale = [], 
+                       max_point_size = 5, min_point_size = 0.5,
+                       colour_log = False, colour_manual_scale = [],
                        manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10):
         """
         This add point data to the map.
-        
+
         Args:
             thisPointData (object): an LSDMap_PointData object.
             column_for_plotting (string): The column in the pint data that is used for plotting the points.
-            this_colourmap (string or colourmap): The colourmap.  
-            colorbarlabel (string): The label of the colourbar  
+            this_colourmap (string or colourmap): The colourmap.
+            colorbarlabel (string): The label of the colourbar
             scale_point (bool): If true, point size is scaled by the point value.
             column_for_scaling (string): The column name that is used to scale the point size
-            scaled_data_in_log (bool): If true, the points are scaled in proportion to the logarithm of their value. 
+            scaled_data_in_log (bool): If true, the points are scaled in proportion to the logarithm of their value.
             max_point_size (float): Maximum size in points of the symbols.
             min_point_size (float): Minumum size in points of the symbols.
             colour_log (bool): If the colours are scaled by logarithm.
             colour_manual_scale (list): A two element list containing the minimum and maximum values of colourbar (i.e. if you want to cut off the colurbar at a certain value).
             manual_size (float): If scale_points is false then this is the size of the points.
             alpha (float): transparency (between 0 and 1).
-            minimum_log_scale_cut_off (float): If the log of the value is less than this the point is not plotted. 
-                
+            minimum_log_scale_cut_off (float): If the log of the value is less than this the point is not plotted.
+
         Author: SMM
         """
 
@@ -1090,19 +1090,19 @@ class MapFigure(object):
                                         selection_criteria = [], PANDEX=False, border_colour='k', text_colour='r', alpha=1):
         """
         This adds annotations to points. Used for annotating basins or sources, for example.
-        
+
         Args:
             thisPointData (object): an LSDMap_PointData object.
             column_for_plotting (string): The column in the pint data that is used for plotting the points.
             selection_critera (list): This selects given values for plotting.
-            PANDEX (bool): If true uses pandas data loading. Much faster but not fully tested. 
+            PANDEX (bool): If true uses pandas data loading. Much faster but not fully tested.
             border_colour (string or colour): The colour of the edges around the textboxes.
             text_colour (string or colour): The colour of the text.
             alpha (float): The transparency of the text.
-            
-        Returns: 
+
+        Returns:
             A text annotation object
-            
+
         Author: SMM
         """
 
@@ -1150,16 +1150,16 @@ class MapFigure(object):
     def add_text_annotation_from_shapely_points(self, points, label_dict={}, border_colour='k', text_colour='r', alpha=1):
         """
         This adds annotations from a dictionary of shapely points, for annotating basins or sources.
-        
-        
-        Args: 
+
+
+        Args:
             points: This is a dictionary the keys are the raster values to annotate and the values are the point objects.
             label_dict: The labels are also stored in a dictionary, where the key is the original value (e.g. basin
                 junction, and the value is a string that you want to label with (e.g. the basin key).
 
-        Returns: 
+        Returns:
             A text annotation object
-        
+
         FJC 24/06/17
         """
         from shapely.geometry import Point
@@ -1181,7 +1181,7 @@ class MapFigure(object):
         this_ylim = self.ax_list[0].get_ylim()
 
         # Format the bounding box
-        bbox_props = dict(boxstyle="circle,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
+        bbox_props = dict(boxstyle="Round4,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
 
         for key, point in points.iteritems():
             x = point.x
@@ -1198,20 +1198,20 @@ class MapFigure(object):
     def add_text_annotation_from_shapely_points_v2(self, points, label_dict={}, border_colour='k', text_colour='r', alpha=1):
         """
         This adds annotations from a dictionary of shapely points, for annotating basins or sources.
-        
-        THIS WORKS IN SMM's USE CASE 
+
+        THIS WORKS IN SMM's USE CASE
         I'm retaining the old one so not to break fionas code
-        
-        
-        
-        Args: 
+
+
+
+        Args:
             points: This is a dictionary the keys are the raster values to annotate and the values are the point objects.
             label_dict: The labels are also stored in a dictionary, where the key is the original value (e.g. basin
                 junction, and the value is a string that you want to label with (e.g. the basin key).
 
-        Returns: 
+        Returns:
             A text annotation object
-        
+
         SMM 24/06/17
         """
         from shapely.geometry import Point
@@ -1229,7 +1229,7 @@ class MapFigure(object):
         for key, point in points.iteritems():
             x = point.x
             y = point.y
-            
+
             # If there is no label dict, just append with the text
             if len(label_dict) == 0:
                 texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center'))
@@ -1237,7 +1237,7 @@ class MapFigure(object):
                 if key in label_dict:
                     this_label = str(label_dict[key])
                     texts.append(self.ax_list[0].text(point.x, point.y, this_label, fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center'))
-                    
+
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
         self.ax_list[0].set_ylim(this_ylim)
@@ -1288,10 +1288,10 @@ class MapFigure(object):
 
     def _set_coord_type(self, coord_type):
         """Sets the coordinate type
-        
-        Args: 
+
+        Args:
             coord_type (string): The coordinate type. See options below
-            
+
         Author: SMM
         """
         if coord_type == "UTM":
@@ -1321,19 +1321,19 @@ class MapFigure(object):
         self.fig.show()
 
     def save_fig(self,fig_width_inches = 4,FigFileName = 'TestFig.png',
-                 FigFormat = 'png',Fig_dpi = 100, 
+                 FigFormat = 'png',Fig_dpi = 100,
                  axis_style = "Normal", transparent=False):
         """
         This saves the figure to file.
-        
+
         Args:
-            fig_width_inches (float): The figure width in inches. It is in inches because yanks wrote matplotlib and that is the unit of measurement. 
+            fig_width_inches (float): The figure width in inches. It is in inches because yanks wrote matplotlib and that is the unit of measurement.
             FigFilename (str): The filename. You will need to add the directory here if you want it somewhere other than your python working directory.
             FigFormat (str): Figure format. Can be png, svg, pdf, gif, etc.
             Fig_dpi (int): dots per inch
             axis_stlye (string): This sets the axis style. Options are "Normal","Thick","Thin","Big", and "Madhouse"
             transparent (bool): If true the background is transparent (i.e., you don't get a white rectangle in the background)
-        
+
         Author: SMM
         """
 
@@ -1401,13 +1401,13 @@ class MapFigure(object):
 
     def SetRCParams(self,label_size):
         """
-        This sets some RC params. 
-        
+        This sets some RC params.
+
         Args:
             label_size(int): Font size of the labels
-            
+
         Author: DAV
-        
+
         """
         print("I am setting the font size to: "+str(label_size))
         rcParams['font.family'] = 'sans-serif'
