@@ -11,6 +11,10 @@
 #=============================================================================
 # IMPORT MODULES
 #=============================================================================
+# set backend to run on server
+import matplotlib
+matplotlib.use('Agg')
+
 import numpy as np
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
@@ -1352,7 +1356,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
 if __name__ == "__main__":
 
     # Change these filenames and paths to suit your own files
-    DataDirectory = '/home/s0923330/DEMs_for_analysis/kentucky_srtm/Chi_analysis_sigma_50/'
+    DataDirectory = '/home/s0923330/LSDTopoData/movern_analysis/kentucky_srtm/Chi_analysis_sigma_10/'
     #fname_prefix = 'Kentucky_DEM'
     #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
