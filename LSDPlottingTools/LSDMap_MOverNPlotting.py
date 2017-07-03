@@ -1,5 +1,5 @@
 #=============================================================================
-# This script creates figures for visualising the m/n selection using the chi
+# These functions create figures for visualising the m/n selection using the chi
 # mapping tool.
 #
 # It creates separate plots for each basin in the DEM.
@@ -1352,38 +1352,3 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
-
-if __name__ == "__main__":
-
-    # Change these filenames and paths to suit your own files
-    DataDirectory = '/home/s0923330/LSDTopoData/movern_analysis/kentucky_srtm/Chi_analysis_sigma_10/'
-    #fname_prefix = 'Kentucky_DEM'
-    #DataDirectory = 'T:\\analysis_for_papers\\movern_testing\\'
-    #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Irian_jaya\\'
-    fname_prefix = 'Kentucky_DEM'
-
-    # specify the figure size and format
-    size_format='ESURF'
-    FigFormat = 'png'
-
-    # either specify a list of the basins, or set as empty to get all of them
-    basin_list = []
-
-    # specify the m/n values tested
-    start_movern = 0.2
-    d_movern = 0.1
-    n_movern = 8
-
-    # analyse the MLE
-    #CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern=0.2, d_movern=0.1, n_movern=7)
-    #PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-    #PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list=basin_list, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
-
-    # run the plotting functions
-    #MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
-    # MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern,
-    #                   size_format=size_format, FigFormat=FigFormat)
-
-    # run the raster plotting
-    #MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format, FigFormat)
-    MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern, d_movern, size_format, FigFormat)
