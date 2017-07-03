@@ -14,7 +14,7 @@ matplotlib.use('Agg')
 #from __future__ import print_function
 import sys
 import os
-import LSDPlottingTools as LSDP
+from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.
@@ -74,14 +74,14 @@ def main(argv):
             this_dir = Directory+"/"+dir+'/'
             # make the plots depending on your choices
             if args.plot_rasters:
-                LSDP.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
-                LSDP.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, args.n_movern, args.d_movern, args.size_format, args.FigFormat)
+                MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
+                MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, args.n_movern, args.d_movern, args.size_format, args.FigFormat)
             if args.plot_chi_profiles:
-                LSDP.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
+                MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
             if args.plot_outliers:
-                LSDP.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern)
+                MN.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern)
             if args.plot_MLE_movern:
-                LSDP.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
+                MN.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
 #=============================================================================
 if __name__ == "__main__":
     main(sys.argv[1:])
