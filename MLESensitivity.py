@@ -51,7 +51,7 @@ def main(argv):
     parser.add_argument("-MLE", "--plot_MLE_movern", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
     parser.add_argument("-start_movern", "--start_movern", type=float, default=0.2, help="Define the starting m/n value for testing, default = 0.2")
     parser.add_argument("-d_movern", "--d_movern", type=float, default=0.1, help="Define the change in m/n value for testing, default = 0.1")
-    parser.add_argument("-n_movern", "--n_movern", type=float, default=7, help="Define the number of m/n values for testing, default = 7")
+    parser.add_argument("-n_movern", "--n_movern", type=int, default=7, help="Define the number of m/n values for testing, default = 7")
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
     args = parser.parse_args()
@@ -67,21 +67,21 @@ def main(argv):
         Directory = os.getcwd()
 
     # loop through each sub-directory with the sensitivity results
-    driver_str = "driver"
-    raster_str = "bil"
+    MLE_str = "Chi_analysis_sigma_"
     for subdir, dirs, files in os.walk(Directory):
         for dir in dirs:
-            this_dir = Directory+"/"+dir+'/'
-            # make the plots depending on your choices
-            if args.plot_rasters:
-                MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
-                MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, args.n_movern, args.d_movern, args.size_format, args.FigFormat)
-            if args.plot_chi_profiles:
-                MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
-            if args.plot_outliers:
-                MN.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern)
-            if args.plot_MLE_movern:
-                MN.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
+            if MLE_str in dir:
+                this_dir = Directory+"/"+dir+'/'
+                # make the plots depending on your choices
+                if args.plot_rasters:
+                    MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
+                    MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, args.n_movern, args.d_movern, args.size_format, args.FigFormat)
+                if args.plot_chi_profiles:
+                    MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
+                if args.plot_outliers:
+                    MN.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern)
+                if args.plot_MLE_movern:
+                    MN.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
 #=============================================================================
 if __name__ == "__main__":
     main(sys.argv[1:])

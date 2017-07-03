@@ -1256,7 +1256,10 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='None')
 
     # add the basins drape
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = False, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys, cbar_type = int)
+    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory,
+                      use_keys_not_junctions = True, show_colourbar = True,
+                      discrete_cmap=True, n_colours=len(basin_keys), colorbarlabel = "Basin ID",
+                      colourmap = cmap, adjust_text = False)
 
     # add the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
@@ -1339,7 +1342,10 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
     # add the basins drape
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = mn_cmap, alpha = 0.8, colorbarlabel='Best fit m/n', discrete_cmap=True, n_colours=n_colours, show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=m_over_ns, cbar_type=float)
+    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, value_dict = MOverNDict,
+                      use_keys_not_junctions = True, show_colourbar = True,
+                      discrete_cmap=True, n_colours=8, colorbarlabel = "$m/n$",
+                      colourmap = mn_cmap, adjust_text = False)
 
     # plot the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
