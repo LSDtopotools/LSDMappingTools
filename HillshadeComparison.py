@@ -18,8 +18,8 @@ import matplotlib.pyplot as plt
 # This MUST come before you import the C hillshade pyx file if you are doing it
 # this way.
 ####################
-import pyximport
-pyximport.install()
+#import pyximport
+#pyximport.install()
 ####################
 
 from LSDPlottingTools import fast_hillshade as fasthill
@@ -29,12 +29,15 @@ import LSDPlottingTools.LSDMap_BasicPlotting as LSDMap_BP
 
 #Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/rainfall_maps/"
 Directory = "/mnt/SCRATCH/Dev/ExampleTopoDatasets/"
-BackgroundRasterName = "SanBern.bil"
+BackgroundRasterName = "indian_creek.bil"
 
 raster = LSDMap_IO.ReadRasterArrayBlocks(Directory + BackgroundRasterName)
 
 Cellsize = LSDMap_IO.GetGeoInfo(Directory + BackgroundRasterName)[3][1]
-NoDataValue = LSDMap_IO.getNoDataValue(Directory + BackgroundRasterName)
+try:
+    NoDataValue = float(LSDMap_IO.getNoDataValue(Directory + BackgroundRasterName))
+except TypeError:
+    NoDataValue = -9999.0
 print(Cellsize)
 
 # This could be tidied up (not hard coded data res)
@@ -42,12 +45,11 @@ ncols, nrows = raster.shape
 data_res = Cellsize
 
 # LSDMappingTools hillshade
-hs = LSDMap_BP.Hillshade(raster)
-
-plt.imshow(hs, cmap="gray")
-plt.show()
+#hs = LSDMap_BP.Hillshade(raster)
+#plt.imshow(hs, cmap="gray")
+#plt.show()
 
 #LSDRaster Cythonised version pf hillshade
 hs_nice = fasthill.Hillshade(raster, data_res, NoDataValue=NoDataValue)
-plt.imshow(hs_nice, cmap="gray")
-plt.show()
+#plt.imshow(hs_nice, cmap="gray")
+#plt.show()

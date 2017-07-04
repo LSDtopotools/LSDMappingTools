@@ -20,6 +20,7 @@ cimport numpy as np
 # Find out how many cores/CPUs we have available
 import multiprocessing
 cdef int num_threads_use = multiprocessing.cpu_count()
+print(num_threads_use)
 
 # Fix a data type for our arrays.
 DTYPE = np.float64
@@ -69,12 +70,12 @@ def Hillshade(np.ndarray[DTYPE_t, ndim=2] terrain_array,
   cdef float aspect_rad = 0
   cdef float dzdx = 0
   cdef float dzdy = 0
-  cdef int i, j = 0
+  cdef int i = 0, j = 0
 
   # We can safely turn off the Python Global Interpreter lock for these for loops
   with nogil, parallel(num_threads=num_threads_use):
     # OpenMP threads created for the outer loop.
-    for i in prange(ncols, schedule='default'):
+    for i in prange(ncols):
       for j in range(nrows):
           if terrain_array[i, j] != NoDataValue:
             dzdx = (((terrain_array[i, j+1] + 2*terrain_array[i+1, j] + terrain_array[i+1, j+1]) -
