@@ -11,10 +11,9 @@ but you could bundle a compiled c-object with the code for speed/convenience)
 
 @author: dav
 """
-
 import matplotlib.pyplot as plt
-
 # For on the fly compilation - remove if you are pre-compiling the Cython-library
+# e.g. with a setup.py script that builds your cython extension library
 # This MUST come before you import the C hillshade pyx file if you are doing it
 # this way.
 ####################
@@ -23,26 +22,20 @@ import matplotlib.pyplot as plt
 ####################
 
 from LSDPlottingTools import fast_hillshade as fasthill
-
 import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
 import LSDPlottingTools.LSDMap_BasicPlotting as LSDMap_BP
 
-#Directory = "/mnt/SCRATCH/Analyses/HydrogeomorphPaper/rainfall_maps/"
 Directory = "/mnt/SCRATCH/Dev/ExampleTopoDatasets/"
 BackgroundRasterName = "indian_creek.bil"
 
 raster = LSDMap_IO.ReadRasterArrayBlocks(Directory + BackgroundRasterName)
-
-Cellsize = LSDMap_IO.GetGeoInfo(Directory + BackgroundRasterName)[3][1]
+data_res = LSDMap_IO.GetGeoInfo(Directory + BackgroundRasterName)[3][1]
 try:
     NoDataValue = float(LSDMap_IO.getNoDataValue(Directory + BackgroundRasterName))
 except TypeError:
     NoDataValue = -9999.0
-print(Cellsize)
 
-# This could be tidied up (not hard coded data res)
 ncols, nrows = raster.shape
-data_res = Cellsize
 
 # LSDMappingTools hillshade
 #hs = LSDMap_BP.Hillshade(raster)
@@ -51,5 +44,5 @@ data_res = Cellsize
 
 #LSDRaster Cythonised version pf hillshade
 hs_nice = fasthill.Hillshade(raster, data_res, NoDataValue=NoDataValue)
-#plt.imshow(hs_nice, cmap="gray")
-#plt.show()
+plt.imshow(hs_nice, cmap="gray")
+plt.show()
