@@ -3,7 +3,7 @@
 This is a cython version of the nicer looking hillshade function in the
 LSDTopoTools core C++ libraries.
 
-@authour dav
+@author dav
 """
 
 # Cython rule of thumb no 1. If there are equivalent C-libraries for
