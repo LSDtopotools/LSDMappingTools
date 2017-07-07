@@ -1,8 +1,10 @@
 #fast_hillshade.pyx
-# This is cython version of the nicer looking hillshade function in the
-# LSDTopoTools core C++ libraries.
-#
-# author: DAV
+"""
+This is a cython version of the nicer looking hillshade function in the
+LSDTopoTools core C++ libraries.
+
+@author dav
+"""
 
 # Cython rule of thumb no 1. If there are equivalent C-libraries for
 # numpy stuff, use them. (E.g. math functions)
@@ -32,6 +34,7 @@ ctypedef np.float64_t DTYPE_t
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
+@cython.cdivision(True)
 def Hillshade(np.ndarray[DTYPE_t, ndim=2] terrain_array,
               float DataResolution, float azimuth = 315,
               float angle_altitude = 45,

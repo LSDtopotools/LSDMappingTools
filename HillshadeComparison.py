@@ -44,5 +44,7 @@ ncols, nrows = raster.shape
 
 #LSDRaster Cythonised version pf hillshade
 hs_nice = fasthill.Hillshade(raster, data_res, NoDataValue=NoDataValue)
-plt.imshow(hs_nice, cmap="gray")
-plt.show()
+# I tend to comment out these two lines profiling, so you
+# aren't actually profiling the matplotlib rendering...
+#plt.imshow(hs_nice, cmap="gray")
+#plt.show()
