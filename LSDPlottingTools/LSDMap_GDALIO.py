@@ -563,13 +563,15 @@ def ReadRasterArrayBlocks_numpy(raster_file,raster_band=1):
     # Alright now loading and converting the data
     print("I am now ingesting your raster")
     data_array = np.fromfile(raster_file,data_type).reshape(num_lines,num_col)
+    if(info_dtype in [1,2,3,12]):
+        data_array = data_array.astype(float)
     print("I nailed it")
     x_max = x_min + x_res*num_col
     y_min = y_max - y_res*num_lines
     print("I am returning the raster array and info")
     NoDataValue = no_data_hdr
     if NoDataValue is not None:
-        data_array[data_array==NoDataValue] = np.nan
+        data_array[data_array == NoDataValue] = np.nan
 
 
     return data_array
@@ -697,9 +699,9 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     # load in the raster using rasterio
     with rasterio.open(DataDirectory+RasterFile) as src:
         image = src.read(raster_band, masked=False)
-        
+
         msk = src.read_masks(1)
-                   
+
         results = (
         {'properties': {'raster_val': v}, 'geometry': s}
         for i, (s, v)
