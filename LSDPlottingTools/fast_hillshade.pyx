@@ -1,6 +1,8 @@
 #fast_hillshade.pyx
-# This is cython version of the nicer looking hillshade function in the
-# LSDTopoTools core C++ libraries.
+"""
+This is a cython version of the nicer looking hillshade function in the
+LSDTopoTools core C++ libraries.
+"""
 
 # Cython rule of thumb no 1. If there are equivalent C-libraries for
 # numpy stuff, use them. (E.g. math functions)
@@ -10,7 +12,6 @@ from libc.math cimport sin, cos, sqrt, M_PI, atan, atan2
 import cython
 cimport cython
 
-# Author: DAV, 2017
 import numpy as np
 cimport numpy as np
 
@@ -22,6 +23,7 @@ ctypedef np.float64_t DTYPE_t
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
+@cython.cdivision(True)
 def Hillshade(np.ndarray[DTYPE_t, ndim=2] terrain_array,
               float DataResolution, float azimuth = 315,
               float angle_altitude = 45,
@@ -42,17 +44,11 @@ def Hillshade(np.ndarray[DTYPE_t, ndim=2] terrain_array,
       DAV, SWDG, SMM
 
   """
-  #assert terrain_array.dtype == DTYPE_t
-
   cdef unsigned int ncols = terrain_array.shape[0]
   cdef unsigned int nrows = terrain_array.shape[1]
 
-  # DAV attempting mask nodata vals
-  #nodata_mask = terrain_array == NoDataValue
-  #terrain_array[nodata_mask] = np.nan
-
   # Ndarray best choice? Will revisit later...
-  cdef np.ndarray[DTYPE_t, ndim=2] HSarray = np.empty((ncols,nrows))
+  cdef np.ndarray[DTYPE_t, ndim=2] HSarray
   HSarray.fill(np.nan)
 
   #cdef float M_PI = np.pi
