@@ -62,9 +62,9 @@ def main(argv):
 
     # get the base directory
     if args.base_directory:
-        Directory = args.base_directory
+        this_dir = args.base_directory
     else:
-        Directory = os.getcwd()
+        this_dir = os.getcwd()
 
     # make the plots depending on your choices
     if args.plot_rasters:
