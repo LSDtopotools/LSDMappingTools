@@ -60,7 +60,7 @@ def Hillshade(np.ndarray[DTYPE_t, ndim=2] terrain_array,
   cdef unsigned int nrows = terrain_array.shape[1]
 
   # Ndarray best choice? Will revisit later...
-  cdef np.ndarray[DTYPE_t, ndim=2] HSarray
+  cdef np.ndarray[DTYPE_t, ndim=2] HSarray = np.empty((ncols,nrows))
   HSarray.fill(np.nan)
 
   cdef float zenith_rad = (90 - angle_altitude) * M_PI / 180.0
