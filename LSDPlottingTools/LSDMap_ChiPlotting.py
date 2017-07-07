@@ -2081,8 +2081,8 @@ def SegmentedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     # Get the slope, drainage area, basin ID and source ID
     median_log_S = PointData.QueryData('median_log_S')
     median_log_S = [float(10**x) for x in median_log_S]
-    mean_log_A = PointData.QueryData('mean_log_A')
-    mean_log_A = [float(10**x) for x in mean_log_A]
+    median_log_A = PointData.QueryData('median_log_A')
+    median_log_A = [float(10**x) for x in median_log_A]
     fitted_log_S = PointData.QueryData('segmented_log_S')
     fitted_log_S = [float(10**x) for x in fitted_log_S]    
     basin = PointData.QueryData('basin_key')
@@ -2091,49 +2091,52 @@ def SegmentedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     segment_number = [int(x) for x in segment_number]
 
     # get the errors
-    log_S_sterr = PointData.QueryData('logS_stdErr')
-    #log_S_sterr = [float(10**x) for x in log_S_sterr]
-
-
+    firstquartile= PointData.QueryData('logS_FirstQuartile')
+    firstquartile = [float(10**x) for x in firstquartile]
+    thirdquartile= PointData.QueryData('logS_ThirdQuartile')
+    thirdquartile = [float(10**x) for x in thirdquartile]
+    
+    #print("Size of quartiles: "+ str( len(firstquartile))+ " "+str( len(thirdquartile)))
+    
     # need to convert everything into arrays so we can mask different basins
     MedianLogSlope = np.asarray(median_log_S)
-    MeanLogArea = np.asarray(mean_log_A)
+    MedianLogArea = np.asarray(median_log_A)
+    FirstQuartile = np.asarray(firstquartile)
+    ThirdQuartile = np.asarray(thirdquartile)
     FittedLogS = np.asarray(fitted_log_S)
-    SlopeError = np.asarray(log_S_sterr)
     Basin = np.asarray(basin)
     segment_number = np.asarray(segment_number)
+    
+    # Get the errors
+    yerr_down= np.subtract(ThirdQuartile,median_log_S)
+    yerr_up= np.subtract(median_log_S,FirstQuartile)    
 
     # mask to just get the data for the basin of interest
     m = np.ma.masked_where(Basin!=basin_key, Basin)
     MedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
-    MeanLogArea = np.ma.masked_where(np.ma.getmask(m), MeanLogArea)
+    MedianLogArea = np.ma.masked_where(np.ma.getmask(m), MedianLogArea)
     FittedLogS = np.ma.masked_where(np.ma.getmask(m), FittedLogS)
-    SlopeError = np.ma.masked_where(np.ma.getmask(m), SlopeError)
     mask_segment_number = np.ma.masked_where(np.ma.getmask(m), segment_number)
     
-      
-    
-    
-
     # now make the slope area plot. Need to add a lot more here but just to test for now.
-    #plt.errorbar(MeanLogArea,MedianLogSlope,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
-    ax.scatter(MeanLogArea,MedianLogSlope,c="b",s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
+    plt.errorbar(MedianLogArea,MedianLogSlope,yerr=[yerr_up,yerr_down],fmt='o',ms=1,ecolor='k')
+    ax.scatter(MedianLogArea,MedianLogSlope,c="b",s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
 
     # now get the segments
     segments = np.unique(segment_number)  
-    n_segments = len(segments)
-    print("The unique segment numbers are: ")
-    print(segments)
-    print("There are: "+str(n_segments)+" of them")
+    #n_segments = len(segments)
+    #print("The unique segment numbers are: ")
+    #print(segments)
+    #print("There are: "+str(n_segments)+" of them")
     
     # Mask the data of the segments sequentially
     for segment in segments:
     # mask to just get the data for the basin of interest
         m = np.ma.masked_where(mask_segment_number!=segment, mask_segment_number)
         MedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
-        SegmentMeanLogArea = np.ma.masked_where(np.ma.getmask(m), MeanLogArea) 
+        SegmentMedianLogArea = np.ma.masked_where(np.ma.getmask(m), MedianLogArea) 
         SegmentFittedLogS = np.ma.masked_where(np.ma.getmask(m), FittedLogS) 
-        ax.plot(SegmentMeanLogArea,SegmentFittedLogS)
+        ax.plot(SegmentMedianLogArea,SegmentFittedLogS)
     
 
     ax.set_xlabel('Drainage area (m$^2$)')
