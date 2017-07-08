@@ -96,7 +96,7 @@ def MakeBinnedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
         LSDP.LSDMap_ChiPlotting.BinnedSlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
 
 def MakeSegmentedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
-                         size_format = 'ESURF', x_param='midpoints', y_param='mean'):
+                         size_format = 'ESURF',basin_keys = []):
     """
     This function makes a slope-area plot based on the raw data, using the
     channel file generated from the chi mapping tool (ends in the extension
@@ -110,6 +110,7 @@ def MakeSegmentedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         x_param (str): Key for which parameter to plot on the x axis, either 'midpoints' for the midpoints of the area data (default), or 'mean' for the mean of the area data.
         y_param (str): Key for which parameter to plot on the y axis, either 'mean' for the mean of the slope data (default), or 'median', for the median of the slope data.
+        basin_key (list): A list of the basin keys to plot. If empty, plot all the basins.
 
     Returns:
         Slope-area plot for each basin
@@ -129,16 +130,89 @@ def MakeSegmentedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
     basin = thisPointData.QueryData('basin_key')
     basin = [int(x) for x in basin]
     Basin = np.asarray(basin)
-    basin_keys = np.unique(Basin)
-    print('There are %s basins') %(len(basin_keys))
+    these_basin_keys = np.unique(Basin)
 
+    final_basin_keys = [] 
+    # A bit of logic for checking keys
+    if (len(basin_keys) == 0):
+        final_basin_keys = these_basin_keys
+    else:               
+        for basin in basin_keys:
+            if basin not in these_basin_keys:
+                print("You were looking for basin "+str(basin)+ " but it isn't in the basin keys.")
+            else:
+                final_basin_keys.append()
+            
 
-    #basin_keys = []
+    
+    print('There are %s basins') %(len(basin_keys))        
     #basin_keys.append(0)
-    FigFormat = "png"
-    for basin_key in basin_keys:
+    # Loop through the basin keys, making a plot for each one    
+    for basin_key in final_basin_keys:
         FileName = DEM_prefix+'_SA_plot_segmented_basin%s.%s' %(str(basin_key),FigFormat)
         LSDP.LSDMap_ChiPlotting.SegmentedSlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
+
+
+def MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
+                         size_format = 'ESURF', basin_keys = []):
+    """
+    This function makes a slope-area plot based on the raw data, using the
+    channel file generated from the chi mapping tool (ends in the extension
+    "_SAsegmented.csv".)  It has a separate plot for each basin and colour codes
+    the points by source node so different tributaries can be identified.
+
+    Args:
+        DataDirectory (str): the path to the directory with the csv file
+        DEM_prefix (str): name of your DEM without extension
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        basin_key (list): A list of the basin keys to plot. If empty, plot all the basins.
+
+    Returns:
+        Slope-area plot for each basin
+
+    Author: SMM
+    """
+    from LSDPlottingTools import LSDMap_PointTools as PointTools
+
+    # read in the csv file
+    segmented_csv_fname = DataDirectory+DEM_prefix+'_SAsegmented.csv'
+    print("I'm reading in the csv file "+segmented_csv_fname)
+    all_csv_fname = DataDirectory+DEM_prefix+'_SAvertical.csv'
+
+    # get the point data object
+    segmentedPointData = PointTools.LSDMap_PointData(segmented_csv_fname)
+    allPointData = PointTools.LSDMap_PointData(all_csv_fname)
+
+
+    # get the basin keys
+    basin = segmentedPointData.QueryData('basin_key')
+    basin = [int(x) for x in basin]
+    Basin = np.asarray(basin)
+    these_basin_keys = np.unique(Basin)
+
+    final_basin_keys = [] 
+    # A bit of logic for checking keys
+    if (len(basin_keys) == 0):
+        final_basin_keys = these_basin_keys
+    else:               
+        for basin in basin_keys:
+            if basin not in these_basin_keys:
+                print("You were looking for basin "+str(basin)+ " but it isn't in the basin keys.")
+            else:
+                final_basin_keys.append(basin)
+            
+
+    
+    print('There are %s basins') %(len(basin_keys))        
+    #basin_keys.append(0)
+    # Loop through the basin keys, making a plot for each one    
+    for basin_key in final_basin_keys:
+        FileName = DEM_prefix+'_SA_plot_raw_and_segmented_basin%s.%s' %(str(basin_key),FigFormat)
+        LSDP.LSDMap_ChiPlotting.SegmentedWithRawSlopeAreaPlot(segmentedPointData, allPointData,
+                                                              DataDirectory, FigFileName=FileName, 
+                                                              FigFormat=FigFormat, size_format=size_format, 
+                                                              basin_key=basin_key)
 
 
 
@@ -197,9 +271,12 @@ if __name__ == "__main__":
     DEM_prefix = "Xian2"
     #DataDirectory = '/home/s0923330/DEMs_for_analysis/mid_bailey_run_10m/'
     #DEM_prefix = 'bailey_dem_10m'
-    FigFormat='pdf'
+    FigFormat='png'
     x_param='mean'
     #MakeRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat='png', size_format = 'ESURF')
     #MakeBinnedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, x_param)
     #MakeChannelsMap(DataDirectory, DEM_prefix, FigFormat=FigFormat)
-    MakeSegmentedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, x_param)
+    #MakeSegmentedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat)
+    
+    these_basin_keys = [0,1,2]
+    MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
