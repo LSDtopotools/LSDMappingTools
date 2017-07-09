@@ -2163,7 +2163,7 @@ def SegmentedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
 
 def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFileName = 'Image.pdf',
                        FigFormat = 'show',size_format = "ESURF",basin_key = '0',
-                       colour_binned_data_by_segment = True):
+                       colourmap = "jet", n_colours = 5):
     """
     This function makes a slope-area plot from the chi mapping tool using the binned data.
 
@@ -2283,18 +2283,19 @@ def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFil
     mask_segment_number = np.ma.masked_where(np.ma.getmask(m), segment_number)
 
     # make a color map of fixed colors
-    NUM_COLORS = 2
-
+    NUM_COLORS = n_colours
+    # First we set the colourmap
     this_cmap = plt.cm.Set1
+    # then we use a normalization to map the colours between 0 and NUM_COLORS-1
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
-    plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+    # Now we make a scalar map. This is used to convert values in your dataset
+    # to values between 0 and 1 that can be called to convert to rgba
+    scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+    # If you want RGBA from this you use:  rgba_color = scalarMap.to_rgba(this_data)    
     segment_colors = [x % NUM_COLORS for x in mask_segment_number]
-    
-    
  
     # now make the slope area plot. Need to add a lot more here but just to test for now.
-    plt.errorbar(MedianLogArea,MedianLogSlope,yerr=[yerr_up,yerr_down],fmt='o',ms=1,ecolor="k")
-    ax.scatter(MedianLogArea,MedianLogSlope,c=segment_colors,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
+    #ax.scatter(MedianLogArea,MedianLogSlope,c=segment_colors,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
     #ax.scatter(MedianLogArea,MedianLogSlope,c=segment_colors,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
 
     # now get the segments
@@ -2308,14 +2309,15 @@ def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFil
     for segment in segments:
     # mask to just get the data for the basin of interest
         m = np.ma.masked_where(mask_segment_number!=segment, mask_segment_number)
-        MedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
+        SegmentMedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
         SegmentMedianLogArea = np.ma.masked_where(np.ma.getmask(m), MedianLogArea) 
         SegmentFittedLogS = np.ma.masked_where(np.ma.getmask(m), FittedLogS) 
         
-        #colour_index = segment % n_colours
-        #this_colour = colour_dict[colour_index]        
-        
-        ax.plot(SegmentMedianLogArea,SegmentFittedLogS)
+        # Now add the colours for the segments
+        tps_color = scalarMap.to_rgba(segment) 
+        ax.plot(SegmentMedianLogArea,SegmentFittedLogS,c=tps_color,zorder=-10)
+        ax.scatter(SegmentMedianLogArea,SegmentMedianLogSlope,c=tps_color,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
+        plt.errorbar(SegmentMedianLogArea,SegmentMedianLogSlope,yerr=[yerr_up,yerr_down],fmt='o',ms=1,ecolor=tps_color,zorder=0)
     
 
     ax.set_xlabel('Drainage area (m$^2$)')
