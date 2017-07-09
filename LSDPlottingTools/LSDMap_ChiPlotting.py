@@ -2162,9 +2162,8 @@ def SegmentedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
         fig.clf()
 
 def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFileName = 'Image.pdf',
-                       FigFormat = 'show',
-                       size_format = "ESURF",
-                       basin_key = '0'):
+                       FigFormat = 'show',size_format = "ESURF",basin_key = '0',
+                       colour_binned_data_by_segment = True):
     """
     This function makes a slope-area plot from the chi mapping tool using the binned data.
 
@@ -2282,10 +2281,21 @@ def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFil
     MedianLogArea = np.ma.masked_where(np.ma.getmask(m), MedianLogArea)
     FittedLogS = np.ma.masked_where(np.ma.getmask(m), FittedLogS)
     mask_segment_number = np.ma.masked_where(np.ma.getmask(m), segment_number)
+
+    # make a color map of fixed colors
+    NUM_COLORS = 2
+
+    this_cmap = plt.cm.Set1
+    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
+    plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+    segment_colors = [x % NUM_COLORS for x in mask_segment_number]
     
+    
+ 
     # now make the slope area plot. Need to add a lot more here but just to test for now.
-    plt.errorbar(MedianLogArea,MedianLogSlope,yerr=[yerr_up,yerr_down],fmt='o',ms=1,ecolor='k')
-    ax.scatter(MedianLogArea,MedianLogSlope,c="b",s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
+    plt.errorbar(MedianLogArea,MedianLogSlope,yerr=[yerr_up,yerr_down],fmt='o',ms=1,ecolor="k")
+    ax.scatter(MedianLogArea,MedianLogSlope,c=segment_colors,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
+    #ax.scatter(MedianLogArea,MedianLogSlope,c=segment_colors,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
 
     # now get the segments
     segments = np.unique(segment_number)  
@@ -2301,6 +2311,10 @@ def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFil
         MedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
         SegmentMedianLogArea = np.ma.masked_where(np.ma.getmask(m), MedianLogArea) 
         SegmentFittedLogS = np.ma.masked_where(np.ma.getmask(m), FittedLogS) 
+        
+        #colour_index = segment % n_colours
+        #this_colour = colour_dict[colour_index]        
+        
         ax.plot(SegmentMedianLogArea,SegmentFittedLogS)
     
 
