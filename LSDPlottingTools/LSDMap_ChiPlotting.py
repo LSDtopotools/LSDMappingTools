@@ -2586,17 +2586,19 @@ def BinnedRegression(BinnedPointData, basin_key):
     
     MSSlopeCompressed = np.ma.compressed(MS_Slope)
     MSAreaCompressed = np.ma.compressed(MS_Area)     
-    
+
     # get the regression from the main stem
     [MSresiduals,m,b,r,pvalue,stderr]= LSDStats.linregress_residuals(MSAreaCompressed,MSSlopeCompressed)   
     print("slope of mainstem regression is: "+str(m))
 
     # see if there are any outlying residuals
     [new_x,new_y, is_outlier_vec, m,b]= LSDStats.remove_outlying_residuals(MSAreaCompressed,MSSlopeCompressed,MSresiduals)
-    print("Removed outlier slope from all data: " +str(m))
+    print("Removed outlier slope from mainstem data: " +str(m))
 
     # get the regression from all the data
     [residuals,m,b,r,pvalue,stderr]= LSDStats.linregress_residuals(AreaCompressed,SlopeCompressed)   
     print("slope of all data is: "+str(m))
     
-
+    # see if there are any outlying residuals
+    [new_x,new_y, is_outlier_vec, m,b]= LSDStats.remove_outlying_residuals(AreaCompressed,SlopeCompressed,residuals)
+    print("Removed outlier slope from all data: " +str(m))

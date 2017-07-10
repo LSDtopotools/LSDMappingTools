@@ -258,9 +258,9 @@ def linregress_residuals(xdata,ydata):
     
     # Get the regression
     (m,b,r,pvalue,stderr)=stats.linregress(xdata,ydata)   
-    print("In regress1, m is: "+str(m))    
+    #print("In regress1, m is: "+str(m))    
     # get the residuals
-    residuals = xdata
+    residuals = np.copy(xdata)
     for idx,x in enumerate(xdata):
         yfit = m*x+b
         residuals[idx] = yfit-ydata[idx]
@@ -288,10 +288,6 @@ def remove_outlying_residuals(xdata,ydata,residuals):
     """
     from scipy import stats
 
-    # Get the regression
-    (m,b,r,pvalue,stderr)=stats.linregress(xdata,ydata)  
-    print("In regress2, m is: "+str(m))
-    
     # get the outliers
     is_outlier_vec = is_outlier(residuals, thresh=3.5)
     
@@ -302,34 +298,14 @@ def remove_outlying_residuals(xdata,ydata,residuals):
         if not is_outlier_vec[idx]:
             new_x.append(xdata[idx])
             new_y.append(ydata[idx])
-        else:
-            print("I found an outlier, yo")
-     
-    
-    #print("Xdata:")
-    #print(xdata)
-    #print("new_x: ")
-    #print(new_x)
-    
-    #print("Ydata:")
-    #print(ydata)
-    #print("new_y:")
-    #print(new_y)
-    
-    
+  
     NX = np.asarray(new_x)
     NY = np.asarray(new_y)
     
     # now get the new regression
     (m,b,r,pvalue,stderr)=stats.linregress(NX,NY)
-    #print("linregress m is: "+str(m) )
-    
-    
-    #(m,b,r,pvalue,stderr)=stats.linregress(xdata,ydata) 
-    #print("And the raw data: "+str(m))
 
-    
-    return (np.asarray(new_x),np.asarray(new_y), is_outlier_vec, m,b)
+    return (NX,NY, is_outlier_vec, m,b)
     
     
     
