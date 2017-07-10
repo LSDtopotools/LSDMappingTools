@@ -18,6 +18,7 @@ import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
 import LSDPlottingTools.LSDMap_BasicPlotting as LSDMap_BP
 import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
 import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
+import LSDPlottingTools.statsutilities as LSDStats
 
 
 def ConvertBasinIndexToJunction(BasinPointData,BasinIndexList):
@@ -2508,3 +2509,92 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
         save_fmt = FigFormat
         plt.savefig(DataDirectory+FigFileName,format=save_fmt,dpi=500)
         fig.clf()
+
+
+
+
+
+def BinnedRegression(BinnedPointData, basin_key):
+    """
+    This function makes a slope-area plot from the chi mapping tool using the binned data.
+    It plots all the sources and all the raw data as semitransparent background.
+
+    Args:
+        PointData : LSDPointData object produced from the csv file with binned and segmented slope area data. Produced by chi mapping tool. It should have the extension "_SAsegmented.csv"
+        FigFileName (str): The name of the figure file
+        basin_key (int): the ID of the basin to make the plot for.#
+        
+    Returns:
+         Does not return anything but makes a plot.
+
+    Author: SMM
+    """
+        
+    # Get the slope, drainage area, basin ID and source ID
+    median_log_S = BinnedPointData.QueryData('median_log_S')
+    median_log_S = [float(x) for x in median_log_S]
+    median_log_A = BinnedPointData.QueryData('median_log_A')
+    median_log_A = [float(x) for x in median_log_A] 
+    basin = BinnedPointData.QueryData('basin_key')
+    basin = [int(x) for x in basin]
+    source_number = BinnedPointData.QueryData('source_key')
+    source_number = [int(x) for x in source_number]
+    
+    # get the errors
+    firstquartile= BinnedPointData.QueryData('logS_FirstQuartile')
+    firstquartile = [float(x) for x in firstquartile]
+    thirdquartile= BinnedPointData.QueryData('logS_ThirdQuartile')
+    thirdquartile = [float(x) for x in thirdquartile]
+
+    print("The lengths of the data vectors:")
+    print(len(median_log_S))
+    print(len(median_log_A))
+    print(len(basin))
+    print(len(source_number))    
+    #print("Size of quartiles: "+ str( len(firstquartile))+ " "+str( len(thirdquartile)))
+    
+    # need to convert everything into arrays so we can mask different basins
+    MedianLogSlope = np.asarray(median_log_S)
+    MedianLogArea = np.asarray(median_log_A)
+    FirstQuartile = np.asarray(firstquartile)
+    ThirdQuartile = np.asarray(thirdquartile)
+    Basin = np.asarray(basin)
+    SourceNumber = np.asarray(source_number)
+    
+    # Get the errors
+    yerr_down= np.subtract(ThirdQuartile,median_log_S)
+    yerr_up= np.subtract(median_log_S,FirstQuartile)    
+
+    # mask to just get the data for the basin of interest
+    print("The basin key is: "+str(basin_key))
+    m = np.ma.masked_where(Basin!=basin_key, Basin)
+    MedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
+    MedianLogArea = np.ma.masked_where(np.ma.getmask(m), MedianLogArea)
+    SourceNumber = np.ma.masked_where(np.ma.getmask(m), SourceNumber)
+    
+    # get the compressed data
+    SlopeCompressed = np.ma.compressed(MedianLogSlope)
+    AreaCompressed = np.ma.compressed(MedianLogArea)  
+    SourceCompressed = np.ma.compressed(SourceNumber)
+    
+    # get main stem source
+    mainstem_source = SourceCompressed[0]
+    
+    m2 = np.ma.masked_where(SourceCompressed!=mainstem_source, SourceCompressed)
+    MS_Slope =  np.ma.masked_where(np.ma.getmask(m2), SlopeCompressed)
+    MS_Area = np.ma.masked_where(np.ma.getmask(m2), AreaCompressed)
+    
+    MSSlopeCompressed = np.ma.compressed(MS_Slope)
+    MSAreaCompressed = np.ma.compressed(MS_Area) 
+    
+    print("Mainstem area is: ")
+    print(MSAreaCompressed)
+    print("Mainstem slope is: ")
+    print(MSSlopeCompressed)
+    
+    
+    # get the regression from the main stem
+    [residuals,m,b,r,pvalue,stderr]= LSDStats.linregress_residuals(MSAreaCompressed,MSSlopeCompressed)   
+    print("slope is: "+str(m))
+
+

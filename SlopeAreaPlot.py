@@ -277,7 +277,52 @@ def MakeBinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show'
                                                               basin_key=basin_key, n_colours = 10,
                                                               cmap = this_cmap)
 
+def BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = []):
+    """
+    This function analyses slope-area data based on the binned data, using the
+    channel file generated from the chi mapping tool (ends in the extension
+    "_SAbinned.csv".)  It has a separate plot for each basin and colour codes
+    the points by source node so different tributaries can be identified.
 
+    Args:
+        DataDirectory (str): the path to the directory with the csv file
+        DEM_prefix (str): name of your DEM without extension
+        basin_key (list): A list of the basin keys to plot. If empty, plot all the basins.
+
+    Returns:
+        Slope-area plot for each basin
+
+    Author: SMM
+    """
+    from LSDPlottingTools import LSDMap_PointTools as PointTools
+
+    # read in the csv file
+    binned_csv_fname = DataDirectory+DEM_prefix+'_SAbinned.csv'
+    print("I'm reading in the csv file "+binned_csv_fname)
+
+    # get the point data object
+    binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)
+
+    # get the basin keys
+    basin = binnedPointData.QueryData('basin_key')
+    basin = [int(x) for x in basin]
+    Basin = np.asarray(basin)
+    these_basin_keys = np.unique(Basin)
+
+    final_basin_keys = [] 
+    # A bit of logic for checking keys
+    if (len(basin_keys) == 0):
+        final_basin_keys = these_basin_keys
+    else:               
+        for basin in basin_keys:
+            if basin not in these_basin_keys:
+                print("You were looking for basin "+str(basin)+ " but it isn't in the basin keys.")
+            else:
+                final_basin_keys.append(basin)
+            
+    # Loop through the basin keys, making a plot for each one    
+    for basin_key in final_basin_keys:
+        LSDP.LSDMap_ChiPlotting.BinnedRegression(binnedPointData, basin_key=basin_key)
 
 
 def MakeChannelsMap(DataDirectory, DEM_prefix, FigFormat = 'show',
@@ -342,6 +387,10 @@ if __name__ == "__main__":
     #MakeChannelsMap(DataDirectory, DEM_prefix, FigFormat=FigFormat)
     #MakeSegmentedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat)
     
-    these_basin_keys = [0,1,2]
-    MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
-    MakeBinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
+    #these_basin_keys = [0,1,2]
+    these_basin_keys = [10,11,12]
+    #MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
+    #MakeBinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
+    
+    BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = these_basin_keys)
+    
