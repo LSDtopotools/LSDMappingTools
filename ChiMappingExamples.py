@@ -27,9 +27,9 @@ if __name__ == "__main__":
     If you have set up your own directory structure you will need to modify
     the directory names.
     """
-    #DataDirectory = "T:\\analysis_for_papers\\Xian\\"
-    DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\'
-    Base_file = 'Xian'
+    DataDirectory = "T:\\analysis_for_papers\\Xian\\"
+    #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\'
+    Base_file = 'Xian2'
 
 
     """

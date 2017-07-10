@@ -235,9 +235,77 @@ def dixon_test(data, left=True, right=True, q_dict = ""):
 
     return outliers
 
+def linregress_residuals(xdata,ydata):
+    """
+    This function performs a linear regression and then gets the residuals
+    
+    Args:
+        xdata (array-like): The x data
+        ydata (array-like): The y data
+        
+    Returns:
+        residuals: the residuals of the regression
+        slope: the slope of regression line
+        intercept: intercept of the regression line
+        rvalue: correlation coeffficient
+        pvalue: two-sided p-value for a hypothesis test whose null hypothesis is that the slope is zero.
+        stderr: standard error of the estimated gradient
+    
+    Author: SMM
+    """
+    
+    from scipy import stats
+    
+    # Get the regression
+    (m,b,r,pvalue,stderr)=stats.linregress(xdata,ydata)  
 
+    # get the residuals
+    residuals = xdata
+    for idx,x in enumerate(xdata):
+        yfit = m*x+b
+        residuals[idx] = yfit-ydata[idx]
+        
+    return (residuals,m,b,r,pvalue,stderr)
 
+def remove_outlying_residuals(xdata,ydata,residuals):
+    """
+    This function removes data with outying residuals
+    
+    Args:
+        xdata (array-like): The x data
+        ydata (array-like): The y data    
+        residuals: The residuals
 
+        
+    Returns:
+        new_x: data with outlier removed
+        new_y: data with outliers removed
+        is_outlier_vec: A vec of bools denoiting if they are outliers
+        m: the slope of the regression
+        b: the intercept of the regression
+            
+    Author: SMM
+    """
+    from scipy import stats
+    
+    # get the outliers
+    is_outlier_vec = is_outlier(residuals, thresh=3.5)
+    
+    # now remove the outliers from the dataset
+    new_x = []
+    new_y = []
+    for idx,x in enumerate(xdata):
+        if not is_outlier_vec[idx]:
+            new_x.append(xdata[idx])
+            new_y.append(ydata[idx])
+            
+    # now get the new regression
+    (m,b,r,pvalue,stderr)=stats.linregress(new_x,new_y)
+    
+    return (np.asarray(new_x),np.asarray(new_y), is_outlier_vec, m,b)
+    
+    
+    
 
 
 
