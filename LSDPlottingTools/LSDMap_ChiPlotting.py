@@ -2546,11 +2546,11 @@ def BinnedRegression(BinnedPointData, basin_key):
     thirdquartile= BinnedPointData.QueryData('logS_ThirdQuartile')
     thirdquartile = [float(x) for x in thirdquartile]
 
-    print("The lengths of the data vectors:")
-    print(len(median_log_S))
-    print(len(median_log_A))
-    print(len(basin))
-    print(len(source_number))    
+    #print("The lengths of the data vectors:")
+    #print(len(median_log_S))
+    #print(len(median_log_A))
+    #print(len(basin))
+    #print(len(source_number))    
     #print("Size of quartiles: "+ str( len(firstquartile))+ " "+str( len(thirdquartile)))
     
     # need to convert everything into arrays so we can mask different basins
@@ -2585,16 +2585,18 @@ def BinnedRegression(BinnedPointData, basin_key):
     MS_Area = np.ma.masked_where(np.ma.getmask(m2), AreaCompressed)
     
     MSSlopeCompressed = np.ma.compressed(MS_Slope)
-    MSAreaCompressed = np.ma.compressed(MS_Area) 
-    
-    print("Mainstem area is: ")
-    print(MSAreaCompressed)
-    print("Mainstem slope is: ")
-    print(MSSlopeCompressed)
-    
+    MSAreaCompressed = np.ma.compressed(MS_Area)     
     
     # get the regression from the main stem
-    [residuals,m,b,r,pvalue,stderr]= LSDStats.linregress_residuals(MSAreaCompressed,MSSlopeCompressed)   
-    print("slope is: "+str(m))
+    [MSresiduals,m,b,r,pvalue,stderr]= LSDStats.linregress_residuals(MSAreaCompressed,MSSlopeCompressed)   
+    print("slope of mainstem regression is: "+str(m))
 
+    # see if there are any outlying residuals
+    [new_x,new_y, is_outlier_vec, m,b]= LSDStats.remove_outlying_residuals(MSAreaCompressed,MSSlopeCompressed,MSresiduals)
+    print("Removed outlier slope from all data: " +str(m))
+
+    # get the regression from all the data
+    [residuals,m,b,r,pvalue,stderr]= LSDStats.linregress_residuals(AreaCompressed,SlopeCompressed)   
+    print("slope of all data is: "+str(m))
+    
 
