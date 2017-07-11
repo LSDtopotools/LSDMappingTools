@@ -52,7 +52,7 @@ def MakeRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
 
     for basin_key in basin_keys:
         FileName = DEM_prefix+'_SA_plot_basin%s.%s' %(str(basin_key),FigFormat)
-        LSDP.LSDMap_ChiPlotting.SlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
+        LSDP.LSDMap_SAPlotting.SlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
 
 def MakeBinnedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
                          size_format = 'ESURF', x_param='midpoints', y_param='mean'):
@@ -93,7 +93,7 @@ def MakeBinnedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
 
     for basin_key in basin_keys:
         FileName = DEM_prefix+'_SA_plot_binned_basin%s.%s' %(str(basin_key),FigFormat)
-        LSDP.LSDMap_ChiPlotting.BinnedSlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
+        LSDP.LSDMap_SAPlotting.BinnedSlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
 
 def MakeSegmentedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
                          size_format = 'ESURF',basin_keys = []):
@@ -150,7 +150,7 @@ def MakeSegmentedSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
     # Loop through the basin keys, making a plot for each one    
     for basin_key in final_basin_keys:
         FileName = DEM_prefix+'_SA_plot_segmented_basin%s.%s' %(str(basin_key),FigFormat)
-        LSDP.LSDMap_ChiPlotting.SegmentedSlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
+        LSDP.LSDMap_SAPlotting.SegmentedSlopeAreaPlot(thisPointData, DataDirectory, FigFileName=FileName, FigFormat=FigFormat, size_format=size_format, basin_key=basin_key)
 
 
 def MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show',
@@ -210,7 +210,7 @@ def MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'sh
     # Loop through the basin keys, making a plot for each one    
     for basin_key in final_basin_keys:
         FileName = DEM_prefix+'_SA_plot_raw_and_segmented_basin%s.%s' %(str(basin_key),FigFormat)
-        LSDP.LSDMap_ChiPlotting.SegmentedWithRawSlopeAreaPlot(segmentedPointData, allPointData,
+        LSDP.LSDMap_SAPlotting.SegmentedWithRawSlopeAreaPlot(segmentedPointData, allPointData,
                                                               DataDirectory, FigFileName=FileName, 
                                                               FigFormat=FigFormat, size_format=size_format, 
                                                               basin_key=basin_key,cmap = this_cmap, n_colours = 10)
@@ -271,7 +271,7 @@ def MakeBinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat = 'show'
     # Loop through the basin keys, making a plot for each one    
     for basin_key in final_basin_keys:
         FileName = DEM_prefix+'_SA_plot_raw_and_binned_basin%s.%s' %(str(basin_key),FigFormat)
-        LSDP.LSDMap_ChiPlotting.BinnedWithRawSlopeAreaPlot(binnedPointData, allPointData,
+        LSDP.LSDMap_SAPlotting.BinnedWithRawSlopeAreaPlot(binnedPointData, allPointData,
                                                               DataDirectory, FigFileName=FileName, 
                                                               FigFormat=FigFormat, size_format=size_format, 
                                                               basin_key=basin_key, n_colours = 10,
@@ -322,7 +322,7 @@ def BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = []):
             
     # Loop through the basin keys, making a plot for each one    
     for basin_key in final_basin_keys:
-        LSDP.LSDMap_ChiPlotting.BinnedRegression(binnedPointData, basin_key=basin_key)
+        LSDP.LSDMap_SAPlotting.BinnedRegression(binnedPointData, basin_key=basin_key)
 
 
 def MakeChannelsMap(DataDirectory, DEM_prefix, FigFormat = 'show',
@@ -375,9 +375,10 @@ def MakeChannelsMap(DataDirectory, DEM_prefix, FigFormat = 'show',
 
 if __name__ == "__main__":
 
+    DataDirectory = "T:\\analysis_for_papers\\Xian\\"
     #DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
-    DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\"
-    DEM_prefix = "Xian2"
+    #DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\"
+    DEM_prefix = "Xian3"
     #DataDirectory = '/home/s0923330/DEMs_for_analysis/mid_bailey_run_10m/'
     #DEM_prefix = 'bailey_dem_10m'
     FigFormat='png'
@@ -389,8 +390,8 @@ if __name__ == "__main__":
     
     #these_basin_keys = [0,1,2]
     these_basin_keys = [10,11,12]
-    #MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
-    #MakeBinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
+    MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
+    MakeBinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
     
     BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = these_basin_keys)
     

@@ -12,6 +12,7 @@ from .LSDMap_GDALIO import *
 from .LSDMap_BasicManipulation import *
 from .LSDMap_PointTools import *
 from .LSDMap_ChiPlotting import *
+from .LSDMap_SAPlotting import *
 from .LSDMap_Subplots import *
 from .LSDMap_OSystemTools import *
 from .LSDMap_PlottingDriver import *
