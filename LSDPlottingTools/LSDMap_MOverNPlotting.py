@@ -89,6 +89,10 @@ def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_mov
     binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)  
     
     # Now get all the m/n values from the basin list
+    SA_movern_dict = SAPlot.BinnedRegressionDriver(DataDirectory, fname_prefix, basin_keys = basin_list)
+    
+    # Now do the same with the chi-derived m/n data
+    # WORKING HERE
 
 
 
