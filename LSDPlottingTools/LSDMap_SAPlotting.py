@@ -121,7 +121,72 @@ def SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = 'show', size_format = "E
                                                               cmap = this_cmap)
             else:
                 print("You selected an option that doesn't produce any plots. Turn either show raw or show segments to True.")
-            
+
+
+def BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = []):
+    """
+    This function goes through a basin list and reports back the best fit
+    m/n values for mainstem data, all data, and both of these with outliers removed
+    
+    Args:
+        DataDirectory (str): the path to the directory with the csv file
+        DEM_prefix (str): name of your DEM without extension
+        basin_keys (list): A list of the basin keys to plot. If empty, plot all the basins. 
+
+    Author: SMM
+    """
+    from LSDPlottingTools import LSDMap_PointTools as PointTools
+
+    print("These basin keys are: ")
+    print(basin_keys)
+
+    # read in binned data
+    binned_csv_fname = DataDirectory+DEM_prefix+'_SAbinned.csv'
+    print("I'm reading in the csv file "+binned_csv_fname)
+    binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)
+    
+    # get the basin keys and check if the basins in the basin list exist
+    basin = binnedPointData.QueryData('basin_key')
+    basin = [int(x) for x in basin]
+    Basin = np.asarray(basin)
+    these_basin_keys = np.unique(Basin)
+    
+    print("The unique basin keys are: ")
+    print(these_basin_keys)
+
+    final_basin_keys = [] 
+    # A bit of logic for checking keys
+    if (len(basin_keys) == 0):
+        final_basin_keys = these_basin_keys
+    else:               
+        for basin in basin_keys:
+            if basin not in these_basin_keys:
+                print("You were looking for basin "+str(basin)+ " but it isn't in the basin keys.")
+            else:
+                final_basin_keys.append(basin)
+                
+    print("The final basin keys are:")
+    print(final_basin_keys)
+
+    print("There are "+str(len(final_basin_keys))+"basins that I will plot") 
+    mn_by_basin_dict = {}      
+    #basin_keys.append(0)
+    # Loop through the basin keys, making a plot for each one    
+    for basin_key in final_basin_keys:
+
+        (m1,m2,m3,m4) = BinnedRegression(binnedPointData, basin_key)
+        this_basin_SA_mn = []
+        this_basin_SA_mn.append(m1)
+        this_basin_SA_mn.append(m2)
+        this_basin_SA_mn.append(m3)
+        this_basin_SA_mn.append(m4)
+        
+        mn_by_basin_dict[basin_key] = this_basin_SA_mn
+        
+    return mn_by_basin_dict
+        
+        
+         
 
 def SegmentedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
                        FigFormat = 'show',
@@ -677,17 +742,19 @@ def BinnedRegression(BinnedPointData, basin_key):
     MSAreaCompressed = np.ma.compressed(MS_Area)     
 
     # get the regression from the main stem
-    [MSresiduals,m,b,r,pvalue,stderr]= LSDStats.linregress_residuals(MSAreaCompressed,MSSlopeCompressed)   
-    print("slope of mainstem regression is: "+str(m))
+    [MSresiduals,m_ms,b,r,pvalue,stderr]= LSDStats.linregress_residuals(MSAreaCompressed,MSSlopeCompressed)   
+    #print("slope of mainstem regression is: "+str(m))
 
     # see if there are any outlying residuals
-    [new_x,new_y, is_outlier_vec, m,b]= LSDStats.remove_outlying_residuals(MSAreaCompressed,MSSlopeCompressed,MSresiduals)
-    print("Removed outlier slope from mainstem data: " +str(m))
+    [new_x,new_y, is_outlier_vec, m_ms_remove_outlier,b]= LSDStats.remove_outlying_residuals(MSAreaCompressed,MSSlopeCompressed,MSresiduals)
+    #print("Removed outlier slope from mainstem data: " +str(m))
 
     # get the regression from all the data
-    [residuals,m,b,r,pvalue,stderr]= LSDStats.linregress_residuals(AreaCompressed,SlopeCompressed)   
-    print("slope of all data is: "+str(m))
+    [residuals,m_all,b,r,pvalue,stderr]= LSDStats.linregress_residuals(AreaCompressed,SlopeCompressed)   
+    #print("slope of all data is: "+str(m))
     
     # see if there are any outlying residuals
-    [new_x,new_y, is_outlier_vec, m,b]= LSDStats.remove_outlying_residuals(AreaCompressed,SlopeCompressed,residuals)
-    print("Removed outlier slope from all data: " +str(m))
+    [new_x,new_y, is_outlier_vec, m_all_remove_outlier,b]= LSDStats.remove_outlying_residuals(AreaCompressed,SlopeCompressed,residuals)
+    #print("Removed outlier slope from all data: " +str(m))
+    
+    return(m_ms,m_ms_remove_outlier,m_all,m_all_remove_outlier)

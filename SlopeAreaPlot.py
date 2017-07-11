@@ -398,3 +398,6 @@ if __name__ == "__main__":
                       cmap = plt.cm.Set1, n_colours = 5,
                       basin_keys = these_basin_keys)
     
+    adict = LSDP.BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = these_basin_keys)
+    print(adict)
+    

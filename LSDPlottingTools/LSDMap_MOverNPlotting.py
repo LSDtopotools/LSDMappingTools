@@ -26,6 +26,7 @@ from LSDMapFigure import PlottingHelpers as Helper
 from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
 
+
 #=============================================================================
 #=============================================================================
 # ANALYSIS FUNCTIONS
@@ -60,6 +61,35 @@ def SimpleMaxMLECheck(BasinDF):
     # zip into a dictionary
     MOverNDict = dict(zip(basin_keys, MOverNs))
     return MOverNDict
+
+
+def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
+    """
+    This function compiles
+    
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.        
+    
+    Author: SMM
+    """
+
+
+    from LSDPlottingTools import LSDMap_PointTools as PointTools
+    from LSDPlottingTools import LSDMap_SAPlotting as SAPlot   
+  
+    # read in binned SA data
+    binned_csv_fname = DataDirectory+fname_prefix+'_SAbinned.csv'
+    print("I'm reading in the csv file "+binned_csv_fname)
+    binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)  
+    
+    # Now get all the m/n values from the basin list
+
 
 
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
