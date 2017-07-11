@@ -729,3 +729,74 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
             PolygonDict[this_val] = this_shape
 
     return PolygonDict
+
+#==============================================================================
+def PolygoniseRasterMerge(DataDirectory, RasterFile, OutputShapefile='polygons'):
+    """
+    This function takes in a raster and converts to a polygon shapefile using rasterio
+    from https://gis.stackexchange.com/questions/187877/how-to-polygonize-raster-to-shapely-polygons/187883#187883?newreg=8b1f507529724a8488ce4789ba787363
+    
+    This version recognises where there are multiple polygons with the same key and merges
+    them to a MultiPolygon using cascaded_union
+
+    Args:
+        DataDirectory (str): the data directory with the basin raster
+        RasterFile (str): the name of the raster
+        OutputShapefile (str): the name of the output shapefile WITHOUT EXTENSION. Default = 'polygons'
+
+    Returns:
+        Dictionary where key is the raster value and the value is a shapely polygon
+
+    Author: FJC
+    """
+    # import modules
+    import rasterio
+    from rasterio.features import shapes
+    from shapely.geometry import shape, Polygon, mapping
+    from shapely.ops import cascaded_union
+    import fiona
+
+    # define the mask
+    #mask = None
+    raster_band = 1
+
+    # get raster no data value
+    NDV = getNoDataValue(DataDirectory+RasterFile)
+
+    # load in the raster using rasterio
+    with rasterio.open(DataDirectory+RasterFile) as src:
+        image = src.read(raster_band, masked=False)
+
+        msk = src.read_masks(1)
+
+        results = (
+        {'properties': {'raster_val': v}, 'geometry': s}
+        for i, (s, v)
+        in enumerate(
+            shapes(image, mask=msk, transform=src.transform)))
+
+    # define shapefile attributes
+    # crs = src.crs.wkt
+    # print (crs)
+    crs = GetUTMEPSG(DataDirectory+RasterFile)
+    schema = {'geometry': 'Polygon',
+              'properties': { 'ID': 'float'}}
+
+
+
+    # transform results into shapely geometries and write to shapefile using fiona
+    geoms = list(results)
+    PolygonDict = {}
+    with fiona.open(DataDirectory+OutputShapefile, 'w', crs=crs, driver='ESRI Shapefile', schema=schema) as output:
+        for f in geoms:
+            this_shape = Polygon(shape(f['geometry']))
+            this_val = float(f['properties']['raster_val'])
+            if this_val in PolygonDict:
+                Polygons = [this_shape, PolygonDict[this_val]]
+                this_shape = cascaded_union(Polygons)
+            if this_val != NDV: # remove no data values
+                output.write({'geometry': mapping(this_shape), 'properties':{'ID': this_val}})
+                
+            PolygonDict[this_val] = this_shape
+
+    return PolygonDict
