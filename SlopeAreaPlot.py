@@ -390,8 +390,11 @@ if __name__ == "__main__":
     
     #these_basin_keys = [0,1,2]
     these_basin_keys = [10,11,12]
-    MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
-    MakeBinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
-    
-    BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = these_basin_keys)
+    #MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
+    #MakeBinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)    
+    #BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = these_basin_keys)
+    LSDP.SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = FigFormat,
+                      show_raw = True, show_segments = True,
+                      cmap = plt.cm.Set1, n_colours = 5,
+                      basin_keys = these_basin_keys)
     

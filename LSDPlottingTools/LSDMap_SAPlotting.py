@@ -22,238 +22,106 @@ import LSDPlottingTools.statsutilities as LSDStats
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## Slope-area functions
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-def SlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
-                       FigFormat = 'show',
-                       size_format = "ESURF",
-                       basin_key = '0'):
+def SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = 'show', size_format = "ESURF",
+                 show_raw = True, show_segments = True,
+                 cmap = plt.cm.Set1, n_colours = 10,
+                 basin_keys = []):
     """
-    This function makes a slope-area plot from the chi mapping tool.
-    This is a work in progress! Need to think about what we want to visualise:
-    I think maybe a separate plot for each basin, and then colour-code by source ID.
+    This is a driver function that manages plotting of Slope-Area data
 
     Args:
-        PointData : LSDPointData object produced from the csv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. It should have the extension "_SAvertical.csv"
-        FigFileName (str): The name of the figure file
+        DataDirectory (str): the path to the directory with the csv file
+        DEM_prefix (str): name of your DEM without extension
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
-        basin_key (int): the ID of the basin to make the plot for.
+        show_raw (bool): If true show raw data in background
+        show_segments (bool): If true, show the segmented main stem,
+        cmap (string or colourmap): the colourmap use to colour tributaries
+        n_colours (int): The number of coulours used in plotting tributaries
+        basin_keys (list): A list of the basin keys to plot. If empty, plot all the basins.
 
     Returns:
-         Does not return anything but makes a plot.
+        Slope-area plot for each basin
 
-    Author: FJC
+    Author: SMM
     """
-    import matplotlib.colors as colors
+    from LSDPlottingTools import LSDMap_PointTools as PointTools
 
-    label_size = 10
+    print("These basin keys are: ")
+    print(basin_keys)
 
-    # Set up fonts for plots
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = label_size
+    # read in binned data
+    binned_csv_fname = DataDirectory+DEM_prefix+'_SAbinned.csv'
+    print("I'm reading in the csv file "+binned_csv_fname)
+    binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)
+    
+    # Read in the raw data
+    if(show_raw): 
+        print("I am going to show the raw data.")
+        all_csv_fname = DataDirectory+DEM_prefix+'_SAvertical.csv'
+        allPointData = PointTools.LSDMap_PointData(all_csv_fname)
+    
+    # Read in the segmented data
+    if(show_segments):
+        print("I am going to show segments on the main stem.")
+        segmented_csv_fname = DataDirectory+DEM_prefix+'_SAsegmented.csv'    
+        segmentedPointData = PointTools.LSDMap_PointData(segmented_csv_fname)
 
-    # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
-        l_pad = -35
 
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
-    ax = fig.add_subplot(gs[25:100,10:95])
-
-    # Get the slope, drainage area, basin ID and source ID
-    slope = PointData.QueryData('slope')
-    slope = [float(x) for x in slope]
-    area = PointData.QueryData('drainage area')
-    area = [float(x) for x in area]
-    basin = PointData.QueryData('basin_key')
+    # get the basin keys and check if the basins in the basin list exist
+    basin = binnedPointData.QueryData('basin_key')
     basin = [int(x) for x in basin]
-    source = PointData.QueryData('source_key')
-    source = [int(x) for x in source]
-
-    # need to convert everything into arrays so we can mask different basins
-    Slope = np.asarray(slope)
-    Area = np.asarray(area)
     Basin = np.asarray(basin)
-    Source = np.asarray(source)
+    these_basin_keys = np.unique(Basin)
+    
+    print("The unique basin keys are: ")
+    print(these_basin_keys)
 
-    # mask to just get the data for the basin of interest
-    m = np.ma.masked_where(Basin!=basin_key, Basin)
-    maskSlope = np.ma.masked_where(np.ma.getmask(m), Slope)
-    maskArea = np.ma.masked_where(np.ma.getmask(m), Area)
-    maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
+    final_basin_keys = [] 
+    # A bit of logic for checking keys
+    if (len(basin_keys) == 0):
+        final_basin_keys = these_basin_keys
+    else:               
+        for basin in basin_keys:
+            if basin not in these_basin_keys:
+                print("You were looking for basin "+str(basin)+ " but it isn't in the basin keys.")
+            else:
+                final_basin_keys.append(basin)
+                
+    print("The final basin keys are:")
+    print(final_basin_keys)
+            
 
-    #colour by source - this is the same as the script to colour channels over a raster,
-    # (BasicChannelPlotGridPlotCategories) so that the colour scheme should match
-    # make a color map of fixed colors
-    NUM_COLORS = 15
-    this_cmap = plt.cm.Set1
-    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
-    plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
-    channel_data = [x % NUM_COLORS for x in maskSource]
-
-    # now make the slope area plot. Need to add a lot more here but just to test for now.
-    ax.scatter(maskArea,maskSlope,c=channel_data,cmap=this_cmap,s=10,marker="+",lw=1)
-    ax.set_xlabel('Drainage area (m$^2$)')
-    ax.set_ylabel('Slope (m/m)')
-
-    # log
-    ax.set_xscale('log')
-    ax.set_yscale('log')
-
-    # set axis limits
-    x_pad = 1000
-    y_pad = 0.00001
-    ax.set_ylim(np.min(maskSlope)-y_pad,0)
-    ax.set_xlim(np.min(maskArea)-x_pad,np.max(maskArea)+y_pad)
-
-    # return or show the figure
-    print("The figure format is: " + FigFormat)
-    if FigFormat == 'show':
-        plt.show()
-    elif FigFormat == 'return':
-        return fig
-    else:
-        save_fmt = FigFormat
-        plt.savefig(DataDirectory+FigFileName,format=save_fmt,dpi=500)
-        fig.clf()
-
-def BinnedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
-                       FigFormat = 'show',
-                       size_format = "ESURF",
-                       basin_key = '0', x_param = 'midpoints', y_param = 'mean'):
-    """
-    This function makes a slope-area plot from the chi mapping tool using the binned data.
-
-    Args:
-        PointData : LSDPointData object produced from the csv file with chi, chi slope, etc information. This file is produced by the chi_mapping_tool. It should have the extension "_SAbinned.csv"
-        FigFileName (str): The name of the figure file
-        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
-        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
-        basin_key (int): the ID of the basin to make the plot for.
-        x_param (str): Key for which parameter to plot on the x axis, either 'midpoints' for the midpoints of the area data (default), or 'mean' for the mean of the area data.
-        y_param (str): Key for which parameter to plot on the y axis, either 'mean' for the mean of the slope data (default), or 'median', for the median of the slope data.
-
-    Returns:
-         Does not return anything but makes a plot.
-
-    Author: FJC
-    """
-    import matplotlib.colors as colors
-    import matplotlib.ticker
-
-    label_size = 10
-
-    # Set up fonts for plots
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = label_size
-
-    # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
-        l_pad = -35
-
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
-    ax = fig.add_subplot(gs[25:100,10:95])
-
-    # Get the slope, drainage area, basin ID and source ID
-    mean_log_S = PointData.QueryData('mean_log_S')
-    mean_log_S = [float(10**x) for x in mean_log_S]
-    median_log_S = PointData.QueryData('median_log_S')
-    median_log_S = [float(10**x) for x in median_log_S]
-    mean_log_A = PointData.QueryData('mean_log_A')
-    mean_log_A = [float(10**x) for x in mean_log_A]
-    midpoints_A = PointData.QueryData('midpoints_log_A')
-    midpoints_A = [float(10**x) for x in midpoints_A]
-    basin = PointData.QueryData('basin_key')
-    basin = [int(x) for x in basin]
-    source = PointData.QueryData('source_key')
-    source = [int(x) for x in source]
-
-    # get the errors
-    log_S_sterr = PointData.QueryData('logS_stdErr')
-    log_S_sterr = [float(10**x) for x in log_S_sterr]
-    log_A_sterr = PointData.QueryData('logA_stdErr')
-    log_A_sterr = [float(10**x) for x in log_A_sterr]
-
-    # need to convert everything into arrays so we can mask different basins
-    MeanLogSlope = np.asarray(mean_log_S)
-    MedianLogSlope = np.asarray(median_log_S)
-    MeanLogArea = np.asarray(mean_log_A)
-    MidpointsArea = np.asarray(midpoints_A)
-    SlopeError = np.asarray(log_S_sterr)
-    AreaError = np.asarray(log_A_sterr)
-    Basin = np.asarray(basin)
-    Source = np.asarray(source)
-
-    # mask to just get the data for the basin of interest
-    m = np.ma.masked_where(Basin!=basin_key, Basin)
-    MeanLogSlope = np.ma.masked_where(np.ma.getmask(m), MeanLogSlope)
-    MedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
-    MeanLogArea = np.ma.masked_where(np.ma.getmask(m), MeanLogArea)
-    MidpointsArea = np.ma.masked_where(np.ma.getmask(m), MidpointsArea)
-    SlopeError = np.ma.masked_where(np.ma.getmask(m), SlopeError)
-    AreaError = np.ma.masked_where(np.ma.getmask(m), AreaError)
-    maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
-
-    #colour by source - this is the same as the script to colour channels over a raster,
-    # (BasicChannelPlotGridPlotCategories) so that the colour scheme should match
-    # make a color map of fixed colors
-    NUM_COLORS = 15
-    this_cmap = plt.cm.Set1
-    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
-    plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
-    channel_data = [x % NUM_COLORS for x in maskSource]
-
-    # now make the slope area plot. Need to add a lot more here but just to test for now.
-    if x_param == 'mean' and y_param == 'mean':
-        #plt.errorbar(MeanLogArea,MeanLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
-        ax.scatter(MeanLogArea,MeanLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
-    elif x_param == 'mean' and y_param == 'median':
-        #plt.errorbar(MeanLogArea,MedianLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
-        ax.scatter(MeanLogArea,MedianLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
-    elif x_param == 'midpoints' and y_param == 'median':
-        #plt.errorbar(MidpointsArea,MedianLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
-        ax.scatter(MidpointsArea,MedianLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
-    else:
-        #plt.errorbar(MidpointsArea,MeanLogSlope,xerr=AreaError,yerr=SlopeError,fmt='o',ms=1,ecolor='k')
-        ax.scatter(MidpointsArea,MeanLogSlope,c=channel_data,cmap=this_cmap,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
-
-    ax.set_xlabel('Drainage area (m$^2$)')
-    ax.set_ylabel('Slope (m/m)')
-
-    # log
-    ax.set_xscale('log')
-    ax.set_yscale('log')
-
-    # set axis limits
-    x_pad = 1000
-    y_pad = 0.00001
-    ax.set_ylim(np.min(MeanLogSlope)-y_pad,0)
-    ax.set_xlim(np.min(MeanLogArea)-x_pad,np.max(MeanLogArea)+y_pad)
-
-    # return or show the figure
-    print("The figure format is: " + FigFormat)
-    if FigFormat == 'show':
-        plt.show()
-    elif FigFormat == 'return':
-        return fig # return the axes object so can make nice subplots with the other plotting tools?
-    else:
-        save_fmt = FigFormat
-        plt.savefig(DataDirectory+FigFileName,format=save_fmt,dpi=500)
-        fig.clf()
+    this_cmap = cmap
+    print("There are "+str(len(final_basin_keys))+"basins that I will plot")        
+    #basin_keys.append(0)
+    # Loop through the basin keys, making a plot for each one    
+    for basin_key in final_basin_keys:
+        print("I am making a plot for basin: "+str(basin_key))
+        if(show_segments):
+            if(show_raw):            
+                FileName = DEM_prefix+'_SA_plot_raw_and_segmented_basin%s.%s' %(str(basin_key),FigFormat)
+                SegmentedWithRawSlopeAreaPlot(segmentedPointData, allPointData,
+                                                              DataDirectory, FigFileName=FileName, 
+                                                              FigFormat=FigFormat, size_format=size_format, 
+                                                              basin_key=basin_key,cmap = this_cmap, n_colours = n_colours)
+            else:
+                FileName = DEM_prefix+'_SA_plot_segmented_basin%s.%s' %(str(basin_key),FigFormat)
+                SegmentedSlopeAreaPlot(segmentedPointData, DataDirectory, 
+                                       FigFileName=FileName, FigFormat=FigFormat, 
+                                       size_format=size_format, basin_key=basin_key)
+                
+        else:
+            if(show_raw):                      
+                FileName = DEM_prefix+'_SA_plot_raw_and_binned_basin%s.%s' %(str(basin_key),FigFormat)
+                BinnedWithRawSlopeAreaPlot(binnedPointData, allPointData,
+                                                              DataDirectory, FigFileName=FileName, 
+                                                              FigFormat=FigFormat, size_format=size_format, 
+                                                              basin_key=basin_key, n_colours = n_colours,
+                                                              cmap = this_cmap)
+            else:
+                print("You selected an option that doesn't produce any plots. Turn either show raw or show segments to True.")
+            
 
 def SegmentedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
                        FigFormat = 'show',
