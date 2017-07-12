@@ -76,11 +76,12 @@ def main(argv):
     # check the basins
     print("You told me that the basin keys are: ")
     print(args.basin_keys)
-    these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
-    if len(these_basin_keys) == 0:
+        
+    if len(args.basin_keys) == 0:
         print("No basins found, I will plot all of them")
         these_basin_keys = []
     else:
+        these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
         print("The basins I will plot are:")
         print(these_basin_keys)
      
