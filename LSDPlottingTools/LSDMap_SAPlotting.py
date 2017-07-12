@@ -151,8 +151,8 @@ def BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = []):
     Basin = np.asarray(basin)
     these_basin_keys = np.unique(Basin)
     
-    print("The unique basin keys are: ")
-    print(these_basin_keys)
+    #print("The unique basin keys are: ")
+    #print(these_basin_keys)
 
     final_basin_keys = [] 
     # A bit of logic for checking keys
@@ -165,8 +165,8 @@ def BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = []):
             else:
                 final_basin_keys.append(basin)
                 
-    print("The final basin keys are:")
-    print(final_basin_keys)
+    #print("The final basin keys are:")
+    #print(final_basin_keys)
 
     print("There are "+str(len(final_basin_keys))+"basins that I will plot") 
     mn_by_basin_dict = {}      
