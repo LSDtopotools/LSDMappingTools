@@ -28,7 +28,7 @@ def print_welcome():
     print("Use the -wd flag to define the working directory.")
     print("If you don't do this I will assume the data is in the same directory as this script.")
     print("For help type:")
-    print("   python MLESensitivity.py -h\n")
+    print("   python PlotMOverNAnalysis.py -h\n")
     print("=======================================================================\n\n ")
 
 #=============================================================================
