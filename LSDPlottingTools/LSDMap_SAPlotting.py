@@ -617,8 +617,8 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
     # If you want RGBA from this you use:  rgba_color = scalarMap.to_rgba(this_data)    
 
     # now get the sources
-    sources = np.unique(SourceNumber)  
-
+    sources = np.unique(SourceNumber)
+    sources = np.ma.compressed(sources)
     
     # Mask the data of the segments sequentially
     for idx,source in enumerate(sources):
@@ -739,7 +739,7 @@ def BinnedRegression(BinnedPointData, basin_key):
     MS_Area = np.ma.masked_where(np.ma.getmask(m2), AreaCompressed)
     
     MSSlopeCompressed = np.ma.compressed(MS_Slope)
-    MSAreaCompressed = np.ma.compressed(MS_Area)     
+    MSAreaCompressed = np.ma.compressed(MS_Area)
 
     # get the regression from the main stem
     [MSresiduals,m_ms,b,r,pvalue,stderr]= LSDStats.linregress_residuals(MSAreaCompressed,MSSlopeCompressed)   
