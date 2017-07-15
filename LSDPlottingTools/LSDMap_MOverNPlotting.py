@@ -66,7 +66,7 @@ def SimpleMaxMLECheck(BasinDF):
 def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
     This function compiles
-    
+
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
@@ -74,56 +74,56 @@ def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_mov
         all the basins will be analysed. Default = basin 0.
         start_movern (float): the starting m/n value. Default is 0.2
         d_movern (float): the increment between the m/n values. Default is 0.1
-        n_movern (float): the number of m/n values analysed. Default is 7.        
-    
+        n_movern (float): the number of m/n values analysed. Default is 7.
+
     Author: SMM
     """
 
 
     from LSDPlottingTools import LSDMap_PointTools as PointTools
-    from LSDPlottingTools import LSDMap_SAPlotting as SAPlot   
-  
+    from LSDPlottingTools import LSDMap_SAPlotting as SAPlot
+
     # read in binned SA data
     binned_csv_fname = DataDirectory+fname_prefix+'_SAbinned.csv'
     print("I'm reading in the csv file "+binned_csv_fname)
-    binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)  
+    binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)
 
     # get the basin keys and check if the basins in the basin list exist
     basin = binnedPointData.QueryData('basin_key')
     basin = [int(x) for x in basin]
     Basin = np.asarray(basin)
     these_basin_keys = np.unique(Basin)
-    
+
     print("The unique basin keys are: ")
     print(these_basin_keys)
 
-    final_basin_keys = [] 
+    final_basin_keys = []
     # A bit of logic for checking keys
     if (len(basin_list) == 0):
         final_basin_keys = these_basin_keys
-    else:               
+    else:
         for basin in basin_list:
             if basin not in these_basin_keys:
                 print("You were looking for basin "+str(basin)+ " but it isn't in the basin keys.")
             else:
                 final_basin_keys.append(basin)
-                
+
     print("The final basin keys are:")
     print(final_basin_keys)
-    
+
     # Now get all the m/n values from the basin list
-    SA_movern_dict = SAPlot.BinnedRegressionDriver(DataDirectory, fname_prefix, 
+    SA_movern_dict = SAPlot.BinnedRegressionDriver(DataDirectory, fname_prefix,
                                                    basin_keys = final_basin_keys)
-    
+
     # Now do the same with the chi-derived m/n data
-    (Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict) = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=final_basin_keys, 
-                                 start_movern=start_movern, d_movern=d_movern, 
+    (Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict) = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=final_basin_keys,
+                                 start_movern=start_movern, d_movern=d_movern,
                                  n_movern=n_movern)
-    
+
     # Now print to files
     print("The best fit m.n for chi analysis are: ")
     print(best_fit_movern_dict)
-    
+
     # Now plot the figure
     PlotMOverNDicts(DataDirectory, fname_prefix, SA_movern_dict,best_fit_movern_dict, FigFormat = "png", size_format = "ESURF")
 
@@ -1428,18 +1428,18 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
 def PlotMOverNDicts(DataDirectory,fname_prefix,SA_based_dict,Chi_based_dict, FigFormat = "png", size_format = "ESURF"):
     """
     This plots the estimates of m over n for basins contained in the SA and Chi based dicts
-    
+
     Args:
         SA_based_dict (dict): A dictionary where the key is the basin and the values are lists of the best fit m/n for S-A plots
         Chi_based_dict (dict):  A dictionary where the key is the basin and the values are lists of the best fit m/n after removing outliers
 
     Author: SMM
     """
-    
-    # We need to deal with the colours. Each colour will indicate a different 
+
+    # We need to deal with the colours. Each colour will indicate a different
     # Data point
-    
-    
+
+
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
@@ -1460,49 +1460,78 @@ def PlotMOverNDicts(DataDirectory,fname_prefix,SA_based_dict,Chi_based_dict, Fig
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
     ax = fig.add_subplot(gs[5:100,10:95])
     ax.grid(zorder=-100)
-    
+
     # Loop through the basins adding data
     for basin in SA_based_dict:
         this_SA_list = SA_based_dict[basin]
         this_chi_list = Chi_based_dict[basin]
-        
+
         this_SA_list = np.multiply(this_SA_list,-1)
         full_list = np.concatenate((this_SA_list,this_chi_list))
         basin_list = [basin]*len(full_list)
-        
+
         colours = []
         this_num = -2
         for element in this_SA_list:
             colours.append(this_num)
             this_num = this_num+0.25
-            
+
         this_num = 1
         for element in this_chi_list:
             colours.append(this_num)
             this_num = this_num+0.25
-        
-        
+
+
         #print("Hey there pal, let me print out the two lists for you")
         #print(this_SA_list)
         #print(this_chi_list)
-        
+
         #print("These are the colour and basin lists")
         #print(full_list)
         #print(basin_list)
-        
-        
+
+
         #colours = range(len(full_list))
-        
-        
+
+
         ax.scatter(basin_list,full_list,c=colours,edgecolors='k',s=15,cmap = plt.cm.PuOr,zorder = 100)
-        
-    
-        
+
+
+
     # set the axes labels
     ax.set_xlabel('basin')
-    ax.set_ylabel('$m/n$')        
+    ax.set_ylabel('$m/n$')
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_MOverNbasins.'+FigFormat
-    plt.savefig(ImageName, format=FigFormat, dpi=300)    
-    fig.clf()    
-    
+    plt.savefig(ImageName, format=FigFormat, dpi=300)
+    fig.clf()
+
+#=============================================================================
+# SENSITIVITY FUNCTIONS
+# Functions that make plots of sensitivity tests on the m/n analysis
+#=============================================================================
+def PlotSensitivityResults(DataDirectory,fname_prefix, FigFormat = "png", size_format = "ESURF"):
+    """
+    This function makes a plot of the results of a sensitivity analysis on the m/n parameters.
+    You need to specify the base directory - will look in every folder in this base directory
+    with the prefix "Chi_analysis_sigma_" and get the m/n analysis in each sub-directory.
+
+    Args:
+        DataDirectory (str): the root data directory
+        fname_prefix (str): the DEM name without extension
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+
+    Author: FJC
+    """
+    # Get a big pandas dataframe with the best fit m/ns for each basin.
+    # We need the sigma value, basin key, and best fit m/n for each basin.
+    combined_df = []
+
+    # loop through each sub-directory with the sensitivity results
+    MLE_str = "Chi_analysis_sigma_"
+    for subdir, dirs, files in os.walk(DataDirectory):
+        for dir in dirs:
+            if MLE_str in dir:
+                this_dir = DataDirectory+"/"+dir+'/'
+                print this_dir

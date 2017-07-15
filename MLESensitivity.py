@@ -31,6 +31,12 @@ def print_welcome():
     print("=======================================================================\n\n ")
 
 #=============================================================================
+# This collates the results of the sensitivity analysis
+#=============================================================================
+def plot_sensitivity_results():
+
+
+#=============================================================================
 # This is the main function that runs the whole thing
 #=============================================================================
 def main(argv):
@@ -82,6 +88,10 @@ def main(argv):
                     MN.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern)
                 if args.plot_MLE_movern:
                     MN.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
+
+    # collate all the results to get the final figure
+    MN.PlotSensitivityResults(Directory, args.fname_prefix,FigFormat=args.FigFormat,size_format=args.size_format)
+
 #=============================================================================
 if __name__ == "__main__":
     main(sys.argv[1:])
