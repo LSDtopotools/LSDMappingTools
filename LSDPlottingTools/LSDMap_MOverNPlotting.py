@@ -1528,7 +1528,7 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
     import os
 
     # Try doing this as a dataframe and masking?!?!
-    combined_DF = {}
+    combined_DF = pd.DataFrame()
 
     # loop through each sub-directory with the sensitivity results
     MLE_str = "Chi_analysis_sigma_"
@@ -1544,9 +1544,12 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
                 # get the best fit m/n dataframe
                 BasinDF = Helper.ReadBasinStatsCSV(this_dir,fname_prefix)
                 MOverNDict = SimpleMaxMLECheck(BasinDF)
-                combined_dict[this_sigma] = MOverNDict
+                these_basin_keys = MOverNDict.keys()
+                these_m_over_ns = MOverNDict.values()
+                these_sigmas = [int(this_sigma)] * len(these_basin_keys)
+                
 
-    print combined_dict
+
 
     # Set up fonts for plots
     label_size = 10
