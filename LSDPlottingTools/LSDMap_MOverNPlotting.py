@@ -1528,7 +1528,8 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
     import os
 
     # Try doing this as a dataframe and masking?!?!
-    combined_DF = pd.DataFrame()
+    columns = ["sigma", "basin_key", "m_over_n"]
+    combined_DF = pd.DataFrame(columns=columns)
 
     # loop through each sub-directory with the sensitivity results
     MLE_str = "Chi_analysis_sigma_"
@@ -1538,18 +1539,18 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
                 this_dir = DataDirectory+"/"+dir+'/'
                 print this_dir
 
+                this_df = pd.DataFrame(columns=columns)
+
                 # get this value of sigma
                 this_sigma = (dir.split("_"))[-1]
 
                 # get the best fit m/n dataframe
                 BasinDF = Helper.ReadBasinStatsCSV(this_dir,fname_prefix)
                 MOverNDict = SimpleMaxMLECheck(BasinDF)
-                these_basin_keys = MOverNDict.keys()
-                these_m_over_ns = MOverNDict.values()
-                these_sigmas = [int(this_sigma)] * len(these_basin_keys)
-                
-
-
+                this_df['sigma'] = [int(this_sigma)] * len(MOverNDict)
+                this_df['basin_key'] = MOverNDict.keys()
+                this_df['m_over_n'] = MOverNDict.values()
+                combined_DF = combined_DF.append(this_df, ignore_index=True)
 
     # Set up fonts for plots
     label_size = 10
@@ -1570,18 +1571,31 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
     ax = fig.add_subplot(gs[5:100,10:95])
-    ax.grid(zorder=-100)
+    #ax.grid(zorder=-100)
 
-    for sigma, MOverNDict in combined_dict.iteritems():
-        print MOverNDict
-        these_sigmas = [int(sigma)] * len(MOverNDict)
-        these_m_over_ns = MOverNDict.values()
-        these_basin_keys = MOverNDict.keys()
-        ax.scatter(these_sigmas,these_m_over_ns,c=these_basin_keys, cmap=plt.cm.jet)
+    # now get the basin keys
+    basin_keys = combined_DF['basin_key'].unique()
+    basin_keys = [int(x) for x in basin_keys]
 
+    keys = []
+    sigmas = []
+    # loop through the basin keys and plot sigma and m/n for each basin
+    for key in basin_keys:
+        this_df = combined_DF.loc[combined_DF['basin_key'] == key]
+        #sort the data for plotting
+        this_df.sort_values('sigma',inplace=True)
+        this_df = this_df.loc[combined_DF['m_over_n'] > 0.2]
+        if not this_df.empty:
+            keys.append(int(key))
+            sigmas.append(this_df['sigma'].iloc[0])
+
+    ax.scatter(keys, sigmas, c='0.75', edgecolor='k')
+    #
     # set the axes labels
-    ax.set_xlabel('sigma')
-    ax.set_ylabel('$m/n$')
+    ax.set_xlabel('Basin key')
+    ax.set_ylabel('$\sigma$ where $m/n$ is invariant')
+    ax.set_xticks(basin_keys)
+
     # Save the figure
     ImageName = DataDirectory+fname_prefix+'_sensitivity.'+FigFormat
     plt.savefig(ImageName, format=FigFormat, dpi=300)

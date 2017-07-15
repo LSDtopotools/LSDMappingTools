@@ -43,7 +43,7 @@ def main(argv):
     # Get the arguments
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("-bd", "--base_directory", type=str, help="The base directory with the MLE analyses. If this isn't defined I'll assume it's the same as the current directory.")
+    parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the MLE analyses. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error.")
     parser.add_argument("-PR", "--plot_rasters", type=bool, default=False, help="If this is true, I'll make raster plots of the m/n value and basin keys")
     parser.add_argument("-PC", "--plot_chi_profiles", type=bool, default=False, help="If this is true, I'll make chi-elevation plots for each basin coloured by the MLE")
