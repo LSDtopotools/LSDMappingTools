@@ -84,7 +84,7 @@ def main(argv):
                     MN.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
 
     # collate all the results to get the final figure
-    MN.PlotSensitivityResults(Directory, args.fname_prefix,FigFormat=args.FigFormat,size_format=args.size_format)
+    MN.PlotSensitivityResultsSigma(Directory, args.fname_prefix,FigFormat=args.FigFormat,size_format=args.size_format)
 
 #=============================================================================
 if __name__ == "__main__":

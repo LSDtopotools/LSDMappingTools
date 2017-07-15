@@ -1384,7 +1384,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
     print ('Basin keys are: ')
     print basin_keys
 
-    # get the best fit m/n for each junction
+    # get the best fit m/n for each basin
     MOverNDict = SimpleMaxMLECheck(BasinDF)
     print MOverNDict
 
@@ -1510,9 +1510,10 @@ def PlotMOverNDicts(DataDirectory,fname_prefix,SA_based_dict,Chi_based_dict, Fig
 # SENSITIVITY FUNCTIONS
 # Functions that make plots of sensitivity tests on the m/n analysis
 #=============================================================================
-def PlotSensitivityResults(DataDirectory,fname_prefix, FigFormat = "png", size_format = "ESURF"):
+def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", size_format = "ESURF"):
     """
-    This function makes a plot of the results of a sensitivity analysis on the m/n parameters.
+    This function makes a plot of the results of a sensitivity analysis on sigma in the MLE method
+    of calculating m/n.
     You need to specify the base directory - will look in every folder in this base directory
     with the prefix "Chi_analysis_sigma_" and get the m/n analysis in each sub-directory.
 
@@ -1524,9 +1525,10 @@ def PlotSensitivityResults(DataDirectory,fname_prefix, FigFormat = "png", size_f
 
     Author: FJC
     """
-    # Get a big pandas dataframe with the best fit m/ns for each basin.
-    # We need the sigma value, basin key, and best fit m/n for each basin.
-    combined_df = []
+    import os
+
+    # Try doing this as a dataframe and masking?!?!
+    combined_DF = {}
 
     # loop through each sub-directory with the sensitivity results
     MLE_str = "Chi_analysis_sigma_"
@@ -1535,3 +1537,49 @@ def PlotSensitivityResults(DataDirectory,fname_prefix, FigFormat = "png", size_f
             if MLE_str in dir:
                 this_dir = DataDirectory+"/"+dir+'/'
                 print this_dir
+
+                # get this value of sigma
+                this_sigma = (dir.split("_"))[-1]
+
+                # get the best fit m/n dataframe
+                BasinDF = Helper.ReadBasinStatsCSV(this_dir,fname_prefix)
+                MOverNDict = SimpleMaxMLECheck(BasinDF)
+                combined_dict[this_sigma] = MOverNDict
+
+    print combined_dict
+
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
+    ax = fig.add_subplot(gs[5:100,10:95])
+    ax.grid(zorder=-100)
+
+    for sigma, MOverNDict in combined_dict.iteritems():
+        print MOverNDict
+        these_sigmas = [int(sigma)] * len(MOverNDict)
+        these_m_over_ns = MOverNDict.values()
+        these_basin_keys = MOverNDict.keys()
+        ax.scatter(these_sigmas,these_m_over_ns,c=these_basin_keys, cmap=plt.cm.jet)
+
+    # set the axes labels
+    ax.set_xlabel('sigma')
+    ax.set_ylabel('$m/n$')
+    # Save the figure
+    ImageName = DataDirectory+fname_prefix+'_sensitivity.'+FigFormat
+    plt.savefig(ImageName, format=FigFormat, dpi=300)
+    fig.clf()
