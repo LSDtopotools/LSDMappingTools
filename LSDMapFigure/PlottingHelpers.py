@@ -481,3 +481,33 @@ def ReadBasinStatsCSV(DataDirectory, fname_prefix):
     df = pd.read_csv(DataDirectory+fname)
 
     return df
+
+#--------------------------------------------------------------------------------#
+# Terraces
+#--------------------------------------------------------------------------------#
+
+def ReadTerraceCSV(DataDirectory, fname_prefix, outlet_jn):
+    """
+    This function reads in the file with the suffix '_swath_plots_junction_number.csv'
+    to a pandas dataframe
+    where junction_number is the outlet junction of the channel
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+        outlet_jn: the junction number of the outlet
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    jn_str = str(outlet_jn)
+
+    # get the csv filename
+    csv_suffix = '_swath_plots_'+jn_str+'.csv'
+
+    fname = fname_prefix+csv_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+    return df
