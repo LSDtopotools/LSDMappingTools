@@ -505,7 +505,7 @@ def ReadTerraceCSV(DataDirectory, fname_prefix, outlet_jn):
     jn_str = str(outlet_jn)
 
     # get the csv filename
-    csv_suffix = '_swath_plots_'+jn_str+'.csv'
+    csv_suffix = '_terrace_swath_plots_'+jn_str+'.csv'
 
     fname = fname_prefix+csv_suffix
     # read in the dataframe using pandas

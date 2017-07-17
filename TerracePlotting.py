@@ -67,7 +67,10 @@ def main(argv):
 
     # make the plots depending on your choices
     if args.plot_rasters:
-        Terraces.MakeTerraceIDRasterPlot(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
+        #Terraces.MakeTerraceIDRasterPlot(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
+        Terraces.MakeTerraceElevationRasterPlot(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
+    if args.plot_profiles:
+        Terraces.make_terrace_plots_all_files(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
 
 #=============================================================================
 if __name__ == "__main__":
