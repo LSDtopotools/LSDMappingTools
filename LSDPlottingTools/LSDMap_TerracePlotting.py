@@ -23,7 +23,7 @@ from LSDMapFigure import PlottingHelpers as Helper
 from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
 
-def MakeTerraceIDRasterPlot(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1, size_format='ESURF', FigFormat='png'):
+def MakeTerraceIDRasterPlot(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the terraces coloured by their unique ID
 
