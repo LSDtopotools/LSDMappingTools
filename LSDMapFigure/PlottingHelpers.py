@@ -482,6 +482,30 @@ def ReadBasinStatsCSV(DataDirectory, fname_prefix):
 
     return df
 
+def ReadChainCSV(DataDirectory, fname_prefix, basin_key):
+    """
+    This function reads in the file with the suffix '_BasinX_chain.csv'
+    to a pandas dataframe, where X is the basin key
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+        basin_key: the basin key
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    # get the csv filename
+    chain_suffix = '_Basin%s_chan.csv' %str(basin_key)
+    fname = fname_prefix+chain_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+
 #--------------------------------------------------------------------------------#
 # Terraces
 #--------------------------------------------------------------------------------#
