@@ -1524,6 +1524,27 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
 
     Author: FJC
     """
+
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
+    ax = fig.add_subplot(gs[5:100,10:95])
+
     # get the basin info
     basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
     basin_keys = basin_df['basin_key']
@@ -1535,9 +1556,19 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     for basin in basin_list:
         # read in the chain csv file
         chain_df = Helper.ReadChainCSV(DataDirectory,fname_prefix,int(basin))
-        print chain_df
 
+        # plot the parameter with number of iterations
+        ax.scatter(chain_df['i'], chain_df['movern_New'], s=5, edgecolor=None, marker='+', lw=0.5)
 
+        #set plot labels
+        ax.set_xlabel('N iterations')
+        ax.set_ylabel('$m/n$')
+        ax.set_title('Basin '+str(basin))
+
+        # save the figure
+        ImageName = DataDirectory+fname_prefix+'_MCMC_basin' +str(basin)+'.'+FigFormat
+        plt.savefig(ImageName, format=FigFormat, dpi=300)
+        ax.cla()
 
 #=============================================================================
 # SENSITIVITY FUNCTIONS
