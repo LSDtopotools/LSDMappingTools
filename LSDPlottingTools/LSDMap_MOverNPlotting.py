@@ -1549,6 +1549,9 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
     basin_keys = basin_df['basin_key']
 
+    basin_stats_df = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    MOverNDict = SimpleMaxMLECheck(basin_stats_df)
+
     if basin_list == []:
         print "You didn't give me a basin list so I'm going to plot all of them!"
         basin_list = basin_keys
@@ -1556,9 +1559,12 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     for basin in basin_list:
         # read in the chain csv file
         chain_df = Helper.ReadChainCSV(DataDirectory,fname_prefix,int(basin))
+        best_fit_movern = MOverNDict[basin]
+        best_fit_line = [best_fit_movern] * len(chain_df['i'])
 
         # plot the parameter with number of iterations
-        ax.scatter(chain_df['i'], chain_df['movern_New'], s=5, edgecolor=None, marker='+', lw=0.5)
+        ax.plot(chain_df['i'], chain_df['movern_New'], c='0.5', lw=0.5)
+        ax.plot(chain_df['i'], best_fit_line, 'k--', zorder=100)
 
         #set plot labels
         ax.set_xlabel('N iterations')
