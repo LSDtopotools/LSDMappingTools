@@ -1424,6 +1424,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
+#=============================================================================
+# UNCERTAINTY
+# Functions that make plots of uncertainties on the m/n analysis and comparison
+# between the different methods
+#=============================================================================
 
 def PlotMOverNDicts(DataDirectory,fname_prefix,SA_based_dict,Chi_based_dict, FigFormat = "png", size_format = "ESURF"):
     """
@@ -1505,6 +1510,34 @@ def PlotMOverNDicts(DataDirectory,fname_prefix,SA_based_dict,Chi_based_dict, Fig
     ImageName = DataDirectory+fname_prefix+'_MOverNbasins.'+FigFormat
     plt.savefig(ImageName, format=FigFormat, dpi=300)
     fig.clf()
+
+def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',size_format='ESURF'):
+    """
+    This function makes a plot of the MCMC uncertainty analysis for the MLE collinearity
+
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the DEM name without extension
+        basin_list: list of basins to analyse. If none are passed then all basins are plotted.
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+
+    Author: FJC
+    """
+    # get the basin info
+    basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
+    basin_keys = basin_df['basin_key']
+
+    if basin_list = []:
+        print "You didn't give me a basin list so I'm going to plot all of them!"
+        basin_list = basin_keys
+
+    for basin in basin_list:
+        # read in the chain csv file
+        chain_df = Helper.ReadChainCSV(DataDirectory,fname_prefix,int(basin))
+        print chain_df
+
+
 
 #=============================================================================
 # SENSITIVITY FUNCTIONS

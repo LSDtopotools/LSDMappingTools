@@ -54,6 +54,7 @@ def main(argv):
     parser.add_argument("-PO", "--plot_outliers", type=bool, default=False, help="If this is true, I'll make chi-elevation plots with the outliers removed")
     parser.add_argument("-MLE", "--plot_MLE_movern", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
     parser.add_argument("-SA", "--plot_SA_data", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
+    parser.add_argument("-MCMC" "--plot_MCMC", type=bool, default=False, help="If this is true, I'll make a plot of the MCMC analysis. Specify which basins you want with the -basin_keys flag.")
 
     # Plotting options
     parser.add_argument("-start_movern", "--start_movern", type=float, default=0.2, help="Define the starting m/n value for testing, default = 0.2")
@@ -61,7 +62,7 @@ def main(argv):
     parser.add_argument("-n_movern", "--n_movern", type=int, default=7, help="Define the number of m/n values for testing, default = 7")
     parser.add_argument("-show_SA_raw", "--show_SA_raw", type=bool, default=True, help="Show the raw S-A data in background of SA plot. Default = True")
     parser.add_argument("-show_SA_segments", "--show_SA_segments", type=bool, default=False, help="Show the segmented S-A data in SA plot. Default = False")
-    
+
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
 
     # These control the format of your figures
@@ -76,7 +77,7 @@ def main(argv):
     # check the basins
     print("You told me that the basin keys are: ")
     print(args.basin_keys)
-        
+
     if len(args.basin_keys) == 0:
         print("No basins found, I will plot all of them")
         these_basin_keys = []
@@ -84,7 +85,7 @@ def main(argv):
         these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
         print("The basins I will plot are:")
         print(these_basin_keys)
-     
+
 
 
 
@@ -107,7 +108,9 @@ def main(argv):
     if args.plot_SA_data:
         SA.SAPlotDriver(this_dir, args.fname_prefix, FigFormat = args.FigFormat,size_format=args.size_format,
                         show_raw = args.show_SA_raw, show_segments = args.show_SA_segments,basin_keys = these_basin_keys)
-    
+    if args.plot_MCMC:
+        MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= args.FigFormat, size_format=args.size_format)
+
 
 #=============================================================================
 if __name__ == "__main__":
