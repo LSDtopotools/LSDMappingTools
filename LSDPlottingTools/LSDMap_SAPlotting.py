@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 #from cycler import cycler
 from matplotlib import rcParams
+import pandas as pd
 #import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
 #import LSDMap_BasicManipulation as LSDMap_BM
 #import LSDMap_OSystemTools as LSDOst
@@ -19,6 +20,39 @@ from matplotlib import rcParams
 #import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
 import LSDPlottingTools.statsutilities as LSDStats
 
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## Test S-A
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def TestSARegression(DataDirectory, DEM_prefix):
+    # read in binned data
+    from scipy import stats
+    
+    
+    binned_csv_fname = DataDirectory+DEM_prefix+'_SAvertical.csv'
+    print("I'm reading in the csv file "+binned_csv_fname)
+    
+    
+    df = pd.DataFrame.from_csv(binned_csv_fname)
+    
+    #dfBK = df.basin_key
+    #print(dfBK)
+    
+    dfslope = df[df["basin_key"]==1]["slope"]
+    dfarea = df[df["basin_key"]==1]["drainage area"]
+    
+    S = dfslope.values
+    A = dfarea.values
+    
+    logS = np.log10(S)
+    logA= np.log10(A)
+    
+    slope, intercept, r_value, p_value, std_err = stats.linregress(logA,logS)
+    
+    print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2))
+
+    
+    
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## Slope-area functions
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

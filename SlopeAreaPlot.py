@@ -393,14 +393,17 @@ if __name__ == "__main__":
     #MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
     #MakeBinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)    
     #BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = these_basin_keys)
-    LSDP.SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = FigFormat,
-                      show_raw = True, show_segments = False,
-                      cmap = plt.cm.Set1, n_colours = 5,
-                      basin_keys = these_basin_keys)
+    #LSDP.SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = FigFormat,
+    #                  show_raw = True, show_segments = False,
+    #                  cmap = plt.cm.Set1, n_colours = 5,
+    #                  basin_keys = these_basin_keys)
+    LSDP.TestSARegression(DataDirectory, DEM_prefix)
+    
+    
     
     #adict = LSDP.BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = these_basin_keys)
     
-    from LSDPlottingTools import LSDMap_MOverNPlotting as MN
-    MN.CompareChiAndSAMOverN(DataDirectory, DEM_prefix, basin_list=these_basin_keys, start_movern=0.1, d_movern=0.1, n_movern=8)
+    #from LSDPlottingTools import LSDMap_MOverNPlotting as MN
+    #MN.CompareChiAndSAMOverN(DataDirectory, DEM_prefix, basin_list=these_basin_keys, start_movern=0.1, d_movern=0.1, n_movern=8)
     
     
