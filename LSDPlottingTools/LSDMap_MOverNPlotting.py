@@ -1559,11 +1559,20 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     for basin in basin_list:
         # read in the chain csv file
         chain_df = Helper.ReadChainCSV(DataDirectory,fname_prefix,int(basin))
-        best_fit_movern = MOverNDict[basin]
+
+        best_fit_movern = MOverNDict[int(basin)]
+        print "The best fit m/n is:", best_fit_movern
+        n_iterations = len(chain_df['i'])
+        #print n_iterations
         best_fit_line = [best_fit_movern] * len(chain_df['i'])
 
+        # find the accepted values
+        chain_df['AcceptedMask'] = chain_df['NAccepted'].diff()
+        masked_df = chain_df.where(chain_df['AcceptedMask'] == 1.0)
+        #print chain_df
+
         # plot the parameter with number of iterations
-        ax.plot(chain_df['i'], chain_df['movern_New'], c='0.5', lw=0.5)
+        ax.plot(masked_df['i'], masked_df['movern_New'], c='0.5', lw=0.5, zorder=1)
         ax.plot(chain_df['i'], best_fit_line, 'k--', zorder=100)
 
         #set plot labels
