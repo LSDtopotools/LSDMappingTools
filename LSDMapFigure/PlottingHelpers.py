@@ -498,7 +498,7 @@ def ReadChainCSV(DataDirectory, fname_prefix, basin_key):
     Author: FJC
     """
     # get the csv filename
-    chain_suffix = '_Basin%s_chan.csv' %str(basin_key)
+    chain_suffix = '_Basin%s_chain.csv' %str(basin_key)
     fname = fname_prefix+chain_suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)

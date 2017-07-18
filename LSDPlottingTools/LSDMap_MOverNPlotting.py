@@ -1528,7 +1528,7 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
     basin_keys = basin_df['basin_key']
 
-    if basin_list = []:
+    if basin_list == []:
         print "You didn't give me a basin list so I'm going to plot all of them!"
         basin_list = basin_keys
 
