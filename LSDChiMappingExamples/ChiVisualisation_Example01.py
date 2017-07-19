@@ -235,7 +235,8 @@ def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
 def ExampleOne_PartFour_MaskBasins(DataDirectory, fname_prefix):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
-    by the basin ID.
+    by the basin ID. It shows how to mask certain basins.
+    Search the function for "Basins_to_mask".
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files

@@ -27,9 +27,11 @@ if __name__ == "__main__":
     If you have set up your own directory structure you will need to modify
     the directory names.
     """
-    DataDirectory = "T:\\analysis_for_papers\\Xian\\"
+    DataDirectory = "S:\\movern_analysis\hokkaido\\"
+    Base_file = "hokkaido_init"
+    #DataDirectory = "T:\\analysis_for_papers\\Xian\\"
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\'
-    Base_file = 'Xian2'
+    #Base_file = 'Xian2'
 
 
     """
@@ -44,9 +46,9 @@ if __name__ == "__main__":
     """
     #CME.ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file)
     #CME.ExampleOne_PartTwo_PrintBasins(DataDirectory,Base_file)
-    #CME.ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory,Base_file)
+    CME.ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory,Base_file)
     #CME.ExampleOne_PartFour_MaskBasins(DataDirectory,Base_file)
-    CME.ExampleOne_PartFive_MaskBasinsMF(DataDirectory,Base_file)
+    #CME.ExampleOne_PartFive_MaskBasinsMF(DataDirectory,Base_file)
     
     toc = time.clock() 
     print("This took: "+str(toc - tic)+" units of time")

@@ -378,7 +378,7 @@ if __name__ == "__main__":
     DataDirectory = "T:\\analysis_for_papers\\Xian\\"
     #DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
     #DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\"
-    DEM_prefix = "Xian3"
+    DEM_prefix = "Xian_SA"
     #DataDirectory = '/home/s0923330/DEMs_for_analysis/mid_bailey_run_10m/'
     #DEM_prefix = 'bailey_dem_10m'
     FigFormat='png'
