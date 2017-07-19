@@ -31,6 +31,7 @@ from matplotlib import rcParams
 
 """
 import LSDPlottingTools as LSDP
+import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
 from LSDMapFigure.PlottingRaster import MapFigure
 import LSDMapFigure.PlottingHelpers as PlotHelp
 #import LSDPlottingTools.LSDMap_VectorTools as LSDMap_VT
@@ -82,6 +83,61 @@ def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", s
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
+
+def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
+    """
+    This function prints a channel map over a hillshade.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar. 
+        cmap (str or colourmap): The colourmap to use for the plot
+        cbar_lox (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
+                        If you want only a hillshade set to none and the cmap to "gray"
+        size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
+        fig_format (str): An image format. png, pdf, eps, svg all valid
+        dpi (int): The dots per inch of the figure
+        
+        
+    Returns:
+        Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
+
+    Author: SMM
+    """    
+    # specify the figure size and format
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_size_inches = 6.25
+    elif size_format == "big":
+        fig_size_inches = 16
+    else:
+        fig_size_inches = 4.92126
+    ax_style = "Normal"
+
+    # Get the filenames you want
+    BackgroundRasterName = fname_prefix+"_hs.bil"
+    DrapeRasterName = fname_prefix+".bil"
+    ChannelFileName = fname_prefix+"_CN.csv"
+    chi_csv_fname = DataDirectory+ChannelFileName
+    
+    thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
+    
+    
+    # clear the plot
+    plt.clf()
+
+    # set up the base image and the map
+    MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = "None")
+    MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = cmap, alpha = 0.6)
+    MF.add_point_data(thisPointData,column_for_plotting = "Stream Order",
+                       scale_points = True,column_for_scaling = "Stream Order",
+                       scaled_data_in_log = False,
+                       max_point_size = 5, min_point_size = 1)
+
+    # Save the image
+    ImageName = DataDirectory+fname_prefix+"_channels."+fig_format
+    MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
 

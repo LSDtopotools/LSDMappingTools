@@ -1011,9 +1011,11 @@ class MapFigure(object):
 
         # convert to easting and northing
         [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+        print("I got the easting and northing")
 
         # check if the column for plotting exists
         this_data = thisPointData.QueryData(column_for_plotting)
+        print("I got the data column you wanted")
         # Log the color if required
         if(colour_log):
             this_data = np.log10(this_data)
@@ -1021,70 +1023,83 @@ class MapFigure(object):
 
         # Now the data for scaling. Point size will be scaled by these data
 
-        scale_data = thisPointData.QueryData(column_for_scaling)
 
-        # If there is scaled data, convert to log if that option is selected
-        if scaled_data_in_log:
-            if len(scale_data) == 0 or len(scale_data) != len(easting):
-                scale_data = [0.5]
-            else:
-                # We need this logic since we can get nans and -Infs from 0 and negative numbers
-                scale_data = np.log10(scale_data)
-                print("I logged (is it a verb?) your scaled data, the minimum is %s and the maximum is %s but all the values inferior to %s will be %s" %(np.nanmin(scale_data), np.nanmax(scale_data), minimum_log_scale_cut_off, minimum_log_scale_cut_off))
-                scale_data[scale_data < minimum_log_scale_cut_off] = minimum_log_scale_cut_off
+#        scale_data = thisPointData.QueryData(column_for_scaling)
+#
+#        # If there is scaled data, convert to log if that option is selected
+#        if scaled_data_in_log:
+#            if len(scale_data) == 0 or len(scale_data) != len(easting):
+#                scale_data = [0.5]
+#            else:
+#                # We need this logic since we can get nans and -Infs from 0 and negative numbers
+#                scale_data = np.log10(scale_data)
+#                print("I logged (is it a verb?) your scaled data, the minimum is %s and the maximum is %s but all the values inferior to %s will be %s" %(np.nanmin(scale_data), np.nanmax(scale_data), minimum_log_scale_cut_off, minimum_log_scale_cut_off))
+#                scale_data[scale_data < minimum_log_scale_cut_off] = minimum_log_scale_cut_off
+#
+#
+#        # scale the points if you want
+#        if scale_points == True:
+#            if len(scale_data) == 0 or len(scale_data) != len(easting):
+#                point_scale = manual_size
+#            else:
+#                max_sd = np.nanmax(scale_data)
+#                min_sd = np.nanmin(scale_data)
+#
+#                print("max is: "+str(max_sd)+ " and min is: "+ str(min_sd))
+#
+#                # now rescale the data. Always a linear scaling.
+#                new_scale = []
+#                size_range = max_point_size-min_point_size
+#                for datum in scale_data:
+#                    frac = (datum-min_sd)/(max_sd-min_sd)
+#                    new_size = frac*size_range+min_point_size
+#                    new_scale.append(new_size)
+#                ns_array = np.asarray(new_scale)
+#                point_scale = ns_array
+#
+#        else:
+#            point_scale = manual_size
+#
+#        print("I will plot the points now.")
+#        if len(this_data) == 0 or len(this_data) != len(easting):
+#            print("I am only plotting the points.")
+#            sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none', alpha = alpha)
+#        else:
+#            if(colour_manual_scale != []):
+#                print("let me rescale the data using your array")
+#                if(len(colour_manual_scale) == 2):
+#                    cNorm  = _mcolors.Normalize(vmin=colour_manual_scale[0], vmax=colour_manual_scale[1])
+#                    scalarMap = _cm.ScalarMappable(norm = cNorm, cmap= this_colourmap)
+#                    tps_color = scalarMap.to_rgba(this_data)
+#                    scalarMap.set_array(tps_color)
+#                    this_colourmap = scalarMap
+#                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none', alpha = alpha)
+#
+#                else:
+#                    print("Your colour_log_manual_scale should be something like [min,max], aborting")
+#                    quit()
+#            else:
+#                sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha)
+#
+#        # Annoying but the scatter plot resets the extents so you need to reassert them
+#        self.ax_list[0].set_xlim(this_xlim)
+#        self.ax_list[0].set_ylim(this_ylim)
+#
+#        print("The colourbar orientation for point plotting is: "+self.colourbar_orientation)
+#        if self.colourbar_orientation != "None":
+#            print("Let me add a colourbar for your point data")
+#            self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
 
-        # scale the points if you want
-        if scale_points == True:
-            if len(scale_data) == 0 or len(scale_data) != len(easting):
-                point_scale = manual_size
-            else:
-                max_sd = np.nanmax(scale_data)
-                min_sd = np.nanmin(scale_data)
 
-                print("max is: "+str(max_sd)+ " and min is: "+ str(min_sd))
 
-                # now rescale the data. Always a linear scaling.
-                new_scale = []
-                size_range = max_point_size-min_point_size
-                for datum in scale_data:
-                    frac = (datum-min_sd)/(max_sd-min_sd)
-                    new_size = frac*size_range+min_point_size
-                    new_scale.append(new_size)
-                ns_array = np.asarray(new_scale)
-                point_scale = ns_array
 
-        else:
-            point_scale = manual_size
 
-        if len(this_data) == 0 or len(this_data) != len(easting):
-            print("I am only plotting the points.")
-            sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none', alpha = alpha)
-        else:
-            if(colour_manual_scale != []):
-                print("let me rescale the data using your array")
-                if(len(colour_manual_scale) == 2):
-                    cNorm  = _mcolors.Normalize(vmin=colour_manual_scale[0], vmax=colour_manual_scale[1])
-                    scalarMap = _cm.ScalarMappable(norm = cNorm, cmap= this_colourmap)
-                    tps_color = scalarMap.to_rgba(this_data)
-                    scalarMap.set_array(tps_color)
-                    this_colourmap = scalarMap
-                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none', alpha = alpha)
 
-                else:
-                    print("Your colour_log_manual_scale should be something like [min,max], aborting")
-                    quit()
-            else:
-                sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha)
 
-        # Annoying but the scatter plot resets the extents so you need to reassert them
-        self.ax_list[0].set_xlim(this_xlim)
-        self.ax_list[0].set_ylim(this_ylim)
 
-        print("The colourbar orientation for point plotting is: "+self.colourbar_orientation)
-        if self.colourbar_orientation != "None":
-            print("Let me add a colourbar for your point data")
-            self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
+
+
 
     def add_text_annotation_from_points(self, thisPointData,column_for_plotting = "None",
                                         selection_criteria = [], PANDEX=False, border_colour='k', text_colour='r', alpha=1):

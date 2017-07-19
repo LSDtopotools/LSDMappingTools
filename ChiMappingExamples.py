@@ -48,8 +48,8 @@ if __name__ == "__main__":
     
     #MW.SimpleHillshade(DataDirectory,Base_file,cmap = "terrain", dpi = 250)
     #MW.PrintBasins(DataDirectory,Base_file)
-    MW.PrintBasins_Complex(DataDirectory,Base_file, 
-                   Remove_Basins = [6], Rename_Basins = {3:"A",4:"B",8:"C",10:"D",12:"E"})
+    #MW.PrintBasins_Complex(DataDirectory,Base_file,Remove_Basins = [6], Rename_Basins = {3:"A",4:"B",8:"C",10:"D",12:"E"})
+    MW.PrintChannels(DataDirectory,Base_file)
     
     
     #CME.ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file)
