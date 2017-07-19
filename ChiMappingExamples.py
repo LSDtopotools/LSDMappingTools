@@ -46,9 +46,10 @@ if __name__ == "__main__":
     removing the comment symbol, #, below.
     """
     
-    #MW.SimpleHillshade(DataDirectory,Base_file,cmap = "terrain", dpi = 500)
-    MW.PrintBasins(DataDirectory,Base_file)
-    
+    #MW.SimpleHillshade(DataDirectory,Base_file,cmap = "terrain", dpi = 250)
+    #MW.PrintBasins(DataDirectory,Base_file)
+    MW.PrintBasins_Complex(DataDirectory,Base_file, 
+                   Remove_Basins = [6], Rename_Basins = {3:"A",4:"B",8:"C",10:"D",12:"E"})
     
     
     #CME.ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file)
