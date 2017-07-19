@@ -10,6 +10,7 @@ GPL3
 
 
 import LSDChiMappingExamples as CME
+import LSDMapWrappers as MW
 
 if __name__ == "__main__":
 
@@ -44,9 +45,15 @@ if __name__ == "__main__":
     To run the examples simply comment or uncomment these lines by adding or
     removing the comment symbol, #, below.
     """
+    
+    #MW.SimpleHillshade(DataDirectory,Base_file,cmap = "terrain", dpi = 500)
+    MW.PrintBasins(DataDirectory,Base_file)
+    
+    
+    
     #CME.ExampleOne_PartOne_SimpleHillshade(DataDirectory,Base_file)
     #CME.ExampleOne_PartTwo_PrintBasins(DataDirectory,Base_file)
-    CME.ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory,Base_file)
+    #CME.ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory,Base_file)
     #CME.ExampleOne_PartFour_MaskBasins(DataDirectory,Base_file)
     #CME.ExampleOne_PartFive_MaskBasinsMF(DataDirectory,Base_file)
     

@@ -36,7 +36,7 @@ import LSDMapFigure.PlottingHelpers as PlotHelp
 #import LSDPlottingTools.LSDMap_VectorTools as LSDMap_VT
 
 
-def SimpleHillshade(DataDirectory,Base_file):
+def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
@@ -44,14 +44,26 @@ def SimpleHillshade(DataDirectory,Base_file):
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         Base_file (str): The prefix for the m/n csv files
+        cmap (str or colourmap): The colourmap to use for the plot
+        cbar_loc (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
+                        If you want only a hillshade set to none and the cmap to "gray"
+        size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
+        fig_format (str): An image format. png, pdf, eps, svg all valid
+        dpi (int): The dots per inch of the figure
 
     Returns:
-        Shaded relief plot with the basins coloured by basin ID
+        Shaded relief plot. The elevation is also included in the plot. 
 
-    Author: FJC
+    Author: FJC, SMM
     """
     # specify the figure size and format
-    fig_size_inches = 12
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_size_inches = 6.25
+    elif size_format == "big":
+        fig_size_inches = 16
+    else:
+        fig_size_inches = 4.92126
     ax_style = "Normal"
 
     # Get the filenames you want
@@ -61,18 +73,20 @@ def SimpleHillshade(DataDirectory,Base_file):
     # clear the plot
     plt.clf()
 
-    # this is where we want the colourbar
-    cbar_loc = "right"
-
     # set up the base image and the map
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
-    MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = "jet", alpha = 0.6, colorbarlabel = "Elevation (m)")
+    MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = "Elevation (m)")
 
     # Save the image
-    ImageName = DataDirectory+"Xian_example1_hillshade.png"
-    MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = 250)
+    ImageName = DataDirectory+Base_file+"_hillshade."+fig_format
+    MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
-def PrintBasins(DataDirectory,fname_prefix):
+
+
+
+
+
+def PrintBasins(DataDirectory,fname_prefix, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
@@ -80,21 +94,21 @@ def PrintBasins(DataDirectory,fname_prefix):
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
-
+        cmap (str or colourmap): The colourmap to use for the plot
+        cbar_lox (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
+                        If you want only a hillshade set to none and the cmap to "gray"
+        size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
+        fig_format (str): An image format. png, pdf, eps, svg all valid
+        dpi (int): The dots per inch of the figure
+        
+        
     Returns:
-        Shaded relief plot with the basins coloured by basin ID
+        Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
 
-    Author: FJC
+    Author: FJC, SMM
     """
     #import modules
     from LSDMapFigure.PlottingRaster import MapFigure
-
-    # Set up fonts for plots
-    label_size = 10
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = label_size
-    size_format  = "geomorphology"
 
     # set figure sizes based on format
     if size_format == "geomorphology":
@@ -117,9 +131,6 @@ def PrintBasins(DataDirectory,fname_prefix):
     print ('Basin keys are: ')
     print basin_keys
 
-    # get a discrete colormap
-    cmap = plt.cm.jet
-
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
 
@@ -131,16 +142,19 @@ def PrintBasins(DataDirectory,fname_prefix):
     print (BasinsName)
 
     # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location=cbar_loc)
     # add the basins drape
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys, cbar_type = int)
     # add the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
-    FigFormat = "png"
-    ImageName = DataDirectory+fname_prefix+'_coloured_basins.'+FigFormat
-    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 250) # Save the figure
+    ImageName = DataDirectory+fname_prefix+'_coloured_basins.'+fig_format
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi) # Save the figure
+
+
+
+
 
 
 def PrintBasinsWithLabels(DataDirectory, fname_prefix):
