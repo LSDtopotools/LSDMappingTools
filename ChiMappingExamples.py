@@ -29,7 +29,7 @@ if __name__ == "__main__":
     the directory names.
     """
     DataDirectory = "S:\\movern_analysis\hokkaido\\"
-    Base_file = "hokkaido_init"
+    Base_file = "hokkaido_points"
     #DataDirectory = "T:\\analysis_for_papers\\Xian\\"
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\'
     #Base_file = 'Xian2'
