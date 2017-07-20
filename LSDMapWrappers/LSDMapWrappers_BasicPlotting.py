@@ -193,7 +193,88 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
                        max_point_size = 5, min_point_size = 1)
 
     # Save the image
-    ImageName = DataDirectory+fname_prefix+"_channels."+fig_format
+    ImageName = DataDirectory+fname_prefix+"_channels_by_basin."+fig_format
+    MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
+
+
+
+def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
+    """
+    This function prints a channel map over a hillshade.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar. 
+        cmap (str or colourmap): The colourmap to use for the plot
+        cbar_lox (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
+                        If you want only a hillshade set to none and the cmap to "gray"
+        size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
+        fig_format (str): An image format. png, pdf, eps, svg all valid
+        dpi (int): The dots per inch of the figure
+        
+        
+    Returns:
+        Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
+
+    Author: SMM
+    """    
+    # specify the figure size and format
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_size_inches = 6.25
+    elif size_format == "big":
+        fig_size_inches = 16
+    else:
+        fig_size_inches = 4.92126
+    ax_style = "Normal"
+
+    # get the basin IDs to make a discrete colourmap for each ID
+    BasinInfoDF = PlotHelp.ReadBasinInfoCSV(DataDirectory, fname_prefix)
+
+    basin_keys = list(BasinInfoDF['basin_key'])
+    basin_keys = [int(x) for x in basin_keys]
+
+    basin_junctions = list(BasinInfoDF['outlet_junction'])
+    basin_junctions = [float(x) for x in basin_junctions]
+
+    print ('Basin keys are: ')
+    print basin_keys
+
+    # going to make the basin plots - need to have bil extensions.
+    print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
+
+    # get the rasters
+    raster_ext = '.bil'
+    #BackgroundRasterName = fname_prefix+raster_ext
+    HillshadeName = fname_prefix+'_hs'+raster_ext
+    BasinsName = fname_prefix+'_AllBasins'+raster_ext
+    print (BasinsName)
+    Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+    
+    
+    ChannelFileName = fname_prefix+"_chi_data_map.csv"
+    chi_csv_fname = DataDirectory+ChannelFileName
+    
+    thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
+    
+    
+    # clear the plot
+    plt.clf()
+
+    # set up the base image and the map
+    print("I am showing the basins without text labels.")
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location="None")
+    MF.plot_polygon_outlines(Basins, linewidth=0.8)
+    MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.1, discrete_cmap=False, n_colours=len(basin_keys), show_colourbar = False, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys, cbar_type = int)
+
+    MF.add_point_data(thisPointData,column_for_plotting = "basin_key",
+                       scale_points = True,column_for_scaling = "drainage area",
+                       this_colourmap = cmap, scaled_data_in_log = True,
+                       max_point_size = 3, min_point_size = 1)
+
+    # Save the image
+    ImageName = DataDirectory+fname_prefix+"_channels_with_basins."+fig_format
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
