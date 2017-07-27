@@ -60,6 +60,7 @@ def main(argv):
     parser.add_argument("-start_movern", "--start_movern", type=float, default=0.2, help="Define the starting m/n value for testing, default = 0.2")
     parser.add_argument("-d_movern", "--d_movern", type=float, default=0.1, help="Define the change in m/n value for testing, default = 0.1")
     parser.add_argument("-n_movern", "--n_movern", type=int, default=7, help="Define the number of m/n values for testing, default = 7")
+    parser.add_argument("-points", "--point_analysis", type=bool, default=False, help="If this is true then I'll assume that you're running the MLE analysis using the point method. Default = False")
     parser.add_argument("-show_SA_raw", "--show_SA_raw", type=bool, default=True, help="Show the raw S-A data in background of SA plot. Default = True")
     parser.add_argument("-show_SA_segments", "--show_SA_segments", type=bool, default=False, help="Show the segmented S-A data in SA plot. Default = False")
 

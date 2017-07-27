@@ -871,6 +871,7 @@ class MapFigure(object):
             print("I'm fixing the ticks, but won't use a base raster, since you told me not to.")
             vmin = min_value
             vmax = max_value
+        print("The min and max for the colourbar are:")
         print vmin, vmax
 
         # get the additional end spacing for colourbar
@@ -1030,7 +1031,7 @@ class MapFigure(object):
         #scale_data = scale_data.flatten()
         print("The size of the array is: ")
         print(scale_data.shape)
-        
+
         # If there is scaled data, convert to log if that option is selected
         if scaled_data_in_log:
             print("I am going to convert data to log for point scaling.")
@@ -1288,7 +1289,7 @@ class MapFigure(object):
         from shapely.geometry import Polygon, MultiPolygon
 
         print('Plotting the polygon outlines...')
-        
+
         for key, poly in polygons.iteritems():
             if poly.geom_type == 'Polygon':
                 x,y = poly.exterior.xy

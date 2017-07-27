@@ -482,6 +482,28 @@ def ReadBasinStatsCSV(DataDirectory, fname_prefix):
 
     return df
 
+def ReadBasinStatsPointCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix '_point_movernstats_basinstats.csv'
+    to a pandas dataframe
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    # get the csv filename
+    csv_suffix = '_point_movernstats_basinstats.csv'
+    fname = fname_prefix+csv_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
 def ReadChainCSV(DataDirectory, fname_prefix, basin_key):
     """
     This function reads in the file with the suffix '_BasinX_chain.csv'
@@ -500,29 +522,6 @@ def ReadChainCSV(DataDirectory, fname_prefix, basin_key):
     # get the csv filename
     chain_suffix = '_Basin%s_chain.csv' %str(basin_key)
     fname = fname_prefix+chain_suffix
-    # read in the dataframe using pandas
-    df = pd.read_csv(DataDirectory+fname)
-
-    return df
-
-def ReadMNPointCSV(DataDirectory, fname_prefix):
-    """
-    This function reads in the file with the suffix '_B_chain.csv'
-    to a pandas dataframe, where X is the basin key
-
-    Args:
-        DataDirectory: the data directory
-        fname_prefix: the file name prefix
-        basin_key: the basin key
-
-    Returns:
-        pandas dataframe with the csv file
-
-    Author: FJC
-    """
-    # get the csv filename
-    csv_suffix = '_point_movernstats_basinstats.csv'
-    fname = fname_prefix+csv_suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
 
