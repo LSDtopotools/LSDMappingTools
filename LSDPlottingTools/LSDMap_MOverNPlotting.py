@@ -58,6 +58,8 @@ def SimpleMaxMLECheck(BasinDF):
     # now find the index and value of the max MLE in each row
     MOverNs = list(BasinDF.idxmax(axis=1))
     MOverNs = [float(x.split()[-1]) for x in MOverNs]
+    print ("MAX MOVERNS")
+    print MOverNs
 
     # zip into a dictionary
     MOverNDict = dict(zip(basin_keys, MOverNs))
@@ -1340,7 +1342,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
 
-def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1, point_analysis=False, size_format='ESURF', FigFormat='png'):
+def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_movern=7, d_movern=0.1, point_analysis=False, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the best fit m/n
@@ -1348,6 +1350,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
+        start_movern (int): The starting m/n, default = 0.2
         n_movern (int): The number of m/n values tested, default = 7.
         point_analysis (bool): if true will read in the MLE point csv file, if false will read in the normal one.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
@@ -1390,10 +1393,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
     print basin_keys
 
     # get the best fit m/n for each basin
-    MOverNDict = SimpleMaxMLECheck(BasinDF)
-    print MOverNDict
+    Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+    #MOverNDict = SimpleMaxMLECheck(BasinDF)
+    m_over_ns = [round(i[0],1) for i in best_fit_movern_dict.values()]
+    MOverNDict = dict(zip(basin_keys,m_over_ns))
 
-    m_over_ns = MOverNDict.values()
     # work out how many moverns we need for the colormap
     n_colours = int(math.ceil((max(m_over_ns)-min(m_over_ns))/d_movern)+1)
 
