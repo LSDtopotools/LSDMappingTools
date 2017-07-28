@@ -982,7 +982,7 @@ class MapFigure(object):
                        scaled_data_in_log = False,
                        max_point_size = 5, min_point_size = 0.5,
                        colour_log = False, colour_manual_scale = [],
-                       manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10):
+                       manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10, label_field = "None"):
         """
         This add point data to the map.
 
@@ -1002,7 +1002,7 @@ class MapFigure(object):
             alpha (float): transparency (between 0 and 1).
             minimum_log_scale_cut_off (float): If the log of the value is less than this the point is not plotted.
 
-        Author: SMM
+        Author: SMM, BG
         """
 
 
@@ -1096,6 +1096,11 @@ class MapFigure(object):
                     quit()
             else:
                 sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha)
+
+        # Setting the labelling
+        if(label_field != "None"):
+            print("labelling from this tool is not available yet, Boris is working on it")
+            #sc =self.ax_list[0].text(easting,northing,thisPointData.QueryData(label_field))
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
