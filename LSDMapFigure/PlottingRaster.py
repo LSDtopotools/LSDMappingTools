@@ -845,9 +845,11 @@ class MapFigure(object):
         This function takes a discrete colourbar and fixes the ticks so they are
         in the middle of each colour
 
-        UPDATE: SMM, made this more flexible so you can set the minimum and maximum
+        Update: SMM, made this more flexible so you can set the minimum and maximum
          values. Required becase basin plotting and point plotting doesn't use
          raster values
+        Update 2: BG, somehow, writing "update" in upper cases make my text editors (Atom and brackets) completely panic.
+        so I changed it, sorry.
 
         Args:
             BaseRaster: the base raster object
@@ -863,6 +865,7 @@ class MapFigure(object):
 
         Author: FJC
         """
+
         # get the min and the max of the colourbar
         if use_baseraster:
             vmin = np.nanmin(BaseRaster._RasterArray)
@@ -1030,7 +1033,7 @@ class MapFigure(object):
         #scale_data = scale_data.flatten()
         print("The size of the array is: ")
         print(scale_data.shape)
-        
+
         # If there is scaled data, convert to log if that option is selected
         if scaled_data_in_log:
             print("I am going to convert data to log for point scaling.")
@@ -1288,7 +1291,7 @@ class MapFigure(object):
         from shapely.geometry import Polygon, MultiPolygon
 
         print('Plotting the polygon outlines...')
-        
+
         for key, poly in polygons.iteritems():
             if poly.geom_type == 'Polygon':
                 x,y = poly.exterior.xy
