@@ -982,7 +982,8 @@ class MapFigure(object):
                        scaled_data_in_log = False,
                        max_point_size = 5, min_point_size = 0.5,
                        colour_log = False, colour_manual_scale = [],
-                       manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10, label_field = "None"):
+                       manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10, label_field = "None",
+                       font_size = 6, offset = 100):
         """
         This add point data to the map.
 
@@ -1001,6 +1002,9 @@ class MapFigure(object):
             manual_size (float): If scale_points is false then this is the size of the points.
             alpha (float): transparency (between 0 and 1).
             minimum_log_scale_cut_off (float): If the log of the value is less than this the point is not plotted.
+            label_field (str): text annotation below the point contained in this column in the csv file
+            offset (int/float): offset of the text below the point
+            font_size (int): everything is in the title
 
         Author: SMM, BG
         """
@@ -1100,7 +1104,11 @@ class MapFigure(object):
         # Setting the labelling
         if(label_field != "None"):
             print("labelling from this tool is not available yet, Boris is working on it")
-            #sc =self.ax_list[0].text(easting,northing,thisPointData.QueryData(label_field))
+            tg = thisPointData.QueryData(label_field)
+            print(tg)
+            for i in range(len(easting)):
+                print str(tg[i])
+                sc =self.ax_list[0].text(easting[i]-offset,northing[i]-offset,str(tg[i]),fontsize = font_size)
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
