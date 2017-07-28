@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import pandas as pd
 from matplotlib import colors
+import math
 #from shapely.geometry import Polygon
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDMapFigure.PlottingRaster import MapFigure
@@ -57,6 +58,8 @@ def SimpleMaxMLECheck(BasinDF):
     # now find the index and value of the max MLE in each row
     MOverNs = list(BasinDF.idxmax(axis=1))
     MOverNs = [float(x.split()[-1]) for x in MOverNs]
+    print ("MAX MOVERNS")
+    print MOverNs
 
     # zip into a dictionary
     MOverNDict = dict(zip(basin_keys, MOverNs))
@@ -1339,7 +1342,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
 
-def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1, size_format='ESURF', FigFormat='png'):
+def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_movern=7, d_movern=0.1, point_analysis=False, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the best fit m/n
@@ -1347,7 +1350,9 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
+        start_movern (int): The starting m/n, default = 0.2
         n_movern (int): The number of m/n values tested, default = 7.
+        point_analysis (bool): if true will read in the MLE point csv file, if false will read in the normal one.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
 
@@ -1371,7 +1376,10 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
         fig_width_inches = 4.92126
 
     # get the basin IDs to make a discrete colourmap for each ID
-    BasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    if point_analysis == False:
+        BasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    else:
+        BasinDF = Helper.ReadBasinStatsPointCSV(DataDirectory,fname_prefix)
     # get the basin IDs to make a discrete colourmap for each ID
     BasinInfoDF = Helper.ReadBasinInfoCSV(DataDirectory, fname_prefix)
 
@@ -1385,12 +1393,13 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
     print basin_keys
 
     # get the best fit m/n for each basin
-    MOverNDict = SimpleMaxMLECheck(BasinDF)
-    print MOverNDict
+    Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+    #MOverNDict = SimpleMaxMLECheck(BasinDF)
+    m_over_ns = [round(i[0],1) for i in best_fit_movern_dict.values()]
+    MOverNDict = dict(zip(basin_keys,m_over_ns))
 
-    m_over_ns = MOverNDict.values()
-    n_colours = int((max(m_over_ns)-min(m_over_ns))/d_movern)+1
-    #print m_over_ns
+    # work out how many moverns we need for the colormap
+    n_colours = int(math.ceil((max(m_over_ns)-min(m_over_ns))/d_movern)+1)
 
     # get a discrete colormap
     mn_cmap = plt.cm.Reds
@@ -1409,7 +1418,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
     # add the basins drape
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, value_dict = MOverNDict,
                       use_keys_not_junctions = True, show_colourbar = True,
-                      discrete_cmap=True, n_colours=8, colorbarlabel = "$m/n$",
+                      discrete_cmap=True, n_colours=n_colours, colorbarlabel = "$m/n$",
                       colourmap = mn_cmap, adjust_text = False)
 
     # plot the basin outlines
@@ -1423,6 +1432,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, n_movern=7, d_movern=0.1,
 
     ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
+
 
 #=============================================================================
 # UNCERTAINTY
