@@ -28,12 +28,13 @@ if __name__ == "__main__":
     If you have set up your own directory structure you will need to modify
     the directory names.
     """
-    DataDirectory = "S:\\movern_analysis\hokkaido\\"
-    Base_file = "hokkaido_points"
+    #DataDirectory = "S:\\movern_analysis\hokkaido\\"
+    #Base_file = "hokkaido_points"
     #DataDirectory = "T:\\analysis_for_papers\\Xian\\"
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\'
     #Base_file = 'Xian2'
-
+    DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\Paper\\'
+    Base_file = 'Meghalaya'
 
     """
     These lines are used to run the examples. Each line calls a function in the directory
@@ -46,7 +47,7 @@ if __name__ == "__main__":
     removing the comment symbol, #, below.
     """
     
-    #MW.SimpleHillshade(DataDirectory,Base_file,cmap = "terrain", dpi = 250)
+    MW.SimpleHillshade(DataDirectory,Base_file,cmap = "terrain", dpi = 250)
     MW.PrintBasins(DataDirectory,Base_file)
     #MW.PrintBasins_Complex(DataDirectory,Base_file,Remove_Basins = [6], Rename_Basins = {3:"A",4:"B",8:"C",10:"D",12:"E"})
     #MW.PrintChannels(DataDirectory,Base_file)

@@ -283,7 +283,12 @@ def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, 
 def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
-    by the basin ID.
+    by the basin ID. 
+    
+    IMPORTANT: To get this to run you need to set the flags in chi mapping tool to:
+    write_hillshade: true
+    print_basin_raster: true
+    print_chi_data_maps: true
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
