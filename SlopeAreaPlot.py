@@ -375,12 +375,14 @@ def MakeChannelsMap(DataDirectory, DEM_prefix, FigFormat = 'show',
 
 if __name__ == "__main__":
 
-    DataDirectory = "T:\\analysis_for_papers\\Xian\\"
+    #DataDirectory = "T:\\analysis_for_papers\\Xian\\"
     #DataDirectory = "T:\\analysis_for_papers\\movern_testing\\"
     #DataDirectory = "C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\"
-    DEM_prefix = "Xian_SA"
+    #DEM_prefix = "Xian_SA"
     #DataDirectory = '/home/s0923330/DEMs_for_analysis/mid_bailey_run_10m/'
     #DEM_prefix = 'bailey_dem_10m'
+    DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Meghalaya\\Paper\\'
+    DEM_prefix = 'Meghalaya'
     FigFormat='png'
     x_param='mean'
     #MakeRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat='png', size_format = 'ESURF')
@@ -393,11 +395,11 @@ if __name__ == "__main__":
     #MakeSegmentedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)
     #MakeBinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFormat, basin_keys = these_basin_keys)    
     #BinnedRegressionDriver(DataDirectory, DEM_prefix, basin_keys = these_basin_keys)
-    #LSDP.SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = FigFormat,
-    #                  show_raw = True, show_segments = False,
-    #                  cmap = plt.cm.Set1, n_colours = 5,
-    #                  basin_keys = these_basin_keys)
-    LSDP.TestSARegression(DataDirectory, DEM_prefix)
+    LSDP.SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = FigFormat,
+                      show_raw = True, show_segments = False,
+                      cmap = plt.cm.Set1, n_colours = 5,
+                      basin_keys = these_basin_keys)
+    #LSDP.TestSARegression(DataDirectory, DEM_prefix)
     
     
     
