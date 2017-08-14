@@ -1,6 +1,18 @@
 """
 This function reads hillshades and elevation files in a directory
 
+
+INSTRUCTIONS FOR ffmpeg
+This will produce a series of images that you can convert to a movie using ffmpeg
+
+Here is a typical command line
+ffmpeg -framerate 5 -pattern_type glob -i '*.png' -vcodec libx264 -s 1230x566 -pix_fmt yuv420p movie7.mp4
+
+Some gotchas: 
+The -framerate flag must come after ffmpeg (I think)
+You can be more specific about the pattern but this seems to work
+For the -s flag you must have pixel sizes that are divisible by 2. 
+
 Written by Simon Mudd
 June 2017
 git
