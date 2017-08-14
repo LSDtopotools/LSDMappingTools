@@ -247,6 +247,7 @@ def load_Point_Tool(thing):
     Author:
         PointTools object
     """
+
     if(isinstance(thing, pandas.DataFrame)):
         PointData = PointTools.LSDMap_PointData(thing,data_type ="pandas", PANDEX = True)
     else:
@@ -255,8 +256,14 @@ def load_Point_Tool(thing):
                 tdf = read_MChi_file(thing)
                 PointData = PointTools.LSDMap_PointData(tdf,data_type ="pandas", PANDEX = True)
             else:
-                print("Hum, your file does not exists or your pandas is not a pandas (then what is it???), anyway I am aborting")
-                quit()
+                if(isinstance(thing, dict)):
+                    print("WARNING, I am concatenating your dictionnary of dataframe")
+                    thing = pandas.concat(thing)
+                    PointData = PointTools.LSDMap_PointData(thing,data_type ="pandas", PANDEX = True)
+                else:
+                    print("Hum, your file does not exists or your pandas is not a pandas (then what is it???), anyway I am aborting")
+                    quit()
+
     return PointData
 
 
@@ -297,21 +304,26 @@ if __name__ == "__main__":
 
     DataDirectory = '/home/s1675537/PhD/DataStoreBoris/GIS/Data/Santa_cruz/Smugglers/lidar/'
     #DataDirectory = 'B://GIS/Data/Santa_cruz/Smugglers/lidar/'
-
     baseName = "smugglers_1"
+
     dfp = read_MChi_file(DataDirectory,baseName+"_KsnKn.csv")
     river_net = read_MChi_file(DataDirectory,baseName+"_MChiSegmented.csv")
+
+
     dfp = select_main_basin(dfp)
     #flat_values = sort_ratio_0_data(dfp, mode = "extract")
     dfp = sort_ratio_0_data(dfp, mode = "delete")
-
+    dfp = lst.binning_PD(dfp, column = "source_key", values = "unique", log = False)
+    dfp = lst.add_outlier_column_to_PD(dfp, column = "diff", threshold = 2)
+    print dfp
+    quit()
     PT = load_Point_Tool(dfp) # If you need actual pointdata
     #PTflat = load_Point_Tool(flat_values)
     PTriver = load_Point_Tool(river_net)
     #KP.plot_outliers_x_vs_diff_ratio(PTZOUT,PT, DataDirectory,x_col = "elevation", saveName = "Outliers_bin_Z_ratio_int_"+str(interval), save_fmt = ".png", size_format = "ESURF", log_data = False, ylim_diff = [0,500])
+    KP.map_knickpoint_standard(PT, DataDirectory, baseName, HS_name = "none",Time_in_name = True, river_network = PTriver, saveName = "none", log = False)
 
-
-
+    quit()
 
     ######## binned by DA
     # Binning
