@@ -6,10 +6,8 @@ This is a temporary script file.
 """
 
 #import modules
-from geopandas import GeoDataFrame
-import pandas as pd
 import numpy as np
-from shapely.geometry import LineString, shape, Point, MultiPolygon, Polygon
+from shapely.geometry import shape, MultiPolygon, Polygon
 import numpy.ma as ma
 
 # import the basemap library
@@ -21,10 +19,9 @@ from pyproj import Proj, transform
 # import plotting tools and set the back end for running on server
 import matplotlib
 matplotlib.use('Agg')
-from matplotlib import rcParams, ticker
+from matplotlib import rcParams
 import matplotlib.pyplot as plt
 #plt.style.use('ggplot')
-from matplotlib import cm
 
 ## modules
 from shapely.ops import cascaded_union
@@ -81,6 +78,14 @@ def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
 
     else:
         FigWidth_Inches = 4.92126
+    
+    MinimumAspectRatio=0.5
+    MaximumAspectRatio=2.
+    
+    if AspectRatio < MinimumAspectRatio:
+        AspectRatio = MinimumAspectRatio
+    elif AspectRatio > MaximumAspectRatio:
+        AspectRatio = MaximumAspectRatio
         
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
@@ -203,9 +208,9 @@ def CreateMapFigure(BasemapExtentDataset, AspectRatio=0, FigSizeFormat="default"
     Meridians = np.arange(np.floor(xmin),np.ceil(xmax),dx)
     Parallels = np.arange(np.floor(ymin),np.ceil(ymax),dy)
     
-    Offset = 0 #-np.abs(Map.xmax-Map.xmin)*0.12
-    Meridians = Map.drawmeridians(Meridians,linewidth=1,labels=[1,0,0,1],fontsize=8,xoffset=Offset,yoffset=-Offset,rotation=Rotation)
-    Parallels = Map.drawparallels(Parallels,linewidth=1,labels=[0,1,1,0],fontsize=8,xoffset=Offset,yoffset=-Offset,rotation=-Rotation)
+    Offset = np.abs(Map.xmax-Map.xmin)*0.05
+    Meridians = Map.drawmeridians(Meridians,color='r',linewidth=1.5,labels=[1,0,0,1],fontsize=10,xoffset=Offset,yoffset=Offset,rotation=-Rotation)
+    Parallels = Map.drawparallels(Parallels,color='r',linewidth=1.5,labels=[0,1,1,0],fontsize=10,xoffset=Offset,yoffset=Offset,rotation=Rotation)
 
 #    for m in Meridians:
 #        x,y = Meridians[m][0][0].get_xydata()[100]
@@ -318,6 +323,8 @@ def PlotRaster(RasterFile, Map, alpha=1.):
     MDH
     """
        
+    print "Plotting raster..."
+    
     #Read data
     gdata = gdal.Open(RasterFile, gdal.GA_ReadOnly)
     geo = gdata.GetGeoTransform()
@@ -518,6 +525,7 @@ def PlotPolygons(Polygons, Map=None, Ax=None, OutlineColour='k', FillColour='w',
     
     
 def PlotShapefile(ShapeFile, Map=None, Ax=None, OutlineColour='k', FillColour='w', ColourMap="None", alpha=0.5):
+    print "Plotting shapefile..."
     Polygons = ConvertShapefile2LatLong(ShapeFile)    
     PlotPolygons(Polygons, Map=Map, Ax=Ax, OutlineColour=OutlineColour, FillColour=FillColour, ColourMap=ColourMap, alpha=alpha)
     
@@ -546,5 +554,6 @@ if __name__ == "__main__":
     #ConvertRaster2LatLong(Directory+"bolinas_hs_resample.bil",Directory+"bolinas_hs_resample_latlong.bil")
     Fig, Ax, Map = CreateMapFigure(Directory+"bolinas_AllBasins.shp",FigSizeFormat="JGR",Rotation=45)
     PlotRaster(Directory+"bolinas_hs_resample_latlong.bil",Map)
-    PlotShapefile(ShapeFile,Map,Ax,'k','gray')
+    PlotShapefile(ShapeFile,Map,Ax,'k','w')
     plt.savefig(Directory+"example_map.png")
+    print "Done."
