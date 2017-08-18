@@ -24,8 +24,8 @@ import sys
 #rcParams['lines.linewidth']  = 1.5
 
 ###### Parameters ######
-Directory = "/home/s1675537/PhD/DataStoreBoris/Emma/" # reading directory
-wDirectory = "/home/s1675537/PhD/DataStoreBoris/Emma/" # writing directory
+Directory = "/home/s1675537/PhD/DataStoreBoris/Emma/" # reading directory (if it is on windows, the path is something like C://windows/Users/blablalba/)
+wDirectory = "/home/s1675537/PhD/DataStoreBoris/Emma/" # writing directory (if it is on windows, the path is something like C://windows/Users/blablalba/)
 Base_file = "Betics_UTM30clip_PP" # It will be the cabkground raster. Each other raster you want to drap on it will be cropped to its extents including nodata
 csv_file = Directory + "new.csv" # Name of your point file, add a similar line with different name if you have more than one point file
 DrapeRasterName = "Betics_UTM30clip_hs.bil" # if you want to drap a raster on your background one. Just add a similar line in case you want another raster to drap and so on
