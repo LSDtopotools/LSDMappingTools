@@ -30,12 +30,15 @@ Base_file = "Betics_UTM30clip_PP" # It will be the cabkground raster. Each other
 csv_file = Directory + "new.csv" # Name of your point file, add a similar line with different name if you have more than one point file
 DrapeRasterName = "Betics_UTM30clip_hs.bil" # if you want to drap a raster on your background one. Just add a similar line in case you want another raster to drap and so on
 wname = "output" # name of your output file
-dpi = 900 # Quality of your output image, don't exceed 900
-fig_size_inches = 24 # Figure size in Inches
+dpi = 300 # Quality of your output image, don't exceed 900
+fig_size_inches = 9 # Figure size in Inches
+
+
 
 ##### Now we can load and plot the data
 
 BackgroundRasterName = Base_file + ".bil" # Ignore this line
+
 thisPointData = LSDP.LSDMap_PointData(csv_file, PANDEX = True) # Load the point file #1, add a similar line with different name if you have more than one point file.
 
 plt.clf() # Ignore this line
@@ -44,7 +47,7 @@ MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km", NFF_opti = T
 
 MF.add_drape_image(DrapeRasterName,Directory, # Calling the function will add a drapped raster on the top of the background one
                     colourmap = "gray", # colormap used for this raster, see http://matplotlib.org/users/colormaps.html for examples, put _r at the end of a colormap to get the reversed version
-                    alpha=0.5, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
+                    alpha = 0.5, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
                     show_colourbar = False, # Well, this one is explicit I think
                     colorbarlabel = "Colourbar", # Name of your Colourbar, it might bug though
                     NFF_opti = True)
@@ -62,7 +65,7 @@ MF.add_point_data( thisPointData, # this function plot the requested point file 
                    min_point_size = 0.5, # You should be able to guess that one now
                    colour_log = False, # do you want a log scale for your colorbar ?
                    colour_manual_scale = [], #Do you want to manually limit the scale of your colorbar? if not let is false
-                   manual_size = 0, # If none of above is choosen but you want to put another value than 0.5 to scale your point
+                   manual_size = 0.5, # If none of above is choosen but you want to put another value than 0.5 to scale your point
                    alpha = 1, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
                    minimum_log_scale_cut_off = -10) # you probably won't need this
 
