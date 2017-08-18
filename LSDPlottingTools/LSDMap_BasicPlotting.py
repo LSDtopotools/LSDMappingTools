@@ -412,8 +412,10 @@ def GetTicksForUTMNoInversion(FileName,x_max,x_min,y_max,y_min,n_target_tics):
         front_y = str_ymin[:(n_digy-nd+1)]
     else:
         front_y = str_ymin
-
-
+    ###### Sort a strange bug, but will create anormal values for scale
+    if(front_x == "-"):
+        front_x = 0
+    ###### I'll try to sort it when I'll have time but contact me in case you need it before (Boris)
     round_xmin = float(front_x)*pow(10,nd-1)
     round_ymin = float(front_y)*pow(10,nd-1)
 
@@ -1678,3 +1680,23 @@ def init_plotting_DV():
     plt.rcParams['xtick.minor.visible'] = False
     plt.rcParams['ytick.minor.visible'] = False
     plt.rcParams['lines.linewidth'] = 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
