@@ -88,7 +88,7 @@ if __name__ == "__main__":
     #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\'
     #Base_file = 'Xian2'
     #DataDirectory = 'S:\\movern_analysis\\model_runs\\muddpile\\big_fluvial_test\\'
-    DataDirectory = "/home/s0923330/muddpile_test/test1/"
+    DataDirectory = "/home/s0923330/muddpile_test/test_relief_50m_p0.25/"
     Base_file = 'LSDRM'
 
     """
