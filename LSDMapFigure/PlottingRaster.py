@@ -449,7 +449,7 @@ class MapFigure(object):
     def add_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[], cbar_type=float, NFF_opti = False, title = "None"):
+                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[], cbar_type=float, NFF_opti = False, custom_min_max = []):
         """
         This function adds a drape over the base raster.
 
@@ -468,14 +468,14 @@ class MapFigure(object):
             new_values (list): A list of the new values. This probably should be done with a map: TODO
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
             NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.
-            title (str): Add a title to the plot. If not "None" then the string will be added.
+            custom_min_max (list of int/float): if it contains two elements, recast the raster to [min,max] values for display.
 
         Author: SMM
         """
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,discrete_cmap,n_colours,norm,modify_raster_values,old_values,new_values,cbar_type, NFF_opti,title)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,discrete_cmap,n_colours,norm,modify_raster_values,old_values,new_values,cbar_type, NFF_opti, custom_min_max)
         #print("Getting axis limits in drape function: ")
         #print(self.ax_list[0].get_xlim())
 
@@ -483,7 +483,7 @@ class MapFigure(object):
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
                          alpha=0.5,
-                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = [], cbar_type=float, NFF_opti = False, title = "None"):
+                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = [], cbar_type=float, NFF_opti = False, custom_min_max = []):
         """
         This function adds a drape over the base raster. It does all the dirty work
         I can't quite remember why I did it in two steps but I vaguely recall trying it in one step and it didn't work.
@@ -503,7 +503,7 @@ class MapFigure(object):
             new_values (list): A list of the new values. This probably should be done with a map: TODO
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
             NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.
-            title (str): Add a title to the plot. If not "None" then the string will be added.
+            custom_min_max (list of int/float): if it contains two elements, recast the raster to [min,max] values for display.
 
         Author: SMM
         """
@@ -515,8 +515,19 @@ class MapFigure(object):
             print("N colours: "+str(n_colours))
             colourmap = self.cmap_discretize(colourmap, n_colours)
 
+
+
+
         self._RasterList.append(Raster)
         self._RasterList[-1].set_colourmap(colourmap)
+        # I am recasting the raster to custom extents
+        if len(custom_min_max)!=0:
+            if len(custom_min_max)== 2:
+                print("I am setting customisable minimum and maximum values: %s ¦¦ %s" %(custom_min_max[0],custom_min_max[1]))
+                self._RasterList[-1]._RasterArray[self._RasterList[-1]._RasterArray<custom_min_max[0]] = custom_min_max[0]
+                self._RasterList[-1]._RasterArray[self._RasterList[-1]._RasterArray>custom_min_max[1]] = custom_min_max[1]
+            else:
+                print("I cannot customize your minimum and maximum because I don't understand your input. It should be [min,max] with min max as integers or floats")
 
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
@@ -529,10 +540,6 @@ class MapFigure(object):
         #ax.set_ylim(self._ymin,self._ymax)
         self.ax_list[0] = self.add_ticks_to_axis(self.ax_list[0])
         self._drape_list.append(im)
-
-        # add a title if needed
-        if title != "None":
-            self.ax_list[0].set_title(title)
 
         print("The number of axes are: "+str(len(self._drape_list)))
 
