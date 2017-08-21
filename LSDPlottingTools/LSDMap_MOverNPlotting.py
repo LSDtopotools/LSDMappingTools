@@ -1376,10 +1376,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         fig_width_inches = 4.92126
 
     # get the basin IDs to make a discrete colourmap for each ID
-    if point_analysis == False:
-        BasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
-    else:
+    if point_analysis == True:
         BasinDF = Helper.ReadBasinStatsPointCSV(DataDirectory,fname_prefix)
+    else:
+        BasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+
     # get the basin IDs to make a discrete colourmap for each ID
     BasinInfoDF = Helper.ReadBasinInfoCSV(DataDirectory, fname_prefix)
 
