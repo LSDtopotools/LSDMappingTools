@@ -42,7 +42,7 @@ class BaseRaster(object):
 
     Author: DAV and SMM
     """
-    def __init__(self, RasterName, Directory, NFF_opti = False):
+    def __init__(self, RasterName, Directory, NFF_opti = False, alpha = 1):
 
         self._RasterFileName = RasterName
         self._RasterDirectory = Directory
