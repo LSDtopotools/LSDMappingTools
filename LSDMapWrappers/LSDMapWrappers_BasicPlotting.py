@@ -1,7 +1,7 @@
 """
     This contains wrapper functions that simplify plotting raster
-    and vector data for publication-ready figures. 
-    
+    and vector data for publication-ready figures.
+
     The documentation of the examples can be found here:
     https://lsdtopotools.github.io/LSDTopoTools_ChiMudd2014/
 
@@ -53,7 +53,7 @@ def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", s
         dpi (int): The dots per inch of the figure
 
     Returns:
-        Shaded relief plot. The elevation is also included in the plot. 
+        Shaded relief plot. The elevation is also included in the plot.
 
     Author: FJC, SMM
     """
@@ -98,7 +98,7 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
         dpi (int): The dots per inch of the figure
 
     Returns:
-        Shaded relief plot. The elevation is also included in the plot. 
+        Shaded relief plot. The elevation is also included in the plot.
 
     Author: FJC, SMM
     """
@@ -137,20 +137,20 @@ def PrintAllChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap =
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
-        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar. 
+        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar.
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_lox (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
-        
-        
+
+
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
 
     Author: SMM
-    """    
+    """
     # specify the figure size and format
     # set figure sizes based on format
     if size_format == "geomorphology":
@@ -166,10 +166,10 @@ def PrintAllChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap =
     DrapeRasterName = fname_prefix+".bil"
     ChannelFileName = fname_prefix+"_CN.csv"
     chi_csv_fname = DataDirectory+ChannelFileName
-    
+
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
-    
-    
+
+
     # clear the plot
     plt.clf()
 
@@ -194,20 +194,20 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
-        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar. 
+        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar.
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_lox (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
-        
-        
+
+
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
 
     Author: SMM
-    """    
+    """
     # specify the figure size and format
     # set figure sizes based on format
     if size_format == "geomorphology":
@@ -223,10 +223,10 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
     DrapeRasterName = fname_prefix+".bil"
     ChannelFileName = fname_prefix+"_chi_data_map.csv"
     chi_csv_fname = DataDirectory+ChannelFileName
-    
+
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
-    
-    
+
+
     # clear the plot
     plt.clf()
 
@@ -251,20 +251,20 @@ def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
-        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar. 
+        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar.
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_lox (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
-        
-        
+
+
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
 
     Author: SMM
-    """    
+    """
     # specify the figure size and format
     # set figure sizes based on format
     if size_format == "geomorphology":
@@ -297,14 +297,14 @@ def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, 
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
     print (BasinsName)
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
-    
-    
+
+
     ChannelFileName = fname_prefix+"_chi_data_map.csv"
     chi_csv_fname = DataDirectory+ChannelFileName
-    
+
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
-    
-    
+
+
     # clear the plot
     plt.clf()
 
@@ -329,8 +329,8 @@ def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, 
 def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
-    by the basin ID. 
-    
+    by the basin ID.
+
     IMPORTANT: To get this to run you need to set the flags in chi mapping tool to:
     write_hillshade: true
     print_basin_raster: true
@@ -339,15 +339,15 @@ def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
-        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar. 
+        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar.
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_lox (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
-        
-        
+
+
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
 
@@ -386,7 +386,7 @@ def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
     print (BasinsName)
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
-    
+
     # If wanted, add the labels
     if add_basin_labels:
         print("I am going to add basin labels, there will be no colourbar.")
@@ -397,7 +397,7 @@ def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet
         # This is used to label the basins
         label_dict = dict(zip(basin_junctions,basin_keys))
         # this dict has the basin junction as the key and the basin_key as the value
-    
+
         Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
         MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
     else:
@@ -414,9 +414,9 @@ def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet
 
 
 def PrintBasins_Complex(DataDirectory,fname_prefix,
-                   use_keys_not_junctions = True, show_colourbar = False, 
+                   use_keys_not_junctions = True, show_colourbar = False,
                    Remove_Basins = [], Rename_Basins = {}, Value_dict= {},
-                   cmap = "jet", cbar_loc = "right", size_format = "ESURF", 
+                   cmap = "jet", cbar_loc = "right", size_format = "ESURF",
                    fig_format = "png", dpi = 250):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
@@ -430,15 +430,15 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
         Remove_Basins (list): A lists containing either key or junction indices of basins you want to remove from plotting
         Rename_Basins (dict): A dict where the key is either basin key or junction index, and the value is a new name for the basin denoted by the key
         Value_dict (dict): A dict where the key is either basin key or junction index, and the value is a value of the basin that is used to colour the basins
-        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar. 
+        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar.
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_lox (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
-        
-        
+
+
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
 
@@ -478,14 +478,13 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
 
     # This initiates the figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location="None")
-    
+
     # This adds the basins
-    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Remove_Basins, 
+    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Remove_Basins,
                       rename_dict = Rename_Basins, value_dict = Value_dict,
-                      use_keys_not_junctions = use_keys_not_junctions, show_colourbar = show_colourbar, 
+                      use_keys_not_junctions = use_keys_not_junctions, show_colourbar = show_colourbar,
                       discrete_cmap=True, n_colours=15, colorbarlabel = "$m/n$",
                       colourmap = plt.cm.jet, adjust_text = False)
 
     ImageName = DataDirectory+fname_prefix+'_complex_coloured_basins.'+fig_format
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi) # Save the figure
-

@@ -1376,10 +1376,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         fig_width_inches = 4.92126
 
     # get the basin IDs to make a discrete colourmap for each ID
-    if point_analysis == False:
-        BasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
-    else:
+    if point_analysis == True:
         BasinDF = Helper.ReadBasinStatsPointCSV(DataDirectory,fname_prefix)
+    else:
+        BasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+
     # get the basin IDs to make a discrete colourmap for each ID
     BasinInfoDF = Helper.ReadBasinInfoCSV(DataDirectory, fname_prefix)
 
@@ -1396,10 +1397,16 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
     #MOverNDict = SimpleMaxMLECheck(BasinDF)
     m_over_ns = [round(i[0],1) for i in best_fit_movern_dict.values()]
+    #print m_over_ns
     MOverNDict = dict(zip(basin_keys,m_over_ns))
 
+    # get moverns for cbar plotting
+    end_movern = n_movern*d_movern
+    print end_movern
+    all_m_over_ns = np.arange(start_movern, end_movern,d_movern)
+
     # work out how many moverns we need for the colormap
-    n_colours = int(math.ceil((max(m_over_ns)-min(m_over_ns))/d_movern)+1)
+    n_colours = int(math.ceil((max(all_m_over_ns)-min(all_m_over_ns))/d_movern)+1)
 
     # get a discrete colormap
     mn_cmap = plt.cm.Reds
