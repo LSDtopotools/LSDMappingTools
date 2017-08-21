@@ -39,7 +39,7 @@ def TestSARegression(DataDirectory, DEM_prefix):
     #print(dfBK)
 
     dfslope = df[df["basin_key"]==1]["slope"]
-    dfarea = df[df["basin_key"]==1]["drainage area"]
+    dfarea = df[df["basin_key"]==1]["drainage_area"]
 
     S = dfslope.values
     A = dfarea.values
@@ -400,7 +400,7 @@ def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFil
     # Get the raw point data
     Raw_log_S =  RawPointData.QueryData('slope')
     Raw_log_S = [float(x) for x in Raw_log_S]
-    Raw_log_A =  RawPointData.QueryData('drainage area')
+    Raw_log_A =  RawPointData.QueryData('drainage_area')
     Raw_log_A = [float(x) for x in Raw_log_A]
 
     Raw_basin = RawPointData.QueryData('basin_key')
@@ -576,7 +576,7 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
     # Get the raw point data
     Raw_log_S =  RawPointData.QueryData('slope')
     Raw_log_S = [float(x) for x in Raw_log_S]
-    Raw_log_A =  RawPointData.QueryData('drainage area')
+    Raw_log_A =  RawPointData.QueryData('drainage_area')
     Raw_log_A = [float(x) for x in Raw_log_A]
 
     Raw_basin = RawPointData.QueryData('basin_key')
