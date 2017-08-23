@@ -556,3 +556,24 @@ def ReadTerraceCSV(DataDirectory, fname_prefix, outlet_jn):
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
     return df
+
+def ReadModelCSV(DataDirectory, Base_file):
+    """
+    This function reads in the csv file from the model run to a pandas dataframe
+
+    Args:
+        DataDirectory (str): the data directory
+        Base_file (str): the base file prefix
+
+    Returns:
+        pandas dataframe with the csv file info
+
+    Author: FJC
+    """
+    # get the csv filename
+    csv_suffix = '_model_info.csv'
+
+    fname = Base_file+csv_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+    return df
