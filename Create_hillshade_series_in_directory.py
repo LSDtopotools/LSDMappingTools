@@ -24,6 +24,7 @@ import LSDChiMappingExamples as CME
 import LSDMapWrappers as MW
 import os
 from sys import platform
+import sys
 
 
 def get_filenames(root):
@@ -64,9 +65,25 @@ def run_plots(DataDirectory,Base_file):
 
         MW.SimpleHillshadeForAnimation(DataDirectory,this_base_file,cmap = "terrain", dpi = 250, imgnumber=counter, full_basefile = root)
 
+#=============================================================================
+# This is just a welcome screen that is displayed if no arguments are provided.
+#=============================================================================
+def print_welcome():
 
+    print("\n\n=======================================================================")
+    print("Hello! I'm going to plot a series of hillshades for you.")
+    print("You will need to tell me the directory and the base file name.")
+    print("Use the -dir flag to define the working directory.")
+    print("If you don't do this I will assume the data is in the same directory as this script.")
+    print("Use the -fname flag to define the base file name.")
+    print("For help type:")
+    print("   python PlotMOverNAnalysis.py -h\n")
+    print("=======================================================================\n\n ")
 
-if __name__ == "__main__":
+#=============================================================================
+# This is the main function that runs the whole thing
+#=============================================================================
+def main(argv):
 
     """
     This is just a few lines for keeping track of how long the program is taking.
@@ -75,34 +92,25 @@ if __name__ == "__main__":
     import time
     tic = time.clock()
 
-    """
-    These lines tell the example functions where your files are. If you are using
-    the recommended file setup you won't need to modify these lines.
+    # If there are no arguments, send to the welcome screen
+    if not len(sys.argv) > 1:
+        full_paramfile = print_welcome()
+        sys.exit()
 
-    If you have set up your own directory structure you will need to modify
-    the directory names.
-    """
-    #DataDirectory = "S:\\movern_analysis\hokkaido\\"
-    #Base_file = "hokkaido_points"
-    #DataDirectory = "T:\\analysis_for_papers\\Xian\\"
-    #DataDirectory = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\LSDTT_chi_examples\\'
-    #Base_file = 'Xian2'
-    #DataDirectory = 'S:\\movern_analysis\\model_runs\\muddpile\\big_fluvial_test\\'
-    DataDirectory = "/home/s0923330/muddpile_test/test_relief_50m_p0.25/"
-    Base_file = 'LSDRM'
+    # Get the arguments
+    import argparse
+    parser = argparse.ArgumentParser()
+    # The location of the data files
+    parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the hillshades. If this isn't defined I'll assume it's the same as the current directory.")
+    parser.add_argument("-fname", "--fname_prefix", type=str, help="The base file name of the hillshades.")
+    args = parser.parse_args()
 
-    """
-    These lines are used to run the examples. Each line calls a function in the directory
-    ../LSDChiMappingExamples/
-
-    The individual examples are different python scripts which you can inspect at your
-    lesiure. By playing with these scripts you can learn how to use our plotting tools.
-
-    To run the examples simply comment or uncomment these lines by adding or
-    removing the comment symbol, #, below.
-    """
-
-    run_plots(DataDirectory,Base_file)
+    run_plots(args.base_directory,args.fname_prefix)
 
     toc = time.clock()
     print("This took: "+str(toc - tic)+" units of time")
+
+
+#=============================================================================
+if __name__ == "__main__":
+    main(sys.argv[1:])
