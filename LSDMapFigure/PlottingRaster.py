@@ -1385,7 +1385,9 @@ class MapFigure(object):
 
     def save_fig(self,fig_width_inches = 4,FigFileName = 'TestFig.png',
                  FigFormat = 'png',Fig_dpi = 100,
-                 axis_style = "Normal", transparent=False):
+                 axis_style = "Normal", transparent=False, 
+                 adjust_cbar_characters=True,
+                 fixed_cbar_characters=4):
         """
         This saves the figure to file.
 
@@ -1396,6 +1398,8 @@ class MapFigure(object):
             Fig_dpi (int): dots per inch
             axis_stlye (string): This sets the axis style. Options are "Normal","Thick","Thin","Big", and "Madhouse"
             transparent (bool): If true the background is transparent (i.e., you don't get a white rectangle in the background)
+            adjust_cbar_characters (bool): If true, adjust the spacing of the colourbar to account for the characters in the cbar label
+            fixed_cbar_characters (int): ONLY used if adjust_cbar_characters=False. The number of characters to pad the cbar for. 
 
         Author: SMM
         """
@@ -1411,14 +1415,19 @@ class MapFigure(object):
         # layout of the figure. Don't worry, this will all be worth it when we have awsome
         # figures every time.
         max_cbar_characters = 0
-        if self.colourbar_location == "left" or self.colourbar_location == "right":
-            print("You have a colourbar on the left or right, I need to check the number of characters in the labels.")
-            labels = [item.get_text() for item in self.ax_list[-1].get_yticklabels()]
-            print(labels)
-            for label in labels:
-                if len(label) > max_cbar_characters:
-                    max_cbar_characters = len(label)
-            print("The longest colourbar label has "+str(max_cbar_characters)+" characters.")
+        if adjust_cbar_characters == True:  
+            print("I need to adjust the spacing of the colourbar.")
+            if self.colourbar_location == "left" or self.colourbar_location == "right":
+                print("You have a colourbar on the left or right, I need to check the number of characters in the labels.")
+                labels = [item.get_text() for item in self.ax_list[-1].get_yticklabels()]
+                print(labels)
+                for label in labels:
+                    if len(label) > max_cbar_characters:
+                        max_cbar_characters = len(label)
+                print("The longest colourbar label has "+str(max_cbar_characters)+" characters.")
+        else:
+            print("I am fixing the colourbar labels to have: "+str(fixed_cbar_characters)+ " characters")
+            max_cbar_characters = fixed_cbar_characters
 
 
 
@@ -1426,6 +1435,7 @@ class MapFigure(object):
 
         # Now we size the figure. This requires some finessing since we are
         # hard coding the widths of everything
+        
         if max_cbar_characters <= 3:
             cbar_width = 0.2
             cbar_text_width = 0.4   # This is in inches. Because yanks wrote matplotlib.
@@ -1433,7 +1443,8 @@ class MapFigure(object):
             cbar_width = 0.2
             cbar_text_width = 0.4+0.15*(max_cbar_characters-3)   # This is in inches. Because yanks wrote matplotlib.
             print("I'm adjusting the colourbar text width to "+str(cbar_text_width)+" inches")
-
+        
+        print("The cbar characters are: "+str(max_cbar_characters)+" and the cbar text width is: "+str(cbar_text_width))
         fig_size_inches, map_axes, cbar_axes = phelp.MapFigureSizer(fig_width_inches,
                                                               map_aspect_ratio,
                                                               self.colourbar_location,

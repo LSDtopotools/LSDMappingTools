@@ -62,7 +62,7 @@ def run_plots(DataDirectory,Base_file):
         this_base_file = split_file[-1]
         print("This base file is: "+ this_base_file)
 
-
+        print("I am getting figures for the animation.")
         MW.SimpleHillshadeForAnimation(DataDirectory,this_base_file,cmap = "terrain", dpi = 250, imgnumber=counter, full_basefile = root)
 
 #=============================================================================
