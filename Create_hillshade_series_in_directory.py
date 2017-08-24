@@ -43,7 +43,7 @@ def get_filenames(root):
         else:
             return these_filenames
 
-def run_plots(DataDirectory,Base_file):
+def run_plots(DataDirectory,Base_file, cbar_min_max = [0,400]):
 
     root = DataDirectory+Base_file
     filenames = get_filenames(root)
@@ -63,7 +63,7 @@ def run_plots(DataDirectory,Base_file):
         print("This base file is: "+ this_base_file)
 
         print("I am getting figures for the animation.")
-        MW.SimpleHillshadeForAnimation(DataDirectory,this_base_file,cmap = "terrain", dpi = 250, imgnumber=counter, full_basefile = root)
+        MW.SimpleHillshadeForAnimation(DataDirectory,this_base_file,cmap = "terrain", dpi = 250, imgnumber=counter, full_basefile = root,custom_cbar_min_max = cbar_min_max)
 
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.

@@ -82,10 +82,13 @@ def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", s
     ImageName = DataDirectory+Base_file+"_hillshade."+fig_format
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
-def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250, imgnumber = 0, full_basefile = []):
+def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", 
+                                size_format = "ESURF", fig_format = "png", 
+                                dpi = 250, imgnumber = 0, full_basefile = [], 
+                                custom_cbar_min_max = []):
     """
-    This function makes a shaded relief plot of the DEM with the basins coloured
-    by the basin ID.
+    This function make a hillshade image that is optimised for creating 
+    an animation. Used with the MuddPILE model
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
@@ -96,6 +99,9 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
+        imgnumber (int): the number of the image. Usually frames from model runs have integer numbers after them
+        full_basefile (str): The root name of the figures you want. If empty, it uses the data_directory+base_file
+        custom_min_max (list of int/float): if it contains two elements, recast the raster to [min,max] values for display.
 
     Returns:
         Shaded relief plot. The elevation is also included in the plot.
@@ -121,10 +127,14 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
 
     # set up the base image and the map
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
-    MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = "Elevation (m)")
+    MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = "Elevation (m)",colour_min_max = custom_cbar_min_max)
 
     # Save the image
-    ImageName = full_basefile+"_img"+"%004d" % (imgnumber)+"."+fig_format
+    if(full_basefile == []):
+        ImageName = DataDirectory+Base_file+"_img"+"%004d" % (imgnumber)+"."+fig_format
+    else:
+        ImageName = full_basefile+"_img"+"%004d" % (imgnumber)+"."+fig_format
+    
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi, adjust_cbar_characters=False,
                  fixed_cbar_characters=4)
 

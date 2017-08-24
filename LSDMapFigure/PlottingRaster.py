@@ -449,7 +449,12 @@ class MapFigure(object):
     def add_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[], cbar_type=float, NFF_opti = False, custom_min_max = []):
+                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, 
+                        norm = "None",
+                        colour_min_max = [],
+                        modify_raster_values=False, 
+                        old_values=[], new_values=[], cbar_type=float, 
+                        NFF_opti = False, custom_min_max = []):
         """
         This function adds a drape over the base raster.
 
@@ -463,6 +468,7 @@ class MapFigure(object):
             discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
             n_colours (int): number of colours in discrete colourbar
             norm (string): Normalisation of colourbar. I don't understand this so don't change
+            colour_min_max( list of int/float): if it contains two elements, map the colourbar between these two values.
             modify_raster_values (bool): If true, it takes old_values in list and replaces them with new_values
             old_values (list): A list of values to be replaced in raster. Useful for masking and renaming
             new_values (list): A list of the new values. This probably should be done with a map: TODO
@@ -475,7 +481,10 @@ class MapFigure(object):
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,discrete_cmap,n_colours,norm,modify_raster_values,old_values,new_values,cbar_type, NFF_opti, custom_min_max)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,
+                                             colorbarlabel,discrete_cmap,n_colours,norm,
+                                             colour_min_max,modify_raster_values,old_values,
+                                             new_values,cbar_type, NFF_opti, custom_min_max)
         #print("Getting axis limits in drape function: ")
         #print(self.ax_list[0].get_xlim())
 
@@ -483,7 +492,12 @@ class MapFigure(object):
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
                          alpha=0.5,
-                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = [], cbar_type=float, NFF_opti = False, custom_min_max = []):
+                         colorbarlabel = "Colourbar", discrete_cmap=False, 
+                         n_colours=10, nroma = "None",
+                         colour_min_max = [],
+                         modify_raster_values = False, 
+                         old_values=[], new_values = [], cbar_type=float, 
+                         NFF_opti = False, custom_min_max = []):
         """
         This function adds a drape over the base raster. It does all the dirty work
         I can't quite remember why I did it in two steps but I vaguely recall trying it in one step and it didn't work.
@@ -498,6 +512,7 @@ class MapFigure(object):
             discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
             n_colours (int): number of colours in discrete colourbar
             norm (string): Normalisation of colourbar. I don't understand this so don't change
+            colour_min_max( list of int/float): if it contains two elements, map the colourbar between these two values.
             modify_raster_values (bool): If true, it takes old_values in list and replaces them with new_values
             old_values (list): A list of values to be replaced in raster. Useful for masking and renaming
             new_values (list): A list of the new values. This probably should be done with a map: TODO
@@ -531,10 +546,20 @@ class MapFigure(object):
 
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
-        if(nroma != "None"):
-            im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, norm = nroma)
+        if len(colour_min_max)!=0:
+            if len(colour_min_max)== 2:
+                print("I am setting customisable colourbar minimum and maximum values: %s ¦¦ %s" %(colour_min_max[0],colour_min_max[1]))
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, 
+                                 interpolation="nearest",alpha = alpha, norm = mpl.colors.Normalize(vmin=colour_min_max[0], vmax=colour_min_max[1]))
+            else:
+                print("I cannot customize your colour minimum and maximum because I don't understand your input. It should be [min,max] with min max as integers or floats")            
         else:
-            im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha)
+            if(nroma != "None"):
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, 
+                                 interpolation="nearest",alpha = alpha, norm = nroma)
+            else:
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, 
+                                 extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha)
         # This affects all axes because we set share_all = True.
         #ax.set_xlim(self._xmin,self._xmax)
         #ax.set_ylim(self._ymin,self._ymax)
@@ -545,7 +570,8 @@ class MapFigure(object):
 
         if self.colourbar_orientation != "None":
             self.ax_list = self.add_colourbar(self.ax_list,im,self._RasterList[-1],
-                                              colorbarlabel = colorbarlabel, discrete=discrete_cmap, n_colours=n_colours, cbar_type=cbar_type)
+                                              colorbarlabel = colorbarlabel, discrete=discrete_cmap, 
+                                              n_colours=n_colours, cbar_type=cbar_type)
 
 
         return self.ax_list
