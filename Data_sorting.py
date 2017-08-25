@@ -104,7 +104,7 @@ def quick_load_bil_raster(raster_name, raster_path):
     """
     This function return a numpy 2Darray from a bil-ENVI raster. It uses numpy.fromfile(), quite efficient.
     """
-
+    # Read the number of raw/col to recast the array
     with open(raster_path+raster_name+".hdr","r") as hdr_file:
         print("I am opening your raster info")
         for line in hdr_file:
