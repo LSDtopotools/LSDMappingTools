@@ -205,8 +205,29 @@ def get_basin_middle(df,wdir = "", key = "basin_key", keyDA = "drainage area"):
     print("done with the basin location")
     return dfbasin
 
+def pandas_to_unique_df(idf,columns = 'source_ID', otype = 'list'):
+    """
+        Take a dataframe, return a list or dictionary of dataframes from the uniques values of one of its colums.
+        Can be useful to plot basins_river more easily, I already needed it in some cases, I don't really remember why!
+        But now it is coded anyway.
+        @args:
+            idf (pandas dataframe): The input dataframe
+            columns (str): the name of the column containing the unique values
+            type (str): Do you want a list or a dict (the key would be the unique value)
 
+        @return:
+            A list of dataframes
+    """
+    if otype == 'list':
+        odf = [] # the Output list
+        for i in idf.unique(): # looping through the unique values of the dataframe
+            odf.append(idf[idf[columns] == i]) # appending a single dataframe
 
+    else:
+        odf = {}
+        for i in idf.unique():
+            odf[i] = idf[idf[columns] == i]
+    return odf
 
 
 
