@@ -82,13 +82,17 @@ def GetMOverNRangeMCPoints(BasinDF):
     """
     # get the medians from the dataframe
     MedianDF = BasinDF.filter(regex='median')
-    print MedianDF
+
     # find the median with the highest MLE for each basin
     MaxMedians = list(MedianDF.idxmax(axis=1))
-    print MaxMedians
+    Median_MOverNs = [float(x.split("=")[-1]) for x in MaxMedians]
+    print Median_MOverNs
 
     # now find the first quartile that corresponds to this median
-
+    FirstQDF = BasinDF.filter(regex='FQ')
+    print FirstQDF
+    FirstQF_MLEs = []
+    
 
 def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
