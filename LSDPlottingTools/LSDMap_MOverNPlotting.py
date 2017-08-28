@@ -1401,14 +1401,17 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     MOverNDict = dict(zip(basin_keys,m_over_ns))
 
     # get moverns for cbar plotting
-    end_movern = n_movern*d_movern
+    min_max_str = ['min', 'max']
+    end_movern = round(n_movern*d_movern,1)
     #print end_movern
-    all_m_over_ns = np.arange(start_movern, end_movern,d_movern)
-    print "ALL THE M OVER Ns ARE:"
-    print all_m_over_ns
+    min_max_moverns = [start_movern, end_movern]
+    cbar_dict = dict(zip(min_max_str,min_max_moverns))
+    print "THE CBAR DICT IS"
+    print cbar_dict
 
     # work out how many moverns we need for the colormap
-    n_colours = int(math.ceil((max(all_m_over_ns)-min(all_m_over_ns))/d_movern)+1)
+    n_colours = int(math.ceil((end_movern-start_movern)/d_movern)+1)
+    print "N COLOURS IS"
     print n_colours
 
     # get a discrete colormap
@@ -1429,7 +1432,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, value_dict = MOverNDict,
                       use_keys_not_junctions = True, show_colourbar = True,
                       discrete_cmap=True, n_colours=n_colours, colorbarlabel = "$m/n$",
-                      colourmap = mn_cmap, adjust_text = False)
+                      colourmap = mn_cmap, adjust_text = False, cbar_dict=cbar_dict)
 
     # plot the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
