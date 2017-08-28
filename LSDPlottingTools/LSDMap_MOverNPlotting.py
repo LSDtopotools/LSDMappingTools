@@ -22,6 +22,7 @@ from matplotlib import rcParams
 import pandas as pd
 from matplotlib import colors
 import math
+import os
 #from shapely.geometry import Polygon
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDMapFigure.PlottingRaster import MapFigure
@@ -64,6 +65,28 @@ def SimpleMaxMLECheck(BasinDF):
     # zip into a dictionary
     MOverNDict = dict(zip(basin_keys, MOverNs))
     return MOverNDict
+
+def GetMOverNRangeMCPoints(BasinDF):
+    """
+    This function checks through the MC points basin dataframe and returns the best fit and
+    range of m/n values
+
+    Args:
+        BasinDF: pandas dataframe from the basin MC points csv file.
+
+    Returns:
+        dataframe with the basin key, best fit m/n, and range of m/n for each basin
+
+    Author: FJC
+    """
+    # get the medians from the dataframe
+    MedianDF = BasinDF.filter(regex='median')
+    print MedianDF
+    # find the median with the highest MLE for each basin
+    MaxMedians = list(MedianDF.idxmax(axis=1))
+    print MaxMedians
+
+    # now find the first quartile that corresponds to this median
 
 
 def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
@@ -167,12 +190,8 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['Chi_MLE_full'] = OutDF['basin_key'].map(FullChiMOverNDict)
 
     # get the best fit m/n from the points method
-    PointsChiBasinDF = Helper.ReadBasinStatsPointCSV(DataDirectory,fname_prefix)
-    PointsChiMovernDict = SimpleMaxMLECheck(PointsChiBasinDF)
-    OutDF['Chi_MLE_points'] = OutDF['basin_key'].map(PointsChiMovernDict)
-    print OutDF
-
-    # get the uncertainty on the points analysis using the Monte Carlo approach
+    PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
+    GetMOverNRangeMCPoints(PointsChiBasinDF)
 
     # get the best fit m/n from the raw SA data
 
@@ -779,7 +798,7 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
             ax.cla()
 
 def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7,
-                    size_format='ESURF', FigFormat='png'):
+                    size_format='ESURF', FigFormat='png', animate=False, keep_pngs=False):
     """
     This function makes chi-elevation plots for each basin and each value of m/n
     where the channels are coloured by the MLE value compared to the main stem.
@@ -795,12 +814,19 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
         n_movern (float): the number of m/n values analysed. Default is 7.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        animate (bool): If this is true then it creates a movie of the chi-elevation plots coloured by MLE.
+        keep_pngs (bool): If this is false and the animation flag is true, then the pngs are deleted and just the video is kept.
 
     Returns:
         Plot of each m/n value for each basin.
 
     Author: FJC
     """
+    # check if a directory exists for the chi plots. If not then make it.
+    MLE_directory = DataDirectory+'/chi_plots/'
+    if not os.path.isdir(MLE_directory):
+        os.makedirs(MLE_directory)
+
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
@@ -911,7 +937,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
 
             #save the plot
-            newFilename = DataDirectory+"MLE_profiles"+str(basin_key)+"_"+str(m_over_n)+".png"
+            newFilename = MLE_directory+"MLE_profiles"+str(basin_key)+"_"+str(m_over_n)+".png"
 
             # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
             ax.tick_params(axis='both', width=1, pad = 2)
@@ -921,6 +947,8 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             plt.savefig(newFilename,format=FigFormat,dpi=300)
             ax.cla()
             ax2.cla()
+
+    #if animate:
 
 
 
@@ -1325,6 +1353,11 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     Author: FJC
     """
+    # check if a directory exists for the chi plots. If not then make it.
+    raster_directory = DataDirectory+'/raster_plots/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
     #import modules
     # from LSDMapFigure.PlottingRaster import MapFigure
     # from LSDMapFigure.PlottingRaster import BaseRaster
@@ -1388,7 +1421,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
 
     # Save the figure
-    ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
+    ImageName = raster_directory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
 
 def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_movern=7, d_movern=0.1, point_analysis=False, size_format='ESURF', FigFormat='png'):
@@ -1410,6 +1443,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
 
     Author: FJC
     """
+    # check if a directory exists for the chi plots. If not then make it.
+    raster_directory = DataDirectory+'/raster_plots/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
@@ -1492,7 +1530,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
 
-    ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
+    ImageName = raster_directory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
 
@@ -1596,6 +1634,10 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
 
     Author: FJC
     """
+    # check if a directory exists for the chi plots. If not then make it.
+    MCMC_directory = DataDirectory+'/MCMC_plots/'
+    if not os.path.isdir(MCMC_directory):
+        os.makedirs(MCMC_directory)
 
     # Set up fonts for plots
     label_size = 10
@@ -1653,7 +1695,7 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
         ax.set_title('Basin '+str(basin))
 
         # save the figure
-        ImageName = DataDirectory+fname_prefix+'_MCMC_basin' +str(basin)+'.'+FigFormat
+        ImageName = MCMC_directory+fname_prefix+'_MCMC_basin' +str(basin)+'.'+FigFormat
         plt.savefig(ImageName, format=FigFormat, dpi=300)
         ax.cla()
 

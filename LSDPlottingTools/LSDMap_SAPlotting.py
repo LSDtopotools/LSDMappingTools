@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 #from cycler import cycler
 from matplotlib import rcParams
 import pandas as pd
+import os
 #import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
 #import LSDMap_BasicManipulation as LSDMap_BM
 #import LSDMap_OSystemTools as LSDOst
@@ -246,6 +247,11 @@ def SegmentedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
 
     label_size = 10
 
+    # check if a directory exists for the SA plots. If not then make it.
+    SA_directory = DataDirectory+'/SA_plots/'
+    if not os.path.isdir(SA_directory):
+        os.makedirs(SA_directory)
+
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
@@ -347,7 +353,7 @@ def SegmentedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
         return fig # return the axes object so can make nice subplots with the other plotting tools?
     else:
         save_fmt = FigFormat
-        plt.savefig(DataDirectory+FigFileName,format=save_fmt,dpi=500)
+        plt.savefig(SA_directory+FigFileName,format=save_fmt,dpi=500)
         fig.clf()
 
 def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFileName = 'Image.pdf',
@@ -376,9 +382,13 @@ def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFil
     import matplotlib.colors as colors
     import matplotlib.ticker
 
-    label_size = 10
+    # check if a directory exists for the SA plots. If not then make it.
+    SA_directory = DataDirectory+'/SA_plots/'
+    if not os.path.isdir(SA_directory):
+        os.makedirs(SA_directory)
 
     # Set up fonts for plots
+    label_size = 10
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
@@ -524,7 +534,7 @@ def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFil
         return fig # return the axes object so can make nice subplots with the other plotting tools?
     else:
         save_fmt = FigFormat
-        plt.savefig(DataDirectory+FigFileName,format=save_fmt,dpi=500)
+        plt.savefig(SA_directory+FigFileName,format=save_fmt,dpi=500)
         fig.clf()
 
 def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, FigFileName = 'Image.pdf',
@@ -552,9 +562,13 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
     import matplotlib.colors as colors
     import matplotlib.ticker
 
-    label_size = 10
+    # check if a directory exists for the SA plots. If not then make it.
+    SA_directory = DataDirectory+'/SA_plots/'
+    if not os.path.isdir(SA_directory):
+        os.makedirs(SA_directory)
 
     # Set up fonts for plots
+    label_size = 10
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
@@ -697,12 +711,8 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
         return fig # return the axes object so can make nice subplots with the other plotting tools?
     else:
         save_fmt = FigFormat
-        plt.savefig(DataDirectory+FigFileName,format=save_fmt,dpi=500)
+        plt.savefig(SA_directory+FigFileName,format=save_fmt,dpi=500)
         fig.clf()
-
-
-
-
 
 def BinnedRegression(BinnedPointData, basin_key):
     """
