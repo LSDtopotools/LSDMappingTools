@@ -23,6 +23,7 @@ import pandas as pd
 from matplotlib import colors
 import math
 import os
+import subprocess
 #from shapely.geometry import Polygon
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDMapFigure.PlottingRaster import MapFigure
@@ -823,7 +824,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
     Author: FJC
     """
     # check if a directory exists for the chi plots. If not then make it.
-    MLE_directory = DataDirectory+'/chi_plots/'
+    MLE_directory = DataDirectory+'chi_plots/'
     if not os.path.isdir(MLE_directory):
         os.makedirs(MLE_directory)
 
@@ -948,8 +949,15 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             ax.cla()
             ax2.cla()
 
-    #if animate:
-
+    if animate:
+        # animate the pngs using ffmpeg
+        system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+MLE_directory+"MLE_profiles*.png' -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+MLE_directory+"MLE_profiles.mp4"
+        print system_call
+        subprocess.call(system_call, shell=True)
+        # delete the pngs if you want
+        if not keep_pngs:
+            system_call = "rm "+MLE_directory+"MLE_profiles*.png"
+            subprocess.call(system_call, shell=True)
 
 
 def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7, size_format = "geomorphology"):
@@ -1354,7 +1362,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     Author: FJC
     """
     # check if a directory exists for the chi plots. If not then make it.
-    raster_directory = DataDirectory+'/raster_plots/'
+    raster_directory = DataDirectory+'raster_plots/'
     if not os.path.isdir(raster_directory):
         os.makedirs(raster_directory)
 
@@ -1444,7 +1452,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     Author: FJC
     """
     # check if a directory exists for the chi plots. If not then make it.
-    raster_directory = DataDirectory+'/raster_plots/'
+    raster_directory = DataDirectory+'raster_plots/'
     if not os.path.isdir(raster_directory):
         os.makedirs(raster_directory)
 
@@ -1635,7 +1643,7 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     Author: FJC
     """
     # check if a directory exists for the chi plots. If not then make it.
-    MCMC_directory = DataDirectory+'/MCMC_plots/'
+    MCMC_directory = DataDirectory+'MCMC_plots/'
     if not os.path.isdir(MCMC_directory):
         os.makedirs(MCMC_directory)
 

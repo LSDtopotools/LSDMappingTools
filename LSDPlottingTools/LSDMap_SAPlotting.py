@@ -248,7 +248,7 @@ def SegmentedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
     label_size = 10
 
     # check if a directory exists for the SA plots. If not then make it.
-    SA_directory = DataDirectory+'/SA_plots/'
+    SA_directory = DataDirectory+'SA_plots/'
     if not os.path.isdir(SA_directory):
         os.makedirs(SA_directory)
 
@@ -383,7 +383,7 @@ def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFil
     import matplotlib.ticker
 
     # check if a directory exists for the SA plots. If not then make it.
-    SA_directory = DataDirectory+'/SA_plots/'
+    SA_directory = DataDirectory+'SA_plots/'
     if not os.path.isdir(SA_directory):
         os.makedirs(SA_directory)
 
@@ -563,7 +563,7 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
     import matplotlib.ticker
 
     # check if a directory exists for the SA plots. If not then make it.
-    SA_directory = DataDirectory+'/SA_plots/'
+    SA_directory = DataDirectory+'SA_plots/'
     if not os.path.isdir(SA_directory):
         os.makedirs(SA_directory)
 
