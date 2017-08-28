@@ -71,6 +71,9 @@ def main(argv):
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
+    parser.add_argument("-animate", "--animate", type=bool, default=False, help="If this is true I will create an animation of the chi plots. Must be used with the -PC flag set to True.")
+    parser.add_argument("-keep_pngs", "--keep_pngs", type=bool, default=False, help="If this is true I will delete the png files when I animate the figures. Must be used with the -animate flag set to True.")
+
     args = parser.parse_args()
 
     if not args.fname_prefix:
@@ -100,7 +103,7 @@ def main(argv):
         MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
         MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, args.start_movern, args.n_movern, args.d_movern, args.size_format, args.FigFormat)
     if args.plot_chi_profiles:
-        MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
+        MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat, animate=args.animate, keep_pngs=args.keep_pngs)
     if args.plot_outliers:
         MN.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern)
     if args.plot_MLE_movern:
