@@ -130,6 +130,55 @@ def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_mov
     # Now plot the figure
     PlotMOverNDicts(DataDirectory, fname_prefix, SA_movern_dict,best_fit_movern_dict, FigFormat = "png", size_format = "ESURF")
 
+def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
+    """
+    This function reads in all the files with the data for the various methods of estimating
+    the best fit m/n and produces a summary csv file which has the best fit m/n and uncertainty
+    for each basin. This csv can then be used to plot the data.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+
+    Returns:
+        writes a csv with the best fit m/n info for each basin
+
+    Author: FJC
+    """
+    # read in the full chi dataframe
+    FullChiBasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    # Let's get the list of basins
+    if basin_list == []:
+        print("You didn't supply a list of basins, so I'm going to analyse all of them.")
+        basin_list = list(FullChiBasinDF['basin_key'])
+
+    # We're going to write our summary csv using pandas, woooo
+    # First of all we need to set up the dataframe
+    OutDF = pd.DataFrame()
+    OutDF['basin_key'] = pd.Series(basin_list)
+
+    # get the best fit m/n for each basin in the list from the full chi method
+    FullChiMOverNDict = SimpleMaxMLECheck(FullChiBasinDF)
+    OutDF['Chi_MLE_full'] = OutDF['basin_key'].map(FullChiMOverNDict)
+
+    # get the best fit m/n from the points method
+    PointsChiBasinDF = Helper.ReadBasinStatsPointCSV(DataDirectory,fname_prefix)
+    PointsChiMovernDict = SimpleMaxMLECheck(PointsChiBasinDF)
+    OutDF['Chi_MLE_points'] = OutDF['basin_key'].map(PointsChiMovernDict)
+    print OutDF
+
+    # get the uncertainty on the points analysis using the Monte Carlo approach
+
+    # get the best fit m/n from the raw SA data
+
+    # get the best fit m/n from the segmented SA data
+
+
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
     This function uses the fullstats files to search for outliers in the

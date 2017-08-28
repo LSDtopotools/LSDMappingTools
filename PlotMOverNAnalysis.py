@@ -55,6 +55,7 @@ def main(argv):
     parser.add_argument("-MLE", "--plot_MLE_movern", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
     parser.add_argument("-SA", "--plot_SA_data", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
     parser.add_argument("-MCMC", "--plot_MCMC", type=bool, default=False, help="If this is true, I'll make a plot of the MCMC analysis. Specify which basins you want with the -basin_keys flag.")
+    parser.add_argument("-ALL", "--all_movern_estimates", type=bool, default=False, help="If this is true, I'll make the summary CSV file and plot of the best fit m/n from each of the methods.")
 
     # Plotting options
     parser.add_argument("-start_movern", "--start_movern", type=float, default=0.2, help="Define the starting m/n value for testing, default = 0.2")
@@ -88,9 +89,6 @@ def main(argv):
         print("The basins I will plot are:")
         print(these_basin_keys)
 
-
-
-
     # get the base directory
     if args.base_directory:
         this_dir = args.base_directory
@@ -114,6 +112,8 @@ def main(argv):
         SA.TestSARegression(this_dir, args.fname_prefix)
     if args.plot_MCMC:
         MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= args.FigFormat, size_format=args.size_format)
+    if args.all_movern_estimates:
+        MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern)
 
 
 #=============================================================================
