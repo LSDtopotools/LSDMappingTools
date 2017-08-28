@@ -527,15 +527,14 @@ def ReadChainCSV(DataDirectory, fname_prefix, basin_key):
 
     return df
 
-def ReadMCPointsCSV(DataDirectory, fname_prefix, m_over_n):
+def ReadMCPointsCSV(DataDirectory, fname_prefix):
     """
-    This function reads in the file with the suffix '_MCpoint__X_pointsMC.csv'
-    where X is the m/n value
+    This function reads in the file with the suffix
+    '_MCpoint__points_MC_basinstats.csv'
 
     Args:
         DataDirectory: the data directory
         fname_prefix: the file name prefix
-        m_over_n: the m/n value
 
     Returns:
         pandas dataframe with the csv file
@@ -543,7 +542,7 @@ def ReadMCPointsCSV(DataDirectory, fname_prefix, m_over_n):
     Author: FJC
     """
     # get the csv filename
-    mc_points_suffix = '_MCpoint__%s_pointsMC.csv' %str(m_over_n)
+    mc_points_suffix = '_MCpoint__points_MC_basinstats.csv'
     fname = fname_prefix+mc_points_suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
