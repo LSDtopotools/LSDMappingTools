@@ -49,7 +49,7 @@ def TestSARegression(DataDirectory, DEM_prefix):
 
     slope, intercept, r_value, p_value, std_err = stats.linregress(logA,logS)
 
-    print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2))
+    print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value))
 
 
 

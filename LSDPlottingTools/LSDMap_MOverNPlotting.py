@@ -830,7 +830,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             # get the colourmap to colour channels by the MLE value
             #NUM_COLORS = len(MLE)
             MLE_array = np.asarray(TributariesMLE)
-            this_cmap = plt.cm.Reds
+            this_cmap = plt.cm.coolwarm
             cNorm  = colors.Normalize(vmin=np.min(MLE_array), vmax=np.max(MLE_array))
             plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
 
@@ -1195,7 +1195,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             # no removed tributaries
             if i == 0:
                 # plot the data
-                ax.plot(m_over_n_values,ratio_MLEs, lw=1.5, label = str(i), c='k', linestyle = '-', zorder=100)
+                ax.scatter(m_over_n_values,ratio_MLEs, label = str(i), c='k', s=5, zorder=100)
 
                 # get the limits for the arrow
                 max_MLE = max(ratio_MLEs)
@@ -1217,7 +1217,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             #remove tribs
             else:
                 # plot the data
-                ax.plot(m_over_n_values,ratio_MLEs, lw=1, label = str(i), c='0.5', linestyle = ls[i]) # different linestyle for each iteration?
+                ax.scatter(m_over_n_values,ratio_MLEs, label = str(i), s=5, c='0.5') # different linestyle for each iteration?
 
         # set the axes labels
         ax.set_xlabel('$m/n$')
@@ -1402,11 +1402,14 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
 
     # get moverns for cbar plotting
     end_movern = n_movern*d_movern
-    print end_movern
+    #print end_movern
     all_m_over_ns = np.arange(start_movern, end_movern,d_movern)
+    print "ALL THE M OVER Ns ARE:"
+    print all_m_over_ns
 
     # work out how many moverns we need for the colormap
     n_colours = int(math.ceil((max(all_m_over_ns)-min(all_m_over_ns))/d_movern)+1)
+    print n_colours
 
     # get a discrete colormap
     mn_cmap = plt.cm.Reds
