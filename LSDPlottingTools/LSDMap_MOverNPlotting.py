@@ -296,9 +296,11 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
 
     # get the best fit m/n from the chi residuals method
     ResidualsDF = GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list)
-    print ResidualsDF
+    OutDF['Chi_residuals'] = ResidualsDF['Median_MOverNs']
+    OutDF['Chi_residuals_min'] = ResidualsDF['FirstQ_MOverNs']
+    OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
 
-    #print OutDF
+    print OutDF
 
 
 
