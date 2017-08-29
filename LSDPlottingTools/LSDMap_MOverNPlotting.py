@@ -90,9 +90,31 @@ def GetMOverNRangeMCPoints(BasinDF):
 
     # now find the first quartile that corresponds to this median
     FirstQDF = BasinDF.filter(regex='FQ')
-    print FirstQDF
     FirstQF_MLEs = []
-    
+    for i, median in enumerate(Median_MOverNs):
+        # find the right column
+        FirstQDF_mask = FirstQDF.filter(regex=str(median))
+        FirstQF_MLEs.append(float(FirstQDF_mask.iloc[i]))
+
+    print FirstQF_MLEs
+
+    # now, for each basin, find the columns in the 3rd quartile which are higher than the first Q MLE
+    ThirdQDF = BasinDF.filter(regex='TQ')
+
+    # add the threshold first Q MLEs to the dataframe
+    ThirdQDF['threshold'] = pd.Series(FirstQF_MLEs, index=ThirdQDF.index)
+    # change DF to a boolean where values are greater than the threshold
+    TempDF = ThirdQDF.drop('threshold', 1).gt(ThirdQDF['threshold'], 0)
+    # get the column names where the values are greater than the threshold for each basin
+    TempDF['uncertainties'] = TempDF.apply(lambda x: x.index[x].tolist(),axis=1)
+
+    OutputDF = pd.DataFrame()
+    OutputDF['basin_key'] = BasinDF['basin_key']
+    OutputDF['Median_MOverNs'] = pd.Series(Median_MOverNs)
+    OutputDF['FirstQ_threshold'] = pd.Series(FirstQF_MLEs)
+    OutputDF['uncertainties'] = TempDF['uncertainties']
+
+    return OutputDF
 
 def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
