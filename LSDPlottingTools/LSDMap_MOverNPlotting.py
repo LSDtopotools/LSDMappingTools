@@ -87,7 +87,6 @@ def GetMOverNRangeMCPoints(BasinDF):
     # find the median with the highest MLE for each basin
     MaxMedians = list(MedianDF.idxmax(axis=1))
     Median_MOverNs = [float(x.split("=")[-1]) for x in MaxMedians]
-    #print Median_MOverNs
 
     # now find the first quartile that corresponds to this median
     FirstQDF = BasinDF.filter(regex='FQ')
@@ -109,7 +108,6 @@ def GetMOverNRangeMCPoints(BasinDF):
     ThirdQDF['threshold'] = pd.Series(FirstQF_MLEs, index=ThirdQDF.index)
     # change DF to a boolean where values are greater than the threshold
     TempDF = ThirdQDF.drop('threshold', 1).gt(ThirdQDF['threshold'], 0)
-    #print TempDF
     # get the column names where the values are greater than the threshold for each basin
     TempDF['Range_MOverNs'] = TempDF.apply(lambda x: ','.join(x.index[x]),axis=1)
 
@@ -123,12 +121,65 @@ def GetMOverNRangeMCPoints(BasinDF):
         Min_MOverNs.append(min(movern_floats))
         Max_MOverNs.append(max(movern_floats))
 
+    # write the output dataframe
     OutputDF = pd.DataFrame()
     OutputDF['basin_key'] = BasinDF['basin_key']
     OutputDF['Median_MOverNs'] = pd.Series(Median_MOverNs)
     OutputDF['FirstQ_threshold'] = pd.Series(FirstQF_MLEs)
     OutputDF['Min_MOverNs'] = pd.Series(Min_MOverNs)
     OutputDF['Max_MOverNs'] = pd.Series(Max_MOverNs)
+
+    return OutputDF
+
+def GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list=[0]):
+    """
+    This function reads in the CSV files with the chi residuals data and
+    calculates the median best fit m/n along with the min and max from the
+    first and third quartiles. These are returned as a pandas dataframe because
+    I love pandas <3 <3
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+
+    Returns:
+        pandas dataframe with m/n data from the chi residuals analysis
+
+    Author: FJC
+    """
+    # first let's read in the csv files with the residuals data
+    dfs = Helper.ReadChiResidualsCSVs(DataDirectory,fname_prefix)
+
+    # get the best fit m/n from the dataframes
+    movern_data = []
+    for i in range(len(dfs)):
+        dfs[i] = dfs[i][dfs[i]['basin_key'].isin(basin_list)]
+        ThisDF = dfs[i][dfs[i] < 0]
+
+        indices = []
+        for i, row in ThisDF.iterrows():
+            # find the first index where it is not a nan
+            index = row.first_valid_index()
+            if index == None:
+                index = row.index[-1]
+            indices.append(float(index.split("=")[-1]))
+        movern_data.append(indices)
+
+    # the movern_data is a list of lists containing the information.
+    # movern_data[0] = median
+    # movern_data[1] = first quartile
+    # movern_data[2] = third quartile
+    # the second index is the basin key.
+    # so to get the median of basin 3 you would use movern_data[0][3]
+
+    # write the output dataframe
+    OutputDF = pd.DataFrame()
+    OutputDF['basin_key'] = dfs[0]['basin_key']
+    OutputDF['Median_MOverNs'] = pd.Series(movern_data[0])
+    OutputDF['FirstQ_MOverNs'] = pd.Series(movern_data[1])
+    OutputDF['ThirdQ_MOverNs'] = pd.Series(movern_data[2])
 
     return OutputDF
 
@@ -241,9 +292,13 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['Chi_MLE_points_min'] = UncertaintyDF['Min_MOverNs']
     OutDF['Chi_MLE_points_max'] = UncertaintyDF['Max_MOverNs']
 
-    # get the best fit m/n from the chi residuals method
+    print "Now getting the m/n from the chi residuals"
 
-    print OutDF
+    # get the best fit m/n from the chi residuals method
+    ResidualsDF = GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list)
+    print ResidualsDF
+
+    #print OutDF
 
 
 
