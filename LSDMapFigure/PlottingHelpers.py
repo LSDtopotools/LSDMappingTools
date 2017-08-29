@@ -551,7 +551,7 @@ def ReadMCPointsCSV(DataDirectory, fname_prefix):
 
 def ReadChiResidualsCSVs(DataDirectory, fname_prefix):
     """
-    This function reads in the the 3 CSV files for the residuals analysis
+    This function reads in the 3 CSV files for the residuals analysis
     They have the format:
         "_residual_movernstats_movern_residuals_median.csv"
         "_residual_movernstats_movern_residuals_Q1.csv"
@@ -578,6 +578,26 @@ def ReadChiResidualsCSVs(DataDirectory, fname_prefix):
         dfs.append(pd.read_csv(DataDirectory+fname))
 
     return dfs
+
+def ReadRawSAData(DataDirectory, fname_prefix):
+    """
+    This function reads in the raw SA data to a pandas dataframe
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the raw SA data
+
+    Author: FJC
+    """
+    # get the csv filename
+    fname_suffix = "_SAvertical.csv"
+    fname = fname_prefix+fname_suffix
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
 
 #--------------------------------------------------------------------------------#
 # Terraces
