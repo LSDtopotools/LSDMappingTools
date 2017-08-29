@@ -20,39 +20,56 @@ import os
 #import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
 #import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
 import LSDPlottingTools.statsutilities as LSDStats
+from LSDMapFigure import PlottingHelpers as Helper
 
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## Test S-A
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-def TestSARegression(DataDirectory, DEM_prefix):
+def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
+    """
+    This function performs a linear regression on all of the slope-area data.
+    It returns a dataframe with the linear regression info for each basin key.
+
+    Args:
+        DataDirectory (str): the data directory
+        DEM_prefix (str): the prefix of the DEM_prefix
+        basin_list: a list of the basins to analyse, default = empty (all basins)
+
+    Returns:
+        pandas dataframe with the linear regression info
+
+    Author: SMM and FJC
+    """
     # read in binned data
     from scipy import stats
 
+    df = Helper.ReadRawSAData(DataDirectory, DEM_prefix)
 
-    binned_csv_fname = DataDirectory+DEM_prefix+'_SAvertical.csv'
-    print("I'm reading in the csv file "+binned_csv_fname)
+    # get a list of the basins if needed
+    if basin_list == []:
+        print ("You didn't give me a basin list so I will analyse all the basins")
+        basin_list = df['basin_key'].tolist()
 
+    # now do a linear regression for each basin
+    columns = ['basin_key', 'regression_slope', 'std_err', 'R2', 'p_value']
+    OutDF = pd.DataFrame(columns=columns)
+    
+    for basin_key in basin_list:
+        df_slope = (df[df['basin_key']==basin_key]['slope']).values
+        df_area = (df[df['basin_key']==basin_key]['drainage_area']).values
 
-    df = pd.DataFrame.from_csv(binned_csv_fname)
+        logS = np.log10(df_slope[df_area!=0])
+        logA = np.log10(df_area[df_area!=0])
 
-    #dfBK = df.basin_key
-    #print(dfBK)
+        slope, intercept, r_value, p_value, std_err = stats.linregress(logA,logS)
 
-    dfslope = df[df["basin_key"]==1]["slope"]
-    dfarea = df[df["basin_key"]==1]["drainage_area"]
+        print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value))
+        this_key = int(basin_key)
+        this_row = [this_key,slope,std_err,r_value**2,p_value]
+        OutDF.loc[basin_key] = this_row
 
-    S = dfslope.values
-    A = dfarea.values
-
-    logS = np.log10(S)
-    logA= np.log10(A)
-
-    slope, intercept, r_value, p_value, std_err = stats.linregress(logA,logS)
-
-    print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value))
-
-
+    return OutDF
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## Slope-area functions

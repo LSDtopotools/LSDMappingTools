@@ -28,6 +28,7 @@ import subprocess
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
+from LSDPlottingTools import LSDMap_SAPlotting as SA
 
 
 #=============================================================================
@@ -300,13 +301,12 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['Chi_residuals_min'] = ResidualsDF['FirstQ_MOverNs']
     OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
 
-    print OutDF
-
-
-
     # get the best fit m/n from the raw SA data
+    SA.LinearRegressionRawData(DataDirectory,fname_prefix,basin_list)
 
     # get the best fit m/n from the segmented SA data
+
+    print OutDF
 
 
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
