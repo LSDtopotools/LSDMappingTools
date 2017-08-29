@@ -70,7 +70,8 @@ def SimpleMaxMLECheck(BasinDF):
 def GetMOverNRangeMCPoints(BasinDF):
     """
     This function checks through the MC points basin dataframe and returns the best fit and
-    range of m/n values
+    range of m/n values. The range is given as a list in the column (all values of m/n where
+    the 3rd quartile is above the first quartile value for the best fit m/n)
 
     Args:
         BasinDF: pandas dataframe from the basin MC points csv file.
@@ -86,7 +87,7 @@ def GetMOverNRangeMCPoints(BasinDF):
     # find the median with the highest MLE for each basin
     MaxMedians = list(MedianDF.idxmax(axis=1))
     Median_MOverNs = [float(x.split("=")[-1]) for x in MaxMedians]
-    print Median_MOverNs
+    #print Median_MOverNs
 
     # now find the first quartile that corresponds to this median
     FirstQDF = BasinDF.filter(regex='FQ')
@@ -96,23 +97,38 @@ def GetMOverNRangeMCPoints(BasinDF):
         FirstQDF_mask = FirstQDF.filter(regex=str(median))
         FirstQF_MLEs.append(float(FirstQDF_mask.iloc[i]))
 
-    print FirstQF_MLEs
-
     # now, for each basin, find the columns in the 3rd quartile which are higher than the first Q MLE
     ThirdQDF = BasinDF.filter(regex='TQ')
+
+    # change the column names to just have the m/n values
+    column_names = list(ThirdQDF)
+    column_names = [x.split("=")[-1] for x in column_names]
+    ThirdQDF.columns = column_names
 
     # add the threshold first Q MLEs to the dataframe
     ThirdQDF['threshold'] = pd.Series(FirstQF_MLEs, index=ThirdQDF.index)
     # change DF to a boolean where values are greater than the threshold
     TempDF = ThirdQDF.drop('threshold', 1).gt(ThirdQDF['threshold'], 0)
+    #print TempDF
     # get the column names where the values are greater than the threshold for each basin
-    TempDF['uncertainties'] = TempDF.apply(lambda x: x.index[x].tolist(),axis=1)
+    TempDF['Range_MOverNs'] = TempDF.apply(lambda x: ','.join(x.index[x]),axis=1)
+
+    # get the m/n values greater than the threshold to a list, then get the min and max
+    Min_MOverNs = []
+    Max_MOverNs = []
+    Range_MOverNs = list(TempDF['Range_MOverNs'])
+    for i in range (len(Range_MOverNs)):
+        movern_str = Range_MOverNs[i].split(",")
+        movern_floats = [float(x) for x in movern_str]
+        Min_MOverNs.append(min(movern_floats))
+        Max_MOverNs.append(max(movern_floats))
 
     OutputDF = pd.DataFrame()
     OutputDF['basin_key'] = BasinDF['basin_key']
     OutputDF['Median_MOverNs'] = pd.Series(Median_MOverNs)
     OutputDF['FirstQ_threshold'] = pd.Series(FirstQF_MLEs)
-    OutputDF['uncertainties'] = TempDF['uncertainties']
+    OutputDF['Min_MOverNs'] = pd.Series(Min_MOverNs)
+    OutputDF['Max_MOverNs'] = pd.Series(Max_MOverNs)
 
     return OutputDF
 
@@ -218,7 +234,13 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
 
     # get the best fit m/n from the points method
     PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
-    GetMOverNRangeMCPoints(PointsChiBasinDF)
+    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
+    print UncertaintyDF
+    OutDF['Chi_MLE_points'] = UncertaintyDF['Median_MOverNs']
+
+    # get the uncertainty in m/n from the points method
+
+
 
     # get the best fit m/n from the raw SA data
 
