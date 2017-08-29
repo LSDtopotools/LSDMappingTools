@@ -549,6 +549,36 @@ def ReadMCPointsCSV(DataDirectory, fname_prefix):
 
     return df
 
+def ReadChiResidualsCSVs(DataDirectory, fname_prefix):
+    """
+    This function reads in the the 3 CSV files for the residuals analysis
+    They have the format:
+        "_residual_movernstats_movern_residuals_median.csv"
+        "_residual_movernstats_movern_residuals_Q1.csv"
+        "_residual_movernstats_movern_residuals_Q3.csv"
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        list of pandas dataframes with the csv files. List format is:
+        0 = medians
+        1 = 1st quartile
+        2 = 3rd quartile
+
+    Author: FJC
+    """
+    # get the csv filename
+    fnames = ["_residual_movernstats_movern_residuals_median.csv","_residual_movernstats_movern_residuals_Q1.csv","_residual_movernstats_movern_residuals_Q3.csv"]
+    #print "The fnames are: ", fnames
+    dfs = []
+    for f in fnames:
+        fname = fname_prefix+f
+        dfs.append(pd.read_csv(DataDirectory+fname))
+
+    return dfs
+
 #--------------------------------------------------------------------------------#
 # Terraces
 #--------------------------------------------------------------------------------#
