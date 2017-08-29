@@ -234,11 +234,16 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
 
     # get the best fit m/n from the points method
     PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
-    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
-    print UncertaintyDF
-    OutDF['Chi_MLE_points'] = UncertaintyDF['Median_MOverNs']
+    PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
 
-    # get the uncertainty in m/n from the points method
+    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
+    OutDF['Chi_MLE_points'] = UncertaintyDF['Median_MOverNs']
+    OutDF['Chi_MLE_points_min'] = UncertaintyDF['Min_MOverNs']
+    OutDF['Chi_MLE_points_max'] = UncertaintyDF['Max_MOverNs']
+
+    # get the best fit m/n from the chi residuals method
+
+    print OutDF
 
 
 
