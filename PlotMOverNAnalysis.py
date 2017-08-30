@@ -16,6 +16,7 @@ import sys
 import os
 from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 from LSDPlottingTools import LSDMap_SAPlotting as SA
+from LSDMapFigure import PlottingHelpers as Helper
 
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.
@@ -58,9 +59,6 @@ def main(argv):
     parser.add_argument("-ALL", "--all_movern_estimates", type=bool, default=False, help="If this is true, I'll make the summary CSV file and plot of the best fit m/n from each of the methods.")
 
     # Plotting options
-    parser.add_argument("-start_movern", "--start_movern", type=float, default=0.2, help="Define the starting m/n value for testing, default = 0.2")
-    parser.add_argument("-d_movern", "--d_movern", type=float, default=0.1, help="Define the change in m/n value for testing, default = 0.1")
-    parser.add_argument("-n_movern", "--n_movern", type=int, default=7, help="Define the number of m/n values for testing, default = 7")
     parser.add_argument("-points", "--point_analysis", type=bool, default=False, help="If this is true then I'll assume that you're running the MLE analysis using the point method. Default = False")
     parser.add_argument("-show_SA_raw", "--show_SA_raw", type=bool, default=True, help="Show the raw S-A data in background of SA plot. Default = True")
     parser.add_argument("-show_SA_segments", "--show_SA_segments", type=bool, default=False, help="Show the segmented S-A data in SA plot. Default = False")
@@ -98,16 +96,25 @@ def main(argv):
     else:
         this_dir = os.getcwd()
 
+    # get the range of moverns, needed for plotting
+    BasinDF = Helper.ReadBasinStatsCSV(this_dir, args.fname_prefix)
+    # we need the column headers
+    columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
+    moverns = [float(x.split("=")[-1]) for x in columns]
+    start_movern = moverns[0]
+    n_movern = len(moverns)
+    d_movern = (moverns[-1] - moverns[0])/(n_movern-1)
+
     # make the plots depending on your choices
     if args.plot_rasters:
         MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, args.start_movern, args.n_movern, args.d_movern, args.size_format, args.FigFormat)
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, args.size_format, args.FigFormat)
     if args.plot_chi_profiles:
-        MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat, animate=args.animate, keep_pngs=args.keep_pngs)
+        MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat = args.FigFormat, animate=args.animate, keep_pngs=args.keep_pngs)
     if args.plot_outliers:
-        MN.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern)
+        MN.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
     if args.plot_MLE_movern:
-        MN.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=these_basin_keys, start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
+        MN.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
     if args.plot_SA_data:
         SA.SAPlotDriver(this_dir, args.fname_prefix, FigFormat = args.FigFormat,size_format=args.size_format,
                         show_raw = args.show_SA_raw, show_segments = args.show_SA_segments,basin_keys = these_basin_keys)
@@ -116,8 +123,8 @@ def main(argv):
     if args.plot_MCMC:
         MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= args.FigFormat, size_format=args.size_format)
     if args.all_movern_estimates:
-        MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern)
-        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, FigFormat = args.FigFormat,size_format=args.size_format)
+        MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = args.FigFormat,size_format=args.size_format)
 
 
 #=============================================================================

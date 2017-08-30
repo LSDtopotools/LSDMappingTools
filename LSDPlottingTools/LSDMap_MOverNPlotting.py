@@ -1716,17 +1716,15 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     # get moverns for cbar plotting
     min_max_str = ['min', 'max']
     end_movern = start_movern+d_movern*(n_movern-1)
-    print "END MOVERN IS"
+    all_moverns = np.linspace(start_movern,end_movern,n_movern)
+    print "END MOVERN:"
     print end_movern
     min_max_moverns = [start_movern, end_movern]
     cbar_dict = dict(zip(min_max_str,min_max_moverns))
-    print "THE CBAR DICT IS"
-    print cbar_dict
 
     # work out how many moverns we need for the colormap
-    n_colours = int(math.ceil((end_movern-start_movern)/d_movern))
-    print "N COLOURS IS"
-    print n_colours
+    n_colours = len(all_moverns)
+    print "N colours is: "+str(n_colours)
 
     # get a discrete colormap
     mn_cmap = plt.cm.Reds
