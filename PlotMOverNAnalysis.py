@@ -108,7 +108,7 @@ def main(argv):
     # make the plots depending on your choices
     if args.plot_rasters:
         MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, args.size_format, args.FigFormat)
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, size_format=args.size_format, FigFormat=args.FigFormat)
     if args.plot_chi_profiles:
         MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat = args.FigFormat, animate=args.animate, keep_pngs=args.keep_pngs)
     if args.plot_outliers:
@@ -123,6 +123,22 @@ def main(argv):
     if args.plot_MCMC:
         MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= args.FigFormat, size_format=args.size_format)
     if args.all_movern_estimates:
+        # plot the rasters
+        MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_full", size_format=args.size_format, FigFormat=args.FigFormat)
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format, FigFormat=args.FigFormat)
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="SA", size_format=args.size_format, FigFormat=args.FigFormat)
+
+        # make the chi plots
+        MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat = args.FigFormat, animate=True, keep_pngs=True)
+
+        # make the SA plots
+        SA.SAPlotDriver(this_dir, args.fname_prefix, FigFormat = args.FigFormat,size_format=args.size_format,
+                        show_raw = args.show_SA_raw, show_segments = True, basin_keys = these_basin_keys)
+        SA.SAPlotDriver(this_dir, args.fname_prefix, FigFormat = args.FigFormat,size_format=args.size_format,
+                        show_raw = args.show_SA_raw, show_segments = False, basin_keys = these_basin_keys)
+
+        #summary plots
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = args.FigFormat,size_format=args.size_format)
 
