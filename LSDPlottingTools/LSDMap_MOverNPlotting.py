@@ -1460,6 +1460,103 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         plt.savefig(newFilename,format=FigFormat,dpi=300)
         ax.cla()
 
+def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png'):
+    """
+    This function makes a summary plot of the best fit m/n from the different
+    methods.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: list of basin keys to analyse, default = [] (all basins)
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+
+    Returns:
+        Makes a summary plot
+
+    Author: FJC
+    """
+    from matplotlib.ticker import FuncFormatter, MaxNLocator
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
+    ax = fig.add_subplot(gs[5:100,10:95])
+
+    # read in the summary csv
+    df = Helper.ReadMOverNSummaryCSV(DataDirectory,fname_prefix)
+    print df
+
+    # get the basin keys
+    basin_keys = df['basin_key'].tolist()
+    print basin_keys
+
+    # plot the full chi data
+    full_chi_keys = df['basin_key'].as_matrix()-0.05
+    ax.scatter(full_chi_keys, df['Chi_MLE_full'],c='b',marker='o', edgecolors='b', s=15, zorder=100, label='Chi all data')
+
+    # plot the points data
+    median_movern = df['Chi_MLE_points'].as_matrix()
+    points_max_err = df['Chi_MLE_points_max'].as_matrix()
+    points_max_err = points_max_err-median_movern
+    points_min_err = df['Chi_MLE_points_min'].as_matrix()
+    points_min_err = median_movern-points_min_err
+    errors = np.array(zip(points_min_err, points_max_err)).T
+
+    ax.scatter(df['basin_key'], df['Chi_MLE_points'], s=15, c='k', marker='o', edgecolors='k', label='Chi Monte Carlo')
+    ax.errorbar(df['basin_key'], df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='k', fmt='none', elinewidth=1,label='Chi Monte Carlo interquartile range')
+
+    # plot the SA data
+    SA_keys = df['basin_key'].as_matrix()+0.05
+    SA_sterr = df['SA_raw_sterr'].as_matrix()
+    ax.scatter(SA_keys, df['SA_raw'], s=15, c='r', label='Raw SA')
+    ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='r', elinewidth=1, fmt='none', label='Raw SA standard error')
+
+    # set the axis labels
+    ax.set_xlabel('Basin key')
+    ax.set_ylabel('$m/n$')
+
+    # add the legend
+    handles, labels = ax.get_legend_handles_labels()
+    # sort both labels and handles by labels
+    labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+    ax.legend(handles, labels,fontsize=8, loc='upper right')
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)
+    # change x axis to integers
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+    # change y axis to the moverns tested
+    end_movern = end_movern = start_movern+d_movern*(n_movern-1)
+    print end_movern
+    ax.yaxis.set_ticks(np.arange(start_movern, end_movern, d_movern))
+
+    newFilename = DataDirectory+fname_prefix+"_movern_summary."+FigFormat
+    plt.savefig(newFilename,format=FigFormat,dpi=300)
+    ax.cla()
+
+
 #=============================================================================
 # RASTER PLOTTING FUNCTIONS
 # Functions that interface with LSDMapFigure to plot the m/n analysis with
@@ -1617,7 +1714,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
 
     # get moverns for cbar plotting
     min_max_str = ['min', 'max']
-    end_movern = round(n_movern*d_movern,1)
+    end_movern = start_movern+d_movern*(n_movern-1)
     #print end_movern
     min_max_moverns = [start_movern, end_movern]
     cbar_dict = dict(zip(min_max_str,min_max_moverns))

@@ -619,6 +619,27 @@ def ReadSegmentedSAData(DataDirectory, fname_prefix):
 
     return df
 
+def ReadMOverNSummaryCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the summary csv with the best fit movern info
+    to a pandas dataframe
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the segmented SA data
+
+    Author: FJC
+    """
+    # get the csv filename
+    fname_suffix = "_movern_summary.csv"
+    fname = fname_prefix+fname_suffix
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
 #--------------------------------------------------------------------------------#
 # Terraces
 #--------------------------------------------------------------------------------#

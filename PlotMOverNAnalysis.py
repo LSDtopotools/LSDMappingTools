@@ -117,6 +117,7 @@ def main(argv):
         MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= args.FigFormat, size_format=args.size_format)
     if args.all_movern_estimates:
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern)
+        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, FigFormat = args.FigFormat,size_format=args.size_format)
 
 
 #=============================================================================
