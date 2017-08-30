@@ -268,6 +268,11 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
 
     Author: FJC
     """
+    # check if a directory exists for the summary plots. If not then make it.
+    summary_directory = DataDirectory+'summary_plots/'
+    if not os.path.isdir(summary_directory):
+        os.makedirs(summary_directory)
+
     # read in the full chi dataframe
     FullChiBasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
     # Let's get the list of basins
@@ -315,7 +320,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
 
     # now write the output dataframe to a csv file
     OutCSVname = "_movern_summary.csv"
-    outname = DataDirectory+fname_prefix+OutCSVname
+    outname = summary_directory+fname_prefix+OutCSVname
     OutDF.to_csv(outname,index=False)
 
 
@@ -1481,6 +1486,11 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     Author: FJC
     """
+    # check if a directory exists for the summary plots. If not then make it.
+    summary_directory = DataDirectory+'summary_plots/'
+    if not os.path.isdir(summary_directory):
+        os.makedirs(summary_directory)
+
     from matplotlib.ticker import FuncFormatter, MaxNLocator
     # Set up fonts for plots
     label_size = 10
@@ -1503,7 +1513,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     ax = fig.add_subplot(gs[5:100,10:95])
 
     # read in the summary csv
-    df = Helper.ReadMOverNSummaryCSV(DataDirectory,fname_prefix)
+    df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
     print df
 
     # get the basin keys
@@ -1553,7 +1563,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     print end_movern
     ax.yaxis.set_ticks(np.arange(start_movern, end_movern, d_movern))
 
-    newFilename = DataDirectory+fname_prefix+"_movern_summary."+FigFormat
+    newFilename = summary_directory+fname_prefix+"_movern_summary."+FigFormat
     plt.savefig(newFilename,format=FigFormat,dpi=300)
     ax.cla()
 
