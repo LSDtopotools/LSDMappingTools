@@ -1534,10 +1534,10 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     ax.set_xlabel('Basin key')
     ax.set_ylabel('$m/n$')
 
-    # add the legend
-    handles, labels = ax.get_legend_handles_labels()
     # sort both labels and handles by labels
+    handles, labels = ax.get_legend_handles_labels()
     labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+    # add the legend
     ax.legend(handles, labels,fontsize=8, loc='upper right')
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
