@@ -54,7 +54,7 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
     # now do a linear regression for each basin
     columns = ['basin_key', 'regression_slope', 'std_err', 'R2', 'p_value']
     OutDF = pd.DataFrame(columns=columns)
-    
+
     for basin_key in basin_list:
         df_slope = (df[df['basin_key']==basin_key]['slope']).values
         df_area = (df[df['basin_key']==basin_key]['drainage_area']).values
@@ -66,7 +66,7 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
 
         print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value))
         this_key = int(basin_key)
-        this_row = [this_key,slope,std_err,r_value**2,p_value]
+        this_row = [this_key,abs(slope),std_err,r_value**2,p_value]
         OutDF.loc[basin_key] = this_row
 
     return OutDF

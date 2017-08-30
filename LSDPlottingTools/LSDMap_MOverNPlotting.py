@@ -302,7 +302,11 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
 
     # get the best fit m/n from the raw SA data
-    SA.LinearRegressionRawData(DataDirectory,fname_prefix,basin_list)
+    RawSADF = SA.LinearRegressionRawData(DataDirectory,fname_prefix,basin_list)
+    OutDF['SA_raw'] = RawSADF['regression_slope']
+    OutDF['SA_raw_sterr'] = RawSADF['std_err']
+    OutDF['SA_raw_R2'] = RawSADF['R2']
+    OutDF['SA_raw_p'] = RawSADF['p_value']
 
     # get the best fit m/n from the segmented SA data
 
