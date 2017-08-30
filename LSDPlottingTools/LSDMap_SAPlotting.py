@@ -24,7 +24,7 @@ from LSDMapFigure import PlottingHelpers as Helper
 
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-## Test S-A
+## Regressions
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
     """
@@ -70,6 +70,47 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
         OutDF.loc[basin_key] = this_row
 
     return OutDF
+
+def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
+    """
+    This function performs a linear regression on each of the segments for the
+    SA data.
+
+    Args:
+        DataDirectory (str): the data directory
+        DEM_prefix (str): the prefix of the DEM_prefix
+        basin_list: a list of the basins to analyse, default = empty (all basins)
+
+    Returns:
+        pandas dataframe with the linear regression info
+
+    Author: FJC
+    """
+    # read in binned data
+    from scipy import stats
+
+    df = Helper.ReadSegmentedSAData(DataDirectory, DEM_prefix)
+
+    # get a list of the basins if needed
+    if basin_list == []:
+        print ("You didn't give me a basin list so I will analyse all the basins")
+        basin_list = df['basin_key'].tolist()
+
+    # get the segments for each basin
+    for basin_key in basin_list:
+        SegmentDF = df[df['basin_key'] == basin_key]
+
+        # get the data for each individual segment number
+        segments = np.unique(df['segment_number'].tolist())
+
+        for segment_no in segments:
+            SegmentDF = SegmentDF[SegmentDF['segment_number']==segment_no]
+            #now regress the data for this segment to get the best fit m/n
+            median_log_S = SegmentDF['median_log_S']
+            median_log_A = SegmentDF['median_log_A']
+            slope, intercept, r_value, p_value, std_err = stats.linregress(median_log_A,median_log_S)
+            print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value) + " intercept is: " +str(intercept))
+
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## Slope-area functions

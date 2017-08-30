@@ -301,6 +301,8 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['Chi_residuals_min'] = ResidualsDF['FirstQ_MOverNs']
     OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
 
+    print "Getting the m/n from the SA data"
+
     # get the best fit m/n from the raw SA data
     RawSADF = SA.LinearRegressionRawData(DataDirectory,fname_prefix,basin_list)
     OutDF['SA_raw'] = RawSADF['regression_slope']
@@ -309,8 +311,12 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['SA_raw_p'] = RawSADF['p_value']
 
     # get the best fit m/n from the segmented SA data
+    #SA.LinearRegressionSegmentedData(DataDirectory,fname_prefix,basin_list)
 
-    print OutDF
+    # now write the output dataframe to a csv file
+    OutCSVname = "_movern_summary.csv"
+    outname = DataDirectory+fname_prefix+OutCSVname
+    OutDF.to_csv(outname,index=False)
 
 
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
