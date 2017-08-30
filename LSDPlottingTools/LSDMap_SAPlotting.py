@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import pandas as pd
 import os
+from scipy import stats
 #import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
 #import LSDMap_BasicManipulation as LSDMap_BM
 #import LSDMap_OSystemTools as LSDOst
@@ -42,7 +43,7 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
     Author: SMM and FJC
     """
     # read in binned data
-    from scipy import stats
+
 
     df = Helper.ReadRawSAData(DataDirectory, DEM_prefix)
 
@@ -64,7 +65,7 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
 
         slope, intercept, r_value, p_value, std_err = stats.linregress(logA,logS)
 
-        print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value))
+        #print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value))
         this_key = int(basin_key)
         this_row = [this_key,abs(slope),std_err,r_value**2,p_value]
         OutDF.loc[basin_key] = this_row
@@ -86,8 +87,6 @@ def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
 
     Author: FJC
     """
-    # read in binned data
-    from scipy import stats
 
     df = Helper.ReadSegmentedSAData(DataDirectory, DEM_prefix)
 
@@ -207,11 +206,10 @@ def SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = 'show', size_format = "E
         else:
             if(show_raw):
                 FileName = DEM_prefix+'_SA_plot_raw_and_binned_basin%s.%s' %(str(basin_key),FigFormat)
-                BinnedWithRawSlopeAreaPlot(binnedPointData, allPointData,
-                                                              DataDirectory, FigFileName=FileName,
-                                                              FigFormat=FigFormat, size_format=size_format,
-                                                              basin_key=basin_key, n_colours = n_colours,
-                                                              cmap = this_cmap)
+                BinnedWithRawSlopeAreaPlot(DataDirectory, DEM_prefix, FigFileName=FileName,
+                                          FigFormat=FigFormat, size_format=size_format,
+                                          basin_key=basin_key, n_colours = n_colours,
+                                          cmap = this_cmap)
             else:
                 print("You selected an option that doesn't produce any plots. Turn either show raw or show segments to True.")
 
@@ -595,7 +593,7 @@ def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFil
         plt.savefig(SA_directory+FigFileName,format=save_fmt,dpi=500)
         fig.clf()
 
-def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, FigFileName = 'Image.pdf',
+def BinnedWithRawSlopeAreaPlot(DataDirectory, fname_prefix, FigFileName = 'Image.pdf',
                        FigFormat = 'show',size_format = "ESURF",basin_key = '0',
                        cmap = plt.cm.Set1, n_colours = 5):
     """
@@ -603,8 +601,8 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
     It plots all the sources and all the raw data as semitransparent background.
 
     Args:
-        PointData : LSDPointData object produced from the csv file with binned and segmented slope area data. Produced by chi mapping tool. It should have the extension "_SAsegmented.csv"
-        RawPointData: LSDPointData object produced from the csv file with binned and segmented slope area data. Produced by chi mapping tool. It should have the extension "_SAvertical.csv"
+        DataDirectory (str): the data directory
+        fname_prefix (str): the prefix of your DEM
         FigFileName (str): The name of the figure file
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
@@ -615,7 +613,7 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
     Returns:
          Does not return anything but makes a plot.
 
-    Author: SMM
+    Author: SMM (panda-fied by FJC)
     """
     import matplotlib.colors as colors
     import matplotlib.ticker
@@ -645,70 +643,13 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
 
-    # Get the raw point data
-    Raw_log_S =  RawPointData.QueryData('slope')
-    Raw_log_S = [float(x) for x in Raw_log_S]
-    Raw_log_A =  RawPointData.QueryData('drainage_area')
-    Raw_log_A = [float(x) for x in Raw_log_A]
+    # Get the raw data and mask to the basin
+    RawDF = Helper.ReadRawSAData(DataDirectory,fname_prefix)
+    RawDF = RawDF[RawDF['basin_key']==basin_key]
 
-    Raw_basin = RawPointData.QueryData('basin_key')
-    Raw_basin = [int(x) for x in Raw_basin]
-    Raw_source = RawPointData.QueryData('source_key')
-    Raw_source = [int(x) for x in Raw_source]
-
-    # Convert to numpy array
-    RS = np.asarray(Raw_log_S)
-    RA = np.asarray(Raw_log_A)
-    RB = np.asarray(Raw_basin)
-    RSource = np.asarray(Raw_source)
-
-    # Now mask the data to the correct source (this is the main stem)
-    this_basin = float(basin_key)
-    m = np.ma.masked_where(RB!=this_basin,RB)
-    RawSlope = np.ma.masked_where(np.ma.getmask(m), RS)
-    RawArea = np.ma.masked_where(np.ma.getmask(m), RA)
-    RawSource = np.ma.masked_where(np.ma.getmask(m), RSource)
-
-    # Get the slope, drainage area, basin ID and source ID
-    median_log_S = BinnedPointData.QueryData('median_log_S')
-    median_log_S = [float(10**x) for x in median_log_S]
-    median_log_A = BinnedPointData.QueryData('median_log_A')
-    median_log_A = [float(10**x) for x in median_log_A]
-    basin = BinnedPointData.QueryData('basin_key')
-    basin = [int(x) for x in basin]
-    source_number = BinnedPointData.QueryData('source_key')
-    source_number = [int(x) for x in source_number]
-
-    # get the errors
-    firstquartile= BinnedPointData.QueryData('logS_FirstQuartile')
-    firstquartile = [float(10**x) for x in firstquartile]
-    thirdquartile= BinnedPointData.QueryData('logS_ThirdQuartile')
-    thirdquartile = [float(10**x) for x in thirdquartile]
-
-    print("The lengths of the data vectors:")
-    print(len(median_log_S))
-    print(len(median_log_A))
-    print(len(basin))
-    print(len(source_number))
-    print("Size of quartiles: "+ str( len(firstquartile))+ " "+str( len(thirdquartile)))
-
-    # need to convert everything into arrays so we can mask different basins
-    MedianLogSlope = np.asarray(median_log_S)
-    MedianLogArea = np.asarray(median_log_A)
-    FirstQuartile = np.asarray(firstquartile)
-    ThirdQuartile = np.asarray(thirdquartile)
-    Basin = np.asarray(basin)
-    SourceNumber = np.asarray(source_number)
-
-    # Get the errors
-    yerr_down= np.subtract(ThirdQuartile,median_log_S)
-    yerr_up= np.subtract(median_log_S,FirstQuartile)
-
-    # mask to just get the data for the basin of interest
-    m = np.ma.masked_where(Basin!=basin_key, Basin)
-    MedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
-    MedianLogArea = np.ma.masked_where(np.ma.getmask(m), MedianLogArea)
-    SourceNumber = np.ma.masked_where(np.ma.getmask(m), SourceNumber)
+    # get the binend data
+    BinnedDF = Helper.ReadBinnedSAData(DataDirectory,fname_prefix)
+    BinnedDF = BinnedDF[BinnedDF['basin_key'] == basin_key]
 
     # make a color map of fixed colors
     NUM_COLORS = n_colours
@@ -723,28 +664,40 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
     # If you want RGBA from this you use:  rgba_color = scalarMap.to_rgba(this_data)
 
     # now get the sources
-    sources = np.unique(SourceNumber)
-    sources = np.ma.compressed(sources)
+    sources = np.unique(RawDF['source_key'].as_matrix())
+    print (sources)
+
+    # get the regression stats for this basin
+    RegressionDF = LinearRegressionRawData(DataDirectory, fname_prefix)
+    this_movern = round(RegressionDF.get_value(basin_key,'regression_slope'),2)
 
     # Mask the data of the segments sequentially
     for idx,source in enumerate(sources):
-    # mask to just get the data for the basin of interest
-        m = np.ma.masked_where(SourceNumber!=source, SourceNumber)
-        SourceMedianLogSlope = np.ma.masked_where(np.ma.getmask(m), MedianLogSlope)
-        SourceMedianLogArea = np.ma.masked_where(np.ma.getmask(m), MedianLogArea)
+        print ("Source key: "+str(source))
+        # mask to just get the data for the basin of interest
+        RawDFMask = RawDF[RawDF['source_key'] == source]
+        BinnedDFMask = BinnedDF[BinnedDF['source_key'] == source]
+        SourceMedianLogSlope = 10**(BinnedDFMask['median_log_S'].as_matrix())
+        SourceMedianLogArea = 10**(BinnedDFMask['median_log_A'].as_matrix())
+        print (SourceMedianLogArea)
 
         # Now add the colours for the segments
         source_colour = idx%n_colours
         tps_color = scalarMap.to_rgba(source_colour)
         ax.scatter(SourceMedianLogArea,SourceMedianLogSlope,c=tps_color,s=10,marker="o",lw=0.5,edgecolors='k',zorder=100)
-        plt.errorbar(SourceMedianLogArea,SourceMedianLogSlope,yerr=[yerr_up,yerr_down],fmt='o',ms=1,ecolor=tps_color,zorder=0)
+
+        # get the errors
+        first_quartile = 10**(BinnedDFMask['logS_FirstQuartile'].as_matrix())
+        third_quartile = 10**(BinnedDFMask['logS_ThirdQuartile'].as_matrix())
+        yerr_up = third_quartile-SourceMedianLogSlope
+        yerr_down = SourceMedianLogSlope-first_quartile
+
+        plt.errorbar(SourceMedianLogArea,SourceMedianLogSlope,yerr=[yerr_down,yerr_up],fmt='o',ms=1,ecolor=tps_color,zorder=0)
 
         # Plot the raw data
-        m2 = np.ma.masked_where(RawSource!=source, RawSource)
-        SourceRawMedianS = np.ma.masked_where(np.ma.getmask(m2), RawSlope)
-        SourceRawMedianA = np.ma.masked_where(np.ma.getmask(m2), RawArea)
+        SourceRawMedianS = RawDFMask['slope']
+        SourceRawMedianA = RawDFMask['drainage_area']
         ax.scatter(SourceRawMedianA,SourceRawMedianS,c=tps_color,s=4,marker="+",lw=0.5,edgecolors='k',zorder=-10,alpha = 0.3)
-
 
     ax.set_xlabel('Drainage area (m$^2$)')
     ax.set_ylabel('Slope (m/m)')
@@ -753,7 +706,7 @@ def BinnedWithRawSlopeAreaPlot(BinnedPointData, RawPointData, DataDirectory, Fig
     ax.set_xscale('log')
     ax.set_yscale('log')
 
-    ax.set_title('Basin '+str(basin_key), fontsize=10)
+    ax.set_title('Basin '+str(basin_key)+', best fit $m/n$='+str(this_movern), fontsize=10)
 
     # set axis limits
     #x_pad = 1000

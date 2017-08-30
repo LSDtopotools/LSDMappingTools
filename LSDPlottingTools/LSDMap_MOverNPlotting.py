@@ -1078,6 +1078,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
         if not keep_pngs:
             system_call = "rm "+MLE_directory+"MLE_profiles*.png"
             subprocess.call(system_call, shell=True)
+    plt.close(fig)
 
 
 def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7, size_format = "geomorphology"):
