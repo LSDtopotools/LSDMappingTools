@@ -1507,7 +1507,7 @@ class MapFigure(object):
         #self.fig.show()
         #print("The figure format is: " + self.FigFormat)
         #plt.savefig(self.FigFileName,format=self.FigFormat)
-        self.fig.clf()
+        fig.clf()
 
     def SetRCParams(self,label_size):
         """
