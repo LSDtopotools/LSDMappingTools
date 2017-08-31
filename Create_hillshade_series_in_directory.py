@@ -65,6 +65,26 @@ def run_plots(DataDirectory,Base_file, cbar_min_max = [0,400]):
         print("I am getting figures for the animation.")
         MW.SimpleHillshadeForAnimation(DataDirectory,this_base_file,cmap = "terrain", dpi = 250, imgnumber=counter, full_basefile = root,custom_cbar_min_max = cbar_min_max)
 
+def animate_plots(base_directory, fname_prefix):
+    """
+    This function creates a movie of the plots using ffmpeg
+
+    Args:
+        base_directory (str): the directory with the plots.
+        fname_prefix (str): the filename for the model run
+
+    Returns:
+        none but creates mp4 from pngs in base directory
+
+    Author: FJC
+    """
+    import subprocess
+
+    # animate the pngs using ffmpeg
+    system_call = "ffmpeg -framerate 5 -pattern_type glob -i '"+base_directory+"*.png' -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+base_directory+fname_prefix+"_movie.mp4"
+    print system_call
+    subprocess.call(system_call, shell=True)
+
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.
 #=============================================================================
@@ -103,9 +123,12 @@ def main(argv):
     # The location of the data files
     parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the hillshades. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The base file name of the hillshades.")
+    parser.add_argument("-animate" "--animate", type=bool, help="If this is true I'll create a movie of the model run.")
     args = parser.parse_args()
 
     run_plots(args.base_directory,args.fname_prefix)
+    if (args.animate):
+        animate_plots(args.base_directory, args.fname_prefix)
 
     toc = time.clock()
     print("This took: "+str(toc - tic)+" units of time")
