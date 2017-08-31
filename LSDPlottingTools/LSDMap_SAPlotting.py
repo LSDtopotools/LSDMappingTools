@@ -67,7 +67,7 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
 
         #print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value))
         this_key = int(basin_key)
-        this_row = [this_key,slope,std_err,r_value**2,p_value]
+        this_row = [this_key,abs(slope),std_err,r_value**2,p_value]
         OutDF.loc[basin_key] = this_row
 
     return OutDF
@@ -185,7 +185,7 @@ def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
 def GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list=[]):
     """
     This function performs a linear regression on each segment of the segmented
-    SA data and finds the median, min, and max m/n from the segments for each basin.
+    SA data and finds the median and interquartile range from the segments for each basin.
     The number of removed segments is also reported (segments are removed if they
     predict a positive relationship between S and A).
 
@@ -206,10 +206,10 @@ def GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list=[]):
     # now for each basin, get the median, min and max m/n.
     # get a list of the basins if needed
     if basin_list == []:
-        basin_list = df['basin_key'].unique()
+        basin_list = SegmentDF['basin_key'].unique()
 
     #set up the output dataframe
-    columns = ['basin_key', 'median_movern', 'min_movern', 'max_movern', 'removed_segments']
+    columns = ['basin_key', 'median_movern', 'min_movern', 'max_movern', 'FirstQ_movern', 'ThirdQ_movern', 'removed_segments']
     OutDF = pd.DataFrame(columns=columns)
 
     for basin_key in basin_list:
@@ -222,12 +222,58 @@ def GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list=[]):
         median_movern = np.median(moverns)
         min_movern = np.min(moverns)
         max_movern = np.max(moverns)
-        print ("The median is: " +str(median_movern)+", the max is: "+str(max_movern)+", the min is: "+str(min_movern))
+        q75, q25 = np.percentile(moverns, [75 ,25])
+        print ("The median is: " +str(median_movern)+", the max is: "+str(max_movern)+", the min is: "+str(min_movern), ", the q25 is: "+str(q25)+", the q75 is: " +str(q75))
         this_key = int(basin_key)
-        this_row = [this_key,abs(median_movern),abs(min_movern),abs(max_movern),removed_segments]
+        this_row = [this_key,abs(median_movern),abs(min_movern),abs(max_movern),abs(q75),abs(q25),removed_segments]
         OutDF.loc[this_key] = this_row
 
-    print (OutDF)
+    return OutDF
+
+def GetRangeMOverNRawDataByChannel(DataDirectory,fname_prefix,basin_list=[]):
+    """
+    This function performs a linear regression on each tributary of the raw data
+     and finds the median and interquartile range of the predicted m/n values.
+
+    Args:
+        DataDirectory (str): the data directory
+        DEM_prefix (str): the prefix of the DEM_prefix
+        basin_list: a list of the basins to analyse, default = empty (all basins)
+
+    Returns:
+        pandas dataframe with the basin SA info
+
+    Author: FJC
+    """
+
+    # get the linear regression info for the segments
+    RawDF = LinearRegressionRawDataByChannel(DataDirectory,fname_prefix,basin_list)
+
+    # now for each basin, get the median, min and max m/n.
+    # get a list of the basins if needed
+    if basin_list == []:
+        basin_list = RawDF['basin_key'].unique()
+
+    #set up the output dataframe
+    columns = ['basin_key', 'median_movern', 'min_movern', 'max_movern', 'FirstQ_movern', 'ThirdQ_movern', 'removed_sources']
+    OutDF = pd.DataFrame(columns=columns)
+
+    for basin_key in basin_list:
+        # get the segment info for this basin
+        ThisDF = RawDF[RawDF['basin_key'] == basin_key]
+        moverns = ThisDF['regression_slope'][ThisDF['regression_slope'] < 0].tolist()
+        removed_sources = ThisDF['source_key'][ThisDF['regression_slope'] >= 0].tolist()
+
+        #find the median m/n
+        median_movern = np.median(moverns)
+        min_movern = np.min(moverns)
+        max_movern = np.max(moverns)
+        q75, q25 = np.percentile(moverns, [75 ,25])
+        print ("The median is: " +str(median_movern)+", the max is: "+str(max_movern)+", the min is: "+str(min_movern), ", the q25 is: "+str(q25)+", the q75 is: " +str(q75))
+        this_key = int(basin_key)
+        this_row = [this_key,abs(median_movern),abs(min_movern),abs(max_movern),abs(q75),abs(q25),removed_sources]
+        OutDF.loc[this_key] = this_row
+
     return OutDF
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

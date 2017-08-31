@@ -318,13 +318,16 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['SA_raw_p'] = RawSADF['p_value']
 
     # get the SA tributary information
-    SATribsDF = SA.LinearRegressionRawDataByChannel(DataDirectory,fname_prefix,basin_list)
-    print SATribsDF
+    SATribsDF = SA.GetRangeMOverNRawDataByChannel(DataDirectory,fname_prefix,basin_list)
+    OutDF['SA_tribs'] = SATribsDF['median_movern']
+    OutDF['SA_tribs_min'] = SATribsDF['FirstQ_movern']
+    OutDF['SA_tribs_max'] = SATribsDF['ThirdQ_movern']
 
     # get the best fit m/n from the segmented SA data
-    #SASegmentedDF = SA.LinearRegressionSegmentedData(DataDirectory,fname_prefix,basin_list)
-    #print SASegmentedDF
-    SA.GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list)
+    SASegmentedDF = SA.GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list)
+    OutDF['SA_segments'] = SASegmentedDF['median_movern']
+    OutDF['SA_segments_min'] = SASegmentedDF['FirstQ_movern']
+    OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
 
     # now write the output dataframe to a csv file
     OutCSVname = "_movern_summary.csv"
