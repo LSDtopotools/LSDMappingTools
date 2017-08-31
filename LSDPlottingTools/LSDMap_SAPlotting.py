@@ -97,6 +97,7 @@ def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
 
     # get the segments for each basin
     for basin_key in basin_list:
+        print ("THIS BASIN IS: "+str(basin_key))
         SegmentDF = df[df['basin_key'] == basin_key]
 
         # get the data for each individual segment number

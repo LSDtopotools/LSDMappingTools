@@ -121,6 +121,7 @@ def main(argv):
                         show_raw = args.show_SA_raw, show_segments = args.show_SA_segments,basin_keys = these_basin_keys)
     if args.test_SA_regression:
         SA.TestSARegression(this_dir, args.fname_prefix)
+        SA.LinearRegressionSegmentedData(this_dir, args.fname_prefix, basin_list=these_basin_keys)
     if args.plot_MCMC:
         MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= args.FigFormat, size_format=args.size_format)
     if args.plot_summary:
