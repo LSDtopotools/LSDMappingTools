@@ -1533,7 +1533,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # plot the full chi data
     full_chi_keys = df['basin_key'].as_matrix()-0.05
-    ax.scatter(full_chi_keys, df['Chi_MLE_full'],c='b',marker='o', edgecolors='b', s=15, zorder=100, label='Chi all data')
+    ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', facecolors='none', s=15, zorder=100, label='Chi all data')
 
     # plot the points data
     median_movern = df['Chi_MLE_points'].as_matrix()
@@ -1544,13 +1544,25 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     errors = np.array(zip(points_min_err, points_max_err)).T
 
     ax.scatter(df['basin_key'], df['Chi_MLE_points'], s=15, c='k', marker='o', edgecolors='k', label='Chi Monte Carlo')
-    ax.errorbar(df['basin_key'], df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='k', fmt='none', elinewidth=1,label='Chi Monte Carlo interquartile range')
+    ax.errorbar(df['basin_key'], df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='k', fmt='none', elinewidth=1,label='_nolegend_')
 
     # plot the SA data
     SA_keys = df['basin_key'].as_matrix()+0.05
     SA_sterr = df['SA_raw_sterr'].as_matrix()
     ax.scatter(SA_keys, df['SA_raw'], s=15, c='r', label='Raw SA')
-    ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='r', elinewidth=1, fmt='none', label='Raw SA standard error')
+    ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='r', elinewidth=1, fmt='none',label='_nolegend_')
+
+    # plot the segmented SA data
+    median_movern = df['SA_segments'].as_matrix()
+    points_max_err = df['SA_segments_max'].as_matrix()
+    points_max_err = points_max_err-median_movern
+    points_min_err = df['SA_segments_min'].as_matrix()
+    points_min_err = median_movern-points_min_err
+    errors = np.array(zip(points_min_err, points_max_err)).T
+
+    SA_segment_keys = df['basin_key'].as_matrix()+0.1
+    ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='none', edgecolors='r', label='Segmented SA')
+    ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='none', xerr=None, yerr=errors, edgecolors='r', fmt='none', elinewidth=1, linestyle = ":", ecolor='r',label='_nolegend_')
 
     # set the axis labels
     ax.set_xlabel('Basin key')
