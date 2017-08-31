@@ -19,6 +19,7 @@ import numpy as np
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+import matplotlib.ticker as ticker
 import pandas as pd
 from matplotlib import colors
 import math
@@ -29,6 +30,7 @@ from LSDMapFigure import PlottingHelpers as Helper
 from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
 from LSDPlottingTools import LSDMap_SAPlotting as SA
+
 
 
 #=============================================================================
@@ -1556,12 +1558,13 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(2)
     # change x axis to integers
-    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
 
     # change y axis to the moverns tested
-    end_movern = end_movern = start_movern+d_movern*(n_movern-1)
-    print end_movern
-    ax.yaxis.set_ticks(np.arange(start_movern, end_movern, d_movern))
+    # end_movern = end_movern = start_movern+d_movern*(n_movern-1)
+    # print end_movern
+    # ax.yaxis.set_ticks(np.arange(start_movern, end_movern, d_movern))
 
     newFilename = summary_directory+fname_prefix+"_movern_summary."+FigFormat
     plt.savefig(newFilename,format=FigFormat,dpi=300)
