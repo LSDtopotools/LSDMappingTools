@@ -1477,7 +1477,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         plt.savefig(newFilename,format=FigFormat,dpi=300)
         ax.cla()
 
-def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png'):
+def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False):
     """
     This function makes a summary plot of the best fit m/n from the different
     methods.
@@ -1491,6 +1491,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         n_movern (float): the number of m/n values analysed. Default is 7.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        SA_channels (bool): If true, will include the SA data separated by channel
 
     Returns:
         Makes a summary plot
@@ -1553,17 +1554,18 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     ax.scatter(SA_keys, df['SA_raw'], s=15, c='r', label='SA all data')
     ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='r', elinewidth=1, fmt='none',label='_nolegend_')
 
-    # plot the SA data by tribs
-    median_movern = df['SA_tribs'].as_matrix()
-    points_max_err = df['SA_tribs_max'].as_matrix()
-    points_max_err = points_max_err-median_movern
-    points_min_err = df['SA_tribs_min'].as_matrix()
-    points_min_err = median_movern-points_min_err
-    errors = np.array(zip(points_min_err, points_max_err)).T
+    if SA_channels:
+        # plot the SA data by tribs
+        median_movern = df['SA_tribs'].as_matrix()
+        points_max_err = df['SA_tribs_max'].as_matrix()
+        points_max_err = points_max_err-median_movern
+        points_min_err = df['SA_tribs_min'].as_matrix()
+        points_min_err = median_movern-points_min_err
+        errors = np.array(zip(points_min_err, points_max_err)).T
 
-    SA_tribs_keys = df['basin_key'].as_matrix()+0.1
-    ax.errorbar(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', xerr=None, yerr=errors, edgecolors='r', fmt='none', elinewidth=1, linestyle = ":", ecolor='r',label='_nolegend_')
-    ax.scatter(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', edgecolors='r', label='SA by channel',zorder=100)
+        SA_tribs_keys = df['basin_key'].as_matrix()+0.1
+        ax.errorbar(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', xerr=None, yerr=errors, edgecolors='r', fmt='none', elinewidth=1, linestyle = ":", ecolor='r',label='_nolegend_')
+        ax.scatter(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', edgecolors='r', label='SA by channel',zorder=100)
 
     # plot the segmented SA data
     median_movern = df['SA_segments'].as_matrix()
@@ -1606,8 +1608,11 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     # ax.yaxis.set_ticks(np.arange(start_movern, end_movern, d_movern))
 
     newFilename = summary_directory+fname_prefix+"_movern_summary."+FigFormat
+    if SA_channels:
+        newFilename = summary_directory+fname_prefix+"_movern_summary_with_SA_tribs."+FigFormat
     plt.savefig(newFilename,format=FigFormat,dpi=300)
     ax.cla()
+    plt.close(fig)
 
 
 #=============================================================================
