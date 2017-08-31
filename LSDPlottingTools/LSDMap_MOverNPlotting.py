@@ -1557,9 +1557,14 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     ax.tick_params(axis='both', width=1, pad = 2)
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(2)
-    # change x axis to integers
+
+    # change tick spacing
     ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
     ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
+
+    #set y axis lims
+    end_movern = end_movern = start_movern+d_movern*(n_movern-1)
+    ax.set_ylim(start_movern-d_movern,end_movern+d_movern)
 
     # change y axis to the moverns tested
     # end_movern = end_movern = start_movern+d_movern*(n_movern-1)
