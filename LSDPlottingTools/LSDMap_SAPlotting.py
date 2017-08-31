@@ -50,7 +50,7 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
     # get a list of the basins if needed
     if basin_list == []:
         print ("You didn't give me a basin list so I will analyse all the basins")
-        basin_list = df['basin_key'].tolist()
+        basin_list = df['basin_key'].unique()
 
     # now do a linear regression for each basin
     columns = ['basin_key', 'regression_slope', 'std_err', 'R2', 'p_value']
@@ -69,6 +69,66 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
         this_key = int(basin_key)
         this_row = [this_key,abs(slope),std_err,r_value**2,p_value]
         OutDF.loc[basin_key] = this_row
+
+    return OutDF
+
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+## Regressions
+##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def LinearRegressionRawDataByChannel(DataDirectory, DEM_prefix, basin_list=[]):
+    """
+    This function performs a linear regression on the raw slope-area data separated.
+    by channel.
+    It returns a dataframe with the linear regression info for each basin key.
+
+    Args:
+        DataDirectory (str): the data directory
+        DEM_prefix (str): the prefix of the DEM_prefix
+        basin_list: a list of the basins to analyse, default = empty (all basins)
+
+    Returns:
+        pandas dataframe with the linear regression info
+
+    Author: SMM and FJC
+    """
+    # read in binned data
+
+
+    df = Helper.ReadRawSAData(DataDirectory, DEM_prefix)
+
+    # get a list of the basins if needed
+    if basin_list == []:
+        print ("You didn't give me a basin list so I will analyse all the basins")
+        basin_list = df['basin_key'].unique()
+        print (basin_list)
+
+
+    # now do a linear regression for each basin
+    columns = ['basin_key', 'source_key', 'regression_slope', 'std_err', 'R2', 'p_value']
+    OutDF = pd.DataFrame(columns=columns)
+    counter = 0
+
+    for basin_key in basin_list:
+        this_df = df[df['basin_key'] == basin_key]
+        # get the sources for this basin
+        these_sources = this_df['source_key'].unique()
+
+        for source in these_sources:
+            #mask the dataframe for this source
+            df_slope = (df[df['source_key']==source]['slope']).values
+            df_area = (df[df['source_key']==source]['drainage_area']).values
+
+            logS = np.log10(df_slope[df_area!=0])
+            logA = np.log10(df_area[df_area!=0])
+
+            slope, intercept, r_value, p_value, std_err = stats.linregress(logA,logS)
+
+            #print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value))
+            this_basin_key = int(basin_key)
+            this_source_key = int(source)
+            this_row = [this_basin_key,this_source_key,abs(slope),std_err,r_value**2,p_value]
+            OutDF.loc[counter] = this_row
+            counter+=1
 
     return OutDF
 
