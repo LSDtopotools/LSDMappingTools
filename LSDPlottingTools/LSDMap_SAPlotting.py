@@ -67,7 +67,7 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
 
         #print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value))
         this_key = int(basin_key)
-        this_row = [this_key,abs(slope),std_err,r_value**2,p_value]
+        this_row = [this_key,slope,std_err,r_value**2,p_value]
         OutDF.loc[basin_key] = this_row
 
     return OutDF
@@ -126,7 +126,7 @@ def LinearRegressionRawDataByChannel(DataDirectory, DEM_prefix, basin_list=[]):
             #print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value))
             this_basin_key = int(basin_key)
             this_source_key = int(source)
-            this_row = [this_basin_key,this_source_key,abs(slope),std_err,r_value**2,p_value]
+            this_row = [this_basin_key,this_source_key,slope,std_err,r_value**2,p_value]
             OutDF.loc[counter] = this_row
             counter+=1
 
@@ -153,7 +153,7 @@ def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
     # get a list of the basins if needed
     if basin_list == []:
         print ("You didn't give me a basin list so I will analyse all the basins")
-        basin_list = df['basin_key'].tolist()
+        basin_list = df['basin_key'].unique()
 
     columns = ['basin_key', 'segment_number', 'regression_slope', 'std_err', 'R2', 'p_value']
     OutDF = pd.DataFrame(columns=columns)
@@ -165,7 +165,7 @@ def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
         SegmentDF = df[df['basin_key'] == basin_key]
 
         # get the data for each individual segment number
-        segments = np.unique(df['segment_number'].tolist())
+        segments = df['segment_number'].unique()
 
         for segment_no in segments:
             SegmentDF = SegmentDF[SegmentDF['segment_number']==segment_no]
@@ -176,10 +176,58 @@ def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
             print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value) + " intercept is: " +str(intercept))
 
             this_key = int(basin_key)
-            this_row = [this_key,int(segment_no),abs(slope),std_err,r_value**2,p_value]
+            this_row = [this_key,int(segment_no),slope,std_err,r_value**2,p_value]
             OutDF.loc[counter] = this_row
             counter+=1
 
+    return OutDF
+
+def GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list=[]):
+    """
+    This function performs a linear regression on each segment of the segmented
+    SA data and finds the median, min, and max m/n from the segments for each basin.
+    The number of removed segments is also reported (segments are removed if they
+    predict a positive relationship between S and A).
+
+    Args:
+        DataDirectory (str): the data directory
+        DEM_prefix (str): the prefix of the DEM_prefix
+        basin_list: a list of the basins to analyse, default = empty (all basins)
+
+    Returns:
+        pandas dataframe with the basin SA info
+
+    Author: FJC
+    """
+
+    # get the linear regression info for the segments
+    SegmentDF = LinearRegressionSegmentedData(DataDirectory,fname_prefix,basin_list)
+
+    # now for each basin, get the median, min and max m/n.
+    # get a list of the basins if needed
+    if basin_list == []:
+        basin_list = df['basin_key'].unique()
+
+    #set up the output dataframe
+    columns = ['basin_key', 'median_movern', 'min_movern', 'max_movern', 'removed_segments']
+    OutDF = pd.DataFrame(columns=columns)
+
+    for basin_key in basin_list:
+        # get the segment info for this basin
+        ThisSegmentDF = SegmentDF[SegmentDF['basin_key'] == basin_key]
+        moverns = ThisSegmentDF['regression_slope'][ThisSegmentDF['regression_slope'] < 0].tolist()
+        removed_segments = ThisSegmentDF['segment_number'][ThisSegmentDF['regression_slope'] >= 0].tolist()
+
+        #find the median m/n
+        median_movern = np.median(moverns)
+        min_movern = np.min(moverns)
+        max_movern = np.max(moverns)
+        print ("The median is: " +str(median_movern)+", the max is: "+str(max_movern)+", the min is: "+str(min_movern))
+        this_key = int(basin_key)
+        this_row = [this_key,abs(median_movern),abs(min_movern),abs(max_movern),removed_segments]
+        OutDF.loc[this_key] = this_row
+
+    print (OutDF)
     return OutDF
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
