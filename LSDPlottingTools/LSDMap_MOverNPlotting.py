@@ -1585,7 +1585,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     handles, labels = ax.get_legend_handles_labels()
     labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
     # add the legend
-    ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.02,0.7))
+    ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.0,0.7),bbox_transform=plt.gcf().transFigure)
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
     ax.tick_params(axis='both', width=1, pad = 2)
@@ -1594,11 +1594,11 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # change tick spacing
     ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
-    ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
+    #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
 
     #set y axis lims
-    end_movern = end_movern = start_movern+d_movern*(n_movern-1)
-    ax.set_ylim(start_movern-d_movern,1.3)
+    #end_movern = end_movern = start_movern+d_movern*(n_movern-1)
+    #ax.set_ylim(start_movern-d_movern,1.3)
 
     # change y axis to the moverns tested
     # end_movern = end_movern = start_movern+d_movern*(n_movern-1)
