@@ -95,6 +95,10 @@ def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
         print ("You didn't give me a basin list so I will analyse all the basins")
         basin_list = df['basin_key'].tolist()
 
+    columns = ['basin_key', 'segment_number', 'regression_slope', 'std_err', 'R2', 'p_value']
+    OutDF = pd.DataFrame(columns=columns)
+    counter=0
+
     # get the segments for each basin
     for basin_key in basin_list:
         print ("THIS BASIN IS: "+str(basin_key))
@@ -111,6 +115,12 @@ def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
             slope, intercept, r_value, p_value, std_err = stats.linregress(median_log_A,median_log_S)
             print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value) + " intercept is: " +str(intercept))
 
+            this_key = int(basin_key)
+            this_row = [this_key,int(segment_no),abs(slope),std_err,r_value**2,p_value]
+            OutDF.loc[counter] = this_row
+            counter+=1
+
+    return OutDF
 
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## Slope-area functions
