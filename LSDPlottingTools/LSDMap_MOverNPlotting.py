@@ -1520,7 +1520,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
         #l_pad = -35
 
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.025,right=0.75,top=0.9)
     ax = fig.add_subplot(gs[5:100,10:95])
 
     # read in the summary csv
@@ -1532,7 +1532,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     print basin_keys
 
     # plot the full chi data
-    full_chi_keys = df['basin_key'].as_matrix()-0.05
+    full_chi_keys = df['basin_key'].as_matrix()-0.125
     ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', facecolors='none', s=15, zorder=100, label='Chi all data')
 
     # plot the points data
@@ -1543,11 +1543,12 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     points_min_err = median_movern-points_min_err
     errors = np.array(zip(points_min_err, points_max_err)).T
 
-    ax.scatter(df['basin_key'], df['Chi_MLE_points'], s=15, c='k', marker='o', edgecolors='k', label='Chi Monte Carlo')
-    ax.errorbar(df['basin_key'], df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='k', fmt='none', elinewidth=1,label='_nolegend_')
+    points_chi_keys = df['basin_key'].as_matrix()-0.025
+    ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='k', marker='o', edgecolors='k', label='Chi Monte Carlo')
+    ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='k', fmt='none', elinewidth=1,label='_nolegend_')
 
     # plot the SA data
-    SA_keys = df['basin_key'].as_matrix()+0.05
+    SA_keys = df['basin_key'].as_matrix()+0.025
     SA_sterr = df['SA_raw_sterr'].as_matrix()
     ax.scatter(SA_keys, df['SA_raw'], s=15, c='r', label='Raw SA')
     ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='r', elinewidth=1, fmt='none',label='_nolegend_')
@@ -1572,7 +1573,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     handles, labels = ax.get_legend_handles_labels()
     labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
     # add the legend
-    ax.legend(handles, labels,fontsize=8, loc='upper right')
+    ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.02,0.7))
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
     ax.tick_params(axis='both', width=1, pad = 2)

@@ -149,7 +149,6 @@ def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
     """
 
     df = Helper.ReadSegmentedSAData(DataDirectory, DEM_prefix)
-    print df
 
     # get a list of the basins if needed
     if basin_list == []:
@@ -166,15 +165,14 @@ def LinearRegressionSegmentedData(DataDirectory, DEM_prefix, basin_list=[]):
         SegmentDF = df[df['basin_key'] == basin_key]
 
         # get the data for each individual segment number
-        segments = df['segment_number'].unique()
+        segments = SegmentDF['segment_number'].unique()
 
         for segment_no in segments:
             print ("Segment number is: "+str(segment_no))
-            SegmentDF = SegmentDF[SegmentDF['segment_number']==segment_no]
-            print SegmentDF
+            ThisDF = SegmentDF[SegmentDF['segment_number']==segment_no]
             #now regress the data for this segment to get the best fit m/n
-            median_log_S = SegmentDF['median_log_S']
-            median_log_A = SegmentDF['median_log_A']
+            median_log_S = ThisDF['median_log_S']
+            median_log_A = ThisDF['median_log_A']
             slope, intercept, r_value, p_value, std_err = stats.linregress(median_log_A,median_log_S)
             print("Slope: " +str(slope)+ " std_err: "+str(std_err)+ " R2 is: " + str(r_value**2) + " p value is: " + str(p_value) + " intercept is: " +str(intercept))
 
