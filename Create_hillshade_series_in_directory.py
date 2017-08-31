@@ -123,10 +123,11 @@ def main(argv):
     # The location of the data files
     parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the hillshades. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The base file name of the hillshades.")
-    parser.add_argument("-animate" "--animate", type=bool, help="If this is true I'll create a movie of the model run.")
+    parser.add_argument("-animate", "--animate", type=bool, default=False, help="If this is true I'll create a movie of the model run.")
     args = parser.parse_args()
 
     run_plots(args.base_directory,args.fname_prefix)
+
     if (args.animate):
         animate_plots(args.base_directory, args.fname_prefix)
 
