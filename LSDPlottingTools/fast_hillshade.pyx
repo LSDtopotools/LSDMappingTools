@@ -56,8 +56,8 @@ def Hillshade(np.ndarray[DTYPE_t, ndim=2] terrain_array,
       DAV, SWDG, SMM
 
   """
-  cdef unsigned int ncols = terrain_array.shape[0]
-  cdef unsigned int nrows = terrain_array.shape[1]
+  cdef unsigned int ncols = terrain_array.shape[1]
+  cdef unsigned int nrows = terrain_array.shape[0]
 
   # Ndarray best choice? Will revisit later...
   cdef np.ndarray[DTYPE_t, ndim=2] HSarray = np.empty((ncols,nrows))
@@ -78,8 +78,8 @@ def Hillshade(np.ndarray[DTYPE_t, ndim=2] terrain_array,
   # We can safely turn off the Python Global Interpreter lock for these for loops
   with nogil, parallel(num_threads=num_threads_use):
     # OpenMP threads created for the outer loop.
-    for i in prange(ncols):
-      for j in range(nrows):
+    for i in prange(nrows):
+      for j in range(ncols):
           if terrain_array[i, j] != NoDataValue:
             dzdx = (((terrain_array[i, j+1] + 2*terrain_array[i+1, j] + terrain_array[i+1, j+1]) -
                     (terrain_array[i-1, j-1] + 2*terrain_array[i-1, j] + terrain_array[i-1, j+1]))
