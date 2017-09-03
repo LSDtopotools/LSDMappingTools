@@ -329,6 +329,11 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['SA_segments_min'] = SASegmentedDF['FirstQ_movern']
     OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
 
+    # print the SA segment data
+    OutSAname = "_SA_segment_summary.csv"
+    out_sa_name = summary_directory+fname_prefix+OutSAname
+    SASegmentedDF.to_csv(out_sa_name,index=False)
+
     # now write the output dataframe to a csv file
     OutCSVname = "_movern_summary.csv"
     outname = summary_directory+fname_prefix+OutCSVname
@@ -1581,7 +1586,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # set the axis labels
     ax.set_xlabel('Basin key')
-    ax.set_ylabel('$m/n$')
+    ax.set_ylabel('Best fit $m/n$')
 
     # sort both labels and handles by labels
     handles, labels = ax.get_legend_handles_labels()
