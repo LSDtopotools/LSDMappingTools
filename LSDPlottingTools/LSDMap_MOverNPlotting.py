@@ -97,7 +97,7 @@ def GetMOverNRangeMCPoints(BasinDF):
     for i, median in enumerate(Median_MOverNs):
         # find the right column
         FirstQDF_mask = FirstQDF.filter(regex=str(median))
-        FirstQF_MLEs.append(float(FirstQDF_mask.iloc[i]))
+        FirstQF_MLEs.append(FirstQDF_mask.iloc[i])
 
     # now, for each basin, find the columns in the 3rd quartile which are higher than the first Q MLE
     ThirdQDF = BasinDF.filter(regex='TQ')
