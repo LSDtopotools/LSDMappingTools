@@ -96,8 +96,9 @@ def GetMOverNRangeMCPoints(BasinDF):
     FirstQF_MLEs = []
     for i, median in enumerate(Median_MOverNs):
         # find the right column
-        FirstQDF_mask = FirstQDF.filter(regex=str(median))
-        FirstQF_MLEs.append(FirstQDF_mask.iloc[i])
+        this_col = "FQ_MLE_m_over_n="+str(median)
+        FirstQDF_mask = FirstQDF[this_col]
+        FirstQF_MLEs.append(float(FirstQDF_mask.iloc[i]))
 
     # now, for each basin, find the columns in the 3rd quartile which are higher than the first Q MLE
     ThirdQDF = BasinDF.filter(regex='TQ')
@@ -109,6 +110,7 @@ def GetMOverNRangeMCPoints(BasinDF):
 
     # add the threshold first Q MLEs to the dataframe
     ThirdQDF['threshold'] = pd.Series(FirstQF_MLEs, index=ThirdQDF.index)
+    print ThirdQDF
     # change DF to a boolean where values are greater than the threshold
     TempDF = ThirdQDF.drop('threshold', 1).gt(ThirdQDF['threshold'], 0)
     # get the column names where the values are greater than the threshold for each basin
