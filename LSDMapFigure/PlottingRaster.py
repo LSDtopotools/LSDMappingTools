@@ -893,7 +893,7 @@ class MapFigure(object):
         return ax_list
 
     def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours, cbar_type=float,
-                            use_baseraster = True, min_value = 0, max_value = 0):
+                            use_baseraster = True, min_value = 0, max_value = 0, cbar_label_rotation=30):
         """
         This function takes a discrete colourbar and fixes the ticks so they are
         in the middle of each colour
@@ -912,6 +912,7 @@ class MapFigure(object):
             use_baseraster (bool): True if you want to use the baseraster, otherwise uses the min_value and max_value
             min_value: the minimum value on the colourbar
             max_value: the maximum value on the colourbar
+            cbar_label_rotation (float): rotate the tick labels
 
         Returns:
             None but fixes ticks
@@ -954,7 +955,11 @@ class MapFigure(object):
         else:
             tick_labels = [str(x) for x in tick_labels]
         print tick_labels
-        cbar.set_ticklabels(tick_labels)
+
+        if self.colourbar_orientation == "horizontal":
+            cbar.ax.set_xticklabels(tick_labels, rotation=cbar_label_rotation)
+        else:
+            cbar.ax.set_yticklabels(tick_labels, rotation=cbar_label_rotation)
 
     def add_point_colourbar(self,ax_list,sc,cmap = "cubehelix",colorbarlabel = "Colourbar",
                             discrete=False, n_colours=10, cbar_type=float):
@@ -1013,6 +1018,7 @@ class MapFigure(object):
         if discrete==True:
             # change ticks
             self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type, False, minimum_value, maximum_value)
+            cbar_label_rotation=30
 
 
         #Will's changes:

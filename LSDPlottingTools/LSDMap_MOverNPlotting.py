@@ -1767,6 +1767,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     print ('Basin keys are: ')
     print basin_keys
 
+    labeldict = {}
     # get the best fit m/n for each basin
     if movern_method == "Chi_full":
         Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
@@ -1774,23 +1775,26 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         m_over_ns = [round(i[0],1) for i in best_fit_movern_dict.values()]
         #print m_over_ns
         MOverNDict = dict(zip(basin_keys,m_over_ns))
+        labeldict = dict(zip(basin_junctions,m_over_ns))
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_full.'+FigFormat
     elif movern_method == "Chi_points":
         PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
         PointsDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
         moverns = PointsDF['Median_MOverNs'].tolist()
         MOverNDict = dict(zip(basin_keys,moverns))
+        labeldict = dict(zip(basin_junctions,moverns))
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_points.'+FigFormat
     elif movern_method == "SA":
         SlopeAreaDF = SA.LinearRegressionRawData(DataDirectory,fname_prefix)
         moverns = SlopeAreaDF['regression_slope'].tolist()
         MOverNDict = dict(zip(basin_keys,moverns))
+        labeldict = dict(zip(basin_junctions,moverns))
         ImageName = raster_directory+fname_prefix+'_basins_movern_SA.'+FigFormat
     else:
         print "You didn't select an appropriate movern method. Please choose either 'Chi_full', 'Chi_points, or 'SA'."
         sys.exit()
 
-    # get moverns for cbar plotting
+    # get moverns for cbar plotting. We always want a spacing of 0.1.
     min_max_str = ['min', 'max']
     end_movern = start_movern+d_movern*(n_movern-1)
     all_moverns = np.linspace(start_movern,end_movern,n_movern)
@@ -1799,7 +1803,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     min_max_moverns = [start_movern, end_movern]
     cbar_dict = dict(zip(min_max_str,min_max_moverns))
 
-    # work out how many moverns we need for the colormap
+    # work out how many colours we need for the colormap
     n_colours = len(all_moverns)
     print "N colours is: "+str(n_colours)
 
@@ -1816,10 +1820,10 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
 
     # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='bottom')
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km")
     # add the basins drape
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, value_dict = MOverNDict,
-                      use_keys_not_junctions = True, show_colourbar = True,
+                      use_keys_not_junctions = True, show_colourbar = False,
                       discrete_cmap=True, n_colours=n_colours, colorbarlabel = "$m/n$",
                       colourmap = mn_cmap, adjust_text = False, cbar_dict=cbar_dict)
 
@@ -1828,9 +1832,9 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the basin labelling
-    label_dict = dict(zip(basin_junctions,basin_keys))
     Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
-    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
+    print "Adding labels, the label dict is:", labeldict
+    MF.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=labeldict)
 
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
