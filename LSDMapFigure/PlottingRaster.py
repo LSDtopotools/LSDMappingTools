@@ -223,7 +223,7 @@ class MapFigure(object):
     etc.
     """
     def __init__(self, BaseRasterName, Directory,
-                 coord_type="UTM", colourbar_location = "None", basemap_colourmap = "gray", NFF_opti = False,*args, **kwargs):
+                 coord_type="UTM", colourbar_location = "None", basemap_colourmap = "gray", plot_title = "None", NFF_opti = False,*args, **kwargs):
         """
         Initiates the object.
 
@@ -233,6 +233,7 @@ class MapFigure(object):
             coord_type (str): The type of coordinate system. At the moment we only support UTM and UTM_km (the latter makes the tick labels easier to handle).
             colourbar_location (string): Can be none, top bottom left or right. Controls where the colourbar is located.
             basemap_colourmap (string or colormap): The colourmap of the base raster.
+            plot_title (string): The title of the plot, if "None" then will not be plotted.
             NFF_opti (bool): If true, use a fast python native file loading. Much faster but not completely tested.
 
         Author: SMM and DAV
@@ -307,6 +308,9 @@ class MapFigure(object):
 
         self.ax_list = self.make_base_image(self.ax_list)
         print(self.ax_list[0])
+
+        # A title if needed
+        self.title = plot_title
 
 
     def make_ticks(self):
@@ -1026,7 +1030,8 @@ class MapFigure(object):
 
 
     def add_point_data(self, thisPointData,column_for_plotting = "None",
-                       this_colourmap = "cubehelix",colorbarlabel = "Colourbar",
+                       this_colourmap = "cubehelix", show_colourbar="True", colourbar_location = "bottom",
+                       colorbarlabel = "Colourbar",
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,
                        max_point_size = 5, min_point_size = 0.5,
@@ -1040,6 +1045,8 @@ class MapFigure(object):
             thisPointData (object): an LSDMap_PointData object.
             column_for_plotting (string): The column in the pint data that is used for plotting the points.
             this_colourmap (string or colourmap): The colourmap.
+            show_colourbar (bool): If true, will display a colourbar for the points
+            colourbar_location (string): The location of the colourbar, can be either "top", "bottom", "left", or "right"
             colorbarlabel (string): The label of the colourbar
             scale_point (bool): If true, point size is scaled by the point value.
             column_for_scaling (string): The column name that is used to scale the point size
@@ -1138,11 +1145,12 @@ class MapFigure(object):
                 print("let me rescale the colour using your array")
                 if(len(colour_manual_scale) == 2):
                     cNorm  = _mcolors.Normalize(vmin=colour_manual_scale[0], vmax=colour_manual_scale[1])
-                    scalarMap = _cm.ScalarMappable(norm = cNorm, cmap= this_colourmap)
-                    tps_color = scalarMap.to_rgba(this_data)
-                    scalarMap.set_array(tps_color)
-                    this_colourmap = scalarMap
-                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none', alpha = alpha)
+                    #scalarMap = _cm.ScalarMappable(norm = cNorm, cmap= this_colourmap)
+                    #tps_color = scalarMap.to_rgba(this_data)
+                    #scalarMap.set_array(tps_color)
+                    #this_colourmap = scalarMap
+                    #sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none', alpha = alpha)
+                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,norm=cNorm,edgecolors='none', alpha = alpha)
 
                 else:
                     print("Your colour_log_manual_scale should be something like [min,max], aborting")
@@ -1163,10 +1171,20 @@ class MapFigure(object):
         self.ax_list[0].set_xlim(this_xlim)
         self.ax_list[0].set_ylim(this_ylim)
 
-        print("The colourbar orientation for point plotting is: "+self.colourbar_orientation)
-        if self.colourbar_orientation != "None":
-            print("Let me add a colourbar for your point data")
-            self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
+        if show_colourbar:
+            print("Your colourbar will be located: "+ colourbar_location)
+            if colourbar_location == "top" or colourbar_location == "bottom":
+                self.colourbar_location = colourbar_location
+                self.colourbar_orientation = "horizontal"
+            elif colourbar_location == "left" or colourbar_location == "right":
+                self.colourbar_location = colourbar_location
+                self.colourbar_orientation = "vertical"
+            elif colourbar_location == "None":
+                self.colourbar_location = "None"
+                self.colourbar_orientation = "None"
+            if self.colourbar_location != "None":
+                print("Let me add a colourbar for your point data")
+                self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
 
 
@@ -1501,6 +1519,10 @@ class MapFigure(object):
             del self.ax_list[-1]
         else:
             self.ax_list[-1].set_position(cbar_axes)
+
+        # add the title
+        if self.title != "None":
+            self.ax_list[0].add_title(self.title)
 
         fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi, transparent=transparent)
 
