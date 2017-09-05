@@ -1772,7 +1772,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     if movern_method == "Chi_full":
         Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
         #MOverNDict = SimpleMaxMLECheck(BasinDF)
-        m_over_ns = [round(i[0],1) for i in best_fit_movern_dict.values()]
+        m_over_ns = [round(i[0],2) for i in best_fit_movern_dict.values()]
         #print m_over_ns
         MOverNDict = dict(zip(basin_keys,m_over_ns))
         labeldict = dict(zip(basin_junctions,m_over_ns))
@@ -1782,12 +1782,16 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         PointsDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
         moverns = PointsDF['Median_MOverNs'].tolist()
         MOverNDict = dict(zip(basin_keys,moverns))
+        # labelling the basins
+        moverns = [round(i[0],2) for i in moverns]
         labeldict = dict(zip(basin_junctions,moverns))
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_points.'+FigFormat
     elif movern_method == "SA":
         SlopeAreaDF = SA.LinearRegressionRawData(DataDirectory,fname_prefix)
         moverns = SlopeAreaDF['regression_slope'].tolist()
         MOverNDict = dict(zip(basin_keys,moverns))
+        # labelling the basins
+        moverns = [round(i[0],2) for i in moverns]
         labeldict = dict(zip(basin_junctions,moverns))
         ImageName = raster_directory+fname_prefix+'_basins_movern_SA.'+FigFormat
     else:
