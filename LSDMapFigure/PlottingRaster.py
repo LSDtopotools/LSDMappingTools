@@ -1186,17 +1186,6 @@ class MapFigure(object):
                 print("Let me add a colourbar for your point data")
                 self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
-
-
-
-
-
-
-
-
-
-
-
     def add_text_annotation_from_points(self, thisPointData,column_for_plotting = "None",
                                         selection_criteria = [], PANDEX=False, border_colour='k', text_colour='r', alpha=1):
         """
@@ -1502,6 +1491,7 @@ class MapFigure(object):
         fig_size_inches, map_axes, cbar_axes = phelp.MapFigureSizer(fig_width_inches,
                                                               map_aspect_ratio,
                                                               self.colourbar_location,
+                                                              self.title,
                                                               cbar_width,
                                                               cbar_text_width)
 
@@ -1522,7 +1512,7 @@ class MapFigure(object):
 
         # add the title
         if self.title != "None":
-            self.ax_list[0].add_title(self.title)
+            self.ax_list[0].set_title(self.title)
 
         fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi, transparent=transparent)
 
