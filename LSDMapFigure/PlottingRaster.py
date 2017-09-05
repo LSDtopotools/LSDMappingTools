@@ -42,7 +42,7 @@ class BaseRaster(object):
 
     Author: DAV and SMM
     """
-    def __init__(self, RasterName, Directory, NFF_opti = False):
+    def __init__(self, RasterName, Directory, NFF_opti = False, alpha = 1):
 
         self._RasterFileName = RasterName
         self._RasterDirectory = Directory
@@ -223,7 +223,7 @@ class MapFigure(object):
     etc.
     """
     def __init__(self, BaseRasterName, Directory,
-                 coord_type="UTM", colourbar_location = "None", basemap_colourmap = "gray", NFF_opti = False,*args, **kwargs):
+                 coord_type="UTM", colourbar_location = "None", basemap_colourmap = "gray", plot_title = "None", NFF_opti = False,*args, **kwargs):
         """
         Initiates the object.
 
@@ -233,6 +233,7 @@ class MapFigure(object):
             coord_type (str): The type of coordinate system. At the moment we only support UTM and UTM_km (the latter makes the tick labels easier to handle).
             colourbar_location (string): Can be none, top bottom left or right. Controls where the colourbar is located.
             basemap_colourmap (string or colormap): The colourmap of the base raster.
+            plot_title (string): The title of the plot, if "None" then will not be plotted.
             NFF_opti (bool): If true, use a fast python native file loading. Much faster but not completely tested.
 
         Author: SMM and DAV
@@ -307,6 +308,9 @@ class MapFigure(object):
 
         self.ax_list = self.make_base_image(self.ax_list)
         print(self.ax_list[0])
+
+        # A title if needed
+        self.title = plot_title
 
 
     def make_ticks(self):
@@ -449,7 +453,12 @@ class MapFigure(object):
     def add_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, norm = "None", modify_raster_values=False, old_values=[], new_values=[], cbar_type=float, NFF_opti = False):
+                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10,
+                        norm = "None",
+                        colour_min_max = [],
+                        modify_raster_values=False,
+                        old_values=[], new_values=[], cbar_type=float,
+                        NFF_opti = False, custom_min_max = []):
         """
         This function adds a drape over the base raster.
 
@@ -463,18 +472,23 @@ class MapFigure(object):
             discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
             n_colours (int): number of colours in discrete colourbar
             norm (string): Normalisation of colourbar. I don't understand this so don't change
+            colour_min_max( list of int/float): if it contains two elements, map the colourbar between these two values.
             modify_raster_values (bool): If true, it takes old_values in list and replaces them with new_values
             old_values (list): A list of values to be replaced in raster. Useful for masking and renaming
             new_values (list): A list of the new values. This probably should be done with a map: TODO
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
             NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.
+            custom_min_max (list of int/float): if it contains two elements, recast the raster to [min,max] values for display.
 
         Author: SMM
         """
         print("N axes are: "+str(len(self.ax_list)))
         print(self.ax_list[0])
 
-        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,colorbarlabel,discrete_cmap,n_colours,norm,modify_raster_values,old_values,new_values,cbar_type, NFF_opti)
+        self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,
+                                             colorbarlabel,discrete_cmap,n_colours,norm,
+                                             colour_min_max,modify_raster_values,old_values,
+                                             new_values,cbar_type, NFF_opti, custom_min_max)
         #print("Getting axis limits in drape function: ")
         #print(self.ax_list[0].get_xlim())
 
@@ -482,7 +496,12 @@ class MapFigure(object):
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",
                          alpha=0.5,
-                         colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10, nroma = "None", modify_raster_values = False, old_values=[], new_values = [], cbar_type=float, NFF_opti = False):
+                         colorbarlabel = "Colourbar", discrete_cmap=False,
+                         n_colours=10, nroma = "None",
+                         colour_min_max = [],
+                         modify_raster_values = False,
+                         old_values=[], new_values = [], cbar_type=float,
+                         NFF_opti = False, custom_min_max = []):
         """
         This function adds a drape over the base raster. It does all the dirty work
         I can't quite remember why I did it in two steps but I vaguely recall trying it in one step and it didn't work.
@@ -497,11 +516,13 @@ class MapFigure(object):
             discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
             n_colours (int): number of colours in discrete colourbar
             norm (string): Normalisation of colourbar. I don't understand this so don't change
+            colour_min_max( list of int/float): if it contains two elements, map the colourbar between these two values.
             modify_raster_values (bool): If true, it takes old_values in list and replaces them with new_values
             old_values (list): A list of values to be replaced in raster. Useful for masking and renaming
             new_values (list): A list of the new values. This probably should be done with a map: TODO
             cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
             NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.
+            custom_min_max (list of int/float): if it contains two elements, recast the raster to [min,max] values for display.
 
         Author: SMM
         """
@@ -513,15 +534,36 @@ class MapFigure(object):
             print("N colours: "+str(n_colours))
             colourmap = self.cmap_discretize(colourmap, n_colours)
 
+
+
+
         self._RasterList.append(Raster)
         self._RasterList[-1].set_colourmap(colourmap)
+        # I am recasting the raster to custom extents
+        if len(custom_min_max)!=0:
+            if len(custom_min_max)== 2:
+                print("I am setting customisable minimum and maximum values: %s ¦¦ %s" %(custom_min_max[0],custom_min_max[1]))
+                self._RasterList[-1]._RasterArray[self._RasterList[-1]._RasterArray<custom_min_max[0]] = custom_min_max[0]
+                self._RasterList[-1]._RasterArray[self._RasterList[-1]._RasterArray>custom_min_max[1]] = custom_min_max[1]
+            else:
+                print("I cannot customize your minimum and maximum because I don't understand your input. It should be [min,max] with min max as integers or floats")
 
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
-        if(nroma != "None"):
-            im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, norm = nroma)
+        if len(colour_min_max)!=0:
+            if len(colour_min_max)== 2:
+                print("I am setting customisable colourbar minimum and maximum values: %s ¦¦ %s" %(colour_min_max[0],colour_min_max[1]))
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents,
+                                 interpolation="nearest",alpha = alpha, norm = mpl.colors.Normalize(vmin=colour_min_max[0], vmax=colour_min_max[1]))
+            else:
+                print("I cannot customize your colour minimum and maximum because I don't understand your input. It should be [min,max] with min max as integers or floats")
         else:
-            im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha)
+            if(nroma != "None"):
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents,
+                                 interpolation="nearest",alpha = alpha, norm = nroma)
+            else:
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap,
+                                 extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha)
         # This affects all axes because we set share_all = True.
         #ax.set_xlim(self._xmin,self._xmax)
         #ax.set_ylim(self._ymin,self._ymax)
@@ -532,7 +574,8 @@ class MapFigure(object):
 
         if self.colourbar_orientation != "None":
             self.ax_list = self.add_colourbar(self.ax_list,im,self._RasterList[-1],
-                                              colorbarlabel = colorbarlabel, discrete=discrete_cmap, n_colours=n_colours, cbar_type=cbar_type)
+                                              colorbarlabel = colorbarlabel, discrete=discrete_cmap,
+                                              n_colours=n_colours, cbar_type=cbar_type)
 
 
         return self.ax_list
@@ -546,7 +589,7 @@ class MapFigure(object):
                          use_keys_not_junctions = True,
                          label_basins = True, adjust_text = False, rename_dict = {},
                          value_dict = {}, mask_list = [],
-                         edgecolour='black', linewidth=1):
+                         edgecolour='black', linewidth=1, cbar_dict = {}):
         """
         This is a basin plotting routine. It plots basins as polygons which
         can be coloured and labelled in various ways.
@@ -570,6 +613,9 @@ class MapFigure(object):
             mask_list (list of ints): Any basin named in this list (can be either a key or junction index depending on use_keys_not_junctions) is removed from the polgons and not plotted.
             edgecolour (string): colour of the lines around the basins.
             linewidth(float): width of the line around the basins.
+            cbar_dict (dict): an optional dictionary to set the min and max of the colourbars, where the key is the
+            min and the max, and the values are what you want to set the colourbar to. Leave empty if you just want this
+            to be the same as the value dict.
 
         Author: SMM
         """
@@ -717,8 +763,13 @@ class MapFigure(object):
 
             # Now we need to normalise from the values, so we go from the minimum
             # To the maximum
-            max_value = max([i for i in value_dict.values()])
-            min_value = min([i for i in value_dict.values()])
+            # check if you want to renormalise the colourbar based on specific values
+            if len(cbar_dict) != 0:
+                min_value = cbar_dict.get('min')
+                max_value = cbar_dict.get('max')
+            else:
+                max_value = max([i for i in value_dict.values()])
+                min_value = min([i for i in value_dict.values()])
 
             # Normalise the colourmap
             cNorm  = colors.Normalize(min_value, max_value)
@@ -735,6 +786,7 @@ class MapFigure(object):
                 # this junction is in the value dict
                 if use_keys_not_junctions:
                     this_key = junction_to_key_dict[junc]
+                    print ("This key is: "+str(this_key)+", and this value is: "+str(value_dict[this_key]))
                     if this_key in value_dict:
                         this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[this_key] ), ec="none", alpha=alpha)
                         self.ax_list[0].add_patch(this_patch)
@@ -764,9 +816,10 @@ class MapFigure(object):
                 this_cbar_type = cbar_type
                 this_cbarlabel = colorbarlabel
                 self.ax_list = self.add_objectless_colourbar(self.ax_list,
-                                                             min_value, max_value,
-                                                             cmap = this_cmap,colorbarlabel = this_cbarlabel,
-                                                             discrete=discrete_cmap, n_colours=n_colours, cbar_type=this_cbar_type)
+                                                         min_value, max_value,
+                                                         cmap = this_cmap,colorbarlabel = this_cbarlabel,
+                                                         discrete=discrete_cmap, n_colours=n_colours, cbar_type=this_cbar_type)
+
             else:
                 print("You have asked me to plot a colourbar but the location is none. Give the mapfigure object a colourbar location.")
 
@@ -977,7 +1030,8 @@ class MapFigure(object):
 
 
     def add_point_data(self, thisPointData,column_for_plotting = "None",
-                       this_colourmap = "cubehelix",colorbarlabel = "Colourbar",
+                       this_colourmap = "cubehelix", show_colourbar="True", colourbar_location = "bottom",
+                       colorbarlabel = "Colourbar",
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,
                        max_point_size = 5, min_point_size = 0.5,
@@ -991,6 +1045,8 @@ class MapFigure(object):
             thisPointData (object): an LSDMap_PointData object.
             column_for_plotting (string): The column in the pint data that is used for plotting the points.
             this_colourmap (string or colourmap): The colourmap.
+            show_colourbar (bool): If true, will display a colourbar for the points
+            colourbar_location (string): The location of the colourbar, can be either "top", "bottom", "left", or "right"
             colorbarlabel (string): The label of the colourbar
             scale_point (bool): If true, point size is scaled by the point value.
             column_for_scaling (string): The column name that is used to scale the point size
@@ -1089,11 +1145,12 @@ class MapFigure(object):
                 print("let me rescale the colour using your array")
                 if(len(colour_manual_scale) == 2):
                     cNorm  = _mcolors.Normalize(vmin=colour_manual_scale[0], vmax=colour_manual_scale[1])
-                    scalarMap = _cm.ScalarMappable(norm = cNorm, cmap= this_colourmap)
-                    tps_color = scalarMap.to_rgba(this_data)
-                    scalarMap.set_array(tps_color)
-                    this_colourmap = scalarMap
-                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none', alpha = alpha)
+                    #scalarMap = _cm.ScalarMappable(norm = cNorm, cmap= this_colourmap)
+                    #tps_color = scalarMap.to_rgba(this_data)
+                    #scalarMap.set_array(tps_color)
+                    #this_colourmap = scalarMap
+                    #sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none', alpha = alpha)
+                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,norm=cNorm,edgecolors='none', alpha = alpha)
 
                 else:
                     print("Your colour_log_manual_scale should be something like [min,max], aborting")
@@ -1114,21 +1171,20 @@ class MapFigure(object):
         self.ax_list[0].set_xlim(this_xlim)
         self.ax_list[0].set_ylim(this_ylim)
 
-        print("The colourbar orientation for point plotting is: "+self.colourbar_orientation)
-        if self.colourbar_orientation != "None":
-            print("Let me add a colourbar for your point data")
-            self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
-
-
-
-
-
-
-
-
-
-
-
+        if show_colourbar:
+            print("Your colourbar will be located: "+ colourbar_location)
+            if colourbar_location == "top" or colourbar_location == "bottom":
+                self.colourbar_location = colourbar_location
+                self.colourbar_orientation = "horizontal"
+            elif colourbar_location == "left" or colourbar_location == "right":
+                self.colourbar_location = colourbar_location
+                self.colourbar_orientation = "vertical"
+            elif colourbar_location == "None":
+                self.colourbar_location = "None"
+                self.colourbar_orientation = "None"
+            if self.colourbar_location != "None":
+                print("Let me add a colourbar for your point data")
+                self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
     def add_text_annotation_from_points(self, thisPointData,column_for_plotting = "None",
                                         selection_criteria = [], PANDEX=False, border_colour='k', text_colour='r', alpha=1):
@@ -1372,7 +1428,9 @@ class MapFigure(object):
 
     def save_fig(self,fig_width_inches = 4,FigFileName = 'TestFig.png',
                  FigFormat = 'png',Fig_dpi = 100,
-                 axis_style = "Normal", transparent=False):
+                 axis_style = "Normal", transparent=False,
+                 adjust_cbar_characters=True,
+                 fixed_cbar_characters=4):
         """
         This saves the figure to file.
 
@@ -1383,6 +1441,8 @@ class MapFigure(object):
             Fig_dpi (int): dots per inch
             axis_stlye (string): This sets the axis style. Options are "Normal","Thick","Thin","Big", and "Madhouse"
             transparent (bool): If true the background is transparent (i.e., you don't get a white rectangle in the background)
+            adjust_cbar_characters (bool): If true, adjust the spacing of the colourbar to account for the characters in the cbar label
+            fixed_cbar_characters (int): ONLY used if adjust_cbar_characters=False. The number of characters to pad the cbar for.
 
         Author: SMM
         """
@@ -1398,14 +1458,19 @@ class MapFigure(object):
         # layout of the figure. Don't worry, this will all be worth it when we have awsome
         # figures every time.
         max_cbar_characters = 0
-        if self.colourbar_location == "left" or self.colourbar_location == "right":
-            print("You have a colourbar on the left or right, I need to check the number of characters in the labels.")
-            labels = [item.get_text() for item in self.ax_list[-1].get_yticklabels()]
-            print(labels)
-            for label in labels:
-                if len(label) > max_cbar_characters:
-                    max_cbar_characters = len(label)
-            print("The longest colourbar label has "+str(max_cbar_characters)+" characters.")
+        if adjust_cbar_characters == True:
+            print("I need to adjust the spacing of the colourbar.")
+            if self.colourbar_location == "left" or self.colourbar_location == "right":
+                print("You have a colourbar on the left or right, I need to check the number of characters in the labels.")
+                labels = [item.get_text() for item in self.ax_list[-1].get_yticklabels()]
+                print(labels)
+                for label in labels:
+                    if len(label) > max_cbar_characters:
+                        max_cbar_characters = len(label)
+                print("The longest colourbar label has "+str(max_cbar_characters)+" characters.")
+        else:
+            print("I am fixing the colourbar labels to have: "+str(fixed_cbar_characters)+ " characters")
+            max_cbar_characters = fixed_cbar_characters
 
 
 
@@ -1413,6 +1478,7 @@ class MapFigure(object):
 
         # Now we size the figure. This requires some finessing since we are
         # hard coding the widths of everything
+
         if max_cbar_characters <= 3:
             cbar_width = 0.2
             cbar_text_width = 0.4   # This is in inches. Because yanks wrote matplotlib.
@@ -1421,9 +1487,11 @@ class MapFigure(object):
             cbar_text_width = 0.4+0.15*(max_cbar_characters-3)   # This is in inches. Because yanks wrote matplotlib.
             print("I'm adjusting the colourbar text width to "+str(cbar_text_width)+" inches")
 
+        print("The cbar characters are: "+str(max_cbar_characters)+" and the cbar text width is: "+str(cbar_text_width))
         fig_size_inches, map_axes, cbar_axes = phelp.MapFigureSizer(fig_width_inches,
                                                               map_aspect_ratio,
                                                               self.colourbar_location,
+                                                              self.title,
                                                               cbar_width,
                                                               cbar_text_width)
 
@@ -1442,12 +1510,17 @@ class MapFigure(object):
         else:
             self.ax_list[-1].set_position(cbar_axes)
 
+        # add the title
+        if self.title != "None":
+            self.ax_list[0].set_title(self.title)
+
         fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi, transparent=transparent)
 
         #self.fig.show()
         #print("The figure format is: " + self.FigFormat)
         #plt.savefig(self.FigFileName,format=self.FigFormat)
-        #self.fig.clf()
+        fig.clf()
+        plt.close(fig)
 
     def SetRCParams(self,label_size):
         """

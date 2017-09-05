@@ -13,14 +13,15 @@ Released under GPL3
 import pandas as pd
 
 #==============================================================================
-def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
+def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", title = "None",
                    cbar_width = 0.2,
                    cbar_text_width = 0.4,
                    cbar_padding = 0.1,
                    cbar_fraction = 1,
-                   whitespace_padding = 0.1,
+                   whitespace_padding = 0.2,
                    map_text_width = 0.65,
-                   map_text_height = 0.45):
+                   map_text_height = 0.45,
+                   title_height=0.5):
     """This function takes a string size argument and calculates the size of the
     various components of a plot based on a map image making up the centre of the
     figure.
@@ -34,6 +35,7 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
         aspect_ratio (flt): The width to height ratio of the data
         cbar_loc (string): the location of the colourbar, either "left", "right", "top",
         "bottom", or "none"
+        title (bool): if true then adjust the height of the figure to make space for a title
         cbar_width (flt): the width of the colorbar
         text_padding (list): the padding around the map from the whitespace and the axis/tick labels
 
@@ -76,6 +78,10 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
         map_bottom_inches = whitespace_padding+map_text_height
         cbar_bottom_inches = map_bottom_inches
         figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding
+        if title != "None":
+            # add some space for a title if needed. At the moment this is hard coded but
+            # we might want to change this for the font size.
+            figure_height_inches = figure_height_inches+title_height
 
         fig_size_inches = [figure_width_inches,figure_height_inches]
 
@@ -103,6 +109,10 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
         map_bottom_inches = whitespace_padding+map_text_height
         cbar_bottom_inches = map_bottom_inches
         figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding
+        if title != "None":
+            # add some space for a title if needed. At the moment this is hard coded but
+            # we might want to change this for the font size.
+            figure_height_inches = figure_height_inches+title_height
 
         fig_size_inches = [figure_width_inches,figure_height_inches]
 
@@ -133,6 +143,11 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
         cbar_bottom_inches = map_bottom_inches+map_height_inches+cbar_padding+cbar_text_width
 
         figure_height_inches = cbar_bottom_inches+cbar_width+whitespace_padding
+        if title != "None":
+            # add some space for a title if needed. At the moment this is hard coded but
+            # we might want to change this for the font size.
+            title_height = 0.5
+            figure_height_inches = figure_height_inches+title_height
 
         fig_size_inches = [figure_width_inches,figure_height_inches]
 
@@ -165,6 +180,10 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
         whitespace_padding+map_text_height
 
         figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding
+        if title != "None":
+            # add some space for a title if needed. At the moment this is hard coded but
+            # we might want to change this for the font size.
+            figure_height_inches = figure_height_inches+title_height
 
         fig_size_inches = [figure_width_inches,figure_height_inches]
 
@@ -192,6 +211,10 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
         map_bottom_inches = whitespace_padding+map_text_height
 
         figure_height_inches = map_bottom_inches+map_height_inches+whitespace_padding
+        if title != "None":
+            # add some space for a title if needed. At the moment this is hard coded but
+            # we might want to change this for the font size.
+            figure_height_inches = figure_height_inches+title_height
 
         fig_size_inches = [figure_width_inches,figure_height_inches]
 
@@ -200,6 +223,7 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None",
                     map_width_inches/figure_width_inches,
                     map_height_inches/figure_height_inches]
         cbar_axes = None
+
 
     print("The figure size is: ")
     print fig_size_inches
@@ -527,6 +551,141 @@ def ReadChainCSV(DataDirectory, fname_prefix, basin_key):
 
     return df
 
+def ReadMCPointsCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix
+    '_MCpoint__points_MC_basinstats.csv'
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    # get the csv filename
+    mc_points_suffix = '_MCpoint__points_MC_basinstats.csv'
+    fname = fname_prefix+mc_points_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+def ReadChiResidualsCSVs(DataDirectory, fname_prefix):
+    """
+    This function reads in the 3 CSV files for the residuals analysis
+    They have the format:
+        "_residual_movernstats_movern_residuals_median.csv"
+        "_residual_movernstats_movern_residuals_Q1.csv"
+        "_residual_movernstats_movern_residuals_Q3.csv"
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        list of pandas dataframes with the csv files. List format is:
+        0 = medians
+        1 = 1st quartile
+        2 = 3rd quartile
+
+    Author: FJC
+    """
+    # get the csv filename
+    fnames = ["_residual_movernstats_movern_residuals_median.csv","_residual_movernstats_movern_residuals_Q1.csv","_residual_movernstats_movern_residuals_Q3.csv"]
+    #print "The fnames are: ", fnames
+    dfs = []
+    for f in fnames:
+        fname = fname_prefix+f
+        dfs.append(pd.read_csv(DataDirectory+fname))
+
+    return dfs
+
+def ReadRawSAData(DataDirectory, fname_prefix):
+    """
+    This function reads in the raw SA data to a pandas dataframe
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the raw SA data
+
+    Author: FJC
+    """
+    # get the csv filename
+    fname_suffix = "_SAvertical.csv"
+    fname = fname_prefix+fname_suffix
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+def ReadSegmentedSAData(DataDirectory, fname_prefix):
+    """
+    This function reads in the segmented SA data to a pandas dataframe
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the segmented SA data
+
+    Author: FJC
+    """
+    # get the csv filename
+    fname_suffix = "_SAsegmented.csv"
+    fname = fname_prefix+fname_suffix
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+def ReadBinnedSAData(DataDirectory, fname_prefix):
+    """
+    This function reads in the binned SA data to a pandas dataframe
+    csv with the suffix "_SAbinned.csv"
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the segmented SA data
+
+    Author: FJC
+    """
+    # get the csv filename
+    fname_suffix = "_SAbinned.csv"
+    fname = fname_prefix+fname_suffix
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+
+def ReadMOverNSummaryCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the summary csv with the best fit movern info
+    to a pandas dataframe
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the segmented SA data
+
+    Author: FJC
+    """
+    # get the csv filename
+    fname_suffix = "_movern_summary.csv"
+    fname = fname_prefix+fname_suffix
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
 #--------------------------------------------------------------------------------#
 # Terraces
 #--------------------------------------------------------------------------------#
@@ -553,6 +712,27 @@ def ReadTerraceCSV(DataDirectory, fname_prefix, outlet_jn):
     csv_suffix = '_terrace_swath_plots_'+jn_str+'.csv'
 
     fname = fname_prefix+csv_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+    return df
+
+def ReadModelCSV(DataDirectory, Base_file):
+    """
+    This function reads in the csv file from the model run to a pandas dataframe
+
+    Args:
+        DataDirectory (str): the data directory
+        Base_file (str): the base file prefix
+
+    Returns:
+        pandas dataframe with the csv file info
+
+    Author: FJC
+    """
+    # get the csv filename
+    csv_suffix = '_model_info.csv'
+
+    fname = Base_file+csv_suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
     return df

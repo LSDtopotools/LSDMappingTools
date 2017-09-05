@@ -19,13 +19,18 @@ import numpy as np
 import LSDPlottingTools as LSDP
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+import matplotlib.ticker as ticker
 import pandas as pd
 from matplotlib import colors
 import math
+import os
+import subprocess
 #from shapely.geometry import Polygon
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
+from LSDPlottingTools import LSDMap_SAPlotting as SA
+
 
 
 #=============================================================================
@@ -65,6 +70,123 @@ def SimpleMaxMLECheck(BasinDF):
     MOverNDict = dict(zip(basin_keys, MOverNs))
     return MOverNDict
 
+def GetMOverNRangeMCPoints(BasinDF):
+    """
+    This function checks through the MC points basin dataframe and returns the best fit and
+    range of m/n values. The range is given as a list in the column (all values of m/n where
+    the 3rd quartile is above the first quartile value for the best fit m/n)
+
+    Args:
+        BasinDF: pandas dataframe from the basin MC points csv file.
+
+    Returns:
+        dataframe with the basin key, best fit m/n, and range of m/n for each basin
+
+    Author: FJC
+    """
+    # get the medians from the dataframe
+    MedianDF = BasinDF.filter(regex='median')
+
+    # find the median with the highest MLE for each basin
+    MaxMedians = list(MedianDF.idxmax(axis=1))
+    Median_MOverNs = [float(x.split("=")[-1]) for x in MaxMedians]
+
+    # now find the first quartile that corresponds to this median
+    FirstQDF = BasinDF.filter(regex='FQ')
+    FirstQF_MLEs = []
+    for i, median in enumerate(Median_MOverNs):
+        # find the right column
+        this_col = "FQ_MLE_m_over_n="+str(median)
+        FirstQDF_mask = FirstQDF[this_col]
+        FirstQF_MLEs.append(float(FirstQDF_mask.iloc[i]))
+
+    # now, for each basin, find the columns in the 3rd quartile which are higher than the first Q MLE
+    ThirdQDF = BasinDF.filter(regex='TQ')
+
+    # change the column names to just have the m/n values
+    column_names = list(ThirdQDF)
+    column_names = [x.split("=")[-1] for x in column_names]
+    ThirdQDF.columns = column_names
+
+    # add the threshold first Q MLEs to the dataframe
+    ThirdQDF['threshold'] = pd.Series(FirstQF_MLEs, index=ThirdQDF.index)
+    print ThirdQDF
+    # change DF to a boolean where values are greater than the threshold
+    TempDF = ThirdQDF.drop('threshold', 1).gt(ThirdQDF['threshold'], 0)
+    # get the column names where the values are greater than the threshold for each basin
+    TempDF['Range_MOverNs'] = TempDF.apply(lambda x: ','.join(x.index[x]),axis=1)
+
+    # get the m/n values greater than the threshold to a list, then get the min and max
+    Min_MOverNs = []
+    Max_MOverNs = []
+    Range_MOverNs = list(TempDF['Range_MOverNs'])
+    for i in range (len(Range_MOverNs)):
+        movern_str = Range_MOverNs[i].split(",")
+        movern_floats = [float(x) for x in movern_str]
+        Min_MOverNs.append(min(movern_floats))
+        Max_MOverNs.append(max(movern_floats))
+
+    # write the output dataframe
+    OutputDF = pd.DataFrame()
+    OutputDF['basin_key'] = BasinDF['basin_key']
+    OutputDF['Median_MOverNs'] = pd.Series(Median_MOverNs)
+    OutputDF['FirstQ_threshold'] = pd.Series(FirstQF_MLEs)
+    OutputDF['Min_MOverNs'] = pd.Series(Min_MOverNs)
+    OutputDF['Max_MOverNs'] = pd.Series(Max_MOverNs)
+
+    return OutputDF
+
+def GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list=[0]):
+    """
+    This function reads in the CSV files with the chi residuals data and
+    calculates the median best fit m/n along with the min and max from the
+    first and third quartiles. These are returned as a pandas dataframe because
+    I love pandas <3 <3
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+
+    Returns:
+        pandas dataframe with m/n data from the chi residuals analysis
+
+    Author: FJC
+    """
+    # first let's read in the csv files with the residuals data
+    dfs = Helper.ReadChiResidualsCSVs(DataDirectory,fname_prefix)
+
+    # get the best fit m/n from the dataframes
+    movern_data = []
+    for i in range(len(dfs)):
+        dfs[i] = dfs[i][dfs[i]['basin_key'].isin(basin_list)]
+        ThisDF = dfs[i][dfs[i] < 0]
+
+        indices = []
+        for i, row in ThisDF.iterrows():
+            # find the first index where it is not a nan
+            index = row.first_valid_index()
+            if index == None:
+                index = row.index[-1]
+            indices.append(float(index.split("=")[-1]))
+        movern_data.append(indices)
+
+    # the movern_data is a list of lists containing the information.
+    # movern_data[0] = median
+    # movern_data[1] = first quartile
+    # movern_data[2] = third quartile
+    # the second index is the basin key.
+    # so to get the median of basin 3 you would use movern_data[0][3]
+
+    # write the output dataframe
+    OutputDF = pd.DataFrame()
+    OutputDF['basin_key'] = dfs[0]['basin_key']
+    OutputDF['Median_MOverNs'] = pd.Series(movern_data[0])
+    OutputDF['FirstQ_MOverNs'] = pd.Series(movern_data[1])
+    OutputDF['ThirdQ_MOverNs'] = pd.Series(movern_data[2])
+
+    return OutputDF
 
 def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
@@ -129,6 +251,96 @@ def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_mov
 
     # Now plot the figure
     PlotMOverNDicts(DataDirectory, fname_prefix, SA_movern_dict,best_fit_movern_dict, FigFormat = "png", size_format = "ESURF")
+
+def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
+    """
+    This function reads in all the files with the data for the various methods of estimating
+    the best fit m/n and produces a summary csv file which has the best fit m/n and uncertainty
+    for each basin. This csv can then be used to plot the data.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+
+    Returns:
+        writes a csv with the best fit m/n info for each basin
+
+    Author: FJC
+    """
+    # check if a directory exists for the summary plots. If not then make it.
+    summary_directory = DataDirectory+'summary_plots/'
+    if not os.path.isdir(summary_directory):
+        os.makedirs(summary_directory)
+
+    # read in the full chi dataframe
+    FullChiBasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    # Let's get the list of basins
+    if basin_list == []:
+        print("You didn't supply a list of basins, so I'm going to analyse all of them.")
+        basin_list = list(FullChiBasinDF['basin_key'])
+
+    # We're going to write our summary csv using pandas, woooo
+    # First of all we need to set up the dataframe
+    OutDF = pd.DataFrame()
+    OutDF['basin_key'] = pd.Series(basin_list)
+
+    # get the best fit m/n for each basin in the list from the full chi method
+    FullChiMOverNDict = SimpleMaxMLECheck(FullChiBasinDF)
+    OutDF['Chi_MLE_full'] = OutDF['basin_key'].map(FullChiMOverNDict)
+
+    # get the best fit m/n from the points method
+    PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
+    PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
+
+    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
+    OutDF['Chi_MLE_points'] = UncertaintyDF['Median_MOverNs']
+    OutDF['Chi_MLE_points_min'] = UncertaintyDF['Min_MOverNs']
+    OutDF['Chi_MLE_points_max'] = UncertaintyDF['Max_MOverNs']
+
+    print "Now getting the m/n from the chi residuals"
+
+    # get the best fit m/n from the chi residuals method
+    ResidualsDF = GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list)
+    OutDF['Chi_residuals'] = ResidualsDF['Median_MOverNs']
+    OutDF['Chi_residuals_min'] = ResidualsDF['FirstQ_MOverNs']
+    OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
+
+    print "Getting the m/n from the SA data"
+
+    # get the best fit m/n from the raw SA data
+    RawSADF = SA.LinearRegressionRawData(DataDirectory,fname_prefix,basin_list)
+    OutDF['SA_raw'] = RawSADF['regression_slope']
+    OutDF['SA_raw_sterr'] = RawSADF['std_err']
+    OutDF['SA_raw_R2'] = RawSADF['R2']
+    OutDF['SA_raw_p'] = RawSADF['p_value']
+
+    # get the SA tributary information
+    SATribsDF = SA.GetRangeMOverNRawDataByChannel(DataDirectory,fname_prefix,basin_list)
+    OutDF['SA_tribs'] = SATribsDF['median_movern']
+    OutDF['SA_tribs_min'] = SATribsDF['FirstQ_movern']
+    OutDF['SA_tribs_max'] = SATribsDF['ThirdQ_movern']
+
+    # get the best fit m/n from the segmented SA data
+    SASegmentedDF = SA.GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list)
+    OutDF['SA_segments'] = SASegmentedDF['median_movern']
+    OutDF['SA_segments_min'] = SASegmentedDF['FirstQ_movern']
+    OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
+
+    # print the SA segment data
+    OutSAname = "_SA_segment_summary.csv"
+    out_sa_name = summary_directory+fname_prefix+OutSAname
+    SASegmentedDF.to_csv(out_sa_name,index=False)
+
+    # now write the output dataframe to a csv file
+    OutCSVname = "_movern_summary.csv"
+    outname = summary_directory+fname_prefix+OutCSVname
+    OutDF.to_csv(outname,index=False)
+
 
 def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
@@ -730,7 +942,7 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
             ax.cla()
 
 def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7,
-                    size_format='ESURF', FigFormat='png'):
+                    size_format='ESURF', FigFormat='png', animate=False, keep_pngs=False):
     """
     This function makes chi-elevation plots for each basin and each value of m/n
     where the channels are coloured by the MLE value compared to the main stem.
@@ -746,12 +958,19 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
         n_movern (float): the number of m/n values analysed. Default is 7.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        animate (bool): If this is true then it creates a movie of the chi-elevation plots coloured by MLE.
+        keep_pngs (bool): If this is false and the animation flag is true, then the pngs are deleted and just the video is kept.
 
     Returns:
         Plot of each m/n value for each basin.
 
     Author: FJC
     """
+    # check if a directory exists for the chi plots. If not then make it.
+    MLE_directory = DataDirectory+'chi_plots/'
+    if not os.path.isdir(MLE_directory):
+        os.makedirs(MLE_directory)
+
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
@@ -830,7 +1049,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             # get the colourmap to colour channels by the MLE value
             #NUM_COLORS = len(MLE)
             MLE_array = np.asarray(TributariesMLE)
-            this_cmap = plt.cm.Reds
+            this_cmap = plt.cm.coolwarm
             cNorm  = colors.Normalize(vmin=np.min(MLE_array), vmax=np.max(MLE_array))
             plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
 
@@ -862,7 +1081,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
 
             #save the plot
-            newFilename = DataDirectory+"MLE_profiles"+str(basin_key)+"_"+str(m_over_n)+".png"
+            newFilename = MLE_directory+"MLE_profiles"+str(basin_key)+"_"+str(m_over_n)+".png"
 
             # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
             ax.tick_params(axis='both', width=1, pad = 2)
@@ -873,6 +1092,16 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             ax.cla()
             ax2.cla()
 
+    if animate:
+        # animate the pngs using ffmpeg
+        system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+MLE_directory+"MLE_profiles*.png' -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+MLE_directory+"MLE_profiles.mp4"
+        print system_call
+        subprocess.call(system_call, shell=True)
+        # delete the pngs if you want
+        if not keep_pngs:
+            system_call = "rm "+MLE_directory+"MLE_profiles*.png"
+            subprocess.call(system_call, shell=True)
+    plt.close(fig)
 
 
 def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7, size_format = "geomorphology"):
@@ -1195,7 +1424,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             # no removed tributaries
             if i == 0:
                 # plot the data
-                ax.plot(m_over_n_values,ratio_MLEs, lw=1.5, label = str(i), c='k', linestyle = '-', zorder=100)
+                ax.scatter(m_over_n_values,ratio_MLEs, label = str(i), c='k', s=5, zorder=100)
 
                 # get the limits for the arrow
                 max_MLE = max(ratio_MLEs)
@@ -1217,7 +1446,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             #remove tribs
             else:
                 # plot the data
-                ax.plot(m_over_n_values,ratio_MLEs, lw=1, label = str(i), c='0.5', linestyle = ls[i]) # different linestyle for each iteration?
+                ax.scatter(m_over_n_values,ratio_MLEs, label = str(i), s=5, c='0.5') # different linestyle for each iteration?
 
         # set the axes labels
         ax.set_xlabel('$m/n$')
@@ -1255,6 +1484,144 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         plt.savefig(newFilename,format=FigFormat,dpi=300)
         ax.cla()
 
+def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False):
+    """
+    This function makes a summary plot of the best fit m/n from the different
+    methods.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: list of basin keys to analyse, default = [] (all basins)
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        SA_channels (bool): If true, will include the SA data separated by channel
+
+    Returns:
+        Makes a summary plot
+
+    Author: FJC
+    """
+    # check if a directory exists for the summary plots. If not then make it.
+    summary_directory = DataDirectory+'summary_plots/'
+    if not os.path.isdir(summary_directory):
+        os.makedirs(summary_directory)
+
+    from matplotlib.ticker import FuncFormatter, MaxNLocator
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.025,right=0.75,top=0.9)
+    ax = fig.add_subplot(gs[5:100,10:95])
+
+    # read in the summary csv
+    df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
+    print df
+
+    # get the basin keys
+    basin_keys = df['basin_key'].tolist()
+    print basin_keys
+
+    # plot the full chi data
+    full_chi_keys = df['basin_key'].as_matrix()-0.2
+    ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', facecolors='white', s=15, zorder=200, label='Chi all data')
+
+    # plot the points data
+    median_movern = df['Chi_MLE_points'].as_matrix()
+    points_max_err = df['Chi_MLE_points_max'].as_matrix()
+    points_max_err = points_max_err-median_movern
+    points_min_err = df['Chi_MLE_points_min'].as_matrix()
+    points_min_err = median_movern-points_min_err
+    errors = np.array(zip(points_min_err, points_max_err)).T
+
+    points_chi_keys = df['basin_key'].as_matrix()-0.1
+    ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='k', fmt='none', elinewidth=1,label='_nolegend_')
+    ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='k', marker='o', edgecolors='k', label='Chi Monte Carlo',zorder=200)
+
+    # plot the SA data
+    SA_keys = df['basin_key'].as_matrix()
+    SA_sterr = df['SA_raw_sterr'].as_matrix()
+    ax.scatter(SA_keys, df['SA_raw'], s=15, c='r', label='SA all data')
+    ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='r', elinewidth=1, fmt='none',label='_nolegend_')
+
+    if SA_channels:
+        # plot the SA data by tribs
+        median_movern = df['SA_tribs'].as_matrix()
+        points_max_err = df['SA_tribs_max'].as_matrix()
+        points_max_err = points_max_err-median_movern
+        points_min_err = df['SA_tribs_min'].as_matrix()
+        points_min_err = median_movern-points_min_err
+        errors = np.array(zip(points_min_err, points_max_err)).T
+
+        SA_tribs_keys = df['basin_key'].as_matrix()+0.1
+        ax.errorbar(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', xerr=None, yerr=errors, edgecolors='r', fmt='none', elinewidth=1, linestyle = ":", ecolor='r',label='_nolegend_')
+        ax.scatter(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', edgecolors='r', label='SA by channel',zorder=100)
+
+    # plot the segmented SA data
+    median_movern = df['SA_segments'].as_matrix()
+    points_max_err = df['SA_segments_max'].as_matrix()
+    points_max_err = points_max_err-median_movern
+    points_min_err = df['SA_segments_min'].as_matrix()
+    points_min_err = median_movern-points_min_err
+    errors = np.array(zip(points_min_err, points_max_err)).T
+
+    SA_segment_keys = df['basin_key'].as_matrix()+0.2
+    ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='white', xerr=None, yerr=errors, edgecolors='r', fmt='none', elinewidth=1, linestyle = ":", ecolor='r',label='_nolegend_')
+    ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='white', edgecolors='r', label='Segmented SA', zorder=100)
+
+    # set the axis labels
+    ax.set_xlabel('Basin key')
+    ax.set_ylabel('Best fit $m/n$')
+
+    # sort both labels and handles by labels
+    handles, labels = ax.get_legend_handles_labels()
+    labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+    # add the legend
+    ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.0,0.7),bbox_transform=plt.gcf().transFigure)
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)
+
+    # change tick spacing
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
+    #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
+
+    #set y axis lims
+    #end_movern = end_movern = start_movern+d_movern*(n_movern-1)
+    #ax.set_ylim(start_movern-d_movern,1.3)
+
+    # change y axis to the moverns tested
+    # end_movern = end_movern = start_movern+d_movern*(n_movern-1)
+    # print end_movern
+    # ax.yaxis.set_ticks(np.arange(start_movern, end_movern, d_movern))
+
+    newFilename = summary_directory+fname_prefix+"_movern_summary."+FigFormat
+    if SA_channels:
+        newFilename = summary_directory+fname_prefix+"_movern_summary_with_SA_tribs."+FigFormat
+    plt.savefig(newFilename,format=FigFormat,dpi=300)
+    ax.cla()
+    plt.close(fig)
+
+
 #=============================================================================
 # RASTER PLOTTING FUNCTIONS
 # Functions that interface with LSDMapFigure to plot the m/n analysis with
@@ -1276,6 +1643,11 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     Author: FJC
     """
+    # check if a directory exists for the chi plots. If not then make it.
+    raster_directory = DataDirectory+'raster_plots/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
     #import modules
     # from LSDMapFigure.PlottingRaster import MapFigure
     # from LSDMapFigure.PlottingRaster import BaseRaster
@@ -1339,10 +1711,10 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
 
     # Save the figure
-    ImageName = DataDirectory+fname_prefix+'_basin_keys.'+FigFormat
+    ImageName = raster_directory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
 
-def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_movern=7, d_movern=0.1, point_analysis=False, size_format='ESURF', FigFormat='png'):
+def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_movern=7, d_movern=0.1, movern_method='Chi_full', size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the best fit m/n
@@ -1352,7 +1724,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         fname_prefix (str): The prefix for the m/n csv files
         start_movern (int): The starting m/n, default = 0.2
         n_movern (int): The number of m/n values tested, default = 7.
-        point_analysis (bool): if true will read in the MLE point csv file, if false will read in the normal one.
+        movern_method: the method of estimating m over n. Options are full chi "Chi_full", points "Chi_points", or slope-area "SA". Default is "Chi_full".
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
 
@@ -1361,6 +1733,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
 
     Author: FJC
     """
+    # check if a directory exists for the chi plots. If not then make it.
+    raster_directory = DataDirectory+'raster_plots/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
@@ -1376,10 +1753,8 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         fig_width_inches = 4.92126
 
     # get the basin IDs to make a discrete colourmap for each ID
-    if point_analysis == False:
-        BasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
-    else:
-        BasinDF = Helper.ReadBasinStatsPointCSV(DataDirectory,fname_prefix)
+    BasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+
     # get the basin IDs to make a discrete colourmap for each ID
     BasinInfoDF = Helper.ReadBasinInfoCSV(DataDirectory, fname_prefix)
 
@@ -1393,13 +1768,40 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     print basin_keys
 
     # get the best fit m/n for each basin
-    Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
-    #MOverNDict = SimpleMaxMLECheck(BasinDF)
-    m_over_ns = [round(i[0],1) for i in best_fit_movern_dict.values()]
-    MOverNDict = dict(zip(basin_keys,m_over_ns))
+    if movern_method == "Chi_full":
+        Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+        #MOverNDict = SimpleMaxMLECheck(BasinDF)
+        m_over_ns = [round(i[0],1) for i in best_fit_movern_dict.values()]
+        #print m_over_ns
+        MOverNDict = dict(zip(basin_keys,m_over_ns))
+        ImageName = raster_directory+fname_prefix+'_basins_movern_chi_full.'+FigFormat
+    elif movern_method == "Chi_points":
+        PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
+        PointsDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
+        moverns = PointsDF['Median_MOverNs'].tolist()
+        MOverNDict = dict(zip(basin_keys,moverns))
+        ImageName = raster_directory+fname_prefix+'_basins_movern_chi_points.'+FigFormat
+    elif movern_method == "SA":
+        SlopeAreaDF = SA.LinearRegressionRawData(DataDirectory,fname_prefix)
+        moverns = SlopeAreaDF['regression_slope'].tolist()
+        MOverNDict = dict(zip(basin_keys,moverns))
+        ImageName = raster_directory+fname_prefix+'_basins_movern_SA.'+FigFormat
+    else:
+        print "You didn't select an appropriate movern method. Please choose either 'Chi_full', 'Chi_points, or 'SA'."
+        sys.exit()
+
+    # get moverns for cbar plotting
+    min_max_str = ['min', 'max']
+    end_movern = start_movern+d_movern*(n_movern-1)
+    all_moverns = np.linspace(start_movern,end_movern,n_movern)
+    print "END MOVERN:"
+    print end_movern
+    min_max_moverns = [start_movern, end_movern]
+    cbar_dict = dict(zip(min_max_str,min_max_moverns))
 
     # work out how many moverns we need for the colormap
-    n_colours = int(math.ceil((max(m_over_ns)-min(m_over_ns))/d_movern)+1)
+    n_colours = len(all_moverns)
+    print "N colours is: "+str(n_colours)
 
     # get a discrete colormap
     mn_cmap = plt.cm.Reds
@@ -1419,7 +1821,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, value_dict = MOverNDict,
                       use_keys_not_junctions = True, show_colourbar = True,
                       discrete_cmap=True, n_colours=n_colours, colorbarlabel = "$m/n$",
-                      colourmap = mn_cmap, adjust_text = False)
+                      colourmap = mn_cmap, adjust_text = False, cbar_dict=cbar_dict)
 
     # plot the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
@@ -1430,7 +1832,6 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
 
-    ImageName = DataDirectory+fname_prefix+'_basins_movern.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
 
@@ -1534,6 +1935,10 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
 
     Author: FJC
     """
+    # check if a directory exists for the chi plots. If not then make it.
+    MCMC_directory = DataDirectory+'MCMC_plots/'
+    if not os.path.isdir(MCMC_directory):
+        os.makedirs(MCMC_directory)
 
     # Set up fonts for plots
     label_size = 10
@@ -1591,7 +1996,7 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
         ax.set_title('Basin '+str(basin))
 
         # save the figure
-        ImageName = DataDirectory+fname_prefix+'_MCMC_basin' +str(basin)+'.'+FigFormat
+        ImageName = MCMC_directory+fname_prefix+'_MCMC_basin' +str(basin)+'.'+FigFormat
         plt.savefig(ImageName, format=FigFormat, dpi=300)
         ax.cla()
 

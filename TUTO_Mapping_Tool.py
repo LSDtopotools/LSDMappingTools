@@ -16,6 +16,7 @@ from LSDMapFigure.PlottingRaster import BaseRaster
 from LSDPlottingTools import colours as lsdcolours
 from LSDPlottingTools import init_plotting_DV
 import LSDPlottingTools as LSDP
+import pandas as bamboo_bears
 import sys
 
 #rcParams['font.family'] = 'sans-serif'
@@ -39,10 +40,20 @@ fig_size_inches = 9 # Figure size in Inches
 
 BackgroundRasterName = Base_file + ".bil" # Ignore this line
 
-thisPointData = LSDP.LSDMap_PointData(csv_file, PANDEX = True) # Load the point file #1, add a similar line with different name if you have more than one point file.
+# There are several way to load point data: Most of the time you will want to
+# directly load a csv_file as follow:
+thisPointData = LSDP.LSDMap_PointData(csv_file,data_type = 'csv', PANDEX = True) # Load the point file #1, add a similar line with different name if you have more than one point file.
+# But you can also load your file as a pandas dataframe, that allows you to sort your dataset first using pandas:
+# df = bamboo_bears.read_csv(csv_file, sep = ',')
+# df = df[df['elevation'] >50] # I am selecting all the points over 50 meters
+# thisPointData = LSDP.LSDMap_PointData(csv_file,data_type = 'pandas', PANDEX = True) # I am loading diretly a pandas dataframe rather than the csv_file
 
-plt.clf() # Ignore this line
 
+######## Now plotting the different layers ###########
+# Note that you can add as much rasters and points data as you want by just copying-pasting the add_drape_image and add_point_data functions
+# You just have to adapt the parameters and load the new data earlier in the script
+
+plt.clf() # Ignore this line, this is to make sure you're creating a brand new figure
 MF = MapFigure(BackgroundRasterName, Directory,coord_type="UTM_km", NFF_opti = True) # load the background raster
 
 MF.add_drape_image(DrapeRasterName,Directory, # Calling the function will add a drapped raster on the top of the background one

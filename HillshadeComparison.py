@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 # This MUST come before you import the C hillshade pyx file if you are doing it
 # this way.
 ####################
-#import pyximport
-#pyximport.install()
+import pyximport
+pyximport.install()
 ####################
 
 from LSDPlottingTools import fast_hillshade as fasthill
