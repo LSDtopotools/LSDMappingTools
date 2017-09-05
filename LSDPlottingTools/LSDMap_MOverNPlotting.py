@@ -1528,7 +1528,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
         #l_pad = -35
 
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.025,right=0.75,top=0.9)
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
     ax = fig.add_subplot(gs[5:100,10:95])
 
     # read in the summary csv
