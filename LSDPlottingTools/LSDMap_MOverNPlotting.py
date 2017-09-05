@@ -1783,7 +1783,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         moverns = PointsDF['Median_MOverNs'].tolist()
         MOverNDict = dict(zip(basin_keys,moverns))
         # labelling the basins
-        moverns = [round(i[0],2) for i in moverns]
+        moverns = [round(i,2) for i in moverns]
         labeldict = dict(zip(basin_junctions,moverns))
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_points.'+FigFormat
     elif movern_method == "SA":
@@ -1791,7 +1791,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         moverns = SlopeAreaDF['regression_slope'].tolist()
         MOverNDict = dict(zip(basin_keys,moverns))
         # labelling the basins
-        moverns = [round(i[0],2) for i in moverns]
+        moverns = [round(i,2) for i in moverns]
         labeldict = dict(zip(basin_junctions,moverns))
         ImageName = raster_directory+fname_prefix+'_basins_movern_SA.'+FigFormat
     else:
