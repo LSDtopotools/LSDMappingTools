@@ -219,15 +219,16 @@ def GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list=[]):
         moverns = ThisSegmentDF['regression_slope'][ThisSegmentDF['regression_slope'] < 0].tolist()
         removed_segments = ThisSegmentDF['segment_number'][ThisSegmentDF['regression_slope'] >= 0].tolist()
 
-        #find the median m/n
-        median_movern = np.median(moverns)
-        min_movern = np.min(moverns)
-        max_movern = np.max(moverns)
-        q75, q25 = np.percentile(moverns, [75 ,25])
-        print ("The median is: " +str(median_movern)+", the max is: "+str(max_movern)+", the min is: "+str(min_movern), ", the q25 is: "+str(q25)+", the q75 is: " +str(q75))
-        this_key = int(basin_key)
-        this_row = [this_key,abs(median_movern),abs(min_movern),abs(max_movern),abs(q75),abs(q25),removed_segments]
-        OutDF.loc[this_key] = this_row
+        if moverns !=[]:
+            #find the median m/n
+            median_movern = np.median(moverns)
+            min_movern = np.min(moverns)
+            max_movern = np.max(moverns)
+            q75, q25 = np.percentile(moverns, [75 ,25])
+            print ("The median is: " +str(median_movern)+", the max is: "+str(max_movern)+", the min is: "+str(min_movern), ", the q25 is: "+str(q25)+", the q75 is: " +str(q75))
+            this_key = int(basin_key)
+            this_row = [this_key,abs(median_movern),abs(min_movern),abs(max_movern),abs(q75),abs(q25),removed_segments]
+            OutDF.loc[this_key] = this_row
 
     return OutDF
 
@@ -249,6 +250,7 @@ def GetRangeMOverNRawDataByChannel(DataDirectory,fname_prefix,basin_list=[]):
 
     # get the linear regression info for the segments
     RawDF = LinearRegressionRawDataByChannel(DataDirectory,fname_prefix,basin_list)
+    print (RawDF)
 
     # now for each basin, get the median, min and max m/n.
     # get a list of the basins if needed
@@ -261,19 +263,21 @@ def GetRangeMOverNRawDataByChannel(DataDirectory,fname_prefix,basin_list=[]):
 
     for basin_key in basin_list:
         # get the segment info for this basin
+        print ("Basin key is: "+str(basin_key))
         ThisDF = RawDF[RawDF['basin_key'] == basin_key]
         moverns = ThisDF['regression_slope'][ThisDF['regression_slope'] < 0].tolist()
         removed_sources = ThisDF['source_key'][ThisDF['regression_slope'] >= 0].tolist()
 
-        #find the median m/n
-        median_movern = np.median(moverns)
-        min_movern = np.min(moverns)
-        max_movern = np.max(moverns)
-        q75, q25 = np.percentile(moverns, [75 ,25])
-        print ("The median is: " +str(median_movern)+", the max is: "+str(max_movern)+", the min is: "+str(min_movern), ", the q25 is: "+str(q25)+", the q75 is: " +str(q75))
-        this_key = int(basin_key)
-        this_row = [this_key,abs(median_movern),abs(min_movern),abs(max_movern),abs(q75),abs(q25),removed_sources]
-        OutDF.loc[this_key] = this_row
+        if moverns != []:
+            #find the median m/n
+            median_movern = np.median(moverns)
+            min_movern = np.min(moverns)
+            max_movern = np.max(moverns)
+            q75, q25 = np.percentile(moverns, [75 ,25])
+            print ("The median is: " +str(median_movern)+", the max is: "+str(max_movern)+", the min is: "+str(min_movern), ", the q25 is: "+str(q25)+", the q75 is: " +str(q75))
+            this_key = int(basin_key)
+            this_row = [this_key,abs(median_movern),abs(min_movern),abs(max_movern),abs(q75),abs(q25),removed_sources]
+            OutDF.loc[this_key] = this_row
 
     return OutDF
 
