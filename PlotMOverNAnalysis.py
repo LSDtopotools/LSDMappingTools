@@ -130,6 +130,7 @@ def main(argv):
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
         # with SA channels
         SA_channels = True
+        print ("SHOULD I SHOW THE LEGEND????"+str(args.show_legend))
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = args.FigFormat,size_format=args.size_format, SA_channels=SA_channels,show_legend=args.show_legend)
         # now without
         SA_channels = False
