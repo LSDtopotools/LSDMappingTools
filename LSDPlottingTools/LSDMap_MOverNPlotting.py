@@ -1596,6 +1596,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     ax.set_ylabel('Best fit $m/n$')
 
     if show_legend:
+        print "ADDING THE LEGEND"
         # sort both labels and handles by labels
         handles, labels = ax.get_legend_handles_labels()
         labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
