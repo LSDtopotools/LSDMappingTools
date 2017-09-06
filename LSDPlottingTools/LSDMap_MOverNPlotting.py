@@ -1484,7 +1484,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         plt.savefig(newFilename,format=FigFormat,dpi=300)
         ax.cla()
 
-def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False):
+def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True):
     """
     This function makes a summary plot of the best fit m/n from the different
     methods.
@@ -1499,6 +1499,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
         SA_channels (bool): If true, will include the SA data separated by channel
+        show_legend (bool): If true, display the legend with the plot
 
     Returns:
         Makes a summary plot
@@ -1528,7 +1529,11 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
         #l_pad = -35
 
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
+    if show_legend:
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
+    else:
+        gs = plt.GridSpec(100,100,bottom=0.1,left=0.1,right=0.9,top=0.9)
+
     ax = fig.add_subplot(gs[5:100,10:95])
 
     # read in the summary csv
@@ -1590,11 +1595,12 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     ax.set_xlabel('Basin key')
     ax.set_ylabel('Best fit $m/n$')
 
-    # sort both labels and handles by labels
-    handles, labels = ax.get_legend_handles_labels()
-    labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
-    # add the legend
-    ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.0,0.7),bbox_transform=plt.gcf().transFigure)
+    if show_legend:
+        # sort both labels and handles by labels
+        handles, labels = ax.get_legend_handles_labels()
+        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+        # add the legend
+        ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.0,0.7),bbox_transform=plt.gcf().transFigure)
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
     ax.tick_params(axis='both', width=1, pad = 2)
