@@ -1532,7 +1532,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     if show_legend:
         gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
     else:
-        gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.98,top=0.98)
 
     ax = fig.add_subplot(gs[5:100,10:95])
 
