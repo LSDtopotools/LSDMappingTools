@@ -1172,7 +1172,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
     ax2 = fig.add_subplot(gs[10:95,82:85])
 
     # read in the csv files
-    ProfileDF = Helper.ReadChiProfileBurnedCSV(DataDirectory, fname_prefix)
+    ProfileDF = Helper.ReadChiProfileCSV(DataDirectory, fname_prefix)
     BasinStatsDF = Helper.ReadBasinStatsCSV(DataDirectory, fname_prefix)
 
     # get the number of basins
@@ -1588,6 +1588,10 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         best_fit_moverns = best_fit_movern_dict[basin_number]
         print best_fit_moverns
 
+        # colours for each iteration
+        colours = np.linspace(0.9,0.2,len(n_removed_sources)+1)
+
+
         # loop through the number of removed tributaires and get the MLE for each m/n for each iteration
         for i in range(n_removed_sources+1):
 
@@ -1630,7 +1634,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             #remove tribs
             else:
                 # plot the data
-                ax.scatter(m_over_n_values,ratio_MLEs, label = str(i), s=5, c='0.5') # different linestyle for each iteration?
+                ax.scatter(m_over_n_values,ratio_MLEs, label = str(i), s=5, c=colours[i]) # different linestyle for each iteration?
 
         # set the axes labels
         ax.set_xlabel('$m/n$')
