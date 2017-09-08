@@ -476,6 +476,7 @@ def ReadChiProfileCSV(DataDirectory, fname_prefix):
 
     Author: FJC
     """
+    import os
     # get the csv filename
     profile_suffix = '_movern.csv'
     fname = fname_prefix+profile_suffix
