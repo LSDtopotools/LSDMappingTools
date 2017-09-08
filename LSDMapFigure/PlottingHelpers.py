@@ -479,29 +479,10 @@ def ReadChiProfileCSV(DataDirectory, fname_prefix):
     # get the csv filename
     profile_suffix = '_movern.csv'
     fname = fname_prefix+profile_suffix
-    # read in the dataframe using pandas
-    df = pd.read_csv(DataDirectory+fname)
 
-    return df
-
-def ReadChiProfileBurnedCSV(DataDirectory, fname_prefix):
-    """
-    This function reads in the file with the suffix '_burned_movern.csv', which
-    contains the data for the full chi profiles with data burned from
-    a raster, to a pandas dataframe.
-
-    Args:
-        DataDirectory: the data directory
-        fname_prefix: the file name prefix
-
-    Returns:
-        pandas dataframe with the csv file
-
-    Author: FJC
-    """
-    # get the csv filename
-    profile_suffix = '_burned_movern.csv'
-    fname = fname_prefix+profile_suffix
+    # check if this exists. if not then use the burned one.
+    if not os.path.isfile(fname):
+        fname = fname_prefix+'_burned_movern.csv'
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
 
