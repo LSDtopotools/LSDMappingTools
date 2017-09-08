@@ -122,9 +122,14 @@ def GetMOverNRangeMCPoints(BasinDF):
     Range_MOverNs = list(TempDF['Range_MOverNs'])
     for i in range (len(Range_MOverNs)):
         movern_str = Range_MOverNs[i].split(",")
-        movern_floats = [float(x) for x in movern_str]
-        Min_MOverNs.append(min(movern_floats))
-        Max_MOverNs.append(max(movern_floats))
+        if '' in movern_str:
+            Min_MOverNs.append(np.nan)
+            Max_MOverNs.append(np.nan)
+        else:
+            movern_floats = [float(x) for x in movern_str]
+            Min_MOverNs.append(min(movern_floats))
+            Max_MOverNs.append(max(movern_floats))
+
 
     # write the output dataframe
     OutputDF = pd.DataFrame()
