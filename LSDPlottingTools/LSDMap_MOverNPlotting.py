@@ -1015,6 +1015,9 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
     end_movern = start_movern+d_movern*(n_movern-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
+    # best fit moverns
+    best_fit_moverns = SimpleMaxMLECheck(BasinStatsDF)
+
     for m_over_n in m_over_n_values:
         # read in the full stats file
         print("This m/n is: "+str(m_over_n))
@@ -1072,12 +1075,21 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             ax.set_xlabel("$\chi$ (m)")
             ax.set_ylabel("Elevation (m)")
 
+            # the best fit m/n
+            best_fit_movern = best_fit_moverns[basin_key]
+
             # label with the basin and m/n
             title_string = "Basin "+str(basin_key)+", $m/n$ = "+str(m_over_n)
-            ax.text(0.05, 0.95, title_string,
-                    verticalalignment='top', horizontalalignment='left',
-                    transform=ax.transAxes,
-                    color='black', fontsize=10)
+            if best_fit_movern == m_over_n:
+                ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='red', fontsize=10)
+            else:
+                ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='black', fontsize=10)
 
             # add the colorbar
             colorbarlabel = "$MLE$"
@@ -1501,6 +1513,11 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
     from matplotlib import lines
     import matplotlib.patches as patches
 
+    # check if a directory exists for the MLE plots. If not then make it.
+    MLE_directory = DataDirectory+'MLE_plots/'
+    if not os.path.isdir(MLE_directory):
+        os.makedirs(MLE_directory)
+
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
@@ -1641,7 +1658,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             color='red', fontsize=10)
 
         #save the plot
-        newFilename = DataDirectory+"MLE_fxn_movern_"+str(basin_number)+"."+FigFormat
+        newFilename = MLE_directory+"MLE_fxn_movern_"+str(basin_number)+"."+FigFormat
 
         # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
         ax.tick_params(axis='both', width=1, pad = 2)
@@ -1650,6 +1667,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 
         plt.savefig(newFilename,format=FigFormat,dpi=300)
         ax.cla()
+        plt.close(fig)
 
 def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True):
     """
