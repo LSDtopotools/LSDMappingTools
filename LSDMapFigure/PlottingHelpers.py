@@ -482,7 +482,7 @@ def ReadChiProfileCSV(DataDirectory, fname_prefix):
     fname = fname_prefix+profile_suffix
 
     # check if this exists. if not then use the burned one.
-    if not os.path.isfile(fname):
+    if not os.path.isfile(DataDirectory+fname):
         print ("Reading the burned csv...")
         fname = fname_prefix+'_burned_movern.csv'
     # read in the dataframe using pandas
@@ -572,7 +572,7 @@ def ReadMCPointsCSV(DataDirectory, fname_prefix):
     Author: FJC
     """
     # get the csv filename
-    mc_points_suffix = '_MCpoint__points_MC_basinstats.csv'
+    mc_points_suffix = '_MCpoint_points_MC_basinstats.csv'
     fname = fname_prefix+mc_points_suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
