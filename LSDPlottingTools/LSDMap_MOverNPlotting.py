@@ -1228,7 +1228,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
             # get the colourmap to colour channels by the MLE value
             #NUM_COLORS = len(MLE)
             K_array = np.asarray(TributariesK)
-            this_cmap = plt.cm.cool
+            this_cmap = plt.cm.Set1
             cNorm  = colors.Normalize(vmin=np.min(K_array), vmax=np.max(K_array))
             plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
 
