@@ -1172,7 +1172,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
     ax2 = fig.add_subplot(gs[10:95,82:85])
 
     # read in the csv files
-    ProfileDF = Helper.ReadChiProfileCSV(DataDirectory, fname_prefix)
+    ProfileDF = Helper.ReadChiProfileBurnedCSV(DataDirectory, fname_prefix)
     BasinStatsDF = Helper.ReadBasinStatsCSV(DataDirectory, fname_prefix)
 
     # get the number of basins
