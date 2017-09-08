@@ -1111,7 +1111,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
 
     if animate:
         # animate the pngs using ffmpeg
-        system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+MLE_directory+"MLE_profiles*.png' -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+MLE_directory+"MLE_profiles.mp4"
+        system_call = "ffmpeg -framerate 3 -pattern_type glob -i -y '"+MLE_directory+"MLE_profiles*.png' -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+MLE_directory+"MLE_profiles.mp4"
         print system_call
         subprocess.call(system_call, shell=True)
         # delete the pngs if you want
@@ -1166,7 +1166,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
         #l_pad = -35
 
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.95,top=1.0)
     ax = fig.add_subplot(gs[10:95,5:80])
     #colorbar axis
     ax2 = fig.add_subplot(gs[10:95,82:85])
@@ -1242,7 +1242,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
             ax.spines['right'].set_linewidth(1)
             ax.spines['bottom'].set_linewidth(1)
 
-            # make the lables
+            # make the labels
             ax.set_xlabel("$\chi$ (m)")
             ax.set_ylabel("Elevation (m)")
 
@@ -1259,6 +1259,10 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
             cbar.set_label(colorbarlabel, fontsize=10)
             ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
 
+            #change the colourbar tick labels to scientific notation
+            old_labels = cbar.get_ticklabels()
+            print old_labels
+
             #save the plot
             newFilename = K_directory+"Chi_profiles_by_K_"+str(basin_key)+"_"+str(m_over_n)+".png"
 
@@ -1273,7 +1277,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
 
     if animate:
         # animate the pngs using ffmpeg
-        system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+K_directory+"Chi_profiles_by_K*.png' -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+K_directory+"Chi_profiles_by_K.mp4"
+        system_call = "ffmpeg -framerate 3 -pattern_type glob -i -y '"+K_directory+"Chi_profiles_by_K*.png' -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+K_directory+"Chi_profiles_by_K.mp4"
         print system_call
         subprocess.call(system_call, shell=True)
         # delete the pngs if you want
