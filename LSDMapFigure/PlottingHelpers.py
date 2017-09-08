@@ -482,6 +482,7 @@ def ReadChiProfileCSV(DataDirectory, fname_prefix):
 
     # check if this exists. if not then use the burned one.
     if not os.path.isfile(fname):
+        print ("Reading the burned csv...")
         fname = fname_prefix+'_burned_movern.csv'
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
