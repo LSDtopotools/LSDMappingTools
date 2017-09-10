@@ -1192,7 +1192,7 @@ class MapFigure(object):
                 print("Let me add a colourbar for your point data")
                 self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
-    def add_channel_network_from_points(self, thisPointData, colour='k', alpha = 0.7):
+    def add_channel_network_from_points(self, thisPointData, colour='k', alpha = 0.7, zorder=1):
         """
         This function plots the channel network from the map figure, you must pass in the
         channel network as an LSDMap_PointData object.
@@ -1201,6 +1201,7 @@ class MapFigure(object):
             thisPointData (object): an LSDMap_PointData object
             colour (string): colour you want the channel network to be, default = black
             alpha (float): transparency, 1 = opaque. Default = 0.7
+            zorder (float): priority for layering of plots
 
         Returns:
             plots the channel network
@@ -1218,7 +1219,7 @@ class MapFigure(object):
         [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
         print("I got the easting and northing")
 
-        sc = self.ax_list[0].scatter(easting,northing,s=1, c=colour, alpha = alpha)
+        sc = self.ax_list[0].scatter(easting,northing,s=0.1, c=colour, facecolor=colour, alpha = alpha, zorder=zorder)
 
 
     def add_text_annotation_from_points(self, thisPointData,column_for_plotting = "None",
@@ -1282,7 +1283,7 @@ class MapFigure(object):
 
         return texts
 
-    def add_text_annotation_from_shapely_points(self, points, label_dict={}, border_colour='k', text_colour='r', alpha=1):
+    def add_text_annotation_from_shapely_points(self, points, label_dict={}, border_colour='k', text_colour='r', alpha=1,zorder=10):
         """
         This adds annotations from a dictionary of shapely points, for annotating basins or sources.
 
@@ -1321,7 +1322,7 @@ class MapFigure(object):
         for key, point in points.iteritems():
             x = point.x
             y = point.y
-            texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center'))
+            texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center',zorder=zorder))
             #print ("I'm adding the text, yo")
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
@@ -1330,7 +1331,7 @@ class MapFigure(object):
 
         return texts
 
-    def add_text_annotation_from_shapely_points_v2(self, points, label_dict={}, border_colour='k', text_colour='r', alpha=1):
+    def add_text_annotation_from_shapely_points_v2(self, points, label_dict={}, border_colour='k', text_colour='r', alpha=1,zorder=10):
         """
         This adds annotations from a dictionary of shapely points, for annotating basins or sources.
 
@@ -1367,11 +1368,11 @@ class MapFigure(object):
 
             # If there is no label dict, just append with the text
             if len(label_dict) == 0:
-                texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center'))
+                texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center',zorder=zorder))
             else:
                 if key in label_dict:
                     this_label = str(label_dict[key])
-                    texts.append(self.ax_list[0].text(point.x, point.y, this_label, fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center'))
+                    texts.append(self.ax_list[0].text(point.x, point.y, this_label, fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center',zorder=zorder))
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)

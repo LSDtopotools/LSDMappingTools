@@ -1908,12 +1908,12 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     # add the channel network
     ChannelDF = Helper.ReadChannelNetworkCSV(DataDirectory,fname_prefix)
     ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-    MF.add_channel_network_from_points(ChannelPoints,colour='k', alpha=0.7)
+    MF.add_channel_network_from_points(ChannelPoints,colour='b', alpha=1,zorder=100)
 
     # add the basin labelling
     label_dict = dict(zip(basin_junctions,basin_keys))
     Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
-    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict)
+    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict,zorder=200)
 
     # Save the figure
     ImageName = raster_directory+fname_prefix+'_basin_keys.'+FigFormat
@@ -2047,10 +2047,15 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
+    # add the channel network
+    ChannelDF = Helper.ReadChannelNetworkCSV(DataDirectory,fname_prefix)
+    ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+    MF.add_channel_network_from_points(ChannelPoints,colour='b', alpha=0.2,zorder=100)
+
     # add the basin labelling
     Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
     print "Adding labels, the label dict is:", labeldict
-    MF.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=labeldict)
+    MF.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=labeldict, zorder=200)
 
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
