@@ -68,7 +68,7 @@ def main(argv):
         Directory = os.getcwd()
 
     # get the range of moverns, needed for plotting
-    BasinDF = Helper.ReadBasinStatsCSV(this_dir, args.fname_prefix)
+    BasinDF = Helper.ReadBasinStatsCSV(Directory+"/sigma_10/", args.fname_prefix)
     # we need the column headers
     columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
     moverns = [float(x.split("=")[-1]) for x in columns]
