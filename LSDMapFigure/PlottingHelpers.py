@@ -712,6 +712,26 @@ def ReadChannelNetworkCSV(DataDirectory, fname_prefix):
 
     return df
 
+def ReadChiDataMapCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the chi data map csv to a df
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the chi map
+
+    Author: FJC
+    """
+    # get the csv filename
+    fname_suffix = "_chi_data_map.csv"
+    fname = fname_prefix+fname_suffix
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
 
 #--------------------------------------------------------------------------------#
 # Terraces

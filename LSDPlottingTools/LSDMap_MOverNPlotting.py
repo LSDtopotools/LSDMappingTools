@@ -1906,9 +1906,9 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the channel network
-    ChannelDF = Helper.ReadChannelNetworkCSV(DataDirectory,fname_prefix)
+    ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
     ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-    MF.add_channel_network_from_points(ChannelPoints,colour='b', alpha=1,zorder=100)
+    MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100)
 
     # add the basin labelling
     label_dict = dict(zip(basin_junctions,basin_keys))
@@ -2048,9 +2048,9 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the channel network
-    ChannelDF = Helper.ReadChannelNetworkCSV(DataDirectory,fname_prefix)
+    ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
     ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-    MF.add_channel_network_from_points(ChannelPoints,colour='b', alpha=0.2,zorder=100)
+    MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, column_for_scaling='drainage_area',alpha=0.1,zorder=100)
 
     # add the basin labelling
     Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
