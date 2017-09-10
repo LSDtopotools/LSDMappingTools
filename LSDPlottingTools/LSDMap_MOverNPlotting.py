@@ -1905,6 +1905,11 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
+    # add the channel network
+    ChannelDF = Helper.ReadChannelNetworkCSV(DataDirectory,fname_prefix)
+    ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+    MF.add_channel_network_from_points(ChannelPoints,colour='k', alpha=0.7)
+
     # add the basin labelling
     label_dict = dict(zip(basin_junctions,basin_keys))
     Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
@@ -1978,6 +1983,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         label_list = [str(i)+": "+str(j) for i,j in zip(basin_keys,m_over_ns)]
         labeldict = dict(zip(basin_junctions,label_list))
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_full.'+FigFormat
+        title = "Chi analysis (all data)"
     elif movern_method == "Chi_points":
         PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
         PointsDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
@@ -1988,6 +1994,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         label_list = [str(i)+": "+str(j) for i,j in zip(basin_keys,moverns)]
         labeldict = dict(zip(basin_junctions,label_list))
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_points.'+FigFormat
+        title = "Chi Monte Carlo analysis"
     elif movern_method == "SA":
         SlopeAreaDF = SA.LinearRegressionRawData(DataDirectory,fname_prefix)
         moverns = SlopeAreaDF['regression_slope'].tolist()
@@ -1997,6 +2004,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         label_list = [str(i)+": "+str(j) for i,j in zip(basin_keys,moverns)]
         labeldict = dict(zip(basin_junctions,label_list))
         ImageName = raster_directory+fname_prefix+'_basins_movern_SA.'+FigFormat
+        title = "Slope-area analysis"
     else:
         print "You didn't select an appropriate movern method. Please choose either 'Chi_full', 'Chi_points, or 'SA'."
         sys.exit()
@@ -2026,8 +2034,9 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     HillshadeName = fname_prefix+'_hs'+raster_ext
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
 
+    print "THE TITLE IS:"+title
     # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km")
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", plot_title=title)
     # add the basins drape
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, value_dict = MOverNDict,
                       use_keys_not_junctions = True, show_colourbar = False,

@@ -21,7 +21,7 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", title = 
                    whitespace_padding = 0.2,
                    map_text_width = 0.65,
                    map_text_height = 0.45,
-                   title_height=0.5):
+                   title_height=0.2):
     """This function takes a string size argument and calculates the size of the
     various components of a plot based on a map image making up the centre of the
     figure.
@@ -691,6 +691,27 @@ def ReadMOverNSummaryCSV(DataDirectory, fname_prefix):
     df = pd.read_csv(DataDirectory+fname)
 
     return df
+
+def ReadChannelNetworkCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the channel network csv to a df
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the channel network
+
+    Author: FJC
+    """
+    # get the csv filename
+    fname_suffix = "_CN.csv"
+    fname = fname_prefix+fname_suffix
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
 
 #--------------------------------------------------------------------------------#
 # Terraces

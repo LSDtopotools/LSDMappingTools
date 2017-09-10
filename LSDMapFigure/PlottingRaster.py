@@ -1192,6 +1192,35 @@ class MapFigure(object):
                 print("Let me add a colourbar for your point data")
                 self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
+    def add_channel_network_from_points(self, thisPointData, colour='k', alpha = 0.7):
+        """
+        This function plots the channel network from the map figure, you must pass in the
+        channel network as an LSDMap_PointData object.
+
+        Args:
+            thisPointData (object): an LSDMap_PointData object
+            colour (string): colour you want the channel network to be, default = black
+            alpha (float): transparency, 1 = opaque. Default = 0.7
+
+        Returns:
+            plots the channel network
+
+        Author: FJC
+        """
+        # Get the axis limits to assert after
+        this_xlim = self.ax_list[0].get_xlim()
+        this_ylim = self.ax_list[0].get_ylim()
+
+        EPSG_string = self._RasterList[0]._EPSGString
+        print("I am going to plot the channel network for you. The EPSG string is:"+EPSG_string)
+
+        # convert to easting and northing
+        [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+        print("I got the easting and northing")
+
+        sc = self.ax_list[0].scatter(easting,northing,s=1, c=colour, alpha = alpha)
+
+
     def add_text_annotation_from_points(self, thisPointData,column_for_plotting = "None",
                                         selection_criteria = [], PANDEX=False, border_colour='k', text_colour='r', alpha=1):
         """
@@ -1508,6 +1537,10 @@ class MapFigure(object):
         self.ax_list[0].set_xlim(self._xmin,self._xmax)
         self.ax_list[0].set_ylim(self._ymax,self._ymin)
 
+        # add the title
+        if self.title != "None":
+            self.ax_list[0].set_title(self.title)
+
         print("Number of axes are: " + str(len(self.ax_list)))
 
 
@@ -1515,10 +1548,8 @@ class MapFigure(object):
             del self.ax_list[-1]
         else:
             self.ax_list[-1].set_position(cbar_axes)
-
-        # add the title
-        if self.title != "None":
-            self.ax_list[0].set_title(self.title)
+        # if cbar_axes != None:
+        #     self.ax_list[-1].set_position(cbar_axes)
 
         fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi, transparent=transparent)
 
