@@ -24,7 +24,7 @@ def print_welcome():
     print("\n\n=======================================================================")
     print("Hello! I'm going to plot the MLE sensitivity results for you.")
     print("You will need to tell me which directory to look in.")
-    print("Use the -wd flag to define the working directory.")
+    print("Use the -dir flag to define the working directory.")
     print("If you don't do this I will assume the data is in the same directory as this script.")
     print("For help type:")
     print("   python MLESensitivity.py -h\n")
@@ -66,8 +66,17 @@ def main(argv):
     else:
         Directory = os.getcwd()
 
+    # get the range of moverns, needed for plotting
+    BasinDF = Helper.ReadBasinStatsCSV(this_dir, args.fname_prefix)
+    # we need the column headers
+    columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
+    moverns = [float(x.split("=")[-1]) for x in columns]
+    start_movern = moverns[0]
+    n_movern = len(moverns)
+    d_movern = (moverns[-1] - moverns[0])/(n_movern-1)
+
     # loop through each sub-directory with the sensitivity results
-    MLE_str = "Chi_analysis_sigma_"
+    MLE_str = "sigma_"
     for subdir, dirs, files in os.walk(Directory):
         for dir in dirs:
             if MLE_str in dir:
@@ -75,7 +84,7 @@ def main(argv):
                 # make the plots depending on your choices
                 if args.plot_rasters:
                     MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
-                    MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, args.n_movern, args.d_movern, args.size_format, args.FigFormat)
+                    MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format, FigFormat=args.FigFormat)
                 if args.plot_chi_profiles:
                     MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=[], start_movern=args.start_movern, d_movern=args.d_movern, n_movern=args.n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
                 if args.plot_outliers:
