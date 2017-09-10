@@ -2251,7 +2251,7 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
     combined_DF = pd.DataFrame(columns=columns)
 
     # loop through each sub-directory with the sensitivity results
-    MLE_str = "Chi_analysis_sigma_"
+    MLE_str = "sigma_"
     for subdir, dirs, files in os.walk(DataDirectory):
         for dir in dirs:
             if MLE_str in dir:
