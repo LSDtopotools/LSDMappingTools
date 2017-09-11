@@ -56,6 +56,7 @@ def main(argv):
     parser.add_argument("-MLE", "--plot_MLE_movern", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
     parser.add_argument("-SA", "--plot_SA_data", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
     parser.add_argument("-MCMC", "--plot_MCMC", type=bool, default=False, help="If this is true, I'll make a plot of the MCMC analysis. Specify which basins you want with the -basin_keys flag.")
+    parser.add_argument("-hist", "--plot_histogram", type=bool, default=False, help="If this is true, I'll make plots of the pdfs of m/n values for each method.")
     parser.add_argument("-SUM", "--plot_summary", type=bool, default=False, help="If this is true, I'll make the summary CSV file and plot of the best fit m/n from each of the methods.")
     parser.add_argument("-ALL", "--all_movern_estimates", type=bool, default=False, help="If this is true, I'll make all the plots")
 
@@ -64,7 +65,7 @@ def main(argv):
     parser.add_argument("-show_SA_raw", "--show_SA_raw", type=bool, default=True, help="Show the raw S-A data in background of SA plot. Default = True")
     parser.add_argument("-show_SA_segments", "--show_SA_segments", type=bool, default=False, help="Show the segmented S-A data in SA plot. Default = False")
     parser.add_argument("-test_SA_regression", "--test_SA_regression", type=bool, default=False, help="If this is true I'll print the regression stats for the slope area plots.")
-    parser.add_argument("-show_legend", "--show_legend", type=bool, default=False, help="If this is true, I'll display the legend for the SA plots.")
+    parser.add_argument("-show_legend", "--show_legend", type=bool, default=True, help="If this is true, I'll display the legend for the SA plots.")
 
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
 
@@ -128,6 +129,9 @@ def main(argv):
         #SA.LinearRegressionSegmentedData(this_dir, args.fname_prefix, basin_list=these_basin_keys)
     if args.plot_MCMC:
         MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= args.FigFormat, size_format=args.size_format)
+    if args.plot_histogram:
+        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, mn_method="Chi", show_legend=args.show_legend)
+        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, mn_method="SA", show_legend=args.show_legend)
     if args.plot_summary:
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
         # with SA channels

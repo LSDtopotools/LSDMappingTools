@@ -1831,6 +1831,119 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     ax.cla()
     plt.close(fig)
 
+def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_format='ESURF', FigFormat='png', start_movern=0.1, n_movern=7, d_movern=0.1, mn_method = "Chi", show_legend=True):
+    """
+    This function makes a histogram of the m/n values for each method
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+        mn_method (str): the method of calculating m/n, either "Chi", or "SA". Default "Chi"
+        show_legend (bool): if true, add a legend to the plot (default=True)
+
+    Returns:
+        Histogram of the m/n values
+
+    Author: FJC
+    """
+    # check if a directory exists for the summary plots. If not then make it.
+    summary_directory = DataDirectory+'summary_plots/'
+    if not os.path.isdir(summary_directory):
+        os.makedirs(summary_directory)
+
+    from matplotlib.ticker import FuncFormatter, MaxNLocator
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    if show_legend:
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
+    else:
+        gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+
+    ax = fig.add_subplot(gs[5:100,10:95])
+
+    # read in the summary csv
+    df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
+    print df
+
+    # get the basin keys
+    basin_keys = df['basin_key'].tolist()
+    print basin_keys
+
+    if mn_method == "Chi":
+        # plot the full chi data
+        Chi_movern_full = df['Chi_MLE_full'].as_matrix()
+        ax.hist(Chi_movern_full,bins=10,range=(0,1),histtype='step', orientation='vertical', color='k', lw=1.5, zorder=2, label = "Chi all data")
+
+        # plot the points data
+        Chi_movern_points = df['Chi_MLE_points'].as_matrix()
+        ax.hist(Chi_movern_points,bins=10,range=(0,1),histtype='stepfilled', orientation='vertical', color='0.5',zorder=1, label = "Chi Monte Carlo")
+        newFilename = summary_directory+fname_prefix+"_movern_hist_chi."+FigFormat
+    elif mn_method == "SA":
+        #plot the SA data
+        SA_movern_raw = df['SA_raw'].as_matrix()
+        ax.hist(SA_movern_raw,bins=10,range=(0,1),histtype='step', orientation='vertical', color='k', lw=1.5, zorder=2, label = "SA all data")
+        SA_movern_segments = df['SA_segments']
+        ax.hist(SA_movern_segments,bins=10,range=(0,1),histtype='stepfilled', orientation='vertical', color='0.5', zorder=1, label = "Segmented SA")
+        newFilename = summary_directory+fname_prefix+"_movern_hist_SA."+FigFormat
+    else:
+        print("You didn't enter a valid m/n method. Please choose either 'Chi' or 'SA'.")
+        sys.exit()
+
+
+    # set the axis labels
+    ax.set_xlabel('Best fit $m/n$')
+    ax.set_ylabel('Probabiltiy')
+
+    if show_legend:
+        print "ADDING THE LEGEND"
+        # sort both labels and handles by labels
+        handles, labels = ax.get_legend_handles_labels()
+        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+        # add the legend
+        ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.0,0.7),bbox_transform=plt.gcf().transFigure)
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)
+
+    # change tick spacing
+    #ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
+    #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
+
+    #set y axis lims
+    #end_movern = end_movern = start_movern+d_movern*(n_movern-1)
+    #ax.set_ylim(start_movern-d_movern,1.3)
+
+    # change y axis to the moverns tested
+    # end_movern = end_movern = start_movern+d_movern*(n_movern-1)
+    # print end_movern
+    # ax.yaxis.set_ticks(np.arange(start_movern, end_movern, d_movern))
+
+    plt.savefig(newFilename,format=FigFormat,dpi=300)
+    ax.cla()
+    plt.close(fig)
+
 
 #=============================================================================
 # RASTER PLOTTING FUNCTIONS
