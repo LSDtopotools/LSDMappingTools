@@ -89,16 +89,26 @@ def GetMOverNRangeMCPoints(BasinDF):
 
     # find the median with the highest MLE for each basin
     MaxMedians = list(MedianDF.idxmax(axis=1))
-    Median_MOverNs = [float(x.split("=")[-1]) for x in MaxMedians]
+    MaxMedians = [str(x) for x in MaxMedians]
+    Median_MOverNs = []
+    for median in MaxMedians:
+        if "=" in median:
+            Median_MOverNs.append(float(median.split("=")[-1]))
+        else:
+            Median_MOverNs.append(np.nan)
+    #Median_MOverNs = [float(x.split("=")[-1]) for x in MaxMedians]
 
     # now find the first quartile that corresponds to this median
     FirstQDF = BasinDF.filter(regex='FQ')
     FirstQF_MLEs = []
     for i, median in enumerate(Median_MOverNs):
-        # find the right column
-        this_col = "FQ_MLE_m_over_n="+str(median)
-        FirstQDF_mask = FirstQDF[this_col]
-        FirstQF_MLEs.append(float(FirstQDF_mask.iloc[i]))
+        if not np.isnan(median):
+            # find the right column
+            this_col = "FQ_MLE_m_over_n="+str(median)
+            FirstQDF_mask = FirstQDF[this_col]
+            FirstQF_MLEs.append(float(FirstQDF_mask.iloc[i]))
+        else:
+            FirstQF_MLEs.append(np.nan)
 
     # now, for each basin, find the columns in the 3rd quartile which are higher than the first Q MLE
     ThirdQDF = BasinDF.filter(regex='TQ')
