@@ -1897,6 +1897,8 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
         # plot the points data
         Chi_movern_points = df['Chi_MLE_points'].as_matrix()
         ax.hist(Chi_movern_points,bins=10,range=(0,1),histtype='stepfilled', orientation='vertical', color='0.5',zorder=1, label = "Chi Monte Carlo")
+
+        ax.set_title('Chi analysis')
         newFilename = summary_directory+fname_prefix+"_movern_hist_chi."+FigFormat
     elif mn_method == "SA":
         #plot the SA data
@@ -1904,6 +1906,8 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
         ax.hist(SA_movern_raw,bins=10,range=(0,1),histtype='step', orientation='vertical', color='k', lw=1.5, zorder=2, label = "SA all data")
         SA_movern_segments = df['SA_segments']
         ax.hist(SA_movern_segments,bins=10,range=(0,1),histtype='stepfilled', orientation='vertical', color='0.5', zorder=1, label = "Segmented SA")
+
+        ax.set_title('Slope-area analysis')
         newFilename = summary_directory+fname_prefix+"_movern_hist_SA."+FigFormat
     else:
         print("You didn't enter a valid m/n method. Please choose either 'Chi' or 'SA'.")
