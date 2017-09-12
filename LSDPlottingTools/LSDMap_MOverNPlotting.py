@@ -1750,7 +1750,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # plot the full chi data
     full_chi_keys = df['basin_key'].as_matrix()-0.2
-    ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', facecolors='white', s=15, zorder=200, label='Chi all data')
+    ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
 
     # plot the points data
     median_movern = df['Chi_MLE_points'].as_matrix()
@@ -1761,14 +1761,14 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     errors = np.array(zip(points_min_err, points_max_err)).T
 
     points_chi_keys = df['basin_key'].as_matrix()-0.1
-    ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='k', fmt='none', elinewidth=1,label='_nolegend_')
-    ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='k', marker='o', edgecolors='k', label='Chi Monte Carlo',zorder=200)
+    ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
+    ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
 
     # plot the SA data
     SA_keys = df['basin_key'].as_matrix()
     SA_sterr = df['SA_raw_sterr'].as_matrix()
-    ax.scatter(SA_keys, df['SA_raw'], s=15, c='r', label='SA all data')
-    ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='r', elinewidth=1, fmt='none',label='_nolegend_')
+    ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='#2b8cbe', elinewidth=1, fmt='none',label='_nolegend_')
+    ax.scatter(SA_keys, df['SA_raw'], s=15, c='#2b8cbe', edgecolors='k',lw=0.5, label='SA all data')
 
     if SA_channels:
         # plot the SA data by tribs
@@ -1792,8 +1792,8 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     errors = np.array(zip(points_min_err, points_max_err)).T
 
     SA_segment_keys = df['basin_key'].as_matrix()+0.2
-    ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='white', xerr=None, yerr=errors, edgecolors='r', fmt='none', elinewidth=1, linestyle = ":", ecolor='r',label='_nolegend_')
-    ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='white', edgecolors='r', label='Segmented SA', zorder=100)
+    ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', xerr=None, yerr=errors, edgecolors='#a6bddb', fmt='none', elinewidth=1, linestyle = ":", ecolor='#a6bddb',label='_nolegend_')
+    ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', edgecolors='k', lw=0.5, label='Segmented SA', zorder=100)
 
     # set the axis labels
     ax.set_xlabel('Basin key')
