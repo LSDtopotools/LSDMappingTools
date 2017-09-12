@@ -295,17 +295,17 @@ def GetUTMEPSG(FileName):
     if srs.IsProjected:
         #print("Trying projcs")
         #print(str(srs.GetAttrValue(str('PROJCS'),0)))
-        
-        
+
+
         print(srs.GetAttrValue(str('projcs')))
         proj_str = srs.GetAttrValue(str('projcs'))
         print("The projection string is: "+proj_str)
-        
+
         print(proj_str)
 
 
         if proj_str != None:
-            
+
             # extract the UTM information
             if "UTM Zone" in proj_str:
                 first_split = proj_str.split(',')
@@ -317,9 +317,9 @@ def GetUTMEPSG(FileName):
                     N_or_S = "S"
                 second_split = first_half.split(' ')
                 zone = second_split[2]
-                
-            else:        
-            
+
+            else:
+
                 proj_split = proj_str.split('_')
                 zone = proj_split[-1]
 
@@ -327,6 +327,10 @@ def GetUTMEPSG(FileName):
                 zone = zone[:-1]
 
 
+            # adding some logic for zones < 10
+            if len(zone) < 2:
+                zone = '0'+zone
+                
             EPSG_string = 'epsg:'
             if N_or_S == 'S':
                 EPSG_string = EPSG_string+'327'+zone
@@ -754,7 +758,7 @@ def PolygoniseRasterMerge(DataDirectory, RasterFile, OutputShapefile='polygons')
     """
     This function takes in a raster and converts to a polygon shapefile using rasterio
     from https://gis.stackexchange.com/questions/187877/how-to-polygonize-raster-to-shapely-polygons/187883#187883?newreg=8b1f507529724a8488ce4789ba787363
-    
+
     This version recognises where there are multiple polygons with the same key and merges
     them to a MultiPolygon using cascaded_union
 
@@ -815,7 +819,7 @@ def PolygoniseRasterMerge(DataDirectory, RasterFile, OutputShapefile='polygons')
                 this_shape = cascaded_union(Polygons)
             if this_val != NDV: # remove no data values
                 output.write({'geometry': mapping(this_shape), 'properties':{'ID': this_val}})
-                
+
             PolygonDict[this_val] = this_shape
 
     return PolygonDict
