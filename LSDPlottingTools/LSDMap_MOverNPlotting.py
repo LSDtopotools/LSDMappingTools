@@ -1892,11 +1892,11 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     if mn_method == "Chi":
         # plot the full chi data
         Chi_movern_full = df['Chi_MLE_full'].as_matrix()
-        ax.hist(Chi_movern_full,bins=15,range=(0,1),histtype='step', orientation='vertical', color='k', lw=1.5, zorder=2, label = "Chi all data")
+        ax.hist(Chi_movern_full,bins=15,range=(0,1),histtype='stepfilled', orientation='vertical', color='b', lw=1.5, zorder=2, alpha=0.5, label = "Chi all data")
 
         # plot the points data
         Chi_movern_points = df['Chi_MLE_points'].as_matrix()
-        ax.hist(Chi_movern_points,bins=15,range=(0,1),histtype='stepfilled', orientation='vertical', color='0.5',zorder=1, label = "Chi Monte Carlo")
+        ax.hist(Chi_movern_points,bins=15,range=(0,1),histtype='stepfilled', orientation='vertical', color='r',zorder=1, label = "Chi Monte Carlo")
 
         ax.set_title('Chi analysis')
         newFilename = summary_directory+fname_prefix+"_movern_hist_chi."+FigFormat

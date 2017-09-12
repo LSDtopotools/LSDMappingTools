@@ -37,14 +37,14 @@ def print_welcome():
 #=============================================================================
 def main(argv):
 
-    print("On some windows systems you need to set an environment variable GDAL_DATA")
-    print("If the code crashes here it means the environment variable is not set")
-    print("Let me check gdal enviroment for you. Currently is is:")
-    print(os.environ['GDAL_DATA'])
+    # print("On some windows systems you need to set an environment variable GDAL_DATA")
+    # print("If the code crashes here it means the environment variable is not set")
+    # print("Let me check gdal enviroment for you. Currently is is:")
+    # print(os.environ['GDAL_DATA'])
     #os.environ['GDAL_DATA'] = os.popen('gdal-config --datadir').read().rstrip()
     #print("Now I am going to get the updated version:")
     #print(os.environ['GDAL_DATA'])
-    
+
     # If there are no arguments, send to the welcome screen
     if not len(sys.argv) > 1:
         full_paramfile = print_welcome()
