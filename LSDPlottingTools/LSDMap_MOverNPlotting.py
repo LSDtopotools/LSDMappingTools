@@ -30,6 +30,7 @@ from LSDMapFigure import PlottingHelpers as Helper
 from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
 from LSDPlottingTools import LSDMap_SAPlotting as SA
+from LSDPlottingTools import joyplot
 
 
 
@@ -1851,6 +1852,7 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
 
     Author: FJC
     """
+
     # check if a directory exists for the summary plots. If not then make it.
     summary_directory = DataDirectory+'summary_plots/'
     if not os.path.isdir(summary_directory):
@@ -1888,64 +1890,14 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     # get the basin keys
     basin_keys = df['basin_key'].tolist()
     print basin_keys
+    columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
+    these_labels = ['Chi all data', 'Chi Monte Carlo', 'SA all data', 'Segmented SA']
+    colours = ['b', 'r', 'g', 'y']
+    fig, ax = joyplot.joyplot(df, figsize=(6,4), column=columns, labels=these_labels, x_range=[0,1])
 
-    if mn_method == "Chi":
-        # plot the full chi data
-        Chi_movern_full = df['Chi_MLE_full'].as_matrix()
-        ax.hist(Chi_movern_full,bins=15,range=(0,1),histtype='stepfilled', orientation='vertical', color='b', lw=1.5, zorder=2, alpha=0.5, label = "Chi all data")
-
-        # plot the points data
-        Chi_movern_points = df['Chi_MLE_points'].as_matrix()
-        ax.hist(Chi_movern_points,bins=15,range=(0,1),histtype='stepfilled', orientation='vertical', color='r',zorder=1, label = "Chi Monte Carlo")
-
-        ax.set_title('Chi analysis')
-        newFilename = summary_directory+fname_prefix+"_movern_hist_chi."+FigFormat
-    elif mn_method == "SA":
-        #plot the SA data
-        SA_movern_raw = df['SA_raw'].as_matrix()
-        ax.hist(SA_movern_raw,bins=15,range=(0,1),histtype='step', orientation='vertical', color='k', lw=1.5, zorder=2, label = "SA all data")
-        SA_movern_segments = df['SA_segments']
-        ax.hist(SA_movern_segments,bins=15,range=(0,1),histtype='stepfilled', orientation='vertical', color='0.5', zorder=1, label = "Segmented SA")
-
-        ax.set_title('Slope-area analysis')
-        newFilename = summary_directory+fname_prefix+"_movern_hist_SA."+FigFormat
-    else:
-        print("You didn't enter a valid m/n method. Please choose either 'Chi' or 'SA'.")
-        sys.exit()
-
-
-    # set the axis labels
-    ax.set_xlabel('Best fit $m/n$')
-    ax.set_ylabel('Frequency')
-
-    if show_legend:
-        print "ADDING THE LEGEND"
-        # sort both labels and handles by labels
-        handles, labels = ax.get_legend_handles_labels()
-        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
-        # add the legend
-        ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.0,0.7),bbox_transform=plt.gcf().transFigure)
-
-    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
-    ax.tick_params(axis='both', width=1, pad = 2)
-    for tick in ax.xaxis.get_major_ticks():
-        tick.set_pad(2)
-
-    # change tick spacing
-    #ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
-    #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
-
-    #set y axis lims
-    #end_movern = end_movern = start_movern+d_movern*(n_movern-1)
-    #ax.set_ylim(start_movern-d_movern,1.3)
-
-    # change y axis to the moverns tested
-    # end_movern = end_movern = start_movern+d_movern*(n_movern-1)
-    # print end_movern
-    # ax.yaxis.set_ticks(np.arange(start_movern, end_movern, d_movern))
+    newFilename = summary_directory+fname_prefix+"_movern_hist."+FigFormat
 
     plt.savefig(newFilename,format=FigFormat,dpi=300)
-    ax.cla()
     plt.close(fig)
 
 

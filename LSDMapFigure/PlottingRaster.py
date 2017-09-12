@@ -1084,6 +1084,9 @@ class MapFigure(object):
         [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
         print("I got the easting and northing")
 
+        print("EASTING AND NORTHING CHECK")
+        print(easting[0],northing[0])
+
         # check if the column for plotting exists
         this_data = thisPointData.QueryData(column_for_plotting)
         print("I got the data column you wanted")
