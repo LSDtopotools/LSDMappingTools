@@ -1121,7 +1121,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
 
     if animate:
         # animate the pngs using ffmpeg
-        system_call = "ffmpeg -framerate 3 -pattern_type glob -i -y '"+MLE_directory+"MLE_profiles*.png' -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+MLE_directory+"MLE_profiles.mp4"
+        system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+MLE_directory+"MLE_profiles*.png' -y -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+MLE_directory+"MLE_profiles.mp4"
         print system_call
         subprocess.call(system_call, shell=True)
         # delete the pngs if you want
@@ -1287,7 +1287,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
 
     if animate:
         # animate the pngs using ffmpeg
-        system_call = "ffmpeg -framerate 3 -pattern_type glob -i -y '"+K_directory+"Chi_profiles_by_K*.png' -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+K_directory+"Chi_profiles_by_K.mp4"
+        system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+K_directory+"Chi_profiles_by_K*.png' -y -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+K_directory+"Chi_profiles_by_K.mp4"
         print system_call
         subprocess.call(system_call, shell=True)
         # delete the pngs if you want
@@ -1892,20 +1892,20 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     if mn_method == "Chi":
         # plot the full chi data
         Chi_movern_full = df['Chi_MLE_full'].as_matrix()
-        ax.hist(Chi_movern_full,bins=10,range=(0,1),histtype='step', orientation='vertical', color='k', lw=1.5, zorder=2, label = "Chi all data")
+        ax.hist(Chi_movern_full,bins=15,range=(0,1),histtype='step', orientation='vertical', color='k', lw=1.5, zorder=2, label = "Chi all data")
 
         # plot the points data
         Chi_movern_points = df['Chi_MLE_points'].as_matrix()
-        ax.hist(Chi_movern_points,bins=10,range=(0,1),histtype='stepfilled', orientation='vertical', color='0.5',zorder=1, label = "Chi Monte Carlo")
+        ax.hist(Chi_movern_points,bins=15,range=(0,1),histtype='stepfilled', orientation='vertical', color='0.5',zorder=1, label = "Chi Monte Carlo")
 
         ax.set_title('Chi analysis')
         newFilename = summary_directory+fname_prefix+"_movern_hist_chi."+FigFormat
     elif mn_method == "SA":
         #plot the SA data
         SA_movern_raw = df['SA_raw'].as_matrix()
-        ax.hist(SA_movern_raw,bins=10,range=(0,1),histtype='step', orientation='vertical', color='k', lw=1.5, zorder=2, label = "SA all data")
+        ax.hist(SA_movern_raw,bins=15,range=(0,1),histtype='step', orientation='vertical', color='k', lw=1.5, zorder=2, label = "SA all data")
         SA_movern_segments = df['SA_segments']
-        ax.hist(SA_movern_segments,bins=10,range=(0,1),histtype='stepfilled', orientation='vertical', color='0.5', zorder=1, label = "Segmented SA")
+        ax.hist(SA_movern_segments,bins=15,range=(0,1),histtype='stepfilled', orientation='vertical', color='0.5', zorder=1, label = "Segmented SA")
 
         ax.set_title('Slope-area analysis')
         newFilename = summary_directory+fname_prefix+"_movern_hist_SA."+FigFormat
@@ -1916,7 +1916,7 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
 
     # set the axis labels
     ax.set_xlabel('Best fit $m/n$')
-    ax.set_ylabel('Probabiltiy')
+    ax.set_ylabel('Frequency')
 
     if show_legend:
         print "ADDING THE LEGEND"
