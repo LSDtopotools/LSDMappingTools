@@ -83,7 +83,7 @@ def joyplot(data, column=None, by=None, grid=False,
             fade=False, ylim='max',
             fill=True, linecolor=None,
             overlap=1, background=None,
-            labels=None, xlabels=True, ylabels=True,
+            labels=None, xlabels=True, ylabels=True, label_strings=[],
             range_style='all',
             x_range=None,
             title=None,
@@ -119,6 +119,8 @@ def joyplot(data, column=None, by=None, grid=False,
         rotation of x axis labels
     ylabelsize : int, default None
         If specified changes the y-axis label size
+    label_strings : if not None, will change the labels to the list of strings. Must be the
+        same length as the column headers that are plotted.
     yrot : float, default None
         rotation of y axis labels
     ax : matplotlib axes object, default None
@@ -193,6 +195,7 @@ def joyplot(data, column=None, by=None, grid=False,
             data = data[column]
         converted = [[_remove_na(data[col])] for col in data.columns if _is_numeric(data[col])]
         labels = [col for col in data.columns if _is_numeric(data[col])]
+        print ("PRINTING THE LABELS")
         print labels
         sublabels = None
     elif isinstance(data, dict):
@@ -225,7 +228,7 @@ def joyplot(data, column=None, by=None, grid=False,
 
     return _joyplot(converted, labels=labels, sublabels=sublabels,
                     grid=grid,
-                    xlabelsize=xlabelsize, xrot=xrot, ylabelsize=ylabelsize, yrot=yrot,
+                    xlabelsize=xlabelsize, xrot=xrot, ylabelsize=ylabelsize, yrot=yrot, label_strings=label_strings,
                     ax=ax, figsize=figsize,
                     hist=hist, bins=bins,
                     fade=fade, ylim=ylim,
@@ -298,7 +301,7 @@ def plot_density(ax, x_range, v, kind="kde", bw_method=None,
 def _joyplot(data,
              grid=False,
              labels=None, sublabels=None,
-             xlabels=True,
+             xlabels=True, label_strings = [],
              xlabelsize=None, xrot=None,
              ylabelsize=None, yrot=None,
              ax=None, figsize=None,
@@ -350,7 +353,7 @@ def _joyplot(data,
 
     def _get_color(i, num_axes, j, num_subgroups):
         if isinstance(color, list):
-            return color[j]
+            return color[i]
         elif color is not None:
             return color
         elif isinstance(colormap, list):
@@ -388,8 +391,8 @@ def _joyplot(data,
         assert len(labels) == num_axes
     if sublabels is not None:
         assert all(len(g) == len(sublabels) for g in data)
-    if isinstance(color, list):
-        assert all(len(g) == len(color) for g in data)
+    # if isinstance(color, list):
+    #     assert all(len(g) == len(color) for g in data)
     if isinstance(colormap, list):
         assert all(len(g) == len(colormap) for g in data)
 
@@ -436,17 +439,30 @@ def _joyplot(data,
                 if not fill and linecolor is None:
                     linecolor = element_color
 
-                plot_density(a, x_range, subgroup,
-                             fill=fill, linecolor=linecolor, label=sublabel,
-                             zorder=element_zorder, color=element_color,
-                             bins=bins, **kwargs)
+                print ("LABEL STRINGS ARE")
+                print label_strings
+
+                if len(label_strings) == 0:
+                    plot_density(a, x_range, subgroup,
+                                 fill=fill, linecolor=linecolor, label=sublabel,
+                                 zorder=element_zorder, color=element_color,
+                                 bins=bins, **kwargs)
+                else:
+                    print ('string is: ' + label_strings[i])
+                    plot_density(a, x_range, subgroup,
+                                 fill=fill, linecolor=linecolor, label=label_strings[i],
+                                 zorder=element_zorder, color=element_color,
+                                 bins=bins, **kwargs)
 
 
         # Setup the current axis: transparency, labels, spines.
         if labels is None:
             _setup_axis(a, global_x_range, col_name=None, grid=ygrid)
         else:
-            _setup_axis(a, global_x_range, col_name=labels[i], grid=ygrid)
+            if len(label_strings) == 0:
+                _setup_axis(a, global_x_range, col_name=labels[i], grid=ygrid)
+            else:
+                _setup_axis(a, global_x_range, col_name=label_strings[i], grid=ygrid)
 
         # When needed, draw the legend
         if legend and i == legend_axis:

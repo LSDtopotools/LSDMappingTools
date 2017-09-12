@@ -1867,21 +1867,24 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
 
     # make a figure
     if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        figsize=(6.25,3.5)
         #l_pad = -40
     elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        figsize=(16,9)
         #l_pad = -50
     else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        figsize=(4.92126,3.2)
         #l_pad = -35
 
-    if show_legend:
-        gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
-    else:
-        gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
-
-    ax = fig.add_subplot(gs[5:100,10:95])
+    # if show_legend:
+    #     gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
+    # else:
+    #     gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+    #
+    # ax = fig.add_subplot(gs[5:100,10:95])
 
     # read in the summary csv
     df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
@@ -1892,8 +1895,9 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     print basin_keys
     columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
     these_labels = ['Chi all data', 'Chi Monte Carlo', 'SA all data', 'Segmented SA']
-    colours = ['b', 'r', 'g', 'y']
-    fig, ax = joyplot.joyplot(df, figsize=(6,4), column=columns, labels=these_labels, x_range=[0,1])
+    colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
+    fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],color=colours,title='Best fit $m/n$ distribution')
+    #plt.xlabel('Best fit $m/n$')
 
     newFilename = summary_directory+fname_prefix+"_movern_hist."+FigFormat
 
@@ -1926,12 +1930,6 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     raster_directory = DataDirectory+'raster_plots/'
     if not os.path.isdir(raster_directory):
         os.makedirs(raster_directory)
-
-    #import modules
-    # from LSDMapFigure.PlottingRaster import MapFigure
-    # from LSDMapFigure.PlottingRaster import BaseRaster
-    # import LSDPlottingTools.LSDMap_VectorTools as LSDMap_VT
-    # import LSDPlottingTools.LSDMap_PointTools as LSDMap_PT
 
     # Set up fonts for plots
     label_size = 10
