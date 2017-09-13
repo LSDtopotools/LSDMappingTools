@@ -982,6 +982,8 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
 
     Author: FJC
     """
+    from matplotlib.ticker import FormatStrFormatter
+
     # check if a directory exists for the chi plots. If not then make it.
     MLE_directory = DataDirectory+'chi_plots/'
     if not os.path.isdir(MLE_directory):
@@ -1107,6 +1109,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             cbar.set_label(colorbarlabel, fontsize=10)
             ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            ax2.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
             #save the plot
             newFilename = MLE_directory+"MLE_profiles"+str(basin_key)+"_"+str(m_over_n)+".png"
