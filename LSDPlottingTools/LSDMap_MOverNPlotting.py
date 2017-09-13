@@ -1899,7 +1899,7 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
     these_labels = ['Chi all data', 'Chi Monte Carlo', 'SA all data', 'Segmented SA']
     colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
-    fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],color=colours,title='Best fit $m/n$ distribution')
+    fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit $m/n$ distribution')
     #plt.xlabel('Best fit $m/n$')
 
     newFilename = summary_directory+fname_prefix+"_movern_hist."+FigFormat

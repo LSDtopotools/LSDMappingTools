@@ -86,7 +86,7 @@ def joyplot(data, column=None, by=None, grid=False,
             labels=None, xlabels=True, ylabels=True, label_strings=[],
             range_style='all',
             x_range=None,
-            title=None,
+            title=None, x_title=None,
             colormap=None,
             **kwds):
     """
@@ -236,7 +236,7 @@ def joyplot(data, column=None, by=None, grid=False,
                     overlap=overlap, background=background,
                     xlabels=xlabels,
                     range_style=range_style, x_range=x_range,
-                    title=title,
+                    title=title, x_title=x_title,
                     colormap=colormap,
                     **kwds)
 
@@ -313,7 +313,7 @@ def _joyplot(data,
              range_style='all', x_range=None, tails=0.2,
              title=None,
              legend=False, loc="upper right",
-             colormap=None, color=None,
+             colormap=None, color=None, x_title=None,
              **kwargs):
     """
     Internal method.
@@ -525,6 +525,10 @@ def _joyplot(data,
 
     last_axis.yaxis.set_visible(False)
     last_axis.grid(xgrid)
+
+    # set the x axis title if you want it
+    if x_title is not None:
+        last_axis.set_xlabel(x_title)
 
     # Last axis on the back
     last_axis.zorder = min(a.zorder for a in _axes) - 1
