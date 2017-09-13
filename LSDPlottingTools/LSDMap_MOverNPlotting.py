@@ -1768,7 +1768,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     SA_keys = df['basin_key'].as_matrix()
     SA_sterr = df['SA_raw_sterr'].as_matrix()
     ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='#2b8cbe', elinewidth=1, fmt='none',label='_nolegend_')
-    ax.scatter(SA_keys, df['SA_raw'], s=15, c='#2b8cbe', edgecolors='k',lw=0.5, label='SA all data')
+    ax.scatter(SA_keys, df['SA_raw'], s=15, c='#2b8cbe', edgecolors='k',lw=0.5, label='SA all data', zorder=100)
 
     if SA_channels:
         # plot the SA data by tribs
