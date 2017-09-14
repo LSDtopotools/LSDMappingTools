@@ -1158,6 +1158,8 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
 
     Author: FJC
     """
+    from LSDPlottingTools import colours
+
     # check if a directory exists for the chi plots. If not then make it.
     K_directory = DataDirectory+'chi_plots_K/'
     if not os.path.isdir(K_directory):
@@ -1180,7 +1182,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
         #l_pad = -35
 
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.95,top=1.0)
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.95,top=1.0)
     ax = fig.add_subplot(gs[10:95,5:80])
     #colorbar axis
     ax2 = fig.add_subplot(gs[10:95,82:85])
@@ -1201,6 +1203,9 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
     # loop through each m over n value
     end_movern = start_movern+d_movern*(n_movern-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
+
+    # best fit moverns
+    best_fit_moverns = SimpleMaxMLECheck(BasinStatsDF)
 
     for m_over_n in m_over_n_values:
         # read in the full stats file
@@ -1242,8 +1247,12 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
             # get the colourmap to colour channels by the MLE value
             #NUM_COLORS = len(MLE)
             K_array = np.asarray(TributariesK)
-            this_cmap = plt.cm.Set1
-            cNorm  = colors.Normalize(vmin=np.min(K_array), vmax=np.max(K_array))
+            min_K = np.min(K_array)
+            max_K = np.max(K_array)
+            this_cmap = plt.cm.Spectral
+            n_colours = 10
+            this_cmap = colours.cmap_discretize(n_colours, this_cmap)
+            cNorm  = colors.Normalize(vmin=min_K, vmax=max_K)
             plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
 
             # now plot the data with a colourmap
@@ -1260,12 +1269,23 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
             ax.set_xlabel("$\chi$ (m)")
             ax.set_ylabel("Elevation (m)")
 
+            # the best fit m/n
+            best_fit_movern = best_fit_moverns[basin_key]
+            print "BEST FIT M/N IS: "+ str(best_fit_movern)
+            print "THIS M/N IS: "+str(m_over_n)
+
             # label with the basin and m/n
             title_string = "Basin "+str(basin_key)+", $m/n$ = "+str(m_over_n)
-            ax.text(0.05, 0.95, title_string,
-                    verticalalignment='top', horizontalalignment='left',
-                    transform=ax.transAxes,
-                    color='black', fontsize=10)
+            if best_fit_movern == m_over_n:
+                ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='red', fontsize=10)
+            else:
+                ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='black', fontsize=10)
 
             # add the colorbar
             colorbarlabel = "$K$"
@@ -1273,9 +1293,19 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
             cbar.set_label(colorbarlabel, fontsize=10)
             ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
 
-            #change the colourbar tick labels to scientific notation
-            old_labels = cbar.get_ticklabels()
-            print old_labels
+            #change labels to scientific notation
+            colours.fix_colourbar_ticks(cbar,n_colours, cbar_type=float, min_value = min_K, max_value = max_K, cbar_label_rotation=0, cbar_orientation='vertical')
+            # we need to get linear values between min and max K
+            these_labels = np.linspace(min_K,max_K,n_colours)
+            # now round these and convert to scientific notation
+            these_labels = [str('{:.2e}'.format(float(x))) for x in these_labels]
+            new_labels = []
+            for label in these_labels:
+                a,b = label.split("e")
+                b = b.replace("0", "")
+                new_labels.append(a+' x 10$^{%s}$' % b)
+
+            ax2.set_yticklabels(new_labels, fontsize=8)
 
             #save the plot
             newFilename = K_directory+"Chi_profiles_by_K_"+str(basin_key)+"_"+str(m_over_n)+".png"

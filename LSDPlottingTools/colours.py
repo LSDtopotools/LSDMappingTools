@@ -106,6 +106,63 @@ def cmap_discretize(N, cmap):
     # Return colormap object.
     return _mcolors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
 
+def fix_colourbar_ticks(cbar,n_colours, cbar_type=float, min_value = 0, max_value = 0, cbar_label_rotation=30, cbar_orientation='vertical'):
+    """
+    This function takes a discrete colourbar and fixes the ticks so they are
+    in the middle of each colour
+
+    Args:
+        cbar: the colourbar
+        n_colours (int): number of colours in discrete colourbar.
+        cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int).
+        min_value: the minimum value on the colourbar
+        max_value: the maximum value on the colourbar
+        cbar_label_rotation (float): rotate the tick labels
+        cbar_orientation (str): vertical or horizontal
+
+    Returns:
+        None but fixes ticks
+
+    Author: FJC
+    """
+    import numpy as np
+    from matplotlib import ticker
+
+    vmin = min_value
+    vmax = max_value
+    print("The min and max for the colourbar are:")
+    print (vmin, vmax)
+
+    # get the additional end spacing for colourbar
+    tick_spacing = (vmax-vmin)/(n_colours)
+    print (tick_spacing)
+    new_vmin = vmin-(tick_spacing/2)
+    new_vmax = vmax+(tick_spacing/2)+tick_spacing
+
+    #get list of tick locations
+    tick_locs = np.arange(new_vmin, new_vmax, step=tick_spacing)
+    print (tick_locs)
+
+    # update ticks
+    tick_locator = ticker.FixedLocator(tick_locs)
+    cbar.locator = tick_locator
+    cbar.update_ticks()
+
+    #print BaseRaster._RasterArray[np.isnan(BaseRaster._RasterArray) == False]
+
+    # get tick labels
+    tick_labels = np.linspace(vmin, vmax, n_colours)
+    if cbar_type == int:
+        tick_labels = [str(int(x)) for x in tick_labels]
+    else:
+        tick_labels = [str(x) for x in tick_labels]
+    print (tick_labels)
+
+    if cbar_orientation == "horizontal":
+        cbar.ax.set_xticklabels(tick_labels, rotation=cbar_label_rotation)
+    else:
+        cbar.ax.set_yticklabels(tick_labels, rotation=cbar_label_rotation)
+
 
 def colorbar_index(fig, cax, ncolors, cmap, drape_min_threshold, drape_max):
     """State-machine like function that creates a discrete colormap and plots
