@@ -1771,7 +1771,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     SA_keys = df['basin_key'].as_matrix()
     SA_sterr = df['SA_raw_sterr'].as_matrix()
     ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='#2b8cbe', elinewidth=1, fmt='none',label='_nolegend_')
-    ax.scatter(SA_keys, df['SA_raw'], s=15, c='#2b8cbe', edgecolors='k',lw=0.5, label='SA all data', zorder=100)
+    ax.scatter(SA_keys, df['SA_raw'], s=15, c='#2b8cbe', edgecolors='k',lw=0.5, label='S-A all data', zorder=100)
 
     if SA_channels:
         # plot the SA data by tribs
@@ -1784,7 +1784,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
         SA_tribs_keys = df['basin_key'].as_matrix()+0.1
         ax.errorbar(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', xerr=None, yerr=errors, edgecolors='r', fmt='none', elinewidth=1, linestyle = ":", ecolor='r',label='_nolegend_')
-        ax.scatter(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', edgecolors='r', label='SA by channel',zorder=100)
+        ax.scatter(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', edgecolors='r', label='S-A by channel',zorder=100)
 
     # plot the segmented SA data
     median_movern = df['SA_segments'].as_matrix()
@@ -1796,7 +1796,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     SA_segment_keys = df['basin_key'].as_matrix()+0.2
     ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', xerr=None, yerr=errors, edgecolors='#a6bddb', fmt='none', elinewidth=1, linestyle = ":", ecolor='#a6bddb',label='_nolegend_')
-    ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', edgecolors='k', lw=0.5, label='Segmented SA', zorder=100)
+    ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', edgecolors='k', lw=0.5, label='Segmented S-A', zorder=100)
 
     # set the axis labels
     ax.set_xlabel('Basin key')
@@ -1897,7 +1897,7 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     basin_keys = df['basin_key'].tolist()
     print basin_keys
     columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
-    these_labels = ['Chi all data', 'Chi Monte Carlo', 'SA all data', 'Segmented SA']
+    these_labels = ['Chi all data', 'Chi Monte Carlo', 'S-A all data', 'Segmented S-A']
     colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
     fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit $m/n$ distribution')
     #plt.xlabel('Best fit $m/n$')
