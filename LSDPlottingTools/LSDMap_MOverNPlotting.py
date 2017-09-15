@@ -71,7 +71,7 @@ def SimpleMaxMLECheck(BasinDF):
     MOverNDict = dict(zip(basin_keys, MOverNs))
     return MOverNDict
 
-def GetMOverNRangeMCPoints(BasinDF):
+def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
     """
     This function checks through the MC points basin dataframe and returns the best fit and
     range of m/n values. The range is given as a list in the column (all values of m/n where
@@ -79,12 +79,17 @@ def GetMOverNRangeMCPoints(BasinDF):
 
     Args:
         BasinDF: pandas dataframe from the basin MC points csv file.
+        start_movern (float): starting m/n value
+        d_movern (float): step in m/n value
+        n_movern (float): number of m/n values
 
     Returns:
         dataframe with the basin key, best fit m/n, and range of m/n for each basin
 
     Author: FJC
     """
+    from scipy import stats
+
     # get the medians from the dataframe
     MedianDF = BasinDF.filter(regex='median')
 
@@ -138,8 +143,24 @@ def GetMOverNRangeMCPoints(BasinDF):
             Max_MOverNs.append(np.nan)
         else:
             movern_floats = [float(x) for x in movern_str]
-            Min_MOverNs.append(min(movern_floats))
-            Max_MOverNs.append(max(movern_floats))
+            # we need to linearly interpolate between the nearest m/ns for the min
+            # and the max.
+            Min_MOverN = min(movern_floats)
+            Max_MOverN = max(movern_floats)
+
+            # ok, for the minimum, get the previous m/n value
+            movern_list = [Min_MOverN-d_movern, Min_MOverN]
+            mle_list = [ThirdQDF[str(Min_MOverN-d_movern)][i],ThirdQDF[str(Min_MOverN)][i]]
+            slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
+            new_min_movern = (ThirdQDF['threshold'][i] - intercept)/slope
+
+            # for the maximum get the next m/n value
+            movern_list = [Max_MOverN, Max_MOverN+d_movern]
+            mle_list = [ThirdQDF[str(Max_MOverN)][i], ThirdQDF[(str(Max_MOverN+d_movern))][i]]
+            slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
+            new_max_movern = (ThirdQDF['threshold'][i] - intercept)/slope
+            Min_MOverNs.append(new_min_movern)
+            Max_MOverNs.append(new_max_movern)
 
 
     # write the output dataframe
@@ -313,7 +334,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
     PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
 
-    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
+    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF, start_movern, d_movern, n_movern)
     OutDF['Chi_MLE_points'] = UncertaintyDF['Median_MOverNs']
     OutDF['Chi_MLE_points_min'] = UncertaintyDF['Min_MOverNs']
     OutDF['Chi_MLE_points_max'] = UncertaintyDF['Max_MOverNs']
@@ -2097,7 +2118,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         title = "Chi analysis (all data)"
     elif movern_method == "Chi_points":
         PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
-        PointsDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
+        PointsDF = GetMOverNRangeMCPoints(PointsChiBasinDF,start_movern,d_movern,n_movern)
         moverns = PointsDF['Median_MOverNs'].tolist()
         MOverNDict = dict(zip(basin_keys,moverns))
         # labelling the basins
@@ -2466,7 +2487,7 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
     PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
     PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
 
-    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
+    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF,start_movern,d_movern,n_movern)
 
     # set up the plot
     # Set up fonts for plots
@@ -2516,8 +2537,8 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
         max_movern = ThisUncertaintyDF.iloc[0]['Max_MOverNs']
         threshold_moverns = np.linspace(min_movern,max_movern, 4)
         threshold_MLEs = np.full((4,),threshold)
-        print threshold_moverns
-        print threshold_MLEs
+        #print threshold_moverns
+        #print threshold_MLEs
         ax.plot(threshold_moverns,threshold_MLEs,c='r')
 
         # set the axes labels
