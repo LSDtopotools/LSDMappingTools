@@ -2430,3 +2430,106 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
     ImageName = DataDirectory+fname_prefix+'_sensitivity.'+FigFormat
     plt.savefig(ImageName, format=FigFormat, dpi=300)
     fig.clf()
+
+def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigFormat='png',size_format='ESURF', start_movern=0.2,d_movern=0.1,n_movern=7):
+    """
+    This function makes a plot showing the range in m/n calculated
+    using the MC points analysis. Makes a separate plot for each basin.
+
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the DEM name without extension
+        basin_list: list of basins to be analysed. If empty then will analyse all of them.
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+
+    Returns:
+        plot of uncertainty in m/n
+
+    Author:
+        FJC
+    """
+    # check if a directory exists for the chi plots. If not then make it.
+    points_directory = DataDirectory+'MC_points_plots/'
+    if not os.path.isdir(points_directory):
+        os.makedirs(points_directory)
+
+    # get the basin info
+    basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
+    basin_keys = basin_df['basin_key']
+
+    if basin_list == []:
+        print "You didn't give me a basin list so I'm going to plot all of them!"
+        basin_list = basin_keys
+
+    # get the uncertainty df
+    PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
+    PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
+
+    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF)
+
+    # set up the plot
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
+    ax = fig.add_subplot(gs[5:100,10:95])
+
+    for basin_key in basin_keys:
+        ThisBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'] == basin_key]
+
+        # get the m/ns tested
+        end_movern = start_movern+d_movern*(n_movern-1)
+        all_moverns = np.linspace(start_movern,end_movern,n_movern)
+
+        # get the median m/ns for this basin
+        Medians = (ThisBasinDF.filter(regex='median')).values.tolist()[-1]
+        FirstQs = (ThisBasinDF.filter(regex='FQ')).values.tolist()[-1]
+        ThirdQs = (ThisBasinDF.filter(regex='TQ')).values.tolist()[-1]
+
+        # now get the threshold value
+        ThisUncertaintyDF = UncertaintyDF[UncertaintyDF['basin_key'] == basin_key]
+        print ThisUncertaintyDF
+
+        #plot the median and quartiles
+        ax.plot(all_moverns,Medians,c="k")
+        ax.plot(all_moverns,FirstQs,c="0.5")
+        ax.plot(all_moverns,ThirdQs,c="0.5")
+
+        #add a line for the threshold
+        threshold = ThisUncertaintyDF.iloc[0]['FirstQ_threshold']
+        min_movern = ThisUncertaintyDF.iloc[0]['Min_MOverNs']
+        max_movern = ThisUncertaintyDF.iloc[0]['Max_MOverNs']
+        threshold_moverns = np.linspace(min_movern,max_movern, 4)
+        threshold_MLEs = np.full((4,),threshold)
+        print threshold_moverns
+        print threshold_MLEs
+        ax.plot(threshold_moverns,threshold_MLEs,c='r')
+
+        # set the axes labels
+        ax.set_xlabel('$m/n$')
+        ax.set_ylabel('MLE')
+        ax.set_title('Basin '+str(basin_key))
+        ax.set_xlim(start_movern,end_movern)
+
+        # save the figure
+        ImageName = points_directory+fname_prefix+'_MC_points' +str(basin_key)+'.'+FigFormat
+        plt.savefig(ImageName, format=FigFormat, dpi=300)
+        ax.cla()
+
+    fig.clf()
+    plt.close(fig)

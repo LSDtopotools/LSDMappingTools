@@ -65,6 +65,7 @@ def main(argv):
     parser.add_argument("-MLE", "--plot_MLE_movern", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
     parser.add_argument("-SA", "--plot_SA_data", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
     parser.add_argument("-MCMC", "--plot_MCMC", type=bool, default=False, help="If this is true, I'll make a plot of the MCMC analysis. Specify which basins you want with the -basin_keys flag.")
+    parser.add_argument("-pts", "--point_uncertainty", type=bool, default=False, help="If this is true, I'll make a plot of the range in m/n from the MC points analysis")
     parser.add_argument("-hist", "--plot_histogram", type=bool, default=False, help="If this is true, I'll make plots of the pdfs of m/n values for each method.")
     parser.add_argument("-SUM", "--plot_summary", type=bool, default=False, help="If this is true, I'll make the summary CSV file and plot of the best fit m/n from each of the methods.")
     parser.add_argument("-ALL", "--all_movern_estimates", type=bool, default=False, help="If this is true, I'll make all the plots")
@@ -116,7 +117,7 @@ def main(argv):
     start_movern = moverns[0]
     n_movern = len(moverns)
     d_movern = (moverns[-1] - moverns[0])/(n_movern-1)
-    
+
     # some formatting for the figures
     if args.FigFormat == "manuscipt_svg":
         print("You chose the manuscript svg option. This only works with the -ALL flag. For other flags it will default to simple svg")
@@ -125,8 +126,8 @@ def main(argv):
         print("You chose the manuscript png option. This only works with the -ALL flag. For other flags it will default to simple png")
         simple_format = "png"
     else:
-        simple_format = args.FigFormat        
-    
+        simple_format = args.FigFormat
+
 
     # make the plots depending on your choices
     if args.plot_rasters:
@@ -151,6 +152,8 @@ def main(argv):
         #SA.LinearRegressionSegmentedData(this_dir, args.fname_prefix, basin_list=these_basin_keys)
     if args.plot_MCMC:
         MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= simple_format, size_format=args.size_format)
+    if args.point_uncertainty:
+        MN.PlotMCPointsUncertainty(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat=simple_format, size_format=args.size_format,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
     if args.plot_histogram:
         MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=simple_format, size_format=args.size_format, show_legend=args.show_legend)
     if args.plot_summary:
