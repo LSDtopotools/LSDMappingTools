@@ -32,7 +32,7 @@ def _x_range(data, extra=0.2):
     return np.linspace(np.nanmin(data) - extra*sample_range,
                        np.nanmax(data) + extra*sample_range, 1000)
 
-def _setup_axis(ax, x_range, col_name=None, grid=False):
+def _setup_axis(ax, x_range, col_name=None, grid=False, x_spacing=None):
     """ Setup the axis for the joyploy:
         - add the y label if required (as an ytick)
         - add y grid if required
@@ -49,6 +49,8 @@ def _setup_axis(ax, x_range, col_name=None, grid=False):
     ax.patch.set_alpha(0)
     ax.set_xlim([min(x_range), max(x_range)])
     ax.tick_params(axis='both', which='both', length=0, pad=10)
+    if x_spacing is not None:
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(base=x_spacing))
     ax.xaxis.set_visible(_DEBUG)
     ax.set_frame_on(_DEBUG)
 

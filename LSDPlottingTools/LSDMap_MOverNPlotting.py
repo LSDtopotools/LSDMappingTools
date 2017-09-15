@@ -1112,7 +1112,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             ax2.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
             #save the plot
-            newFilename = MLE_directory+"MLE_profiles"+str(basin_key)+"_"+str(m_over_n)+".png"
+            newFilename = MLE_directory+"MLE_profiles"+str(basin_key)+"_"+str(m_over_n)+"."+str(FigFormat)
 
             # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
             ax.tick_params(axis='both', width=1, pad = 2)
@@ -1867,7 +1867,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
 def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_format='ESURF', FigFormat='png', start_movern=0.1, n_movern=7, d_movern=0.1, mn_method = "Chi", show_legend=True):
     """
-    This function makes a histogram of the m/n values for each method
+    This function makes a joyplot showing the distribution of m/n values for each method
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
