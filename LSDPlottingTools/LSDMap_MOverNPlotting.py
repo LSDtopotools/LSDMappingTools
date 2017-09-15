@@ -2479,6 +2479,8 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
     Author:
         FJC
     """
+    import matplotlib.patches as patches
+
     # check if a directory exists for the chi plots. If not then make it.
     points_directory = DataDirectory+'MC_points_plots/'
     if not os.path.isdir(points_directory):
@@ -2519,6 +2521,10 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
     ax = fig.add_subplot(gs[5:100,10:95])
 
+    BasinStatsDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    # best fit moverns
+    best_fit_moverns = SimpleMaxMLECheck(BasinStatsDF)
+
     for basin_key in basin_keys:
         ThisBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'] == basin_key]
 
@@ -2537,24 +2543,46 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
 
         #plot the median and quartiles
         ax.plot(all_moverns,Medians,c="k")
-        ax.plot(all_moverns,FirstQs,c="0.5")
-        ax.plot(all_moverns,ThirdQs,c="0.5")
+        ax.plot(all_moverns,FirstQs,c="k", lw=0.5, ls="--")
+        ax.plot(all_moverns,ThirdQs,c="k", lw=0.5, ls="--")
+        ax.fill_between(all_moverns, FirstQs, ThirdQs, color="0.8",alpha=0.5)
 
         #add a line for the threshold
         threshold = ThisUncertaintyDF.iloc[0]['FirstQ_threshold']
         min_movern = ThisUncertaintyDF.iloc[0]['Min_MOverNs']
         max_movern = ThisUncertaintyDF.iloc[0]['Max_MOverNs']
         threshold_moverns = np.linspace(min_movern,max_movern, 4)
-        threshold_MLEs = np.full((4,),threshold)
-        #print threshold_moverns
-        #print threshold_MLEs
-        ax.plot(threshold_moverns,threshold_MLEs,c='r')
+        threshold_MLEs = np.full((n_movern,),threshold)
+        ax.plot(all_moverns,threshold_MLEs,c='r',zorder=2, ls="--")
+
+        # add shaded background over range of m/n values
+        ax.axvspan(min_movern,max_movern, alpha=0.1, color='red',zorder=0.2)
+
+        # add arrow at best fit m/n
+        # get the limits for the arrow
+        max_MLE = max(Medians)
+        min_MLE = min(FirstQs)
+        dy = (max_MLE-min_MLE)/8
+        spacing = 1.5
+        # add arrow at best fit m/n
+        ax.add_patch(
+            patches.Arrow(
+                best_fit_moverns[basin_key], #x
+                max_MLE-(dy*spacing), #y
+                0, #dx
+                dy, #dy
+                width = 0.05,
+                facecolor = 'k',
+                edgecolor = 'k')
+            )
+        ax.text(best_fit_moverns[basin_key]-0.075, max_MLE-1.5*(dy*spacing), "Best-fit $m/n$",fontsize=8)
 
         # set the axes labels
         ax.set_xlabel('$m/n$')
         ax.set_ylabel('MLE')
         ax.set_title('Basin '+str(basin_key))
         ax.set_xlim(start_movern,end_movern)
+        ax.set_ylim(min(FirstQs),max(ThirdQs)+0.0005)
 
         # save the figure
         ImageName = points_directory+fname_prefix+'_MC_points' +str(basin_key)+'.'+FigFormat
