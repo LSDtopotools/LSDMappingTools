@@ -116,35 +116,46 @@ def main(argv):
     start_movern = moverns[0]
     n_movern = len(moverns)
     d_movern = (moverns[-1] - moverns[0])/(n_movern-1)
+    
+    # some formatting for the figures
+    if args.FigFormat == "manuscipt_svg":
+        print("You chose the manuscript svg option. This only works with the -ALL flag. For other flags it will default to simple svg")
+        simple_format = "svg"
+    elif args.FigFormat == "manuscript_png":
+        print("You chose the manuscript png option. This only works with the -ALL flag. For other flags it will default to simple png")
+        simple_format = "png"
+    else:
+        simple_format = args.FigFormat        
+    
 
     # make the plots depending on your choices
     if args.plot_rasters:
-        MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, size_format=args.size_format, FigFormat=args.FigFormat)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format, FigFormat=args.FigFormat)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="SA", size_format=args.size_format, FigFormat=args.FigFormat)
+        MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, simple_format)
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, size_format=args.size_format, FigFormat=simple_format)
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format, FigFormat=simple_format)
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="SA", size_format=args.size_format, FigFormat=simple_format)
     if args.plot_chi_profiles:
-        MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat = args.FigFormat, animate=args.animate, keep_pngs=args.keep_pngs)
+        MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat = simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
     if args.plot_chi_by_K:
-        MN.MakeChiPlotsColouredByK(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=args.FigFormat, animate=args.animate, keep_pngs=args.keep_pngs)
+        MN.MakeChiPlotsColouredByK(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
     if args.plot_outliers:
         MN.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
     if args.plot_MLE_movern:
-        MN.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat = args.FigFormat)
+        MN.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat =simple_format)
     if args.plot_SA_data:
-        SA.SAPlotDriver(this_dir, args.fname_prefix, FigFormat = args.FigFormat,size_format=args.size_format,
+        SA.SAPlotDriver(this_dir, args.fname_prefix, FigFormat = simple_format,size_format=args.size_format,
                         show_raw = args.show_SA_raw, show_segments = args.show_SA_segments,basin_keys = these_basin_keys)
     if args.test_SA_regression:
         #SA.TestSARegression(this_dir, args.fname_prefix)
         SA.LinearRegressionRawDataByChannel(this_dir,args.fname_prefix, basin_list=these_basin_keys)
         #SA.LinearRegressionSegmentedData(this_dir, args.fname_prefix, basin_list=these_basin_keys)
     if args.plot_MCMC:
-        MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= args.FigFormat, size_format=args.size_format)
+        MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= simple_format, size_format=args.size_format)
     if args.plot_histogram:
-        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend)
+        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=simple_format, size_format=args.size_format, show_legend=args.show_legend)
     if args.plot_summary:
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
-        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = args.FigFormat,size_format=args.size_format, show_legend=args.show_legend)
+        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend)
     if args.all_movern_estimates:
         # plot the rasters
         MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
