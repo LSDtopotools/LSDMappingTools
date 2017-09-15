@@ -14,6 +14,7 @@ from pandas.core.dtypes.common import is_number
 from pandas.core.groupby import DataFrameGroupBy
 from scipy.stats import gaussian_kde
 from warnings import warn
+from matplotlib import ticker
 
 _DEBUG = False
 
@@ -87,7 +88,7 @@ def joyplot(data, column=None, by=None, grid=False,
             overlap=1, background=None,
             labels=None, xlabels=True, ylabels=True, label_strings=[],
             range_style='all',
-            x_range=None,
+            x_range=None, x_spacing=None,
             title=None, x_title=None,
             colormap=None,
             **kwds):
@@ -238,7 +239,7 @@ def joyplot(data, column=None, by=None, grid=False,
                     overlap=overlap, background=background,
                     xlabels=xlabels,
                     range_style=range_style, x_range=x_range,
-                    title=title, x_title=x_title,
+                    title=title, x_title=x_title, x_spacing=x_spacing,
                     colormap=colormap,
                     **kwds)
 
@@ -313,7 +314,7 @@ def _joyplot(data,
              fill=True, linecolor=None,
              overlap=1, background=None,
              range_style='all', x_range=None, tails=0.2,
-             title=None,
+             title=None, x_spacing=None,
              legend=False, loc="upper right",
              colormap=None, color=None, x_title=None,
              **kwargs):
@@ -459,12 +460,12 @@ def _joyplot(data,
 
         # Setup the current axis: transparency, labels, spines.
         if labels is None:
-            _setup_axis(a, global_x_range, col_name=None, grid=ygrid)
+            _setup_axis(a, global_x_range, col_name=None, grid=ygrid, x_spacing=x_spacing)
         else:
             if len(label_strings) == 0:
-                _setup_axis(a, global_x_range, col_name=labels[i], grid=ygrid)
+                _setup_axis(a, global_x_range, col_name=labels[i], grid=ygrid, x_spacing=x_spacing)
             else:
-                _setup_axis(a, global_x_range, col_name=label_strings[i], grid=ygrid)
+                _setup_axis(a, global_x_range, col_name=label_strings[i], grid=ygrid, x_spacing=x_spacing)
 
         # When needed, draw the legend
         if legend and i == legend_axis:

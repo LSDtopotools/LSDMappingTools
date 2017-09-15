@@ -1308,7 +1308,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
             ax2.set_yticklabels(new_labels, fontsize=8)
 
             #save the plot
-            newFilename = K_directory+"Chi_profiles_by_K_"+str(basin_key)+"_"+str(m_over_n)+".png"
+            newFilename = K_directory+"Chi_profiles_by_K_"+str(basin_key)+"_"+str(m_over_n)+"."+str(FigFormat)
 
             # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
             ax.tick_params(axis='both', width=1, pad = 2)
@@ -1929,7 +1929,8 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
     these_labels = ['Chi all data', 'Chi Monte Carlo', 'S-A all data', 'Segmented S-A']
     colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
-    fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit $m/n$ distribution')
+    x_spacing = 0.2
+    fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit $m/n$ distribution',x_spacing=x_spacing)
     #plt.xlabel('Best fit $m/n$')
 
     newFilename = summary_directory+fname_prefix+"_movern_hist."+FigFormat
