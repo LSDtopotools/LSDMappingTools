@@ -132,6 +132,8 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
     # get the column names where the values are greater than the threshold for each basin
     TempDF['Range_MOverNs'] = TempDF.apply(lambda x: ','.join(x.index[x]),axis=1)
 
+    end_movern = start_movern+d_movern*(n_movern-1)
+
     # get the m/n values greater than the threshold to a list, then get the min and max
     Min_MOverNs = []
     Max_MOverNs = []
@@ -149,16 +151,23 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
             Max_MOverN = max(movern_floats)
 
             # ok, for the minimum, get the previous m/n value
-            movern_list = [Min_MOverN-d_movern, Min_MOverN]
-            mle_list = [ThirdQDF[str(Min_MOverN-d_movern)][i],ThirdQDF[str(Min_MOverN)][i]]
-            slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
-            new_min_movern = (ThirdQDF['threshold'][i] - intercept)/slope
+            if Min_MOverN - d_movern < start_movern:
+                new_min_movern = Min_MOverN
+            else:
+                movern_list = [Min_MOverN-d_movern, Min_MOverN]
+                mle_list = [ThirdQDF[str(Min_MOverN-d_movern)][i],ThirdQDF[str(Min_MOverN)][i]]
+                slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
+                new_min_movern = (ThirdQDF['threshold'][i] - intercept)/slope
 
             # for the maximum get the next m/n value
-            movern_list = [Max_MOverN, Max_MOverN+d_movern]
-            mle_list = [ThirdQDF[str(Max_MOverN)][i], ThirdQDF[(str(Max_MOverN+d_movern))][i]]
-            slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
-            new_max_movern = (ThirdQDF['threshold'][i] - intercept)/slope
+            if Max_MOverN + d_movern > end_movern:
+                new_max_movern = Max_MOverN
+            else:
+                movern_list = [Max_MOverN, Max_MOverN+d_movern]
+                mle_list = [ThirdQDF[str(Max_MOverN)][i], ThirdQDF[(str(Max_MOverN+d_movern))][i]]
+                slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
+                new_max_movern = (ThirdQDF['threshold'][i] - intercept)/slope
+
             Min_MOverNs.append(new_min_movern)
             Max_MOverNs.append(new_max_movern)
 
