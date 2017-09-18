@@ -1667,7 +1667,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         print best_fit_moverns
 
         # colours for each iteration
-        colours = np.linspace(0.9,0.2,len(n_removed_sources)+1)
+        #colours = np.linspace(0.9,0.2,len(n_removed_sources)+1)
 
 
         # loop through the number of removed tributaires and get the MLE for each m/n for each iteration
@@ -1691,38 +1691,39 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             if i == 0:
                 # plot the data
                 ax.scatter(m_over_n_values,ratio_MLEs, label = str(i), c='k', s=5, zorder=100)
+                ax.plot(m_over_n_values,ratio_MLEs, c='0.75', ls="--")
 
                 # get the limits for the arrow
                 max_MLE = max(ratio_MLEs)
                 min_MLE = min(ratio_MLEs)
                 dy = (max_MLE-min_MLE)/8
-                spacing = 1.1
+                spacing = 1.5
                 # add arrow at best fit m/n
                 ax.add_patch(
                     patches.Arrow(
                         best_fit_movern, #x
-                        max_MLE+(dy*spacing), #y
+                        max_MLE-(dy*spacing), #y
                         0, #dx
-                        -dy, #dy
+                        dy, #dy
                         width = 0.05,
                         facecolor = 'r',
-                        edgecolor = 'r'
+                        edgecolor = 'r')
                     )
-                )
+                ax.text(best_fit_movern-0.075, max_MLE-1.7*(dy*spacing), "Best-fit \n$m/n$ = "+str(best_fit_movern),fontsize=8, color="r")
             #remove tribs
-            else:
+            #else:
                 # plot the data
-                ax.scatter(m_over_n_values,ratio_MLEs, label = str(i), s=5, c=colours[i]) # different linestyle for each iteration?
+                #ax.scatter(m_over_n_values,ratio_MLEs, label = str(i), s=5, c=colours[i]) # different linestyle for each iteration?
 
         # set the axes labels
         ax.set_xlabel('$m/n$')
-        ax.set_ylabel('$MLE$ ratio')
+        ax.set_ylabel('MLE')
 
         # set the ylim
         ax.set_ylim(min_MLE,max_MLE+(dy*spacing))
 
         # add the legend
-        ax.legend(loc='right', bbox_to_anchor=(1.25,0.5), title = 'Iterations', frameon=False)
+        #ax.legend(loc='right', bbox_to_anchor=(1.25,0.5), title = 'Iterations', frameon=False)
 
         # some formatting of the figure
         ax.spines['top'].set_linewidth(1)
@@ -1732,12 +1733,12 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 
         # label with the basin and m/n
         best_fit_movern = best_fit_movern_dict[basin_number][0]
-        title_string = "Basin "+str(basin_number)+"; Best fit $m/n$: "+str(best_fit_movern)
+        #title_string = "Basin "+str(basin_number)+"; Best fit $m/n$: "+str(best_fit_movern)
         #ax.set_title(title_string)
-        ax.text(0, 1.1, title_string,
-            verticalalignment='top', horizontalalignment='left',
-            transform=ax.transAxes,
-            color='red', fontsize=10)
+        # ax.text(0, 1.1, title_string,
+        #     verticalalignment='top', horizontalalignment='left',
+        #     transform=ax.transAxes,
+        #     color='red', fontsize=10)
 
         #save the plot
         newFilename = MLE_directory+"MLE_fxn_movern_"+str(basin_number)+"."+FigFormat
@@ -1746,10 +1747,11 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         ax.tick_params(axis='both', width=1, pad = 2)
         for tick in ax.xaxis.get_major_ticks():
             tick.set_pad(2)
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(base=0.1))
 
         plt.savefig(newFilename,format=FigFormat,dpi=300)
         ax.cla()
-        plt.close(fig)
+    plt.close(fig)
 
 def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True):
     """
@@ -2542,10 +2544,10 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
         print ThisUncertaintyDF
 
         #plot the median and quartiles
-        ax.plot(all_moverns,Medians,c="k")
-        ax.plot(all_moverns,FirstQs,c="k", lw=0.5, ls="--")
-        ax.plot(all_moverns,ThirdQs,c="k", lw=0.5, ls="--")
-        ax.fill_between(all_moverns, FirstQs, ThirdQs, color="0.8",alpha=0.5)
+        ax.plot(all_moverns,Medians,c="k",lw=1,zorder=2)
+        ax.plot(all_moverns,FirstQs,c="k", lw=0.5, ls="--",zorder=2)
+        ax.plot(all_moverns,ThirdQs,c="k", lw=0.5, ls="--",zorder=2)
+        ax.fill_between(all_moverns, FirstQs, ThirdQs, color="0.8",alpha=0.75,zorder=1)
 
         #add a line for the threshold
         threshold = ThisUncertaintyDF.iloc[0]['FirstQ_threshold']
@@ -2553,7 +2555,7 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
         max_movern = ThisUncertaintyDF.iloc[0]['Max_MOverNs']
         threshold_moverns = np.linspace(min_movern,max_movern, 4)
         threshold_MLEs = np.full((n_movern,),threshold)
-        ax.plot(all_moverns,threshold_MLEs,c='r',zorder=2, ls="--")
+        ax.plot(all_moverns,threshold_MLEs,c='r',zorder=3, ls="--",lw=1)
 
         # add shaded background over range of m/n values
         ax.axvspan(min_movern,max_movern, alpha=0.1, color='red',zorder=0.2)
@@ -2580,7 +2582,7 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
         # set the axes labels
         ax.set_xlabel('$m/n$')
         ax.set_ylabel('MLE')
-        ax.set_title('Basin '+str(basin_key))
+        #ax.set_title('Basin '+str(basin_key))
         ax.set_xlim(start_movern,end_movern)
         ax.set_ylim(min(FirstQs),max(ThirdQs)+0.0005)
 
