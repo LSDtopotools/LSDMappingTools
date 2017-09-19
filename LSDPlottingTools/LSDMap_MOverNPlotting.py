@@ -1809,9 +1809,14 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
     print df
 
-    # get the basin keys
-    basin_keys = df['basin_key'].tolist()
-    print basin_keys
+    if basin_list != []:
+        # get the basin keys
+        basin_keys = df['basin_key'].tolist()
+        print basin_keys
+    else:
+        basin_keys = basin_list
+
+    df = df[df['basin_key'].isin(basin_keys)]
 
     # plot the full chi data
     full_chi_keys = df['basin_key'].as_matrix()-0.2
@@ -1970,6 +1975,79 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     plt.savefig(newFilename,format=FigFormat,dpi=300)
     plt.close(fig)
 
+# def MakeBasinJoyplot(DataDirectory, fname_prefix, basin_list=[], size_format='ESURF', FigFormat='png'):
+#     """
+#     This function makes a joyplot showing the m/n value for a list of basins. m/n value
+#     is calculated using the chi points method.
+#
+#     Args:
+#         DataDirectory (str): the data directory with the m/n csv files
+#         fname_prefix (str): The prefix for the m/n csv files
+#         basin_list: a list of the basins to analyse
+#         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+#         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+#
+#     Returns:
+#         Joyplot of the m/n values for each basin
+#
+#     Author: FJC
+#     """
+#
+#     # check if a directory exists for the summary plots. If not then make it.
+#     summary_directory = DataDirectory+'summary_plots/'
+#     if not os.path.isdir(summary_directory):
+#         os.makedirs(summary_directory)
+#
+#     from matplotlib.ticker import FuncFormatter, MaxNLocator
+#     # Set up fonts for plots
+#     label_size = 10
+#     rcParams['font.family'] = 'sans-serif'
+#     rcParams['font.sans-serif'] = ['arial']
+#     rcParams['font.size'] = label_size
+#
+#     # make a figure
+#     if size_format == "geomorphology":
+#         #fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+#         figsize=(6.25,3.5)
+#         #l_pad = -40
+#     elif size_format == "big":
+#         #fig = plt.figure(1, facecolor='white',figsize=(16,9))
+#         figsize=(16,9)
+#         #l_pad = -50
+#     else:
+#         #fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+#         figsize=(4.92126,3.2)
+#         #l_pad = -35
+#
+#     # if show_legend:
+#     #     gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
+#     # else:
+#     #     gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+#     #
+#     # ax = fig.add_subplot(gs[5:100,10:95])
+#
+#     # read in the summary csv
+#     df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
+#     print df
+#
+#     # get the basin keys
+#     if basin_list == []:
+#         print "You didn't give me a list of basins so I'll analyse all of them"
+#         basin_list = df['basin_key'].tolist()
+#
+#     df = df[df['basin_key'].isin(basin_list)]
+#
+#     columns = ['basin_key']
+#     #these_labels = ['Chi all data', 'Chi Monte Carlo', 'S-A all data', 'Segmented S-A']
+#     #colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
+#     x_spacing = 0.2
+#     fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, x_range=[0,1],grid="x",x_title='Best fit $m/n$ distribution',x_spacing=x_spacing)
+#     #plt.xlabel('Best fit $m/n$')
+#
+#     newFilename = summary_directory+fname_prefix+"_basin_joyplots."+FigFormat
+#
+#     plt.savefig(newFilename,format=FigFormat,dpi=300)
+#     plt.close(fig)
 
 #=============================================================================
 # RASTER PLOTTING FUNCTIONS

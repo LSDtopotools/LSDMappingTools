@@ -67,6 +67,7 @@ def main(argv):
     parser.add_argument("-MCMC", "--plot_MCMC", type=bool, default=False, help="If this is true, I'll make a plot of the MCMC analysis. Specify which basins you want with the -basin_keys flag.")
     parser.add_argument("-pts", "--point_uncertainty", type=bool, default=False, help="If this is true, I'll make a plot of the range in m/n from the MC points analysis")
     parser.add_argument("-hist", "--plot_histogram", type=bool, default=False, help="If this is true, I'll make plots of the pdfs of m/n values for each method.")
+    # parser.add_argument("-basin_joyplot", "--basin_joyplot", type=bool, default=False, help="If this is true, I'll make a joyplot showing m/n for each basin from the chi points")
     parser.add_argument("-SUM", "--plot_summary", type=bool, default=False, help="If this is true, I'll make the summary CSV file and plot of the best fit m/n from each of the methods.")
     parser.add_argument("-ALL", "--all_movern_estimates", type=bool, default=False, help="If this is true, I'll make all the plots")
 
@@ -159,6 +160,9 @@ def main(argv):
     if args.plot_summary:
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend)
+    # if args.basin_joyplot:
+    #     MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+    #     MN.MakeBasinJoyplot(this_dir, args.fname_prefix, basin_list=these_basin_keys, FigFormat=simple_format, size_format=args.size_format)
     if args.all_movern_estimates:
         # plot the rasters
         MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat)
