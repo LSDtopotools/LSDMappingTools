@@ -61,6 +61,7 @@ def main(argv):
     parser.add_argument("-PR", "--plot_rasters", type=bool, default=False, help="If this is true, I'll make raster plots of the m/n value and basin keys")
     parser.add_argument("-PC", "--plot_chi_profiles", type=bool, default=False, help="If this is true, I'll make chi-elevation plots for each basin coloured by the MLE")
     parser.add_argument("-K", "--plot_chi_by_K", type=bool, default=False, help="If this is true, I'll make chi-elevation plots for each basin coloured by K. NOTE - you MUST have a column in your chi csv with the K value or this will break!")
+    parser.add_argument("-pcbl", "--plot_chi_by_lith", type=bool, default=False, help="If this is true, I'll make chi-elevation plots for each basin coloured by litho. NOTE - you MUST have a column in your chi csv with the K value or this will break!")
     parser.add_argument("-PO", "--plot_outliers", type=bool, default=False, help="If this is true, I'll make chi-elevation plots with the outliers removed")
     parser.add_argument("-MLE", "--plot_MLE_movern", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
     parser.add_argument("-SA", "--plot_SA_data", type=bool, default=False, help="If this is true, I'll make a plot of the MLE values for each m/n showing how the MLE values change as you remove the tributaries")
@@ -139,6 +140,9 @@ def main(argv):
     if args.plot_chi_profiles:
         MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat = simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
     if args.plot_chi_by_K:
+        MN.MakeChiPlotsColouredByK(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
+    #TO DO TOMORROW
+    if args.plot_chi_by_lith:
         MN.MakeChiPlotsColouredByK(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
     if args.plot_outliers:
         MN.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
