@@ -29,6 +29,7 @@ def print_welcome():
     print("You will need to tell me which directory to look in.")
     print("Use the -wd flag to define the working directory.")
     print("If you don't do this I will assume the data is in the same directory as this script.")
+    print("I also need to know some basic info like the prefix of your base dem and the name of your lithologic DEM")
     print("For help type:")
     print("   python PlotLithoInfo.py -h\n")
     print("=======================================================================\n\n ")
@@ -93,6 +94,8 @@ def main(argv):
         this_dir = args.base_directory
     else:
         this_dir = os.getcwd()
+    
+
 
     # some formatting for the figures
     if args.FigFormat == "manuscipt_svg":
@@ -107,6 +110,8 @@ def main(argv):
     if args.check:
         print("I am now checking your files from the rasterization.")
         dict_file = LP.litho_pre_check(this_dir,args.lithokey_file)
+
+    LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat='png')
 
 
     

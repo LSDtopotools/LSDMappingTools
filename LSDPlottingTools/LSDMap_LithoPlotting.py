@@ -5,8 +5,8 @@
 # It creates separate plots for each basin in the DEM.
 #
 # Authors:
-#     Simon M. Mudd
-#     Fiona J. Clubb
+#	 Simon M. Mudd
+#	 Fiona J. Clubb
 #	  Boris Gailleton
 #=============================================================================
 #=============================================================================
@@ -78,6 +78,101 @@ def litho_pre_check(directory, lk = ""):
 		dict_litho[df_litho["rocktype"][i]] = df_litho["ID"][i]
 
 	dict_file["lithodict"] = dict_litho
-	print dict_file 
+	
+
 
 	return dict_file
+
+def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict, size_format='ESURF', FigFormat='png'):
+	"""
+	This function makes a shaded relief plot of the DEM with lithologic map on the top and basin outline
+
+	Args:
+	DataDirectory (str): the data directory with the m/n csv files
+	fname_prefix (str): The prefix for the m/n csv files
+	size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+	FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+
+	Returns:
+	Shaded relief plot with the basins coloured by basin ID
+
+	Author: BG, FJC
+	"""
+		# check if a directory exists for the chi plots. If not then make it.
+	raster_directory = DataDirectory+'raster_plots/'
+	if not os.path.isdir(raster_directory):
+		os.makedirs(raster_directory)
+
+	# Set up fonts for plots
+	label_size = 10
+	rcParams['font.family'] = 'sans-serif'
+	rcParams['font.sans-serif'] = ['arial']
+	rcParams['font.size'] = label_size
+
+	# set figure sizes based on format
+	if size_format == "geomorphology":
+		fig_width_inches = 6.25
+	elif size_format == "big":
+		fig_width_inches = 16
+	else:
+		fig_width_inches = 4.92126
+
+	# get the basin IDs to make a discrete colourmap for each ID
+	BasinInfoDF = Helper.ReadBasinInfoCSV(DataDirectory, fname_prefix)
+
+	basin_keys = list(BasinInfoDF['basin_key'])
+	basin_keys = [int(x) for x in basin_keys]
+
+	basin_junctions = list(BasinInfoDF['outlet_junction'])
+	basin_junctions = [float(x) for x in basin_junctions]
+
+	print ('Basin keys are: ')
+	print basin_keys
+
+	# get a discrete colormap
+	cmap = plt.cm.jet
+
+	# going to make the basin plots - need to have bil extensions.
+	print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
+
+	# get the rasters
+	raster_ext = '.bil'
+	BackgroundRasterName = fname_prefix+raster_ext
+	HillshadeName = fname_prefix+'_hs'+raster_ext
+	BasinsName = fname_prefix+'_AllBasins'+raster_ext
+	LithoMap = lname_prefix+raster_ext
+
+	# create the map figure
+	MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='None')
+
+	# add the geology drape
+	# MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory,
+	#				  use_keys_not_junctions = True, show_colourbar = True,
+	#				  discrete_cmap=True, n_colours=len(basin_keys), colorbarlabel = "Basin ID",
+	#				  colourmap = cmap, adjust_text = False)
+	MF.add_drape_image(LithoMap,DataDirectory,colourmap = plt.cm.jet,
+						alpha=0.4,
+						show_colourbar = False,
+						colorbarlabel = "Colourbar", discrete_cmap=True, n_colours=len(lithodict),
+						norm = "None",
+						colour_min_max = [],
+						modify_raster_values=False,
+						old_values=[], new_values=[], cbar_type=int,
+						NFF_opti = False, custom_min_max = [])
+	# add the basin outlines
+	Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+	MF.plot_polygon_outlines(Basins, linewidth=0.8)
+
+	# add the channel network
+	ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
+	ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+	MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100)
+
+	# add the basin labelling
+	label_dict = dict(zip(basin_junctions,basin_keys))
+	Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
+	MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict,zorder=200)
+
+	# Save the figure
+	ImageName = raster_directory+fname_prefix+'_basin_keys_litho.'+FigFormat
+	MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
