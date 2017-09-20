@@ -1810,11 +1810,11 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     print df
 
     if basin_list != []:
+        basin_keys = basin_list
+    else:
         # get the basin keys
         basin_keys = df['basin_key'].tolist()
         print basin_keys
-    else:
-        basin_keys = basin_list
 
     df = df[df['basin_key'].isin(basin_keys)]
 
@@ -1974,6 +1974,103 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
 
     plt.savefig(newFilename,format=FigFormat,dpi=300)
     plt.close(fig)
+
+def PlotMOverNByBasin(DataDirectory, fname_prefix, basin_list = [], size_format='ESURF', FigFormat='png', colour_points=False, column_header="Lithology"):
+    """
+    This function makes a plot of the best-fit m/n value calculated using the chi Monte Carlo points analysis
+    for each basin. The points are coloured by another value which is specified by the user (e.g. lithology).
+    The column header must be specified by the user.
+
+    This is a work in progress. I haven't tested it yet and wrote it on the plane.
+    I need to think about what is the best way to read in the lithology - will we have a string
+    for each lithology? Then we want to map each string to a different colour.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to analyse
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        colour_points (bool): boolean to decide whether to colour the points by another value, e.g. lithology. Default = False
+        column_header (str): if colour_points=True, then use this to tell us what column header in the csv you want to use
+
+    Returns:
+        m/n plot by basin_list
+
+    Author: FJC
+    """
+
+    # check if a directory exists for the summary plots. If not then make it.
+    summary_directory = DataDirectory+'summary_plots/'
+    if not os.path.isdir(summary_directory):
+        os.makedirs(summary_directory)
+
+    # read in the summary csv file
+    df = Helper.ReadMOverNSummaryCSV(DataDirectory,fname_prefix)
+
+    # get the basin keys
+    if basin_list == []:
+        basin_list = df['basin_keys'].tolist()
+
+    # mask the dataframe for the required basin keys
+    df = df[df['basin_key'].isin(basin_list)]
+
+    columns = df.columns()
+
+    # set up the figure
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+    ax = fig.add_subplot(gs[5:100,10:95])
+
+    # check if the user wants to colour the points by a specific columns
+    if colour_points:
+        if not column_header.isin(columns):
+            print "The column header name does not exist! Please check your dataframe"
+        else:
+            values_to_colour = df[column_header].tolist()
+            this_cmap = plt.cm.Set2
+            ax.errorbar(basin_list, df['Chi_MLE_points'], s=20, marker='o', xerr=None, yerr=errors, ecolor=values_to_colour, cmap=this_cmap, fmt='none', elinewidth=1,label='_nolegend_')
+            ax.scatter(basin_list, df['Chi_MLE_points'], s=20, c=values_to_colour, cmap=this_cmap, marker='o', edgecolors=None, lw=0.5, label='Chi Monte Carlo',zorder=200)
+    else:
+        ax.errorbar(basin_list, df['Chi_MLE_points'], s=20, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
+        ax.scatter(basin_list, df['Chi_MLE_points'], s=20, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+
+    # set the axis labels
+    ax.set_xlabel('Basin key')
+    ax.set_ylabel('Best fit $m/n$')
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)
+
+    # change tick spacing
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
+
+    newFilename = summary_directory+fname_prefix+"_movern_summary."+FigFormat
+    if SA_channels:
+        newFilename = summary_directory+fname_prefix+"_movern_summary_with_SA_tribs."+FigFormat
+    plt.savefig(newFilename,format=FigFormat,dpi=300)
+    ax.cla()
+    plt.close(fig)
+
+
 
 # def MakeBasinJoyplot(DataDirectory, fname_prefix, basin_list=[], size_format='ESURF', FigFormat='png'):
 #     """
