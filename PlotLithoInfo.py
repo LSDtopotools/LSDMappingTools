@@ -65,6 +65,8 @@ def main(argv):
     # What sort of analyses you want
     parser.add_argument("-c", "--check", type=bool, default=True, help="Turn to false if you really know what you are doing, like specify all the non-automatic file names for example")
     parser.add_argument("-lk", "--lithokey_file", type=str, default="", help="This is in case you wanna manually specify the lithokey file")
+    parser.add_argument("-leg", "--legend", type=str, default="", help="Turn to True to print a separate legend file with the geology lithokey equivalent")
+    parser.add_argument("-LM", "--LithoMap", type=str, default="", help="Turn to True to print a Lithologic map")
     
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
@@ -111,7 +113,10 @@ def main(argv):
         print("I am now checking your files from the rasterization.")
         dict_file = LP.litho_pre_check(this_dir,args.lithokey_file)
 
-    LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat='png')
+    if args.LithoMap:
+        LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat='png')
+    if args.leg:
+        print "ongoing work on the legend"
 
 
     

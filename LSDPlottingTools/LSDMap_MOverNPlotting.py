@@ -1360,6 +1360,202 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
             subprocess.call(system_call, shell=True)
     plt.close(fig)
 
+def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7,
+                    size_format='ESURF', FigFormat='png', animate=False, keep_pngs=False):
+    """
+    This function makes chi-elevation plots for each basin and each value of m/n
+    where the channels are coloured by the K value (for model runs with spatially varying K).
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        animate (bool): If this is true then it creates a movie of the chi-elevation plots coloured by MLE.
+        keep_pngs (bool): If this is false and the animation flag is true, then the pngs are deleted and just the video is kept.
+
+    Returns:
+        Plot of each m/n value for each basin.
+
+    Author: FJC
+    """
+    from LSDPlottingTools import colours
+
+    # check if a directory exists for the chi plots. If not then make it.
+    K_directory = DataDirectory+'chi_plots_Lith/'
+    if not os.path.isdir(K_directory):
+        os.makedirs(K_directory)
+
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.95,top=1.0)
+    ax = fig.add_subplot(gs[10:95,5:80])
+    #colorbar axis
+    ax2 = fig.add_subplot(gs[10:95,82:85])
+
+    # read in the csv files
+    ProfileDF = Helper.ReadChiProfileCSV(DataDirectory, fname_prefix)
+    BasinStatsDF = Helper.ReadBasinStatsCSV(DataDirectory, fname_prefix)
+
+    # get the number of basins
+    basin_keys = list(BasinStatsDF['basin_key'])
+    basin_keys = [int(x) for x in basin_keys]
+
+    # get the list of basins
+    if basin_list == []:
+        print("You didn't give me a list of basins, so I'll just run the analysis on all of them!")
+        basin_list = basin_keys
+
+    # loop through each m over n value
+    end_movern = start_movern+d_movern*(n_movern-1)
+    m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
+
+    # best fit moverns
+    best_fit_moverns = SimpleMaxMLECheck(BasinStatsDF)
+
+    for m_over_n in m_over_n_values:
+        # read in the full stats file
+        print("This m/n is: "+str(m_over_n))
+        FullStatsDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,m_over_n)
+
+        # loop through all the basins in the basin list
+        for basin_key in basin_list:
+            print("This basin key is %s") %str(basin_key)
+
+            # mask the data frames for this basin
+            ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_key]
+            FullStatsDF_basin = FullStatsDF[FullStatsDF['basin_key'] == basin_key]
+
+            #print FullStatsDF_basin
+            print ("Getting the reference_source_key")
+
+            print(FullStatsDF_basin.iloc[0]['reference_source_key'])
+
+            # get the data frame for the main stem
+            ProfileDF_MS = ProfileDF_basin[ProfileDF_basin['source_key'] == FullStatsDF_basin.iloc[0]['reference_source_key']]
+
+            # get the data frame for the tributaries
+            ProfileDF_basin = ProfileDF_basin[ProfileDF_basin['source_key'] != FullStatsDF_basin.iloc[0]['reference_source_key']]
+            # merge with the full data to get the MLE for the tributaries
+            ProfileDF_tribs = ProfileDF_basin.merge(FullStatsDF_basin, left_on = "source_key", right_on = "test_source_key")
+
+            # get the chi and elevation data for the main stem
+            movern_key = 'm_over_n = %s' %(str(m_over_n))
+            MainStemX = list(ProfileDF_MS[movern_key])
+            MainStemElevation = list(ProfileDF_MS['elevation'])
+            MainStemK = list(ProfileDF_MS['geol'])
+
+            # get the chi, elevation, and MLE for the tributaries
+            TributariesX = list(ProfileDF_tribs[movern_key])
+            TributariesElevation = list(ProfileDF_tribs['elevation'])
+            TributariesK = list(ProfileDF_tribs['geol'])
+
+            # get the colourmap to colour channels by the MLE value
+            #NUM_COLORS = len(MLE)
+            K_array = np.asarray(TributariesK)
+            min_K = np.min(K_array)
+            max_K = np.max(K_array)
+            this_cmap = plt.cm.Spectral
+            n_colours = 10
+            this_cmap = colours.cmap_discretize(n_colours, this_cmap)
+            cNorm  = colors.Normalize(vmin=min_K, vmax=max_K)
+            plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+
+            # now plot the data with a colourmap
+            sc = ax.scatter(TributariesX,TributariesElevation,c=TributariesK,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+            sc = ax.scatter(MainStemX, MainStemElevation,c=MainStemK,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+
+            # some formatting of the figure
+            ax.spines['top'].set_linewidth(1)
+            ax.spines['left'].set_linewidth(1)
+            ax.spines['right'].set_linewidth(1)
+            ax.spines['bottom'].set_linewidth(1)
+
+            # make the labels
+            ax.set_xlabel("$\chi$ (m)")
+            ax.set_ylabel("Elevation (m)")
+
+            # the best fit m/n
+            best_fit_movern = best_fit_moverns[basin_key]
+            print "BEST FIT M/N IS: "+ str(best_fit_movern)
+            print "THIS M/N IS: "+str(m_over_n)
+
+            # label with the basin and m/n
+            title_string = "Basin "+str(basin_key)+", $m/n$ = "+str(m_over_n)
+            if best_fit_movern == m_over_n:
+                ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='red', fontsize=10)
+            else:
+                ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='black', fontsize=10)
+
+            # add the colorbar
+            colorbarlabel = "$Lith$"
+            cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
+            cbar.set_label(colorbarlabel, fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+
+            #change labels to scientific notation
+            colours.fix_colourbar_ticks(cbar,n_colours, cbar_type=float, min_value = min_K, max_value = max_K, cbar_label_rotation=0, cbar_orientation='vertical')
+            # we need to get linear values between min and max K
+            these_labels = np.linspace(min_K,max_K,n_colours)
+            # now round these and convert to scientific notation
+            these_labels = [str('{:.2e}'.format(float(x))) for x in these_labels]
+            new_labels = []
+            for label in these_labels:
+                a,b = label.split("e")
+                b = b.replace("0", "")
+                new_labels.append(a+' x 10$^{%s}$' % b)
+
+            ax2.set_yticklabels(new_labels, fontsize=8)
+
+            #save the plot
+            newFilename = K_directory+"Chi_profiles_by_Lith_"+str(basin_key)+"_"+str(m_over_n)+"."+str(FigFormat)
+
+            # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+            ax.tick_params(axis='both', width=1, pad = 2)
+            for tick in ax.xaxis.get_major_ticks():
+                tick.set_pad(2)
+
+            plt.savefig(newFilename,format=FigFormat,dpi=300)
+            ax.cla()
+            ax2.cla()
+
+    if animate:
+        # animate the pngs using ffmpeg
+        system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+K_directory+"Chi_profiles_by_Lith*.png' -y -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+K_directory+"Chi_profiles_by_Lith.mp4"
+        print system_call
+        subprocess.call(system_call, shell=True)
+        # delete the pngs if you want
+        if not keep_pngs:
+            system_call = "rm "+K_directory+"Chi_profiles_by_Lith*.png"
+            subprocess.call(system_call, shell=True)
+    plt.close(fig)
+
 
 def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7, size_format = "geomorphology"):
     """

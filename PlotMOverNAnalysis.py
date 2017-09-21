@@ -141,9 +141,8 @@ def main(argv):
         MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat = simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
     if args.plot_chi_by_K:
         MN.MakeChiPlotsColouredByK(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
-    #TO DO TOMORROW
     if args.plot_chi_by_lith:
-        MN.MakeChiPlotsColouredByK(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
+        MN.MakeChiPlotsColouredByLith(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
     if args.plot_outliers:
         MN.PlotProfilesRemovingOutliers(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
     if args.plot_MLE_movern:
