@@ -1463,12 +1463,12 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
             movern_key = 'm_over_n = %s' %(str(m_over_n))
             MainStemX = list(ProfileDF_MS[movern_key])
             MainStemElevation = list(ProfileDF_MS['elevation'])
-            MainStemK = list(ProfileDF_MS['geol'])
+            MainStemK = list(ProfileDF_MS.iloc[:,-1])
 
             # get the chi, elevation, and MLE for the tributaries
             TributariesX = list(ProfileDF_tribs[movern_key])
             TributariesElevation = list(ProfileDF_tribs['elevation'])
-            TributariesK = list(ProfileDF_tribs['geol'])
+            TributariesK = list(ProfileDF_tribs.iloc[:,-1])
 
             # get the colourmap to colour channels by the MLE value
             #NUM_COLORS = len(MLE)
@@ -2433,7 +2433,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     ImageName = raster_directory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
 
-def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_movern=7, d_movern=0.1, movern_method='Chi_full', size_format='ESURF', FigFormat='png'):
+def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_movern=7, d_movern=0.1, movern_method='Chi_full', size_format='ESURF', FigFormat='png',lith = False):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the best fit m/n
@@ -2446,6 +2446,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         movern_method: the method of estimating m over n. Options are full chi "Chi_full", points "Chi_points", or slope-area "SA". Default is "Chi_full".
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        lith (bool): the lithologic information if available. You need to follow the lithologic documentation to generate the right files. (This last does not exists yet).
 
     Returns:
         Shaded relief plot with the basins coloured by best fit m/n
@@ -2552,10 +2553,25 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", plot_title=title)
     # add the basins drape
-    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, value_dict = MOverNDict,
-                      use_keys_not_junctions = True, show_colourbar = False,
-                      discrete_cmap=True, n_colours=n_colours, colorbarlabel = "$m/n$",
-                      colourmap = mn_cmap, adjust_text = False, cbar_dict=cbar_dict)
+    if lith:
+
+        LithoMap = fname_prefix+"_LITHRAST"+raster_ext
+        df_litho = pd.read_csv(DataDirectory+fname_prefix+"_lithokey.csv")
+        MF.add_drape_image(LithoMap,DataDirectory,colourmap = plt.cm.jet,
+                                alpha=0.4,
+                                show_colourbar = False,
+                                colorbarlabel = "Colourbar", discrete_cmap=True, n_colours=df_litho.shape[0],
+                                norm = "None",
+                                colour_min_max = [],
+                                modify_raster_values=False,
+                                old_values=[], new_values=[], cbar_type=int,
+                                NFF_opti = False, custom_min_max = [])
+        
+    else:
+        MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, value_dict = MOverNDict,
+                          use_keys_not_junctions = True, show_colourbar = False,
+                          discrete_cmap=True, n_colours=n_colours, colorbarlabel = "$m/n$",
+                          colourmap = mn_cmap, adjust_text = False, cbar_dict=cbar_dict)
 
     # plot the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
@@ -2571,6 +2587,8 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     print "Adding labels, the label dict is:", labeldict
     MF.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=labeldict, zorder=200)
 
+    if(lith):
+        ImageName = ImageName[0:-(len(FigFormat)+1)]+"_lith."+FigFormat # adding a particle to the file
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
 

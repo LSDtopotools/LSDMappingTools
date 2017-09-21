@@ -66,8 +66,8 @@ def main(argv):
     parser.add_argument("-c", "--check", type=bool, default=True, help="Turn to false if you really know what you are doing, like specify all the non-automatic file names for example")
     parser.add_argument("-lk", "--lithokey_file", type=str, default="", help="This is in case you wanna manually specify the lithokey file")
     parser.add_argument("-leg", "--legend", type=str, default="", help="Turn to True to print a separate legend file with the geology lithokey equivalent")
-    parser.add_argument("-LM", "--LithoMap", type=str, default="", help="Turn to True to print a Lithologic map")
-    
+    parser.add_argument("-LM", "--LithoMap", type=str, default="", help="Turn to True to print a Lithologic map with the basins keys")
+    parser.add_argument("-mn", "--movern", type=bool, default = False, help="Turn to True to turn to True and provide the movern plots related to lithology")
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
@@ -111,12 +111,27 @@ def main(argv):
 
     if args.check:
         print("I am now checking your files from the rasterization.")
-        dict_file = LP.litho_pre_check(this_dir,args.lithokey_file)
+        dict_file = LP.litho_pre_check(this_dir,args.lithokey_file, fname = args.fname_prefix)
 
     if args.LithoMap:
         LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat='png')
-    if args.leg:
+    if args.legend:
         print "ongoing work on the legend"
+
+    if args.movern:
+        # get the range of moverns, needed for plotting
+        BasinDF = Helper.ReadBasinStatsCSV(this_dir, args.fname_prefix)
+        # we need the column headers
+        columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
+        moverns = [float(x.split("=")[-1]) for x in columns]
+        start_movern = moverns[0]
+        n_movern = len(moverns)
+        d_movern = (moverns[-1] - moverns[0])/(n_movern-1)
+        LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat='png')
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, size_format=args.size_format, FigFormat=simple_format,lith = True)
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format, FigFormat=simple_format,lith = True)
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="SA", size_format=args.size_format, FigFormat=simple_format,lith = True)
+        MN.MakeChiPlotsColouredByLith(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
 
 
     

@@ -35,7 +35,7 @@ from LSDPlottingTools import joyplot
 import fnmatch
 
 
-def litho_pre_check(directory, lk = ""):
+def litho_pre_check(directory, lk = "", fname = ""):
 	"""
 	This function check if you have the right files to work with the litho.
 	
@@ -56,7 +56,14 @@ def litho_pre_check(directory, lk = ""):
 		if(len(result) == 1):
 			print("I found your lithokey file, this last host the conversion information, just check if this is the right one: ")
 			print(result[0])
-			dict_file["lithokey"] = [directory,result[0]]
+			
+			print("now renaming this file with the right prefix_suffix:")
+			system_call = "mv "+directory+result[0]+" "+directory + fname + "_lithokey.csv"
+			print(directory + fname + "_lithokey.csv")
+			subprocess.call(system_call, shell=True)
+			dict_file["lithokey"] = [directory,fname + "_lithokey.csv"]
+
+
 		else:
 			if len(result) >1:
 				print("I found several lithokey file. Please specify it with -lk flag cause I cannot choose by myself, give a butcher's by yourself")
