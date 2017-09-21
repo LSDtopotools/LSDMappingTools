@@ -33,6 +33,7 @@ from LSDMapFigure.PlottingRaster import BaseRaster
 from LSDPlottingTools import LSDMap_SAPlotting as SA
 from LSDPlottingTools import joyplot
 import fnmatch
+import random
 
 
 def litho_pre_check(directory, lk = "", fname = ""):
@@ -77,7 +78,7 @@ def litho_pre_check(directory, lk = "", fname = ""):
 		print("You gave me the name of the lithokey file, let me check it")
 		dict_file["lithokey"] = [directory,lk]
 
-
+	generate_legend_in_csv(dict_file["lithokey"][0]+dict_file["lithokey"][1])
 	# Now reading the litho info
 	dict_litho = {}
 	df_litho = pd.read_csv(dict_file["lithokey"][0]+dict_file["lithokey"][1])
@@ -183,3 +184,33 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 	# Save the figure
 	ImageName = raster_directory+fname_prefix+'_basin_keys_litho.'+FigFormat
 	MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
+
+
+def generate_legend_in_csv(name):
+	"""
+	This function will generate a random color legend in your lithokey file by assigning a random HTML color hex.
+	The idea is to easily vizualise geology by color first, then to be able to directly and manually change the color in the csv file.
+	This will generate legend only if this hasn't been done yet to avoid overwritting you existing colors.
+	Do someone read the documentation? if yes just send me an email.
+
+	Author: BG
+	Date: 21/09/2017
+	"""
+
+	dft = pd.read_csv(name)
+	if "legend" not in dft.columns:
+		print("I am generating random html hex color code for each geology/lithology/whatever you had in your map")
+		print("you can manually change it for the next plotting in this file:")
+		print(name)
+		print("To get a visual version of the color html hex code google it")
+
+
+		dft["legend"]= pd.Series(np.zeros(dft.shape[0]), index=dft.index)
+		for i in range(dft.shape[0]):
+			colorTemp = "#"
+			for j in range(6):
+				colorTemp = colorTemp + (random.choice('0123456789ABCDEF'))
+			dft["legend"][i] = colorTemp
+		dft.to_csv(name, index = False)
+	else:
+		print("You already have a legend in your lithokey file! Well done.")
