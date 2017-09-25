@@ -791,6 +791,11 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
     Author: SMM, modified by FJC
     """
 
+    # check if a directory exists for the chi plots. If not then make it.
+    MLE_directory = DataDirectory+'basic_chi_plots/'
+    if not os.path.isdir(MLE_directory):
+        os.makedirs(MLE_directory)
+
     profile_suffix = "_movern.csv"
     basin_stats_suffix = "_movernstats_basinstats.csv"
 
@@ -953,7 +958,7 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
             #ax.set_ylim(z_axis_min,z_axis_max)
             #ax.set_ylim(z_axis_min,z_axis_max)
             #ax.set_xlim(0,chi_axis_max)
-            #plt.title("Basin = " +mn_legend+", MLE = "+short_MLE)
+            #ax.text("Basin = " +mn_legend+", $m/n$ = "+str(mn))
 
             #newline = "\n"
             title_string = "Basin "+str(basin_key)+", $m/n$ = "+str(mn)
@@ -962,21 +967,21 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
                     verticalalignment='top', horizontalalignment='left',
                     transform=ax.transAxes,
                     color='black', fontsize=10)
-            print("The basin index is: "+str(basin_key)+" and the max index is: "+str(max_MLEs_index[basin_key]))
-            if( idx == max_MLEs_index[basin_key]):
-                print("This m/n is: "+str(mn)+" and it is the maximum MLE")
-                ax.text(0.05, 0.88, title_string2+", maximum MLE in basin.",
-                    verticalalignment='top', horizontalalignment='left',
-                    transform=ax.transAxes,
-                    color='red', fontsize=10)
-            else:
-                ax.text(0.05, 0.88, title_string2,
-                    verticalalignment='top', horizontalalignment='left',
-                    transform=ax.transAxes,
-                    color='black', fontsize=10)
+            # print("The basin index is: "+str(basin_key)+" and the max index is: "+str(max_MLEs_index[basin_key]))
+            # if( idx == max_MLEs_index[basin_key]):
+            #     print("This m/n is: "+str(mn)+" and it is the maximum MLE")
+            #     ax.text(0.05, 0.88, title_string2+", maximum MLE in basin.",
+            #         verticalalignment='top', horizontalalignment='left',
+            #         transform=ax.transAxes,
+            #         color='red', fontsize=10)
+            # else:
+            #     ax.text(0.05, 0.88, title_string2,
+            #         verticalalignment='top', horizontalalignment='left',
+            #         transform=ax.transAxes,
+            #         color='black', fontsize=10)
 
             #save the plot
-            newFilename = DataDirectory+"Chi_profiles_basin_"+str(basin_key)+"_"+counter+".png"
+            newFilename = MLE_directory+"Chi_profiles_basin_"+str(basin_key)+"_"+counter+".png"
 
             # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
             ax.tick_params(axis='both', width=1, pad = 2)
@@ -2568,7 +2573,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
                                 modify_raster_values=False,
                                 old_values=[], new_values=[], cbar_type=int,
                                 NFF_opti = False, custom_min_max = [])
-        
+
     else:
         MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, value_dict = MOverNDict,
                           use_keys_not_junctions = True, show_colourbar = False,
