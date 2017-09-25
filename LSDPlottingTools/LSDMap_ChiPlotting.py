@@ -1800,7 +1800,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         plt.savefig(newFilename,format=FigFormat,dpi=500)
         fig.clf()
 
-def ChannelProfilePlot(DataDirectory, fname_prefix, FigFormat='png', size_format='ESURF',basin_key=0, source_key=0):
+def ChannelProfilePlot(DataDirectory, fname_prefix, FigFormat='png', size_format='ESURF',basin_key=[0], source_key=[0]):
     """
     This function makes a simple river long profile plot from the chi data map.
 
@@ -1809,8 +1809,8 @@ def ChannelProfilePlot(DataDirectory, fname_prefix, FigFormat='png', size_format
         fname_prefix (str): the name of the DEM without extension
         FigFormat(str): format of the figure, e.g. png, svg
         size_format (str): size of the figure, can be either 'geomorphology', 'big', or 'ESURF'
-        basin_key (int or list): basin key to analyse
-        source_key (int or list): source key of the channel you want to plot.
+        basin_key (list): basin keys to analyse
+        source_key (list): source keys of the channels you want to plot.
 
     Returns:
         long profile plot
@@ -1821,7 +1821,7 @@ def ChannelProfilePlot(DataDirectory, fname_prefix, FigFormat='png', size_format
 
     # mask for the basin and the channel
     df = df[df['basin_key'].isin(basin_key)]
-    df = df[df['source_key'].is_in(source_key)]
+    df = df[df['source_key'].isin(source_key)]
 
     # set up the figure
     # Set up fonts for plots
@@ -1841,14 +1841,14 @@ def ChannelProfilePlot(DataDirectory, fname_prefix, FigFormat='png', size_format
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
         #l_pad = -35
 
-    gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+    gs = plt.GridSpec(100,100,bottom=0.2,left=0.05,right=0.95,top=0.95)
     ax = fig.add_subplot(gs[5:100,10:95])
 
     elevation = df['elevation'].tolist()
     flow_distance = df['flow_distance'].tolist()
 
     ax.plot(flow_distance, elevation, c='b')
-    ax.set_xlabel('Flow distance (m)')
+    ax.set_xlabel('Distance upstream from outlet (m)')
     ax.set_ylabel('Elevation (m)')
 
     newFilename = DataDirectory+fname_prefix+"_profiles."+FigFormat
