@@ -20,6 +20,8 @@ import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
 import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
 import LSDPlottingTools.statsutilities as LSDStats
 
+import LSDMapFigure.PlottingHelpers as Helper
+
 
 def ConvertBasinIndexToJunction(BasinPointData,BasinIndexList):
     """This transforms a basin index list (simply the order of the basins, starting from low to high junction number) to a junction list.
@@ -1798,3 +1800,58 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         plt.savefig(newFilename,format=FigFormat,dpi=500)
         fig.clf()
 
+def ChannelProfilePlot(DataDirectory, fname_prefix, FigFormat='png', size_format='ESURF',basin_key=0, source_key=0):
+    """
+    This function makes a simple river long profile plot from the chi data map.
+
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the name of the DEM without extension
+        FigFormat(str): format of the figure, e.g. png, svg
+        size_format (str): size of the figure, can be either 'geomorphology', 'big', or 'ESURF'
+        basin_key (int or list): basin key to analyse
+        source_key (int or list): source key of the channel you want to plot.
+
+    Returns:
+        long profile plot
+
+    Author: FJC
+    """
+    df = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
+
+    # mask for the basin and the channel
+    df = df[df['basin_key'].isin(basin_key)]
+    df = df[df['source_key'].is_in(source_key)]
+
+    # set up the figure
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
+
+    gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+    ax = fig.add_subplot(gs[5:100,10:95])
+
+    elevation = df['elevation'].tolist()
+    flow_distance = df['flow_distance'].tolist()
+
+    ax.plot(flow_distance, elevation, c='b')
+    ax.set_xlabel('Flow distance (m)')
+    ax.set_ylabel('Elevation (m)')
+
+    newFilename = DataDirectory+fname_prefix+"_profiles."+FigFormat
+    plt.savefig(newFilename,format=FigFormat,dpi=300)
+    ax.cla()
+    plt.close(fig)
