@@ -1463,13 +1463,15 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
             movern_key = 'm_over_n = %s' %(str(m_over_n))
             MainStemX = list(ProfileDF_MS[movern_key])
             MainStemElevation = list(ProfileDF_MS['elevation'])
-            MainStemK = list(ProfileDF_MS.iloc[:,-1])
+            MainStemK = list(ProfileDF_MS[fname_prefix+"_geol"])
+            
 
             # get the chi, elevation, and MLE for the tributaries
             TributariesX = list(ProfileDF_tribs[movern_key])
             TributariesElevation = list(ProfileDF_tribs['elevation'])
-            TributariesK = list(ProfileDF_tribs.iloc[:,-1])
-
+            TributariesK = list(ProfileDF_tribs[fname_prefix+"_geol"])
+            
+            
             # get the colourmap to colour channels by the MLE value
             #NUM_COLORS = len(MLE)
             K_array = np.asarray(TributariesK)
