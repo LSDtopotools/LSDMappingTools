@@ -127,11 +127,14 @@ def main(argv):
         start_movern = moverns[0]
         n_movern = len(moverns)
         d_movern = (moverns[-1] - moverns[0])/(n_movern-1)
+        LP.movern_two_litho(args.fname_prefix,this_dir, litho = [9,10], basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+        LP.movern_two_litho(args.fname_prefix,this_dir, litho = [9,10], basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, only_MLE = True)
+        quit()
         LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat='png')
         MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, size_format=args.size_format, FigFormat=simple_format,lith = True)
         MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format, FigFormat=simple_format,lith = True)
         MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="SA", size_format=args.size_format, FigFormat=simple_format,lith = True)
-        MN.MakeChiPlotsColouredByLith(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=simple_format, animate=args.animate, keep_pngs=args.keep_pngs)
+        MN.MakeChiPlotsColouredByLith(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=simple_format, animate=args.animate, keep_pngs=True)
 
 
     
