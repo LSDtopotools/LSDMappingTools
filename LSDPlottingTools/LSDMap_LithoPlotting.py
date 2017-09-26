@@ -146,7 +146,31 @@ def getLithoColorMap(fname_prefix, DataDirectory, values = "None"):
 
 	return cm
 
+def get_color_litho(fname_prefix, DataDirectory, lithocode):
+	"""
+		return the color code of a single litho
+		@param:
+			DataDirectory (str): the data directory with the m/n csv files
+			fname_prefix (str): The prefix for the m/n csv files
+			litho: code of the lithology
 
+		@Returns:
+			an html color code probably for plotting purpose.
+		@Authors:
+			BG
+		@Date: yes
+
+	"""
+
+	df = pd.read_csv(DataDirectory+fname_prefix+"_lithokey.csv")
+	if("legend" not in df.columns.values):
+		print("please check your files first with -c True, I cannae find your legend column")
+		print("An alternative solution is to add a legend column in your lithokey csv file")
+		print("with an html color code for each lithologies, google html color code generator to obtain one")
+		quit()
+
+	cocode = df["legend"][df["rocktype"] == lithocode].values[0]
+	return cocode
 
 
 def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict, size_format='ESURF', FigFormat='png'):
@@ -285,19 +309,19 @@ def generate_legend_in_csv(name, force = False):
 	return cm
 
 
-def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_basin = False, only_MLE = True, SA_channels = False, normalization = True, litho = [], show_legend = True, size_format = "ESURF", basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7):
+def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_basin = False, only_MLE = True, SA_channels = False, normalization = True, litho = [], show_legend = True, size_format = "ESURF", basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, coloured_by_lith = True):
 	"""
 		Function to plot the movern repartition beetween two lithologies per basins, using the percentage of each lithologies in the basin.
 		something like this:
 		
 
-				|	o	  o o  |
-				| o			  |
+				|	o	  o o    |
+				| o			     |
 		   m/n  |	o			o|
-				|				|
+				|				 |
 				|_o______________|
-			  lith1			lith2
-			  100%			  100%  
+			  lith1			  lith2
+			  100%			   100%  
 
 		@params:
 			fname_prefix (str): the prefix of all your files.
@@ -306,6 +330,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 			normalization (bool): Do you want to normalize to 100 %
 			litho (list of int/str): list of lithologic code or name [1,54] or ["granit", "anorthosite"]
 			show_legend (bool): ...
+			coloured by litho (bool): Points will be coloured by lithologic content.
 		@return:
 			nothing but create a plot
 		@Authors: BG
@@ -402,9 +427,10 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 		points_min_err = df['Chi_MLE_points_min'].as_matrix()
 		points_min_err = median_movern-points_min_err
 		errors = np.array(zip(points_min_err, points_max_err)).T
+		
 
 		points_chi_keys = df['basin_key'].as_matrix()-0.1
-		ax.errorbar(df["litho_percent"], df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor="#fdbb84", fmt='none', elinewidth=1,label='_nolegend_')
+		
 		# generating Random color for basins
 		# Assigning the random color values
 		if color_by_basin:
@@ -417,9 +443,42 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 
 			Cmpalnama = colors.LinearSegmentedColormap.from_list("Basimap", colormlape, N=df.shape[0]-1)
 			tpp = ax.scatter(df["litho_percent"], df['Chi_MLE_points'], s=15, c=df["basin_key"], cmap = Cmpalnama, marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
-
+			ax.errorbar(df["litho_percent"], df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor="#fdbb84", fmt='none', elinewidth=1,label='_nolegend_')
 		else:
-			tpp = ax.scatter(df["litho_percent"], df['Chi_MLE_points'], s=15, c="#fdbb84",  marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+			if(coloured_by_lith):
+				df_lith1 = df[df["litho_percent"]<=50]
+				median_movern = df_lith1['Chi_MLE_points'].as_matrix()
+				points_max_err = df_lith1['Chi_MLE_points_max'].as_matrix()
+				points_max_err = points_max_err-median_movern
+				points_min_err = df_lith1['Chi_MLE_points_min'].as_matrix()
+				points_min_err = median_movern-points_min_err
+				errors = np.array(zip(points_min_err, points_max_err)).T
+				tpp = ax.scatter(df_lith1["litho_percent"], df_lith1['Chi_MLE_points'], s=15, c=get_color_litho(fname_prefix,DataDirectory,litho[0]),  marker='o', edgecolors='k', lw=0.5,facecolors=get_color_litho(fname_prefix,DataDirectory,litho[0]), label='Chi Monte Carlo',zorder=200)
+				ax.errorbar(df_lith1["litho_percent"], df_lith1['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor=get_color_litho(fname_prefix,DataDirectory,litho[0]), fmt='none', elinewidth=1,label='_nolegend_')
+
+				df_lith2 = df[df["litho_percent"]>50]
+				median_movern = df_lith2['Chi_MLE_points'].as_matrix()
+				points_max_err = df_lith2['Chi_MLE_points_max'].as_matrix()
+				points_max_err = points_max_err-median_movern
+				points_min_err = df_lith2['Chi_MLE_points_min'].as_matrix()
+				points_min_err = median_movern-points_min_err
+				errors = np.array(zip(points_min_err, points_max_err)).T
+				tpp = ax.scatter(df_lith2["litho_percent"], df_lith2['Chi_MLE_points'], s=15, c=get_color_litho(fname_prefix,DataDirectory,litho[1]),  marker='o', edgecolors='k', lw=0.5,facecolors=get_color_litho(fname_prefix,DataDirectory,litho[1]), label='Chi Monte Carlo',zorder=200)
+				ax.errorbar(df_lith2["litho_percent"], df_lith2['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor=get_color_litho(fname_prefix,DataDirectory,litho[1]), fmt='none', elinewidth=1,label='_nolegend_')
+
+				# for q in range(df.shape[0]):
+
+				# 	if df["litho_percent"].values[q]<=50:
+				# 		coloritemp = get_color_litho(fname_prefix, DataDirectory, litho[0])
+				# 	else:
+				# 		coloritemp = get_color_litho(fname_prefix, DataDirectory, litho[1])
+				# 	#print coloritemp
+					
+				# 	tpp = ax.scatter(df["litho_percent"].values[q], df['Chi_MLE_points'].values[q], s=15, c=coloritemp,  marker='o', edgecolors='k', lw=0.5,facecolors=coloritemp, label='Chi Monte Carlo',zorder=200)
+				# 	ax.errorbar(df["litho_percent"].values[q], df['Chi_MLE_points'].values[q], s=15, marker='o', xerr=None, yerr=errors[0][q], ecolor=coloritemp, fmt='none', elinewidth=1,label='_nolegend_')
+			else:
+				tpp = ax.scatter(df["litho_percent"], df['Chi_MLE_points'], s=15, c="#fdbb84",  marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+				ax.errorbar(df["litho_percent"], df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor="#fdbb84", fmt='none', elinewidth=1,label='_nolegend_')
 
 		if(color_by_basin and show_legend):
 			gs2 = plt.GridSpec(100,100,bottom=0,left=0,right=1,top=1)
