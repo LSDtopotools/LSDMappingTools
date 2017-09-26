@@ -224,7 +224,7 @@ def generate_legend_in_csv(name, force = False):
 	return cm
 
 
-def movern_two_litho(fname_prefix, DataDirectory, lname_prefix = "", only_MLE = False,SA_channels = False, normalization = True, litho = [], show_legend = True, size_format = "ESURF", basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7):
+def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_basin = False, only_MLE = True, SA_channels = False, normalization = True, litho = [], show_legend = True, size_format = "ESURF", basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7):
 	"""
 		Function to plot the movern repartition beetween two lithologies per basins, using the percentage of each lithologies in the basin.
 		something like this:
@@ -262,6 +262,13 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix = "", only_MLE = 
 	if(len(litho) != 2):
 		print("Sorry mate, but I need two lithogies to plot this. Not 1, not 4, not %s, just 2" %(len(litho)))
 		quit()
+	else:
+		if isinstance(litho[0],str) and isinstance(litho[1], str):
+			#converting the litho string to litho code by reading the lithokey file
+			correspondance_pandas_DataFrame = pd.read_csv(DataDirectory+fname_prefix+"_lithokey.csv", sep =",")
+			litho[0] = correspondance_pandas_DataFrame["rocktype"][correspondance_pandas_DataFrame["ID"]==litho[0]].values[0] # ID - rocktype - legend
+			litho[1] = correspondance_pandas_DataFrame["rocktype"][correspondance_pandas_DataFrame["ID"]==litho[1]].values[0] # ID - rocktype - legend
+
 
 
 	# make a figure
@@ -276,10 +283,13 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix = "", only_MLE = 
 		#l_pad = -35
 
 
-	if show_legend:
+	if show_legend and not only_MLE:
 		gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
 	else:
-		gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+		if (only_MLE):
+			gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.9,top=0.9)
+		else:
+			gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
 
 	ax = fig.add_subplot(gs[5:100,10:95])
 
@@ -323,6 +333,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix = "", only_MLE = 
 	#print df
 	#ax.scatter(df["litho_percent"],df["Chi_MLE_full"],c = df["basin_key"])
 	if (only_MLE):
+		# plot the data with only the MLE, neater plot, I am condisering only keeping this one tbh
 		# plot the points data
 		median_movern = df['Chi_MLE_points'].as_matrix()
 		points_max_err = df['Chi_MLE_points_max'].as_matrix()
@@ -333,7 +344,27 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix = "", only_MLE = 
 
 		points_chi_keys = df['basin_key'].as_matrix()-0.1
 		ax.errorbar(df["litho_percent"], df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor="#fdbb84", fmt='none', elinewidth=1,label='_nolegend_')
-		ax.scatter(df["litho_percent"], df['Chi_MLE_points'], s=15, c=df["basin_key"], marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+		# generating Random color for basins
+		# Assigning the random color values
+		if color_by_basin:
+			colormlape = []
+			for i in range(df.shape[0]):
+				colorTemp = "#"
+				for j in range(6):
+					colorTemp = colorTemp + (random.choice('0123456789ABCDEF'))
+				colormlape.append(colorTemp)
+
+			Cmpalnama = colors.LinearSegmentedColormap.from_list("Basimap", colormlape, N=df.shape[0]-1)
+			tpp = ax.scatter(df["litho_percent"], df['Chi_MLE_points'], s=15, c=df["basin_key"], cmap = Cmpalnama, marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+
+		else:
+			tpp = ax.scatter(df["litho_percent"], df['Chi_MLE_points'], s=15, c="#fdbb84",  marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+
+		if(color_by_basin and show_legend):
+			gs2 = plt.GridSpec(100,100,bottom=0,left=0,right=1,top=1)
+			cax = fig.add_subplot(gs2[10:90,90:93])
+			
+			plt.colorbar(tpp, cax = cax,ticks =[0,df.basin_key.max()], orientation = "vertical",label = '')
 	else:
 		# plot the full chi data
 		full_chi_keys = df['basin_key'].as_matrix()-0.2
@@ -388,7 +419,16 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix = "", only_MLE = 
 	ax.set_xlabel('%  Lithologies')
 	ax.set_ylabel('Best fit $m/n$')
 
-	if show_legend:
+	#Now deal with the Lithology names
+
+	correspondance_pandas_DataFrame = pd.read_csv(DataDirectory+fname_prefix+"_lithokey.csv", sep =",")
+	litho_wanne = correspondance_pandas_DataFrame["ID"][correspondance_pandas_DataFrame["rocktype"]==litho[0]].values[0] # ID - rocktype - legend
+	litho_tou = correspondance_pandas_DataFrame["ID"][correspondance_pandas_DataFrame["rocktype"]==litho[1]].values[0] # ID - rocktype - legend
+
+	ax.set_xticks([0,25,50,75,100])
+	ax.set_xticklabels([litho_wanne,'',"50",'',litho_tou])
+
+	if show_legend and not only_MLE:
 		print "ADDING THE LEGEND"
 		# sort both labels and handles by labels
 		handles, labels = ax.get_legend_handles_labels()
