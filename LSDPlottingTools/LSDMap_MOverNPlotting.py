@@ -1390,6 +1390,7 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
     Author: FJC
     """
     from LSDPlottingTools import colours
+    print("WARNING DEPRECATED FUNCTION, USE THE MakeChiPlotsByLith FROM LSDMapLithoPlotting")
 
     # check if a directory exists for the chi plots. If not then make it.
     K_directory = DataDirectory+'chi_plots_Lith/'
