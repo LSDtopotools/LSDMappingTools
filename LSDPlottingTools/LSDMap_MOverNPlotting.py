@@ -2088,6 +2088,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # change tick spacing
     ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
+    ax.set_xlim(0,)
     #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
 
     #set y axis lims
@@ -2149,7 +2150,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
             fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
             #l_pad = -35
 
-        gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.95,top=0.95)
 
         ax = fig.add_subplot(gs[5:100,10:95])
 
