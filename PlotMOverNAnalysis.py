@@ -166,6 +166,7 @@ def main(argv):
     if args.plot_summary:
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend)
+        MN.MakeMOverNPlotOneMethod(this_dir,args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern,d_movern=d_movern,n_movern=n_movern,FigFormat=args.FigFormat,size_format=args.size_format)
     # if args.basin_joyplot:
     #     MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
     #     MN.MakeBasinJoyplot(this_dir, args.fname_prefix, basin_list=these_basin_keys, FigFormat=simple_format, size_format=args.size_format)
@@ -189,6 +190,7 @@ def main(argv):
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = args.FigFormat,size_format=args.size_format, show_legend=args.show_legend)
         #joyplot
+        MN.MakeMOverNPlotOneMethod(this_dir,args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern,d_movern=d_movern,n_movern=n_movern,FigFormat=args.FigFormat,size_format=args.size_format)
         MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend)
 
 
