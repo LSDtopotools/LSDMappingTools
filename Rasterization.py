@@ -30,7 +30,9 @@ def print_welcome():
 	print("Use the -wd flag to define the working directory.")
 	print("If you don't do this I will assume the data is in the same directory as this script.")
 	print("A typical basic command would be:")
-	print("python Rasterization.py -shp /home/PhilCollins/DataStore/GIS/US/ -fn beverly_litho")
+	print("python Rasterization.py -dir /home/PhilCollins/DataStore/GIS/US/ -fn beverly_litho -fd geology")
+	print("A more complete one with more options:")
+	print("python Rasterization.py -dir /home/PhilCollins/DataStore/GIS/Africa/ -fn Tanzania_litho -fd LITH -UTM 33 -SOUTH True -rn GeoRast -res 12")
 	print("For help type:")
 	print("  python Rasterization.py -h\n")
 	print("=======================================================================\n\n ")
@@ -59,6 +61,7 @@ def main(argv):
 	# The location of the data files
 	parser.add_argument("-dir", "--directory", type=str, help="The base directory with the shapefile. If this isn't defined I'll assume it's the same as the current directory.")
 	parser.add_argument("-fn", "--fname_prefix", type=str, help="The name of your shapefile without extention (no .shp at the end)")
+	parser.add_argument("-fd", "--field_name", type=str, default = "", help="The name of the field that will give the value to the raster")
 	parser.add_argument("-rast", "--rasterization", type = bool, default = True, help= "Rasterize your file into a tif raster and produce a lithokey csv file containing the keys for the numerisation of the data.")
 	parser.add_argument("-rn","--rename", type=str, default = "", help = "rename your raster after rasterization, optional.")
 	parser.add_argument("-UTM", "--UTM_CODE", type = str, default = "", help = "Give the UTM UTM_CODE of your zone to automate the conversion of the raster into an LSDTopoTools compatible raster.")
@@ -73,8 +76,11 @@ def main(argv):
 		sys.exit()
 
 	if(args.rasterization):
+		if(args.field_name == ""):
+			print("FATAL ERROR: You need to gives me the Field name you wanna rasterize. This field will give its value or a code value to the raster. The field name is in the attributary table of your shapefile.")
+			sys.exit()
 		#launching the rasterization
-		VT.rasterize_shapefile(args.directory + args.fname_prefix + ".shp", res = args.resolution)
+		VT.rasterize_shapefile(args.directory + args.fname_prefix + ".shp", res = args.resolution, field = args.field_name)
 		#getting file names and prefix
 		rast_name = args.fname_prefix + "_new2.tif"
 		rast_pre = args.fname_prefix + "_new2"

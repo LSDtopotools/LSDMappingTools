@@ -490,7 +490,7 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
 		#out_ds.Destroy()
 
 
-def rasterize_shapefile(path_to_shp, res = 30):
+def rasterize_shapefile(path_to_shp, res = 30, field = ""):
 	"""
 		I am going to lead the rasterization of the shapefile into a tif raster.
 		I'll work on the bil version at some points.
@@ -509,8 +509,8 @@ def rasterize_shapefile(path_to_shp, res = 30):
 	print(shapefile_name)
 
 	#launching the  rasterization
-	new_shapefile_name, geol_dict = geologic_maps_modify_shapefile(shapefile_name, geol_field = "zone")
-	tifname = Rasterize_geologic_maps_pythonic(new_shapefile_name,raster_resolution = res, geol_field = "zone")
+	new_shapefile_name, geol_dict = geologic_maps_modify_shapefile(shapefile_name, geol_field = field)
+	tifname = Rasterize_geologic_maps_pythonic(new_shapefile_name,raster_resolution = res, geol_field = field)
 	Correct_Raterized_GLIM_map(tifname)
 
 	print("Now removing the temporary files")
