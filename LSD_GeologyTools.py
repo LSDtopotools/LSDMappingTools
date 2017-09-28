@@ -349,19 +349,40 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
 
 if __name__ == "__main__":
 
+    print("WARNING: THIS SCRIPT IS DEPRECATED, AN EASIER VERSION OF IT IS NOW USABLE THROUGH Rasterization.py ACCESSIBLE FROM COMMAND LINE.")
+
     #shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Geology_raster/bgs-50k_1726879/sc034/sc034_eyemouth_bedrock.shp'
     #shapefile_name = 'T:\\analysis_for_papers\\Geology_raster\\bgs-50k_1726879\\sc034\\sc034_eyemouth_bedrock.shp'
 
     #shapefile_name = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology.shp'
     #tifname = '/home/smudd/SMMDataStore/analysis_for_papers/Iberia_geology/SouthernSpain_geology_new2.tif'
 
-    shapefile_name = '/home/s1675537/PhD/LSDTopoData/movern_analysis/santa_cruz/GS.shp'
+    shapefile_name = '/home/s1675537/PhD/LSDTopoData/Maxime/geographic_delimitation/geographic.shp'
 
 
     #shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain.shp'
     #new_shapefile_name = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\New_TipOfSpain.shp'
     #tifname = 'C:\\VagrantBoxes\\LSDTopoTools\\Topographic_projects\\Iberia\\TipOfSpain_new.tif'
 
-    new_shapefile_name, geol_dict = geologic_maps_modify_shapefile(shapefile_name, geol_field = "LITH62")
-    tifname = Rasterize_geologic_maps_pythonic(new_shapefile_name,raster_resolution = 30, geol_field = "LITH62")
+    new_shapefile_name, geol_dict = geologic_maps_modify_shapefile(shapefile_name, geol_field = "zone")
+    tifname = Rasterize_geologic_maps_pythonic(new_shapefile_name,raster_resolution = 30, geol_field = "zone")
     Correct_Raterized_GLIM_map(tifname)
+
+
+    print("WARNING: THIS SCRIPT IS DEPRECATED, AN EASIER VERSION OF IT IS NOW USABLE THROUGH Rasterization.py ACCESSIBLE FROM COMMAND LINE.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
