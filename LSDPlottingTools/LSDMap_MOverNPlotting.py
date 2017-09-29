@@ -1470,14 +1470,14 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
             MainStemX = list(ProfileDF_MS[movern_key])
             MainStemElevation = list(ProfileDF_MS['elevation'])
             MainStemK = list(ProfileDF_MS[fname_prefix+"_geol"])
-            
+
 
             # get the chi, elevation, and MLE for the tributaries
             TributariesX = list(ProfileDF_tribs[movern_key])
             TributariesElevation = list(ProfileDF_tribs['elevation'])
             TributariesK = list(ProfileDF_tribs[fname_prefix+"_geol"])
-            
-            
+
+
             # get the colourmap to colour channels by the MLE value
             #NUM_COLORS = len(MLE)
             K_array = np.asarray(TributariesK)
@@ -2088,6 +2088,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # change tick spacing
     ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
+    ax.set_xlim(0,)
     #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
 
     #set y axis lims
@@ -2105,6 +2106,122 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     plt.savefig(newFilename,format=FigFormat,dpi=300)
     ax.cla()
     plt.close(fig)
+
+def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', movern_method='chi_points'):
+        """
+        This function makes a summary plot of the best fit m/n, you choose which method
+        you want to plot.
+
+        Args:
+            DataDirectory (str): the data directory with the m/n csv files
+            fname_prefix (str): The prefix for the m/n csv files
+            basin_list: list of basin keys to analyse, default = [] (all basins)
+            start_movern (float): the starting m/n value. Default is 0.2
+            d_movern (float): the increment between the m/n values. Default is 0.1
+            n_movern (float): the number of m/n values analysed. Default is 7.
+            size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+            FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+            movern_method (str): the method you want to plot. Can be 'chi_all', 'chi_points', 'SA_raw', or 'SA_segments'. Default 'chi_points'
+        Returns:
+            Makes a summary plot
+
+        Author: FJC
+        """
+        # check if a directory exists for the summary plots. If not then make it.
+        summary_directory = DataDirectory+'summary_plots/'
+        if not os.path.isdir(summary_directory):
+            os.makedirs(summary_directory)
+
+        from matplotlib.ticker import FuncFormatter, MaxNLocator
+        # Set up fonts for plots
+        label_size = 10
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.size'] = label_size
+
+        # make a figure
+        if size_format == "geomorphology":
+            fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+            #l_pad = -40
+        elif size_format == "big":
+            fig = plt.figure(1, facecolor='white',figsize=(16,9))
+            #l_pad = -50
+        else:
+            fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+            #l_pad = -35
+
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.95,top=0.95)
+
+        ax = fig.add_subplot(gs[5:100,10:95])
+
+        # read in the summary csv
+        df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
+        print df
+
+        if basin_list != []:
+            basin_keys = basin_list
+        else:
+            # get the basin keys
+            basin_keys = df['basin_key'].tolist()
+            print basin_keys
+
+        df = df[df['basin_key'].isin(basin_keys)]
+
+        # plot the full chi data
+        if movern_method=='chi_all':
+            full_chi_keys = df['basin_key'].as_matrix()-0.2
+            ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
+
+        elif movern_method=='chi_points':
+            # plot the points data
+            median_movern = df['Chi_MLE_points'].as_matrix()
+            points_max_err = df['Chi_MLE_points_max'].as_matrix()
+            points_max_err = points_max_err-median_movern
+            points_min_err = df['Chi_MLE_points_min'].as_matrix()
+            points_min_err = median_movern-points_min_err
+            errors = np.array(zip(points_min_err, points_max_err)).T
+
+            points_chi_keys = df['basin_key'].as_matrix()-0.1
+            ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
+            ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+
+            # plot the SA data
+        elif movern_method=='SA_raw':
+                SA_keys = df['basin_key'].as_matrix()
+                SA_sterr = df['SA_raw_sterr'].as_matrix()
+                ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='#2b8cbe', elinewidth=1, fmt='none',label='_nolegend_')
+                ax.scatter(SA_keys, df['SA_raw'], s=15, c='#2b8cbe', edgecolors='k',lw=0.5, label='S-A all data', zorder=100)
+
+        else:
+            # plot the segmented SA data
+            median_movern = df['SA_segments'].as_matrix()
+            points_max_err = df['SA_segments_max'].as_matrix()
+            points_max_err = points_max_err-median_movern
+            points_min_err = df['SA_segments_min'].as_matrix()
+            points_min_err = median_movern-points_min_err
+            errors = np.array(zip(points_min_err, points_max_err)).T
+
+            SA_segment_keys = df['basin_key'].as_matrix()+0.2
+            ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', xerr=None, yerr=errors, edgecolors='#a6bddb', fmt='none', elinewidth=1, linestyle = ":", ecolor='#a6bddb',label='_nolegend_')
+            ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', edgecolors='k', lw=0.5, label='Segmented S-A', zorder=100)
+
+        # set the axis labels
+        ax.set_xlabel('Basin key')
+        ax.set_ylabel('Best fit $m/n$')
+
+        # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+        ax.tick_params(axis='both', width=1, pad = 2)
+        for tick in ax.xaxis.get_major_ticks():
+            tick.set_pad(2)
+
+        # change tick spacing
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
+        ax.set_xlim(0,)
+
+        newFilename = summary_directory+fname_prefix+"_movern_"+movern_method+"."+FigFormat
+        plt.savefig(newFilename,format=FigFormat,dpi=300)
+        ax.cla()
+        plt.close(fig)
 
 def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_format='ESURF', FigFormat='png', start_movern=0.1, n_movern=7, d_movern=0.1, mn_method = "Chi", show_legend=True):
     """

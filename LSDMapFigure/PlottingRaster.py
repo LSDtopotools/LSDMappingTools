@@ -387,6 +387,11 @@ class MapFigure(object):
             ftsz = 8
             tpd = 1
             label_ftsz = 10
+        elif axis_style == "Ultra_Thin":
+            lw = 0.4
+            ftsz = 4
+            tpd = 0.3
+            label_ftsz = 6
         elif axis_style == "Big":
             lw = 2
             ftsz = 12
@@ -486,7 +491,7 @@ class MapFigure(object):
         print(self.ax_list[0])
 
         self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,
-                                             colorbarlabel,discrete_cmap,n_colours,norm,
+                                             colorbarlabel,discrete_cmap,n_colours, norm,
                                              colour_min_max,modify_raster_values,old_values,
                                              new_values,cbar_type, NFF_opti, custom_min_max)
         #print("Getting axis limits in drape function: ")

@@ -478,16 +478,16 @@ def ReadChiProfileCSV(DataDirectory, fname_prefix):
     """
     import os
     # get the csv filename
-    profile_suffix = '_movern.csv'
+    profile_suffix = '_burned_movern.csv'
     fname = fname_prefix+profile_suffix
 
     # check if this exists. if not then use the burned one.
     if not os.path.isfile(DataDirectory+fname):
         print ("Reading the burned csv...")
-        fname = fname_prefix+'_burned_movern.csv'
+        fname = fname_prefix+'_movern.csv'
+
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
-
     return df
 
 def ReadBasinStatsCSV(DataDirectory, fname_prefix):
