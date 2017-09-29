@@ -24,6 +24,12 @@ from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
 import colours
 
+#--------------------------------------------------------------------------#
+# RASTER PLOTS
+# These functions interface with the MapFigure object to produce raster plots
+# of the terrace locations
+#--------------------------------------------------------------------------#
+
 def MakeTerraceIDRasterPlot(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
     """
     This function makes a shaded relief plot of the DEM with the terraces coloured by their unique ID
@@ -118,6 +124,12 @@ def MakeTerraceElevationRasterPlot(DataDirectory, fname_prefix, size_format='ESU
 
     ImageName = DataDirectory+fname_prefix+'_terrace_elev.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 1000) # Save the figure
+
+#--------------------------------------------------------------------------#
+# XY PLOTS
+# These functions make plots of the distribution of terrace elevations, etc.
+# as you go upstream along the channel
+#--------------------------------------------------------------------------#
 
 def make_terrace_swath_plots(DataDirectory,fname_prefix,jn_number, size_format='ESURF', FigFormat='png'):
     """
