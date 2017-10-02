@@ -31,7 +31,7 @@ from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
 
 
-def PlotTopoRaster(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
+def PlotTopoRaster(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', colors = "terrain"):
     """
     Creates a basic Terrain topographic raster. Needs the Hillshade 
 
@@ -85,7 +85,7 @@ def PlotTopoRaster(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='
     # Drape the hillshade and add the color
     ## Frist plot the terrain toporaster 
     MF.add_drape_image(BackgroundRasterName,DataDirectory, # Calling the function will add a drapped raster on the top of the background on
-                        colourmap = "terrain", # colormap used for this raster, see http://matplotlib.org/users/colormaps.html for examples, put _r at the end of a colormap to get the reversed version
+                        colourmap = colors, # colormap used for this raster, see http://matplotlib.org/users/colormaps.html for examples, put _r at the end of a colormap to get the reversed version
                         alpha=1, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
                         show_colourbar = True, # Well, this one is explicit I think
                         colorbarlabel = "None",

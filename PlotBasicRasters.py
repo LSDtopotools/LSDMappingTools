@@ -59,6 +59,7 @@ def main(argv):
 
     # What sort of analyses you want
     parser.add_argument("-t", "--topo", type=bool, default = False, help="Turn to True to plot a basic topographic map with the Terrain colormap")
+    parser.add_argument("-tg", "--topo_gray", type=bool, default = False, help="Turn to True to plot a basic grayscaled topographic map")
     parser.add_argument("-S", "--Slope", type=bool, default = False, help="Turn to True to plot a basic Slope map")
 
     # These control the format of your figures
@@ -71,7 +72,9 @@ def main(argv):
         sys.exit()
 
     if args.topo:
-        BP.PlotTopoRaster(args.base_directory,args.fname_prefix, FigFormat = args.FigFormat, size_format = args.size_format)
+        BP.PlotTopoRaster(args.base_directory,args.fname_prefix, FigFormat = args.FigFormat, size_format = args.size_format, colors = "terrain")
+    if args.topo_gray:
+        BP.PlotTopoRaster(args.base_directory,args.fname_prefix, FigFormat = args.FigFormat, size_format = args.size_format, colors = "gray")
     if args.Slope:
         BP.PlotSlopeRaster(args.base_directory,args.fname_prefix, FigFormat = args.FigFormat, size_format = args.size_format)
 
