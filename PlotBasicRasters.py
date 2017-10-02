@@ -58,7 +58,8 @@ def main(argv):
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error.")
 
     # What sort of analyses you want
-    parser.add_argument("-t", "--topo", type=bool, default=True, help="Turn to True to plot a basic topographic map with the Terrain colormap")
+    parser.add_argument("-t", "--topo", type=bool, default = False, help="Turn to True to plot a basic topographic map with the Terrain colormap")
+    parser.add_argument("-S", "--Slope", type=bool, default = False, help="Turn to True to plot a basic Slope map")
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
@@ -71,6 +72,8 @@ def main(argv):
 
     if args.topo:
         BP.PlotTopoRaster(args.base_directory,args.fname_prefix, FigFormat = args.FigFormat, size_format = args.size_format)
+    if args.Slope:
+        BP.PlotSlopeRaster(args.base_directory,args.fname_prefix, FigFormat = args.FigFormat, size_format = args.size_format)
 
 
 #=============================================================================
