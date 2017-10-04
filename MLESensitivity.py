@@ -16,6 +16,7 @@ import sys
 import os
 from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 from LSDMapFigure import PlottingHelpers as Helper
+from LSDPlottingTools import LSDMap_SAPlotting as SA
 
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.
