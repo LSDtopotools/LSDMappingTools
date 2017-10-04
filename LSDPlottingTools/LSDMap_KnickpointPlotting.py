@@ -768,24 +768,21 @@ def map_knickpoint_diff_sized_colored_ratio(PointData, DataDirectory, Raster_bas
 
 
 
-def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
+def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = []):
     """
     This creates a basic knickpoint map
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
-        start_movern (int): The starting m/n, default = 0.2
-        n_movern (int): The number of m/n values tested, default = 7.
-        movern_method: the method of estimating m over n. Options are full chi "Chi_full", points "Chi_points", or slope-area "SA". Default is "Chi_full".
+        basin_list (list): List of the basin ID you want.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
-        lith (bool): the lithologic information if available. You need to follow the lithologic documentation to generate the right files. (This last does not exists yet).
 
     Returns:
-        Shaded relief plot with the basins coloured by best fit m/n
+        Shaded relief plot with the basins outlines and the knickpoints sized by intensity
 
-    Author: FJC
+    Author: BG
     """
     # check if a directory exists for the chi plots. If not then make it.
     raster_directory = DataDirectory+'raster_plots/'
@@ -793,6 +790,7 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
         os.makedirs(raster_directory)
 
     # Set up fonts for plots
+    basls = basin_list
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
@@ -832,6 +830,9 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
     # add the knickpoints plots
     
     Kdf = Helper.ReadKnickpointCSV(DataDirectory,fname_prefix)
+    # Selecting the basins in case you choose specific ones
+    if(len(basls)>0):
+        Kdf = Kdf[kdf["basin_key"].isin(basls)]
     KdfPoints = LSDP.LSDMap_PointData(Kdf, data_type = "pandas", PANDEX = True)
     MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='diff',alpha=1,max_point_size = 5,min_point_size = 1,zorder=200)
 
@@ -840,11 +841,11 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
 
 
-#=============================================================================
-# UNCERTAINTY
-# Functions that make plots of uncertainties on the m/n analysis and comparison
-# between the different methods
-#=============================================================================
+def basic_hist(DataDirectory, fname_prefix ,basin_list = [] , size_format="ESURF", FigFormat=".png"):
+    """
+    Plot a simple histogram of the knickpoint repartition
+    """
+    print("print")
 
 def DEPRECATED_map_knickpoint_standard(PointData, DataDirectory, Raster_base_name, HS_name = "none",Time_in_name = False, river_network = "none", saveName = "none", log = False):
     """

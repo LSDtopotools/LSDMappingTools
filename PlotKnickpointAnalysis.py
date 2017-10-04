@@ -52,6 +52,12 @@ def main(argv):
 
     # What sort of analyses you want
     parser.add_argument("-mb", "--map_basic", type=bool, default = False, help="Turn to True to plot a basic knickpoint map on the top of the hillshade of the field")
+    parser.add_argument("-bh", "--basic_hist", type=bool, default = False, help="Turn to True to plot a basic histogram of the knickpoint spreading")
+
+    # Basin
+    # Basin selection stuffs
+    parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
+    
     
 
     # These control the format of your figures
@@ -59,12 +65,29 @@ def main(argv):
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
     args = parser.parse_args()
 
+    print("You told me that the basin keys are: ")
+    print(args.basin_keys)
+
+    if len(args.basin_keys) == 0:
+        print("No basins found, I will plot all of them")
+        these_basin_keys = []
+    else:
+        these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
+        print("The basins I will plot are:")
+        print(these_basin_keys)
+
     if not args.fname_prefix:
         print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
         sys.exit()
 
+
+##################### Plotting facilities
+
     if args.map_basic:
-        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat)
+        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat)
+
+    if args.basic_hist:
+        KP.basic_hist(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat)
 
 #=============================================================================
 if __name__ == "__main__":
