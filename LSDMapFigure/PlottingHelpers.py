@@ -579,6 +579,53 @@ def ReadMCPointsCSV(DataDirectory, fname_prefix):
 
     return df
 
+
+def ReadMChiSegCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix
+    '_MChiSegmented.csv'
+    This file holds the MCHI segmented data
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: BG
+    """
+    # get the csv filename
+    suffix = '_MChiSegmented.csv'
+    fname = fname_prefix+suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+def ReadKnickpointCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix
+    '_KsnKn.csv'
+    This file holds the MCHI segmented data
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: BG
+    """
+    # get the csv filename
+    suffix = '_KsnKn.csv'
+    fname = fname_prefix+suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
 def ReadChiResidualsCSVs(DataDirectory, fname_prefix):
     """
     This function reads in the 3 CSV files for the residuals analysis

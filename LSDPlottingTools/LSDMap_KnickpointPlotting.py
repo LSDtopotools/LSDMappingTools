@@ -16,10 +16,12 @@ from matplotlib import rcParams
 import matplotlib.cm as cm
 from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
+from LSDMapFigure import PlottingHelpers as Helper
 from LSDPlottingTools import colours as lsdcolours
 from LSDPlottingTools import init_plotting_DV
 import LSDPlottingTools as LSDP
 import sys
+import os
 import pandas as pd
 from scipy.stats import norm
 
@@ -766,9 +768,85 @@ def map_knickpoint_diff_sized_colored_ratio(PointData, DataDirectory, Raster_bas
 
 
 
+def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
+    """
+    This creates a basic knickpoint map
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        start_movern (int): The starting m/n, default = 0.2
+        n_movern (int): The number of m/n values tested, default = 7.
+        movern_method: the method of estimating m over n. Options are full chi "Chi_full", points "Chi_points", or slope-area "SA". Default is "Chi_full".
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        lith (bool): the lithologic information if available. You need to follow the lithologic documentation to generate the right files. (This last does not exists yet).
+
+    Returns:
+        Shaded relief plot with the basins coloured by best fit m/n
+
+    Author: FJC
+    """
+    # check if a directory exists for the chi plots. If not then make it.
+    raster_directory = DataDirectory+'raster_plots/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_width_inches = 6.25
+    elif size_format == "big":
+        fig_width_inches = 16
+    else:
+        fig_width_inches = 4.92126
 
 
-def map_knickpoint_standard(PointData, DataDirectory, Raster_base_name, HS_name = "none",Time_in_name = False, river_network = "none", saveName = "none", log = False):
+
+
+
+    # get the rasters
+    raster_ext = '.bil'
+    BackgroundRasterName = fname_prefix+raster_ext
+    HillshadeName = fname_prefix+'_hs'+raster_ext
+    BasinsName = fname_prefix+'_AllBasins'+raster_ext
+
+    
+    # create the map figure
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km")
+    
+    # plot the basin outlines
+    Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+    MF.plot_polygon_outlines(Basins, linewidth=0.8)
+
+    # add the channel network without color
+    ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix)
+    ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+    MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.5,min_point_size = 0.1,zorder=100)
+
+    # add the knickpoints plots
+    
+    Kdf = Helper.ReadKnickpointCSV(DataDirectory,fname_prefix)
+    KdfPoints = LSDP.LSDMap_PointData(Kdf, data_type = "pandas", PANDEX = True)
+    MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='diff',alpha=1,max_point_size = 5,min_point_size = 1,zorder=200)
+
+    #Saving and stuffs   
+    ImageName = raster_directory+fname_prefix+"_knickpoint_basic_map."+FigFormat
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
+
+
+#=============================================================================
+# UNCERTAINTY
+# Functions that make plots of uncertainties on the m/n analysis and comparison
+# between the different methods
+#=============================================================================
+
+def DEPRECATED_map_knickpoint_standard(PointData, DataDirectory, Raster_base_name, HS_name = "none",Time_in_name = False, river_network = "none", saveName = "none", log = False):
     """
     Will create a map of the knickpoint sized by their delta and colored by size.
 
