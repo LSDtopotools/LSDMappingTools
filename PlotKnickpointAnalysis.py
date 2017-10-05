@@ -53,7 +53,9 @@ def main(argv):
     # What sort of analyses you want
     parser.add_argument("-mb", "--map_basic", type=bool, default = False, help="Turn to True to plot a basic knickpoint map on the top of the hillshade of the field")
     parser.add_argument("-bh", "--basic_hist", type=bool, default = False, help="Turn to True to plot a basic histogram of the knickpoint spreading")
-
+    parser.add_argument("-mor", "--map_outliers_rivers", type=bool, default = False, help="Turn to True to plot outilers knickpoint map on the top of the hillshade of the field detected with a MAD binned by rivers")
+    parser.add_argument("-mob", "--map_outliers_basins", type=bool, default = False, help="Turn to True to plot outilers knickpoint map on the top of the hillshade of the field detected with a MAD binned by basins")
+    parser.add_argument("-mog", "--map_outliers_gen", type=bool, default = False, help="Turn to True to plot outilers knickpoint map on the top of the hillshade of the field detected with a MAD")
     # Data sorting option
     parser.add_argument("-mancut", "--manual_cutoff", type=float, default = 0, help="Set a manual cutoff value for plotting the basic maps without automatic stat")
 
@@ -91,6 +93,19 @@ def main(argv):
 
     if args.basic_hist:
         KP.basic_hist(args.base_directory, args.fname_prefix,basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat)
+
+    if args.map_outliers_rivers:
+        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river")
+
+    if args.map_outliers_basins:
+        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "basin")
+
+    if args.map_outliers_gen:
+        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "general")
+
+
+
+
 
 #=============================================================================
 if __name__ == "__main__":
