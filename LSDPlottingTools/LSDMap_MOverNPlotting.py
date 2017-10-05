@@ -2882,11 +2882,142 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
         plt.savefig(ImageName, format=FigFormat, dpi=300)
         ax.cla()
 
+        def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigFormat='png',size_format='ESURF', start_movern=0.2,d_movern=0.1,n_movern=7):
+            """
+            This function makes a plot showing the range in m/n calculated
+            using the MC points analysis. Makes a separate plot for each basin.
+
+            Args:
+                DataDirectory (str): the data directory
+                fname_prefix (str): the DEM name without extension
+                basin_list: list of basins to be analysed. If empty then will analyse all of them.
+                FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+                size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+
+            Returns:
+                plot of uncertainty in m/n
+
+            Author:
+                FJC
+            """
+            import matplotlib.patches as patches
+
+            # check if a directory exists for the chi plots. If not then make it.
+            points_directory = DataDirectory+'MC_points_plots/'
+            if not os.path.isdir(points_directory):
+                os.makedirs(points_directory)
+
+            # get the basin info
+            basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
+            basin_keys = basin_df['basin_key']
+
+            if basin_list == []:
+                print "You didn't give me a basin list so I'm going to plot all of them!"
+                basin_list = basin_keys
+
+            # get the uncertainty df
+            PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
+            PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
+
+            UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF,start_movern,d_movern,n_movern)
+
+            # set up the plot
+            # Set up fonts for plots
+            label_size = 10
+            rcParams['font.family'] = 'sans-serif'
+            rcParams['font.sans-serif'] = ['arial']
+            rcParams['font.size'] = label_size
+
+            # make a figure
+            if size_format == "geomorphology":
+                fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+                #l_pad = -40
+            elif size_format == "big":
+                fig = plt.figure(1, facecolor='white',figsize=(16,9))
+                #l_pad = -50
+            else:
+                fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+                #l_pad = -35
+
+            gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
+            ax = fig.add_subplot(gs[5:100,10:95])
+
+            BasinStatsDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+            # best fit moverns
+            best_fit_moverns = SimpleMaxMLECheck(BasinStatsDF)
+
+            for basin_key in basin_keys:
+                ThisBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'] == basin_key]
+
+                # get the m/ns tested
+                end_movern = start_movern+d_movern*(n_movern-1)
+                all_moverns = np.linspace(start_movern,end_movern,n_movern)
+
+                # get the median m/ns for this basin
+                Medians = (ThisBasinDF.filter(regex='median')).values.tolist()[-1]
+                FirstQs = (ThisBasinDF.filter(regex='FQ')).values.tolist()[-1]
+                ThirdQs = (ThisBasinDF.filter(regex='TQ')).values.tolist()[-1]
+
+                # now get the threshold value
+                ThisUncertaintyDF = UncertaintyDF[UncertaintyDF['basin_key'] == basin_key]
+                print ThisUncertaintyDF
+
+                #plot the median and quartiles
+                ax.plot(all_moverns,Medians,c="k",lw=1,zorder=2)
+                ax.plot(all_moverns,FirstQs,c="k", lw=0.5, ls="--",zorder=2)
+                ax.plot(all_moverns,ThirdQs,c="k", lw=0.5, ls="--",zorder=2)
+                ax.fill_between(all_moverns, FirstQs, ThirdQs, color="0.8",alpha=0.75,zorder=1)
+
+                #add a line for the threshold
+                threshold = ThisUncertaintyDF.iloc[0]['FirstQ_threshold']
+                min_movern = ThisUncertaintyDF.iloc[0]['Min_MOverNs']
+                max_movern = ThisUncertaintyDF.iloc[0]['Max_MOverNs']
+                threshold_moverns = np.linspace(min_movern,max_movern, 4)
+                threshold_MLEs = np.full((n_movern,),threshold)
+                ax.plot(all_moverns,threshold_MLEs,c='r',zorder=3, ls="--",lw=1)
+
+                # add shaded background over range of m/n values
+                ax.axvspan(min_movern,max_movern, alpha=0.1, color='red',zorder=0.2)
+
+                # add arrow at best fit m/n
+                # get the limits for the arrow
+                max_MLE = max(Medians)
+                min_MLE = min(FirstQs)
+                dy = (max_MLE-min_MLE)/8
+                spacing = 1.5
+                # add arrow at best fit m/n
+                ax.add_patch(
+                    patches.Arrow(
+                        best_fit_moverns[basin_key], #x
+                        max_MLE-(dy*spacing), #y
+                        0, #dx
+                        dy, #dy
+                        width = 0.05,
+                        facecolor = 'k',
+                        edgecolor = 'k')
+                    )
+                ax.text(best_fit_moverns[basin_key]-0.075, max_MLE-1.5*(dy*spacing), "Best-fit $m/n$",fontsize=8)
+
+                # set the axes labels
+                ax.set_xlabel('$m/n$')
+                ax.set_ylabel('MLE')
+                #ax.set_title('Basin '+str(basin_key))
+                ax.set_xlim(start_movern,end_movern)
+                ax.set_ylim(min(FirstQs),max(ThirdQs)+0.0005)
+
+                # save the figure
+                ImageName = points_directory+fname_prefix+'_MC_points' +str(basin_key)+'.'+FigFormat
+                plt.savefig(ImageName, format=FigFormat, dpi=300)
+                ax.cla()
+
+            fig.clf()
+            plt.close(fig)
+
 #=============================================================================
 # SENSITIVITY FUNCTIONS
 # Functions that make plots of sensitivity tests on the m/n analysis
 #=============================================================================
-def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", size_format = "ESURF"):
+def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", size_format = "ESURF", movern_method = "all"):
     """
     This function makes a plot of the results of a sensitivity analysis on sigma in the MLE method
     of calculating m/n.
@@ -2898,6 +3029,7 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
         fname_prefix (str): the DEM name without extension
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        movern_method (str): the movern method you want to test. Can be "all" or "points"
 
     Author: FJC
     """
@@ -2921,7 +3053,12 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
                 this_sigma = (dir.split("_"))[-1]
 
                 # get the best fit m/n dataframe
-                BasinDF = Helper.ReadBasinStatsCSV(this_dir,fname_prefix)
+                if movern_method == 'all':
+                    BasinDF = Helper.ReadBasinStatsCSV(this_dir,fname_prefix)
+                else if movern_method == 'points':
+                    BasinDF = Helper.ReadBasinStatsPointCSV(this_dir,fname_prefix)
+                else:
+                    print ("You didn't specify a correct m/n method, you need to specify either 'all' or 'points'")
                 MOverNDict = SimpleMaxMLECheck(BasinDF)
                 this_df['sigma'] = [int(this_sigma)] * len(MOverNDict)
                 this_df['basin_key'] = MOverNDict.keys()
@@ -2977,133 +3114,95 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
     plt.savefig(ImageName, format=FigFormat, dpi=300)
     fig.clf()
 
-def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigFormat='png',size_format='ESURF', start_movern=0.2,d_movern=0.1,n_movern=7):
-    """
-    This function makes a plot showing the range in m/n calculated
-    using the MC points analysis. Makes a separate plot for each basin.
-
-    Args:
-        DataDirectory (str): the data directory
-        fname_prefix (str): the DEM name without extension
-        basin_list: list of basins to be analysed. If empty then will analyse all of them.
-        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
-        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
-
-    Returns:
-        plot of uncertainty in m/n
-
-    Author:
-        FJC
-    """
-    import matplotlib.patches as patches
-
-    # check if a directory exists for the chi plots. If not then make it.
-    points_directory = DataDirectory+'MC_points_plots/'
-    if not os.path.isdir(points_directory):
-        os.makedirs(points_directory)
-
-    # get the basin info
-    basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
-    basin_keys = basin_df['basin_key']
-
-    if basin_list == []:
-        print "You didn't give me a basin list so I'm going to plot all of them!"
-        basin_list = basin_keys
-
-    # get the uncertainty df
-    PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
-    PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
-
-    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF,start_movern,d_movern,n_movern)
-
-    # set up the plot
-    # Set up fonts for plots
-    label_size = 10
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = label_size
-
-    # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
-
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
-    ax = fig.add_subplot(gs[5:100,10:95])
-
-    BasinStatsDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
-    # best fit moverns
-    best_fit_moverns = SimpleMaxMLECheck(BasinStatsDF)
-
-    for basin_key in basin_keys:
-        ThisBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'] == basin_key]
-
-        # get the m/ns tested
-        end_movern = start_movern+d_movern*(n_movern-1)
-        all_moverns = np.linspace(start_movern,end_movern,n_movern)
-
-        # get the median m/ns for this basin
-        Medians = (ThisBasinDF.filter(regex='median')).values.tolist()[-1]
-        FirstQs = (ThisBasinDF.filter(regex='FQ')).values.tolist()[-1]
-        ThirdQs = (ThisBasinDF.filter(regex='TQ')).values.tolist()[-1]
-
-        # now get the threshold value
-        ThisUncertaintyDF = UncertaintyDF[UncertaintyDF['basin_key'] == basin_key]
-        print ThisUncertaintyDF
-
-        #plot the median and quartiles
-        ax.plot(all_moverns,Medians,c="k",lw=1,zorder=2)
-        ax.plot(all_moverns,FirstQs,c="k", lw=0.5, ls="--",zorder=2)
-        ax.plot(all_moverns,ThirdQs,c="k", lw=0.5, ls="--",zorder=2)
-        ax.fill_between(all_moverns, FirstQs, ThirdQs, color="0.8",alpha=0.75,zorder=1)
-
-        #add a line for the threshold
-        threshold = ThisUncertaintyDF.iloc[0]['FirstQ_threshold']
-        min_movern = ThisUncertaintyDF.iloc[0]['Min_MOverNs']
-        max_movern = ThisUncertaintyDF.iloc[0]['Max_MOverNs']
-        threshold_moverns = np.linspace(min_movern,max_movern, 4)
-        threshold_MLEs = np.full((n_movern,),threshold)
-        ax.plot(all_moverns,threshold_MLEs,c='r',zorder=3, ls="--",lw=1)
-
-        # add shaded background over range of m/n values
-        ax.axvspan(min_movern,max_movern, alpha=0.1, color='red',zorder=0.2)
-
-        # add arrow at best fit m/n
-        # get the limits for the arrow
-        max_MLE = max(Medians)
-        min_MLE = min(FirstQs)
-        dy = (max_MLE-min_MLE)/8
-        spacing = 1.5
-        # add arrow at best fit m/n
-        ax.add_patch(
-            patches.Arrow(
-                best_fit_moverns[basin_key], #x
-                max_MLE-(dy*spacing), #y
-                0, #dx
-                dy, #dy
-                width = 0.05,
-                facecolor = 'k',
-                edgecolor = 'k')
-            )
-        ax.text(best_fit_moverns[basin_key]-0.075, max_MLE-1.5*(dy*spacing), "Best-fit $m/n$",fontsize=8)
-
-        # set the axes labels
-        ax.set_xlabel('$m/n$')
-        ax.set_ylabel('MLE')
-        #ax.set_title('Basin '+str(basin_key))
-        ax.set_xlim(start_movern,end_movern)
-        ax.set_ylim(min(FirstQs),max(ThirdQs)+0.0005)
-
-        # save the figure
-        ImageName = points_directory+fname_prefix+'_MC_points' +str(basin_key)+'.'+FigFormat
-        plt.savefig(ImageName, format=FigFormat, dpi=300)
-        ax.cla()
-
-    fig.clf()
-    plt.close(fig)
+# def PlotSensitivityResultsMLEWithSigma(DataDirectory,fname_prefix, FigFormat = "png", size_format = "ESURF"):
+#     """
+#     This function makes a plot of the results of a sensitivity analysis on sigma in the MLE method
+#     of calculating m/n.
+#     You need to specify the base directory - will look in every folder in this base directory
+#     with the prefix "sigma_" and get the m/n analysis in each sub-directory.
+#     Makes a plot of MLE with increasing sigma to show where it becomes invariant
+#
+#     Args:
+#         DataDirectory (str): the root data directory
+#         fname_prefix (str): the DEM name without extension
+#         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+#         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+#
+#     Author: FJC
+#     """
+#     import os
+#
+#     # Try doing this as a dataframe and masking?!?!
+#     columns = ["sigma", "basin_key", "m_over_n"]
+#     combined_DF = pd.DataFrame(columns=columns)
+#
+#     # loop through each sub-directory with the sensitivity results
+#     MLE_str = "sigma_"
+#     for subdir, dirs, files in os.walk(DataDirectory):
+#         for dir in dirs:
+#             if MLE_str in dir:
+#                 this_dir = DataDirectory+"/"+dir+'/'
+#                 print this_dir
+#
+#                 this_df = pd.DataFrame(columns=columns)
+#
+#                 # get this value of sigma
+#                 this_sigma = (dir.split("_"))[-1]
+#
+#                 # get the best fit m/n dataframe
+#                 BasinDF = Helper.ReadBasinStatsCSV(this_dir,fname_prefix)
+#                 MOverNDict = SimpleMaxMLECheck(BasinDF)
+#                 this_df['sigma'] = [int(this_sigma)] * len(MOverNDict)
+#                 this_df['basin_key'] = MOverNDict.keys()
+#                 this_df['m_over_n'] = MOverNDict.values()
+#                 combined_DF = combined_DF.append(this_df, ignore_index=True)
+#
+#     # Set up fonts for plots
+#     label_size = 10
+#     rcParams['font.family'] = 'sans-serif'
+#     rcParams['font.sans-serif'] = ['arial']
+#     rcParams['font.size'] = label_size
+#
+#     # make a figure
+#     if size_format == "geomorphology":
+#         fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+#         #l_pad = -40
+#     elif size_format == "big":
+#         fig = plt.figure(1, facecolor='white',figsize=(16,9))
+#         #l_pad = -50
+#     else:
+#         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+#         #l_pad = -35
+#
+#     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
+#     ax = fig.add_subplot(gs[5:100,10:95])
+#     #ax.grid(zorder=-100)
+#
+#     # now get the basin keys
+#     basin_keys = combined_DF['basin_key'].unique()
+#     basin_keys = [int(x) for x in basin_keys]
+#
+#     keys = []
+#     sigmas = []
+#     MLEs = []
+#     # loop through the basin keys and plot sigma and m/n for each basin
+#     for key in basin_keys:
+#         this_df = combined_DF.loc[combined_DF['basin_key'] == key]
+#         #sort the data for plotting
+#         this_df.sort_values('sigma',inplace=True)
+#         this_df = this_df.loc[combined_DF['m_over_n'] > 0.2]
+#         if not this_df.empty:
+#             keys.append(int(key))
+#             sigmas.append(this_df['sigma'].iloc[0])
+#
+#     ax.scatter(keys, sigmas, c='0.75', edgecolor='k')
+#     #
+#     # set the axes labels
+#     ax.set_xlabel('Basin key')
+#     ax.set_ylabel('$\sigma$ where $m/n$ is invariant')
+#     ax.set_xticks(basin_keys)
+#
+#     # Save the figure
+#     ImageName = DataDirectory+fname_prefix+'_sensitivity.'+FigFormat
+#     plt.savefig(ImageName, format=FigFormat, dpi=300)
+#     fig.clf()
