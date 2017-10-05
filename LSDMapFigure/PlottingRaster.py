@@ -61,6 +61,9 @@ class BaseRaster(object):
         # set the default colourmap
         self._colourmap = "gray"
 
+        #alpha_value
+        self._alpha = alpha
+
         # get the EPSG string
         self._EPSGString = LSDP.LSDMap_IO.GetUTMEPSG(self._FullPathRaster)
         #print("The EPSGString is: "+ self._EPSGString)
@@ -223,7 +226,7 @@ class MapFigure(object):
     etc.
     """
     def __init__(self, BaseRasterName, Directory,
-                 coord_type="UTM", colourbar_location = "None", basemap_colourmap = "gray", plot_title = "None", NFF_opti = False,*args, **kwargs):
+                 coord_type="UTM", colourbar_location = "None", basemap_colourmap = "gray", plot_title = "None", NFF_opti = False,alpha = 1,*args, **kwargs):
         """
         Initiates the object.
 
@@ -284,9 +287,9 @@ class MapFigure(object):
         # and properties
         self._RasterList = []
         if basemap_colourmap == "gray":
-            self._RasterList.append(BaseRaster(BaseRasterName,Directory, NFF_opti = NFF_opti))
+            self._RasterList.append(BaseRaster(BaseRasterName,Directory, NFF_opti = NFF_opti, alpha = alpha))
         else:
-            self._RasterList.append(BaseRaster(BaseRasterName,Directory, NFF_opti = NFF_opti))
+            self._RasterList.append(BaseRaster(BaseRasterName,Directory, NFF_opti = NFF_opti, alpha = alpha))
             self._RasterList[-1].set_colourmap(basemap_colourmap)
 
         # The coordinate type. UTM and UTM with tick in km are supported at the moment
@@ -442,7 +445,7 @@ class MapFigure(object):
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
 
         print("This colourmap is: "+ self._RasterList[0]._colourmap)
-        im = self.ax_list[0].imshow(self._RasterList[0]._RasterArray, self._RasterList[0]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest")
+        im = self.ax_list[0].imshow(self._RasterList[0]._RasterArray, self._RasterList[0]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest", alpha = self._RasterList[0]._alpha)
 
         # This affects all axes because we set share_all = True.
         #ax.set_xlim(self._xmin,self._xmax)
