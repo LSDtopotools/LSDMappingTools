@@ -56,6 +56,16 @@ def main(argv):
     parser.add_argument("-mor", "--map_outliers_rivers", type=bool, default = False, help="Turn to True to plot outilers knickpoint map on the top of the hillshade of the field detected with a MAD binned by rivers")
     parser.add_argument("-mob", "--map_outliers_basins", type=bool, default = False, help="Turn to True to plot outilers knickpoint map on the top of the hillshade of the field detected with a MAD binned by basins")
     parser.add_argument("-mog", "--map_outliers_gen", type=bool, default = False, help="Turn to True to plot outilers knickpoint map on the top of the hillshade of the field detected with a MAD")
+    parser.add_argument("-cg", "--chi_gen", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each selected basins, MAD method")
+    parser.add_argument("-cba", "--chi_basin", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each selected basins, MAD method binned by basins")
+    parser.add_argument("-cb", "--chi_basic", type=bool, default = False, help="Turn to True to plot raw knickpoints on the top of a chi profiel for each selected basins")
+    parser.add_argument("-cr", "--chi_river", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each selected basins, MAD method binned by rivers")
+
+
+    # ALL
+    parser.add_argument("-ALL", "--AllAnalysis", type=bool, default = False, help="Turn on to have fun")
+
+
     # Data sorting option
     parser.add_argument("-mancut", "--manual_cutoff", type=float, default = 0, help="Set a manual cutoff value for plotting the basic maps without automatic stat")
 
@@ -103,7 +113,33 @@ def main(argv):
     if args.map_outliers_gen:
         KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "general")
 
+    if args.chi_basic:
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff)
 
+    if args.chi_gen:
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "general")
+
+    if args.chi_basin:
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "basin")
+
+
+    if args.chi_river:
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river")
+
+
+
+
+
+    if args.AllAnalysis:
+        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff)
+        KP.basic_hist(args.base_directory, args.fname_prefix,basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat)
+        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river")
+        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "basin")
+        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "general")
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff)
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "general")
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "basin")
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river")
 
 
 

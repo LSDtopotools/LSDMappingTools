@@ -48,16 +48,16 @@ def get_outliers_from_DF(df, method = ""):
 
     if(method == "river"):
         print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the river")
-        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "source_key")
+        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "source_key", threshold = 2)
 
     elif(method == "basin"):
         print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
-        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "basin_key")
+        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "basin_key", threshold = 2)
 
     elif(method == "basin"):
         print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
         df["general"] = pd.Serie(np.ones(df.shape[0]),index = df.index)
-        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "general")
+        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "general", threshold = 2)
 
     return df
 
@@ -87,12 +87,16 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
         basin_list (list): List of the basin ID you want.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        mancut (float): manual cutoff for the data selection.
+        outlier_detection_method (str): determine the outlier detection method to select the right knickpoints
 
     Returns:
         Shaded relief plot with the basins outlines and the knickpoints sized by intensity
 
-    Author: BG
+    Author: BG - 05/10/2017
     """
+
+
     # check if a directory exists for the chi plots. If not then make it.
     raster_directory = DataDirectory+'raster_plots/'
     if not os.path.isdir(raster_directory):
@@ -239,7 +243,99 @@ def basic_hist(DataDirectory, fname_prefix ,basin_list = [] , size_format="ESURF
     plt.savefig(ImageName, dpi = 300) # Save the figure
     print(" done with saving your figure " + ImageName)
     plt.clf()
-        
+
+
+
+
+
+def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], mancut = 0, outlier_detection_method = "None"):
+    
+    """
+    This creates a chi profiles with the knickpoint on top of the profile
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list (list): List of the basin ID you want.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        mancut (float): manual cutoff for the data selection.
+        outlier_detection_method (str): determine the outlier detection method to select the right knickpoints
+
+    Returns:
+        Shaded relief plot with the basins outlines and the knickpoints sized by intensity
+
+    Author: BG - 05/10/2017
+    """
+
+    
+    # check if a directory exists for the chi plots. If not then make it.
+    raster_directory = DataDirectory+'chi_profile_knickpoint/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
+
+    # Set up fonts for plots
+    basls = basin_list
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    
+
+    # add the channel network without color
+    ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix)
+    # add the knickpoints plots
+    
+    Kdf = Helper.ReadKnickpointCSV(DataDirectory,fname_prefix)
+    # Selecting the basins in case you choose specific ones
+    if(len(basls)>0):
+        Kdf = Kdf[kdf["basin_key"].isin(basls)]
+
+    # Sorting data in case of manual cut_off
+    if(mancut>0):
+        print("I am manually cutting off the data. If you need a automated outliers detection, switch mancut option off")
+        Kdf = Kdf[Kdf["diff"]> mancut]
+    elif(outlier_detection_method != "None"):
+        print("I will now select the outliers following the method " + outlier_detection_method)
+        Kdf = get_outliers_from_DF(Kdf, method = outlier_detection_method)
+
+
+    #now plotting
+    for hussard in Kdf["basin_key"].unique():
+        print(hussard)
+        # make a figure
+        if size_format == "geomorphology":
+            fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+            
+        elif size_format == "big":
+            fig = plt.figure(1, facecolor='white',figsize=(16,9))
+            
+        else:
+            fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+        # create the axis
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
+        ax = fig.add_subplot(gs[0:100,0:100])
+
+        # Selecting the data for this basin
+        tcdf = ChannelDF[ChannelDF["basin_key"] == hussard] 
+        tKdf = Kdf[Kdf["basin_key"] == hussard]
+
+        ax.scatter(tcdf["chi"],tcdf["elevation"], c = tcdf["source_key"], cmap = "Accent", s = 1, lw = 0)
+        ax.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"], s = tKdf["diff"])
+
+        ax.set_xlabel("Chi")
+        ax.set_ylabel("z")
+
+        save_name = raster_directory + fname_prefix + "_basin" + str(hussard) + "_"+outlier_detection_method+"."+FigFormat
+
+        plt.savefig(save_name, dpi = 600)
+        plt.clf()
+
+
+    print("done")
 
 
 

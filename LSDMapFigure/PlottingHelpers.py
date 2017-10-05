@@ -601,6 +601,10 @@ def ReadMChiSegCSV(DataDirectory, fname_prefix):
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
 
+    # Getting rid of NoData
+
+    df = df[df["chi"] >= 0]
+
     return df
 
 def ReadKnickpointCSV(DataDirectory, fname_prefix):

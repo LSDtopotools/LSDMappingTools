@@ -311,7 +311,7 @@ def remove_outlying_residuals(xdata,ydata,residuals):
     
 
 
-def extract_outliers_by_header(df, data_column_name = "diff", header_for_group = "source_key"):
+def extract_outliers_by_header(df, data_column_name = "diff", header_for_group = "source_key", threshold = 3.5):
     """
     Extract outliers from a dataframe, groupped by a specific column. 
     for example, as in default, extract the outliers in the diff column, groupped by source_key
@@ -344,7 +344,7 @@ def extract_outliers_by_header(df, data_column_name = "diff", header_for_group =
         tdf = df[df[header_for_group]==i]
 
         # masking the outliers
-        mask = is_outlier(tdf[data_column_name].values)
+        mask = is_outlier(tdf[data_column_name].values, thresh = threshold)
         # Applying the mask
         tdf = tdf[mask]
         # Feeding the out dataset
