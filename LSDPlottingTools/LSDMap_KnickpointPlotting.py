@@ -768,7 +768,7 @@ def map_knickpoint_diff_sized_colored_ratio(PointData, DataDirectory, Raster_bas
 
 
 
-def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = []):
+def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], mancut = 0):
     """
     This creates a basic knickpoint map
 
@@ -816,11 +816,11 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
 
     
     # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km")
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", alpha = 0.7)
     
     # plot the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
-    MF.plot_polygon_outlines(Basins, linewidth=0.8)
+    MF.plot_polygon_outlines(Basins, linewidth=0.5)
 
     # add the channel network without color
     ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix)
@@ -833,8 +833,13 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
     # Selecting the basins in case you choose specific ones
     if(len(basls)>0):
         Kdf = Kdf[kdf["basin_key"].isin(basls)]
+
+    # Sorting data in case of manual cut_off
+    if(mancut>0):
+        Kdf = Kdf[Kdf["diff"]> mancut] 
+
     KdfPoints = LSDP.LSDMap_PointData(Kdf, data_type = "pandas", PANDEX = True)
-    MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='diff',alpha=1,max_point_size = 5,min_point_size = 1,zorder=200)
+    MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='diff',alpha=1,max_point_size = 10,min_point_size = 3,zorder=200)
 
     #Saving and stuffs   
     ImageName = raster_directory+fname_prefix+"_knickpoint_basic_map."+FigFormat
@@ -845,7 +850,78 @@ def basic_hist(DataDirectory, fname_prefix ,basin_list = [] , size_format="ESURF
     """
     Plot a simple histogram of the knickpoint repartition
     """
-    print("print")
+    print(" \n ########################## \n I am now going to print a basic histogram of your knickpoint in the area requested \n  ")
+
+    from matplotlib.ticker import MaxNLocator
+
+    # check if a directory exists for the sumarry plots. If not then make it.
+    raster_directory = DataDirectory+'summary_plots/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
+    # loading the file:
+    df = Helper.ReadKnickpointCSV(DataDirectory, fname_prefix)
+
+    # Selecting the basin
+    if(len(basin_list)>0):
+        print("Selecting the basins %s" %(basin_list))
+        df = df[df["basin_key"].isin(basin_list)]
+    else:
+        print("I am plotting for all the basins")
+
+    # creating the figure
+
+    plt.clf()
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+
+    # Creating the axis
+    
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
+    ax = fig.add_subplot(gs[0:100,0:100])
+
+    # Plotting
+    print("plotting ...")
+    
+    ls_baboty = []
+    for i in df["basin_key"].unique():
+        ls_baboty.append(df["diff"][df["basin_key"] == i])
+
+    n,bins, patch = ax.hist(ls_baboty,bins = 50, stacked  = True)
+    n = np.array(n)
+
+    # setting the yticks to be int
+
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    
+
+    #setting the labels
+    ax.set_xlabel("Delta ksn")
+    ax.set_ylabel("count")
+
+
+    #Saving and stuffs   
+    ImageName = raster_directory+fname_prefix+"_hist."+FigFormat
+    plt.savefig(ImageName, dpi = 300) # Save the figure
+    print(" done with saving your figure " + ImageName)
+    plt.clf()
+        
+
+
+
 
 def DEPRECATED_map_knickpoint_standard(PointData, DataDirectory, Raster_base_name, HS_name = "none",Time_in_name = False, river_network = "none", saveName = "none", log = False):
     """

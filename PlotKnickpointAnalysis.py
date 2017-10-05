@@ -54,6 +54,9 @@ def main(argv):
     parser.add_argument("-mb", "--map_basic", type=bool, default = False, help="Turn to True to plot a basic knickpoint map on the top of the hillshade of the field")
     parser.add_argument("-bh", "--basic_hist", type=bool, default = False, help="Turn to True to plot a basic histogram of the knickpoint spreading")
 
+    # Data sorting option
+    parser.add_argument("-mancut", "--manual_cutoff", type=float, default = 0, help="Set a manual cutoff value for plotting the basic maps without automatic stat")
+
     # Basin
     # Basin selection stuffs
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
@@ -84,10 +87,10 @@ def main(argv):
 ##################### Plotting facilities
 
     if args.map_basic:
-        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat)
+        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff)
 
     if args.basic_hist:
-        KP.basic_hist(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat)
+        KP.basic_hist(args.base_directory, args.fname_prefix,basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat)
 
 #=============================================================================
 if __name__ == "__main__":
