@@ -18,12 +18,244 @@ from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDPlottingTools import colours as lsdcolours
+from LSDPlottingTools import statsutilities as SUT
 from LSDPlottingTools import init_plotting_DV
 import LSDPlottingTools as LSDP
 import sys
 import os
 import pandas as pd
 from scipy.stats import norm
+
+
+############################## Data (pre-)processing treatment ##########################################
+
+def get_outliers_from_DF(df, method = ""):
+    """
+    proxy function to detect the outliers according to a specified method
+    
+    param:
+        df (pandas Dataframe): the dataframe originally read from the _KsnKs.csv, potentially preprocessed
+        method (str): method of outlier detection. Basin, source, general TOCOMPLETE AS WE ADD METHOD
+
+    return:
+        Dataframe containing the outliers
+    
+    Author: BG - 05/10/2017
+    """
+    if( method not in ["basin","river","general"]):
+        print("ERROR: The method you are trying to use is not a valid one. \n I am aborting.")
+        quit()
+
+    if(method == "river"):
+        print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the river")
+        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "source_key")
+
+    elif(method == "basin"):
+        print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
+        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "basin_key")
+
+    elif(method == "basin"):
+        print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
+        df["general"] = pd.Serie(np.ones(df.shape[0]),index = df.index)
+        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "general")
+
+    return df
+
+
+
+
+
+
+
+
+
+
+###########################################################################################################
+
+#################### Plotting function ####################################################################
+
+
+
+def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], mancut = 0, outlier_detection_method = "None"):
+    
+    """
+    This creates a basic knickpoint map
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list (list): List of the basin ID you want.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+
+    Returns:
+        Shaded relief plot with the basins outlines and the knickpoints sized by intensity
+
+    Author: BG
+    """
+    # check if a directory exists for the chi plots. If not then make it.
+    raster_directory = DataDirectory+'raster_plots/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
+    # Set up fonts for plots
+    basls = basin_list
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_width_inches = 6.25
+    elif size_format == "big":
+        fig_width_inches = 16
+    else:
+        fig_width_inches = 4.92126
+
+
+
+
+
+    # get the rasters
+    raster_ext = '.bil'
+    BackgroundRasterName = fname_prefix+raster_ext
+    HillshadeName = fname_prefix+'_hs'+raster_ext
+    BasinsName = fname_prefix+'_AllBasins'+raster_ext
+
+    
+    # create the map figure
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", alpha = 0.7)
+    
+    # plot the basin outlines
+    Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+    MF.plot_polygon_outlines(Basins, linewidth=0.5)
+
+    # add the channel network without color
+    ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix)
+    ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+    MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.5,min_point_size = 0.1,zorder=100)
+
+    # add the knickpoints plots
+    
+    Kdf = Helper.ReadKnickpointCSV(DataDirectory,fname_prefix)
+    # Selecting the basins in case you choose specific ones
+    if(len(basls)>0):
+        Kdf = Kdf[kdf["basin_key"].isin(basls)]
+
+    # Sorting data in case of manual cut_off
+    if(mancut>0):
+        print("I am manually cutting off the data. If you need a automated outliers detection, switch mancut option off")
+        Kdf = Kdf[Kdf["diff"]> mancut]
+    elif(outlier_detection_method != "None"):
+        print("I will now select the outliers following the method " + outlier_detection_method)
+        Kdf = get_outliers_from_DF(Kdf, method = outlier_detection_method)
+
+
+
+    KdfPoints = LSDP.LSDMap_PointData(Kdf, data_type = "pandas", PANDEX = True)
+    MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='diff',alpha=1,max_point_size = 15,min_point_size = 1,zorder=200)
+
+    #Saving and stuffs
+    if(outlier_detection_method == "None"):
+        outlier_detection_method = "raw"  
+    ImageName = raster_directory+fname_prefix+"_knickpoint_"+ outlier_detection_method +"_map."+FigFormat
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
+
+
+
+
+
+
+def basic_hist(DataDirectory, fname_prefix ,basin_list = [] , size_format="ESURF", FigFormat=".png"):
+    """
+    Plot a simple histogram of the knickpoint repartition
+    """
+    print(" \n ########################## \n I am now going to print a basic histogram of your knickpoint in the area requested \n  ")
+
+    from matplotlib.ticker import MaxNLocator
+
+    # check if a directory exists for the sumarry plots. If not then make it.
+    raster_directory = DataDirectory+'summary_plots/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
+    # loading the file:
+    df = Helper.ReadKnickpointCSV(DataDirectory, fname_prefix)
+
+    # Selecting the basin
+    if(len(basin_list)>0):
+        print("Selecting the basins %s" %(basin_list))
+        df = df[df["basin_key"].isin(basin_list)]
+    else:
+        print("I am plotting for all the basins")
+
+    # creating the figure
+
+    plt.clf()
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+
+    # Creating the axis
+    
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
+    ax = fig.add_subplot(gs[0:100,0:100])
+
+    # Plotting
+    print("plotting ...")
+    
+    ls_baboty = []
+    for i in df["basin_key"].unique():
+        ls_baboty.append(df["diff"][df["basin_key"] == i])
+
+    n,bins, patch = ax.hist(ls_baboty,bins = 50, stacked  = True)
+    n = np.array(n)
+
+    # setting the yticks to be int
+
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    
+
+    #setting the labels
+    ax.set_xlabel("Delta ksn")
+    ax.set_ylabel("count")
+
+
+    #Saving and stuffs   
+    ImageName = raster_directory+fname_prefix+"_hist."+FigFormat
+    plt.savefig(ImageName, dpi = 300) # Save the figure
+    print(" done with saving your figure " + ImageName)
+    plt.clf()
+        
+
+
+
+#################################################################################################################
+#################################################################################################################
+#################################################################################################################
+#################################################################################################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~ THE FOLLOWING FUNCTIONS ARE TESTS AND EARLIER WORK, NOT USED WITH THE PlotKnickpointAnalysis ~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#################################################################################################################
+#################################################################################################################
+#################################################################################################################
+#################################################################################################################
+
+
 
 def plot_knickpoint_elevations(PointData, DataDirectory, basin_key=0, kp_threshold=0,
                                FigFileName='Image.pdf', FigFormat='pdf', size_format='ESURF', kp_type = "diff"):
@@ -767,158 +999,6 @@ def map_knickpoint_diff_sized_colored_ratio(PointData, DataDirectory, Raster_bas
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, Fig_dpi = dpi) # Save the figure
 
 
-
-def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], mancut = 0):
-    """
-    This creates a basic knickpoint map
-
-    Args:
-        DataDirectory (str): the data directory with the m/n csv files
-        fname_prefix (str): The prefix for the m/n csv files
-        basin_list (list): List of the basin ID you want.
-        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
-        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
-
-    Returns:
-        Shaded relief plot with the basins outlines and the knickpoints sized by intensity
-
-    Author: BG
-    """
-    # check if a directory exists for the chi plots. If not then make it.
-    raster_directory = DataDirectory+'raster_plots/'
-    if not os.path.isdir(raster_directory):
-        os.makedirs(raster_directory)
-
-    # Set up fonts for plots
-    basls = basin_list
-    label_size = 10
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = label_size
-
-    # set figure sizes based on format
-    if size_format == "geomorphology":
-        fig_width_inches = 6.25
-    elif size_format == "big":
-        fig_width_inches = 16
-    else:
-        fig_width_inches = 4.92126
-
-
-
-
-
-    # get the rasters
-    raster_ext = '.bil'
-    BackgroundRasterName = fname_prefix+raster_ext
-    HillshadeName = fname_prefix+'_hs'+raster_ext
-    BasinsName = fname_prefix+'_AllBasins'+raster_ext
-
-    
-    # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", alpha = 0.7)
-    
-    # plot the basin outlines
-    Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
-    MF.plot_polygon_outlines(Basins, linewidth=0.5)
-
-    # add the channel network without color
-    ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix)
-    ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-    MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.5,min_point_size = 0.1,zorder=100)
-
-    # add the knickpoints plots
-    
-    Kdf = Helper.ReadKnickpointCSV(DataDirectory,fname_prefix)
-    # Selecting the basins in case you choose specific ones
-    if(len(basls)>0):
-        Kdf = Kdf[kdf["basin_key"].isin(basls)]
-
-    # Sorting data in case of manual cut_off
-    if(mancut>0):
-        Kdf = Kdf[Kdf["diff"]> mancut] 
-
-    KdfPoints = LSDP.LSDMap_PointData(Kdf, data_type = "pandas", PANDEX = True)
-    MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='diff',alpha=1,max_point_size = 10,min_point_size = 3,zorder=200)
-
-    #Saving and stuffs   
-    ImageName = raster_directory+fname_prefix+"_knickpoint_basic_map."+FigFormat
-    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
-
-
-def basic_hist(DataDirectory, fname_prefix ,basin_list = [] , size_format="ESURF", FigFormat=".png"):
-    """
-    Plot a simple histogram of the knickpoint repartition
-    """
-    print(" \n ########################## \n I am now going to print a basic histogram of your knickpoint in the area requested \n  ")
-
-    from matplotlib.ticker import MaxNLocator
-
-    # check if a directory exists for the sumarry plots. If not then make it.
-    raster_directory = DataDirectory+'summary_plots/'
-    if not os.path.isdir(raster_directory):
-        os.makedirs(raster_directory)
-
-    # loading the file:
-    df = Helper.ReadKnickpointCSV(DataDirectory, fname_prefix)
-
-    # Selecting the basin
-    if(len(basin_list)>0):
-        print("Selecting the basins %s" %(basin_list))
-        df = df[df["basin_key"].isin(basin_list)]
-    else:
-        print("I am plotting for all the basins")
-
-    # creating the figure
-
-    plt.clf()
-    label_size = 10
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = label_size
-
-    # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
-
-
-    # Creating the axis
-    
-    gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
-    ax = fig.add_subplot(gs[0:100,0:100])
-
-    # Plotting
-    print("plotting ...")
-    
-    ls_baboty = []
-    for i in df["basin_key"].unique():
-        ls_baboty.append(df["diff"][df["basin_key"] == i])
-
-    n,bins, patch = ax.hist(ls_baboty,bins = 50, stacked  = True)
-    n = np.array(n)
-
-    # setting the yticks to be int
-
-    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-    
-
-    #setting the labels
-    ax.set_xlabel("Delta ksn")
-    ax.set_ylabel("count")
-
-
-    #Saving and stuffs   
-    ImageName = raster_directory+fname_prefix+"_hist."+FigFormat
-    plt.savefig(ImageName, dpi = 300) # Save the figure
-    print(" done with saving your figure " + ImageName)
-    plt.clf()
-        
 
 
 

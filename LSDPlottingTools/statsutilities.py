@@ -311,6 +311,59 @@ def remove_outlying_residuals(xdata,ydata,residuals):
     
 
 
+def extract_outliers_by_header(df, data_column_name = "diff", header_for_group = "source_key"):
+    """
+    Extract outliers from a dataframe, groupped by a specific column. 
+    for example, as in default, extract the outliers in the diff column, groupped by source_key
+
+    param:
+        df (pandas dataframe): The dataframe containing at least the two columns in param
+        data_column_name (str): Name of the column containing the data
+        header_for_group (str): Name of the column for groupping
+
+    return: a dataframe containing only the outliers
+
+    Author: BG - 05/10/2017
+
+    """
+
+    ### Pre check
+    if((data_column_name not in df.columns) or (header_for_group not in df.columns)):
+        print("STATSUTILITIES::extract_outliers_by_header: Invalid header_for_group or data_column_name, check your spelling")
+        quit()
+    if(not isinstance(df,pd.DataFrame)):
+        print("STATSUTILITIES::extract_outliers_by_header: I need a Pandas Dataframe for this function")
+        quit()
+
+    ### Let's do it
+
+    # Output dataframe initialized as an integer, you'll see why later 
+    out_df = 0
+    for i in df[header_for_group].unique():
+        # I am grouping the dataset for each value of the header, for example each basins
+        tdf = df[df[header_for_group]==i]
+
+        # masking the outliers
+        mask = is_outlier(tdf[data_column_name].values)
+        # Applying the mask
+        tdf = tdf[mask]
+        # Feeding the out dataset
+        
+        if(isinstance(out_df, int)):
+            out_df = tdf
+        else:
+            out_df = pd.concat([out_df,tdf])
+    print("I selected %s outliers" %(out_df.shape[0]))
+
+    return out_df
+
+
+
+
+
+
+
+
 
 
 
