@@ -3055,7 +3055,7 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
                 # get the best fit m/n dataframe
                 if movern_method == 'all':
                     BasinDF = Helper.ReadBasinStatsCSV(this_dir,fname_prefix)
-                else if movern_method == 'points':
+                elif movern_method == 'points':
                     BasinDF = Helper.ReadBasinStatsPointCSV(this_dir,fname_prefix)
                 else:
                     print ("You didn't specify a correct m/n method, you need to specify either 'all' or 'points'")
