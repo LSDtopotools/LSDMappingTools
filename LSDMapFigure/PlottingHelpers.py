@@ -1156,7 +1156,7 @@ def AppendChiResidualsCSVs(DataDirectory):
             df['outlet_jn'] = outlet_jn
             MasterDF = MasterDF.append(df, ignore_index = True)
         MasterDFs.append(MasterDF)
-        
+
     return MasterDFs
 
 def MapBasinsToKeys(DataDirectory):
