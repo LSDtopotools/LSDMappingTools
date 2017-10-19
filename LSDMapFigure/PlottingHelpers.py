@@ -834,3 +834,72 @@ def ReadModelCSV(DataDirectory, Base_file):
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
     return df
+
+def AppendBasinCSVs(DataDirectory):
+    """
+    This function reads in a series of basin csv files and appends them together
+    into one function for plotting
+
+    Args:
+        DataDirectory (str): the data DataDirectory
+
+    Returns:
+        pandas dataframe with the appended basin csvs
+
+    Author: FJC
+    """
+    import os
+
+    # get the csv filename
+    csv_suffix = "_movernstats_basinstats.csv"
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df.ix[0, 'basin_key'] = basin_key
+        df.ix[0, 'outlet_jn'] = outlet_jn
+        MasterDF = MasterDF.append(df)#, ignore_index = True)
+
+    print MasterDF
+
+def MapBasinsToKeys(DataDirectory):
+    """
+    This function reads in all of the basin files in a directory
+    and assigns a basin key to each basin based on the outlet junction.
+    This is used when appending these all together so that each basin still
+    has a unique ID
+
+    Args:
+        DataDirectory (str): the data directory
+
+    Returns:
+        dictionary where key is the outlet junction and value is the assigned
+        basin ID
+
+    Author: FJC
+    """
+    import os
+
+    # get the csv filename
+    csv_suffix = "_movernstats_basinstats.csv"
+
+    basin_dict = {}
+    key = 0
+
+    # loop through the directory and get each basin stats file
+    for fname in os.listdir(DataDirectory):
+        if fname.endswith(csv_suffix):
+            # get this basin junction and map to a key
+            fname = fname.split("/")[-1]
+            fname = fname.split("_")[0]
+            fname = fname.split("n")[-1] #stupid way of getting just the basin junction number
+            basin_dict[fname] = key
+            key+=1
+
+    print basin_dict
+    return basin_dict
