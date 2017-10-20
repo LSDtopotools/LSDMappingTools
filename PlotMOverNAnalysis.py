@@ -119,6 +119,13 @@ def main(argv):
         BasinDF = Helper.ReadBasinStatsCSV(this_dir, args.fname_prefix)
     else:
         BasinDF = Helper.AppendBasinCSVs(this_dir)
+
+        # if parallel, get the fname from the data directory. This assumes that your directory is called
+        # something sensible that relates to the DEM name.
+        split_fname = this_dir.split("/")
+        split_fname = split_fname[len(split_fname)-2]
+        args.fname_prefix = split_fname
+
     # we need the column headers
     columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
     moverns = [float(x.split("=")[-1]) for x in columns]
