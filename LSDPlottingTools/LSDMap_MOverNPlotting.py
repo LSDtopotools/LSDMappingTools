@@ -549,7 +549,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
                                                                                 basin_number,
                                                                                 start_movern,
                                                                                 d_movern,
-                                                                                n_movern)
+                                                                                n_movern, parallel)
         best_fit_movern_dict[basin_number] = movern_of_max_MLE
         removed_sources_dict[basin_number] = remove_list_index
         MLEs_dict[basin_number] = MLEs
@@ -559,7 +559,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
 
     return Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict
 
-def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern=0.2, d_movern=0.1, n_movern=7):
+def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, DataDirectory, fname_prefix, basin_number, start_movern=0.2, d_movern=0.1, n_movern=7, parallel=False):
     """
     This function drives the calculations for removing outliers incrementally
     from the MLE calculations. This is specific to a basin.
@@ -663,7 +663,7 @@ def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, Dat
                                                                              DataDirectory,
                                                                              fname_prefix,
                                                                              basin_number,
-                                                                             remove_list_index)
+                                                                             remove_list_index, parallel)
 
     # Returns the remove_list_index, which is a list where each element
     # is a list of tributaries removed in an iteration,
@@ -674,7 +674,7 @@ def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, Dat
 
 def Calculate_movern_after_iteratively_removing_outliers(movern_list, DataDirectory,
                                                          fname_prefix, basin_number,
-                                                         remove_list_index):
+                                                         remove_list_index, parallel=False):
     """
     This function takes the remove list index, which contains information about
     the sequence of tributaries to be removed, and then recalculates MLE by incrementally
@@ -701,7 +701,7 @@ def Calculate_movern_after_iteratively_removing_outliers(movern_list, DataDirect
     All_MLE = []
     for m_over_n in movern_list:
         MLE_vals = RecalculateTotalMLEWithRemoveList(DataDirectory, fname_prefix,
-                                                     m_over_n,basin_number, remove_list_index)
+                                                     m_over_n,basin_number, remove_list_index, parallel)
         All_MLE.append(MLE_vals)
 
 
@@ -2680,7 +2680,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     labeldict = {}
     # get the best fit m/n for each basin
     if movern_method == "Chi_full":
-        Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
+        Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, parallel=parallel)
         #MOverNDict = SimpleMaxMLECheck(BasinDF)
         m_over_ns = [round(i[0],2) for i in best_fit_movern_dict.values()]
         #print m_over_ns

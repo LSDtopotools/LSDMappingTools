@@ -6,8 +6,8 @@ from LSDPlottingTools import LSDMap_SAPlotting as SA
 from LSDMapFigure import PlottingHelpers as Helper
 
 #let's test the basin appenders
-
-DataDirectory = '/home/s0923330/Data_for_papers/movern_paper/DEMs_for_analysis/sierra_nevadas/'
+DataDirectory = '/home/mhurst/movern_analysis/Sierras/'
 
 # Helper.AppendBasinCSVs(DataDirectory)
 Helper.AppendChiResidualsCSVs(DataDirectory)
+
