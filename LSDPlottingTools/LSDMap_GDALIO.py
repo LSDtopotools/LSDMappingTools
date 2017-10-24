@@ -26,7 +26,6 @@ def getNoDataValue(rasterfn):
 
     Author: SMM
     """
-
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
     return band.GetNoDataValue()

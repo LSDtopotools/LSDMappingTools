@@ -2597,7 +2597,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory,
                       use_keys_not_junctions = True, show_colourbar = True,
                       discrete_cmap=True, n_colours=len(basin_keys), colorbarlabel = "Basin ID",
-                      colourmap = cmap, adjust_text = False)
+                      colourmap = cmap, adjust_text = False, parallel=parallel)
 
     # add the basin outlines
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)

@@ -597,7 +597,7 @@ class MapFigure(object):
                          use_keys_not_junctions = True,
                          label_basins = True, adjust_text = False, rename_dict = {},
                          value_dict = {}, mask_list = [],
-                         edgecolour='black', linewidth=1, cbar_dict = {}):
+                         edgecolour='black', linewidth=1, cbar_dict = {}, parallel=False):
         """
         This is a basin plotting routine. It plots basins as polygons which
         can be coloured and labelled in various ways.
@@ -624,6 +624,7 @@ class MapFigure(object):
             cbar_dict (dict): an optional dictionary to set the min and max of the colourbars, where the key is the
             min and the max, and the values are what you want to set the colourbar to. Leave empty if you just want this
             to be the same as the value dict.
+            parallel (bool): option flag for processing multiple basin raster files triggered by parallel chi mapping tool.
 
         Author: SMM
         """
@@ -635,12 +636,41 @@ class MapFigure(object):
         # Get the basin outlines
         # Basins referes to a dict where the key is the junction index and the
         # value is a shapely polygon object
-        Basins = LSDP.GetBasinOutlines(Directory, RasterName)
+        if not parallel:
+          Basins = LSDP.GetBasinOutlines(Directory, RasterName)
+        else:
+          basin_dict = phelp.MapBasinsToKeys(Directory)
+          Basins = {}
+          for outlet_jn, basin_key in basin_dict.iteritems():
+            this_fname = "basin"+str(outlet_jn)+"_AllBasins.bil"
+            if (len(Basins) == 0):
+              Basins = LSDP.GetBasinOutlines(Directory,this_fname) 
+
+            else:
+              TempBasins = LSDP.GetBasinOutlines(Directory,this_fname)
+              
+              print("THIS IS IT")
+              print(TempBasins)
+              
+              for temp_outlet, temp_basin_key in TempBasins.iteritems():
+                if len(TempBasins) > 1:
+                  print("MULTIPLE BASINS IN ", outlet_jn)
+                TempBasins[outlet_jn] = TempBasins.pop(temp_outlet)
+                break
+                
+              print("THIS IS IT")
+              print(TempBasins)
+              
+              Basins.update(TempBasins)
 
         # Now check if you want to mask the basins
         # get the basin IDs to make a discrete colourmap for each ID
-        BasinInfoDF = phelp.ReadBasinInfoCSV(Directory, BasinInfoPrefix)
-
+        #load the file
+        if not parallel:
+          BasinInfoDF = phelp.ReadBasinInfoCSV(Directory, BasinInfoPrefix)
+        else:
+          BasinInfoDF = phelp.AppendBasinInfoCSVs(Directory)
+        
         # Extract the basin keys
         basin_keys = list(BasinInfoDF['basin_key'])
         basin_keys = [int(x) for x in basin_keys]
