@@ -1074,7 +1074,7 @@ class MapFigure(object):
 
 
     def add_point_data(self, thisPointData,column_for_plotting = "None",
-                       this_colourmap = "cubehelix", show_colourbar="False", colourbar_location = "bottom",
+                       this_colourmap = "cubehelix", show_colourbar = False, colourbar_location = "bottom",
                        colorbarlabel = "Colourbar",
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,

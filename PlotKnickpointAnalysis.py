@@ -17,6 +17,7 @@ import os
 from LSDPlottingTools import LSDMap_BasicMaps as BP
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
+from LSDPlottingTools import LSDMap_ChiPlotting as CP
 
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.
@@ -60,6 +61,19 @@ def main(argv):
     parser.add_argument("-cba", "--chi_basin", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each selected basins, MAD method binned by basins")
     parser.add_argument("-cb", "--chi_basic", type=bool, default = False, help="Turn to True to plot raw knickpoints on the top of a chi profiel for each selected basins")
     parser.add_argument("-cr", "--chi_river", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each selected basins, MAD method binned by rivers")
+    parser.add_argument("-cRKr", "--chi_RKEY_river", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each river, MAD method binned by rivers")
+    parser.add_argument("-cRKb", "--chi_RKEY_basin", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each river, MAD method binned by basin")
+    parser.add_argument("-cRKraw", "--chi_RKEY_raw", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each river, raw data")
+    
+    # Mchi_related
+    parser.add_argument("-mcstd", "--mchi_map_std", type=bool, default = False, help="Turn to True to plot a standart M_chi map on an HS. Small reminder, Mchi = Ksn if calculated with A0 = 1.")
+    parser.add_argument("-mcbk", "--mchi_map_black", type=bool, default = False, help="Turn to True to plot a standart M_chi map on Black background. Small reminder, Mchi = Ksn if calculated with A0 = 1.")
+
+    # Diverse parameters
+    parser.add_argument("-minmc", "--min_mchi_map", type=int, default = 0, help="mininum value for the scale of your m_chi maps, default 0")
+    parser.add_argument("-maxmc", "--max_mchi_map", type=int, default = 0, help="maximum value for the scale of your m_chi maps, default auto")
+
+
 
 
     # ALL
@@ -94,6 +108,12 @@ def main(argv):
     if not args.fname_prefix:
         print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
         sys.exit()
+    
+    # Preparing the min_max color for mchi maps
+    if(args.max_mchi_map <= args.min_mchi_map):
+        colo = []
+    else:
+        colo = [args.min_mchi_map,args.max_mchi_map]
 
 
 ##################### Plotting facilities
@@ -126,6 +146,22 @@ def main(argv):
     if args.chi_river:
         KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river")
 
+    if args.chi_RKEY_river:
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river", grouping = "source_key")
+
+    if args.chi_RKEY_raw:
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, grouping = "source_key")
+
+    if args.chi_RKEY_basin:
+        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, grouping = "basin_key")
+
+    if args.mchi_map_std:
+        
+        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo)
+
+    if args.mchi_map_black:
+        
+        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, bkbg = True)
 
 
 

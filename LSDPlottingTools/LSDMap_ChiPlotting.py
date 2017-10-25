@@ -8,6 +8,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
+import os
 from . import cubehelix
 import matplotlib.pyplot as plt
 #from cycler import cycler
@@ -19,6 +20,13 @@ import LSDPlottingTools.LSDMap_BasicPlotting as LSDMap_BP
 import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
 import LSDPlottingTools.LSDMap_BasicManipulation as LSDMap_BM
 import LSDPlottingTools.statsutilities as LSDStats
+from LSDMapFigure.PlottingRaster import MapFigure
+from LSDMapFigure.PlottingRaster import BaseRaster
+from LSDMapFigure import PlottingHelpers as Helper
+from LSDPlottingTools import colours as lsdcolours
+from LSDPlottingTools import statsutilities as SUT
+from LSDPlottingTools import init_plotting_DV
+import LSDPlottingTools as LSDP
 
 import LSDMapFigure.PlottingHelpers as Helper
 
@@ -1855,3 +1863,80 @@ def ChannelProfilePlot(DataDirectory, fname_prefix, FigFormat='png', size_format
     plt.savefig(newFilename,format=FigFormat,dpi=300)
     ax.cla()
     plt.close(fig)
+
+
+def map_Mchi_standard(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [],outlier_detection_method = "None", log = False, colmanscal = [], bkbg = False):
+    
+    """
+    This creates a basic knickpoint map
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list (list): List of the basin ID you want.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        mancut (float): manual cutoff for the data selection.
+        outlier_detection_method (str): determine the outlier detection method to select the right knickpoints
+        colmanscal = manual color scale for the m_chi [min,max]
+        bkbg (bool): turn to True to plot the data with a black background
+
+    Returns:
+        Shaded relief plot with the basins outlines and the knickpoints sized by intensity
+
+    Author: BG - 05/10/2017
+    """
+
+
+    # check if a directory exists for the chi plots. If not then make it.
+    raster_directory = DataDirectory+'raster_plots/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
+    # Set up fonts for plots
+    basls = basin_list
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_width_inches = 6.25
+    elif size_format == "big":
+        fig_width_inches = 16
+    else:
+        fig_width_inches = 4.92126
+
+
+
+    # get the rasters
+    raster_ext = '.bil'
+    BackgroundRasterName = fname_prefix+raster_ext
+    HillshadeName = fname_prefix+'_hs'+raster_ext
+    BasinsName = fname_prefix+'_AllBasins'+raster_ext
+
+    
+    # create the map figure
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", alpha = 0.7)
+    if bkbg:
+        MF.add_drape_image(HillshadeName,DataDirectory,colourmap = "gray",alpha=1,colour_min_max = [10000,10001],modify_raster_values=False,old_values=[], new_values=[],NFF_opti = True)
+        # plot the basin outlines
+        Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+        MF.plot_polygon_outlines(Basins, linewidth=0.5, colour = "white")
+    else:    
+        # plot the basin outlines
+        Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+        MF.plot_polygon_outlines(Basins, linewidth=0.5)
+
+    # add the channel network without color
+    ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix)
+    ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+    MF.add_point_data(ChannelPoints,this_colourmap = "RdBu_r", column_for_plotting = "m_chi",show_colourbar = True, colour_manual_scale = colmanscal, scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.4,max_point_size = 4,min_point_size = 1,zorder=100)
+
+    # add the knickpoints plots
+    if bkbg:
+        ImageName = raster_directory+fname_prefix+"_Mchi_BK."+FigFormat
+    else:
+        ImageName = raster_directory+fname_prefix+"_Mchi_HS."+FigFormat
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure

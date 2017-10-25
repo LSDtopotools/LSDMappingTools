@@ -48,16 +48,16 @@ def get_outliers_from_DF(df, method = ""):
 
     if(method == "river"):
         print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the river")
-        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "source_key", threshold = 2)
+        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "source_key", threshold = 2.5)
 
     elif(method == "basin"):
         print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
-        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "basin_key", threshold = 2)
+        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "basin_key", threshold = 2.5)
 
     elif(method == "basin"):
         print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
         df["general"] = pd.Serie(np.ones(df.shape[0]),index = df.index)
-        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "general", threshold = 2)
+        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "general", threshold = 2.5)
 
     return df
 
@@ -248,7 +248,7 @@ def basic_hist(DataDirectory, fname_prefix ,basin_list = [] , size_format="ESURF
 
 
 
-def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], mancut = 0, outlier_detection_method = "None"):
+def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], mancut = 0, outlier_detection_method = "None", grouping = "basin_key"):
     
     """
     This creates a chi profiles with the knickpoint on top of the profile
@@ -271,6 +271,8 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
     
     # check if a directory exists for the chi plots. If not then make it.
     raster_directory = DataDirectory+'chi_profile_knickpoint/'
+    if(grouping == "source_key"):
+        raster_directory = DataDirectory+'chi_profile_knickpoint_by_source/'
     if not os.path.isdir(raster_directory):
         os.makedirs(raster_directory)
 
@@ -303,7 +305,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
 
 
     #now plotting
-    for hussard in Kdf["basin_key"].unique():
+    for hussard in Kdf[grouping].unique():
         print(hussard)
         # make a figure
         if size_format == "geomorphology":
@@ -320,22 +322,43 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
         ax = fig.add_subplot(gs[0:100,0:100])
 
         # Selecting the data for this basin
-        tcdf = ChannelDF[ChannelDF["basin_key"] == hussard] 
-        tKdf = Kdf[Kdf["basin_key"] == hussard]
+        tcdf = ChannelDF[ChannelDF[grouping] == hussard] 
+        tKdf = Kdf[Kdf[grouping] == hussard]
 
-        ax.scatter(tcdf["chi"],tcdf["elevation"], c = tcdf["source_key"], cmap = "Accent", s = 1, lw = 0)
         ax.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"], s = tKdf["diff"])
 
+        ax.scatter(tcdf["chi"],tcdf["elevation"], c = tcdf["source_key"], cmap = "Accent", s = 1, lw = 0)
+        
         ax.set_xlabel("Chi")
         ax.set_ylabel("z")
 
-        save_name = raster_directory + fname_prefix + "_basin" + str(hussard) + "_"+outlier_detection_method+"."+FigFormat
+        save_name = raster_directory + fname_prefix + "_" + grouping + str(hussard) + "_"+outlier_detection_method+"."+FigFormat
 
         plt.savefig(save_name, dpi = 600)
         plt.clf()
 
 
     print("done")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
