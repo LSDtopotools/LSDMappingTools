@@ -61,6 +61,8 @@ def main(argv):
     parser.add_argument("-t", "--topo", type=bool, default = False, help="Turn to True to plot a basic topographic map with the Terrain colormap")
     parser.add_argument("-tg", "--topo_gray", type=bool, default = False, help="Turn to True to plot a basic grayscaled topographic map")
     parser.add_argument("-S", "--Slope", type=bool, default = False, help="Turn to True to plot a basic Slope map")
+    parser.add_argument("-C", "--Curvature", type=bool, default = False, help="Turn to True to plot a basic Curvature map")
+
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
@@ -77,6 +79,8 @@ def main(argv):
         BP.PlotTopoRaster(args.base_directory,args.fname_prefix, FigFormat = args.FigFormat, size_format = args.size_format, colors = "gray")
     if args.Slope:
         BP.PlotSlopeRaster(args.base_directory,args.fname_prefix, FigFormat = args.FigFormat, size_format = args.size_format)
+    if args.Curvature:
+        BP.PlotCurveRaster(args.base_directory,args.fname_prefix, FigFormat = args.FigFormat, size_format = args.size_format)
 
 
 #=============================================================================
