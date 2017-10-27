@@ -639,29 +639,7 @@ class MapFigure(object):
         if not parallel:
           Basins = LSDP.GetBasinOutlines(Directory, RasterName)
         else:
-          basin_dict = phelp.MapBasinsToKeys(Directory)
-          Basins = {}
-          for outlet_jn, basin_key in basin_dict.iteritems():
-            this_fname = "basin"+str(outlet_jn)+"_AllBasins.bil"
-            if (len(Basins) == 0):
-              Basins = LSDP.GetBasinOutlines(Directory,this_fname) 
-
-            else:
-              TempBasins = LSDP.GetBasinOutlines(Directory,this_fname)
-              
-              print("THIS IS IT")
-              print(TempBasins)
-              
-              for temp_outlet, temp_basin_key in TempBasins.iteritems():
-                if len(TempBasins) > 1:
-                  print("MULTIPLE BASINS IN ", outlet_jn)
-                TempBasins[outlet_jn] = TempBasins.pop(temp_outlet)
-                break
-                
-              print("THIS IS IT")
-              print(TempBasins)
-              
-              Basins.update(TempBasins)
+          Basins = LSDP.GetMultipleBasinOutlines(Directory)
 
         # Now check if you want to mask the basins
         # get the basin IDs to make a discrete colourmap for each ID
@@ -789,7 +767,8 @@ class MapFigure(object):
             # now plot the polygons
             print('Plotting the polygons, colouring by basin...')
             for key, poly in Basins.iteritems():
-                colourkey = key % n_colours
+                print(key, int(key))
+                colourkey = int(key) % n_colours
                 # We need two patches since we don't want the edges transparent
                 this_patch = PolygonPatch(poly, fc=new_colours.to_rgba(colourkey), ec="none", alpha=alpha)
                 self.ax_list[0].add_patch(this_patch)

@@ -2599,8 +2599,12 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
                       discrete_cmap=True, n_colours=len(basin_keys), colorbarlabel = "Basin ID",
                       colourmap = cmap, adjust_text = False, parallel=parallel)
 
-    # add the basin outlines
-    Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+    # add the basin outlines ### need to parallelise
+    if not parallel:
+      Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+    else:
+      Basins = LSDP.GetMultipleBasinOutlines(DataDirectory)
+      
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the channel network
@@ -2613,7 +2617,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # add the basin labelling
     label_dict = dict(zip(basin_junctions,basin_keys))
-    Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
+    Points = LSDP.GetPointsWithinMultipleBasins(DataDirectory, BasinsName)
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict,zorder=200)
 
     # Save the figure
