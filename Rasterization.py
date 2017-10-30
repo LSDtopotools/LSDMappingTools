@@ -98,7 +98,7 @@ def main(argv):
 			else:
 				south_string = ""
 			# preparing the gdalwarp command
-			gdal_cmd = "gdalwarp -t_srs '+proj=utm +zone=%s%s +datum=WGS84' -of ENVI -r cubic -tr %s %s %s %s" % (args.UTM_CODE,south_string,args.resolution,args.resolution,args.directory+rast_name, args.directory+rast_pre+'_rast.bil') 
+			gdal_cmd = "gdalwarp -t_srs '+proj=utm +zone=%s%s +datum=WGS84' -of ENVI -tr %s %s %s %s" % (args.UTM_CODE,south_string,args.resolution,args.resolution,args.directory+rast_name, args.directory+rast_pre+'_rast.bil') 
 			print("You choose to convert your file, I am generating a gdalwarp command from your information hopefully you won't have errors.")
 			print(gdal_cmd)
 			subprocess.call(gdal_cmd, shell=True)
