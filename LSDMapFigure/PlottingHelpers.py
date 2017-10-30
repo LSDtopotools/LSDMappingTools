@@ -511,6 +511,41 @@ def ReadBasinStatsCSV(DataDirectory, fname_prefix):
     df = pd.read_csv(DataDirectory+fname)
 
     return df
+    
+def AppendBasinStatsCSVs(DataDirectory):
+    """
+    This function reads in the files with the prefic "basin"
+    and the suffix '_movernstats_basinstats.csv'
+    to a pandas dataframe, for use with parallel analysis
+
+    Args:
+        DataDirectory: the data directory
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC, MDH
+    """
+    
+    # get the csv filename
+    basin_stats_suffix = '_movernstats_basinstats.csv'
+    
+    # decclare empty data frame
+    MasterDF = pd.DataFrame()
+    
+    # get the list of basins as a dict
+    basin_dict = MapBasinsToKeys(DataDirectory)
+    
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        print outlet_jn, basin_key
+        this_fname = "basin"+str(outlet_jn)+basin_stats_suffix
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+        
+    return MasterDF
 
 def ReadBasinStatsPointCSV(DataDirectory, fname_prefix):
     """
@@ -680,6 +715,36 @@ def ReadRawSAData(DataDirectory, fname_prefix):
 
     return df
 
+def AppendRawSAData(DataDirectory):
+    """
+    This function reads in the raw SA data to a pandas dataframe
+    from multiple CSV files with the filename prefix "basin"
+    For use with parallelised methods
+
+    Args:
+        DataDirectory: the data directory
+        
+    Returns:
+        pandas dataframe with the raw SA data
+
+    Author: MDH, FJC
+    """
+    # get the csv filename
+    csv_suffix = "_SAvertical.csv"
+    
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+        
+    return MasterDF
+    
 def ReadSegmentedSAData(DataDirectory, fname_prefix):
     """
     This function reads in the segmented SA data to a pandas dataframe
@@ -902,6 +967,26 @@ def AppendFullStatsCSVs(DataDirectory, m_over_n):
         MasterDF = MasterDF.append(df, ignore_index = True)
 
     return MasterDF
+
+def ReadMovernCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in a the movern csv with the suffix "_movern"
+
+    Args:
+        DataDirectory (str): the data DataDirectory
+        fname_prefix
+    Returns:
+        pandas dataframe with the appended movern csvs
+
+    Author: MDH
+    """
+    
+    # get the csv filename
+    csv_suffix = '_movern.csv'
+    
+    df = pd.read_csv(DataDirectory+fname_prefix+csv_suffix)
+    
+    return df
 
 def AppendMovernCSV(DataDirectory):
     """

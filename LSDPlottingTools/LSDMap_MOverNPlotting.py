@@ -827,7 +827,8 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
     if not parallel:
         pd_DF = Helper.ReadBasinStatsCSV(DataDirectory, fname_prefix)
     else:
-        pd_DF = Helper.AppendBasinCSVs(DataDirectory)
+        pd_DF = Helper.AppendBasinStatsCSVs(DataDirectory)
+        
     shp = pd_DF.shape
     max_MLEs = []
     max_MLEs_index = []
@@ -835,11 +836,9 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
         #print("I is: "+str(i))
         a = pd_DF.loc[[i]]
         b = np.asarray(a)
-        c = b[0,:]
+        c = b[0,2:]
         max_MLEs.append(max(c))
         max_MLEs_index.append(np.argmax(c))
-    print("max_MLEs are: ")
-    print(max_MLEs)
     m_over_n_of_max = []
 
     for idx in max_MLEs_index:
@@ -872,7 +871,7 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
     ax = fig.add_subplot(gs[5:100,10:95])
 
     # load the m_over_n data file
-    thisPointData = LSDP.LSDMap_PointData(DataDirectory+movern_profile_file)
+    thisPointData = LSDP.LSDMap_PointData(DataDirectory,movern_profile_file,parallel=parallel)
     allBasinStatsData = LSDP.LSDMap_PointData(DataDirectory+movern_basin_stats_file)
 
     print("m over n values are: ")
@@ -2617,7 +2616,11 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # add the basin labelling
     label_dict = dict(zip(basin_junctions,basin_keys))
-    Points = LSDP.GetPointsWithinMultipleBasins(DataDirectory, BasinsName)
+    if not parallel:
+      Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
+    else:
+      Points = LSDP.GetPointsWithinMultipleBasins(DataDirectory, BasinsName)
+      
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict,zorder=200)
 
     # Save the figure
@@ -2709,7 +2712,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_points.'+FigFormat
         title = "Chi Monte Carlo analysis"
     elif movern_method == "SA":
-        SlopeAreaDF = SA.LinearRegressionRawData(DataDirectory,fname_prefix)
+        SlopeAreaDF = SA.LinearRegressionRawData(DataDirectory,fname_prefix,parallel=parallel)
         moverns = SlopeAreaDF['regression_slope'].tolist()
         MOverNDict = dict(zip(basin_keys,moverns))
         # labelling the basins
@@ -2769,10 +2772,14 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, value_dict = MOverNDict,
                           use_keys_not_junctions = True, show_colourbar = False,
                           discrete_cmap=True, n_colours=n_colours, colorbarlabel = "$m/n$",
-                          colourmap = mn_cmap, adjust_text = False, cbar_dict=cbar_dict)
-
-    # plot the basin outlines
-    Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+                          colourmap = mn_cmap, adjust_text = False, cbar_dict=cbar_dict, parallel=parallel)
+                      
+    # add the basin outlines
+    if not parallel:
+      Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+    else:
+      Basins = LSDP.GetMultipleBasinOutlines(DataDirectory)
+      
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the channel network
@@ -2784,7 +2791,11 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, column_for_scaling='drainage_area',alpha=0.1,zorder=100)
 
     # add the basin labelling
-    Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
+    if not parallel:
+      Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
+    else:
+      Points = LSDP.GetPointsWithinMultipleBasins(DataDirectory, BasinsName)
+
     print "Adding labels, the label dict is:", labeldict
     MF.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=labeldict, zorder=200)
 

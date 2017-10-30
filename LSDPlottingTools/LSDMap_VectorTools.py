@@ -162,7 +162,7 @@ def GetPointsWithinMultipleBasins(DataDirectory,basins_fname):
 	Author: FJC
 	"""
 	# get the basin polygons
-	BasinDict = GetMultipleBasinOutlines(DataDirectory, basins_fname)
+	BasinDict = GetMultipleBasinOutlines(DataDirectory)
 
 	# get the centroids
 	PointDict = {}

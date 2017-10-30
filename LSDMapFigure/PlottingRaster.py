@@ -796,13 +796,16 @@ class MapFigure(object):
             gray_colour = "#a9a9a9"
 
             # now plot the polygons
+            print Basins
+            print junction_to_key_dict
             print('Plotting the polygons, colouring by value...')
             for junc, poly in Basins.iteritems():
 
                 # If we are using keys, we need to check to see if the key referred to by
                 # this junction is in the value dict
                 if use_keys_not_junctions:
-                    this_key = junction_to_key_dict[junc]
+                    print junc
+                    this_key = junction_to_key_dict[int(junc)]
                     print ("This key is: "+str(this_key)+", and this value is: "+str(value_dict[this_key]))
                     if this_key in value_dict:
                         this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[this_key] ), ec="none", alpha=alpha)
@@ -1321,13 +1324,13 @@ class MapFigure(object):
         """
         from shapely.geometry import Point
 
-
         # rewrite with new values if you need to (for basins)
         new_points = {}
         if label_dict:
             for key, label in label_dict.iteritems():
                 # get the point for this key
-                new_points[label] = points.get(key)
+                new_points[label] = points.get(str(int(key)))
+                print new_points[label]
             points = new_points
 
         # A list of text objects
@@ -1340,6 +1343,7 @@ class MapFigure(object):
         # Format the bounding box
         bbox_props = dict(boxstyle="Round4,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
 
+        print points
         for key, point in points.iteritems():
             x = point.x
             y = point.y

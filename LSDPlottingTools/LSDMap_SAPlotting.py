@@ -27,7 +27,7 @@ from LSDMapFigure import PlottingHelpers as Helper
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## Regressions
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
+def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[],parallel=False):
     """
     This function performs a linear regression on all of the slope-area data.
     It returns a dataframe with the linear regression info for each basin key.
@@ -43,9 +43,10 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
     Author: SMM and FJC
     """
     # read in binned data
-
-
-    df = Helper.ReadRawSAData(DataDirectory, DEM_prefix)
+    if not parallel:
+      df = Helper.ReadRawSAData(DataDirectory, DEM_prefix)
+    else:
+      df = Helper.AppendRawSAData(DataDirectory)
 
     # get a list of the basins if needed
     if basin_list == []:
