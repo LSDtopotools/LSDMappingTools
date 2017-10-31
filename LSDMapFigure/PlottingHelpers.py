@@ -1278,5 +1278,4 @@ def MapBasinsToKeys(DataDirectory):
             basin_dict[fname] = key
             key+=1
 
-    print basin_dict
     return basin_dict

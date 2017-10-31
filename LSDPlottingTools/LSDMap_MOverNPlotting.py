@@ -2577,7 +2577,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     basin_keys = [int(x) for x in basin_keys]
 
     basin_junctions = list(BasinInfoDF['outlet_junction'])
-    basin_junctions = [float(x) for x in basin_junctions]
+    basin_junctions = [int(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
     print basin_keys
@@ -2621,12 +2621,13 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # add the basin labelling
     label_dict = dict(zip(basin_junctions,basin_keys))
+    
     if not parallel:
       Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
     else:
       Points = LSDP.GetPointsWithinMultipleBasins(DataDirectory, BasinsName)
       
-    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict,zorder=200)
+    MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict, zorder=200)
 
     # Save the figure
     ImageName = raster_directory+fname_prefix+'_basin_keys.'+FigFormat
@@ -2684,7 +2685,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     basin_keys = [int(x) for x in basin_keys]
 
     basin_junctions = list(BasinInfoDF['outlet_junction'])
-    basin_junctions = [float(x) for x in basin_junctions]
+    basin_junctions = [int(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
     print basin_keys

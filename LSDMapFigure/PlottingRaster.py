@@ -1325,12 +1325,15 @@ class MapFigure(object):
         from shapely.geometry import Point
 
         # rewrite with new values if you need to (for basins)
+        print points
+        print label_dict
+        
         new_points = {}
         if label_dict:
             for key, label in label_dict.iteritems():
                 # get the point for this key
-                new_points[label] = points.get(str(int(key)))
-                print new_points[label]
+                new_points[label] = points.get(key)
+                print key, label, new_points[label]
             points = new_points
 
         # A list of text objects
