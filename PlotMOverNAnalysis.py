@@ -111,21 +111,27 @@ def main(argv):
     # get the base directory
     if args.base_directory:
         this_dir = args.base_directory
+        # check if you remembered a / at the end of your path_name
+        if not this_dir.endswith("/"):
+            print("You forgot the '/' at the end of the directory, appending...")
+            this_dir = this_dir+"/"
+            print this_dir
     else:
         this_dir = os.getcwd()
+
 
     # get the range of moverns, needed for plotting
     if not args.parallel:
         BasinDF = Helper.ReadBasinStatsCSV(this_dir, args.fname_prefix)
     else:
         BasinDF = Helper.AppendBasinCSVs(this_dir)
-        
+
         # if parallel, get the fname from the data directory. This assumes that your directory is called
         # something sensible that relates to the DEM name.
         split_fname = this_dir.split("/")
         split_fname = split_fname[len(split_fname)-2]
         #args.fname_prefix = split_fname # commented out for now since base fname given, basins will always have basinX fname_prefix
-        
+
 
     # we need the column headers
     columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
