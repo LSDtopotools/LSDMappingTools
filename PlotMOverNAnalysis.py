@@ -115,7 +115,6 @@ def main(argv):
         if not this_dir.endswith("/"):
             print("You forgot the '/' at the end of the directory, appending...")
             this_dir = this_dir+"/"
-            print this_dir
     else:
         this_dir = os.getcwd()
 
