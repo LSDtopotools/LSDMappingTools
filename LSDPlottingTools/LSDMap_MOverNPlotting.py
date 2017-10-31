@@ -331,6 +331,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
         FullChiBasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
     else:
         FullChiBasinDF = Helper.AppendBasinCSVs(DataDirectory)
+        
     # Let's get the list of basins
     if basin_list == []:
         print("You didn't supply a list of basins, so I'm going to analyse all of them.")
@@ -360,7 +361,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     print "Now getting the m/n from the chi residuals"
 
     # get the best fit m/n from the chi residuals method
-    ResidualsDF = GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list)
+    ResidualsDF = GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list, parallel=parallel)
     OutDF['Chi_residuals'] = ResidualsDF['Median_MOverNs']
     OutDF['Chi_residuals_min'] = ResidualsDF['FirstQ_MOverNs']
     OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
@@ -450,6 +451,7 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
     # we open the first file just so that we can get a counter list
+    print "PARALLEL = ", parallel
     if not parallel:
         FirstDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,m_over_n_values[0])
     else:
@@ -1605,7 +1607,7 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
     plt.close(fig)
 
 
-def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7, size_format = "geomorphology", parallel=False):
+def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7, size_format = "geomorphology", FigFormat="png", parallel=False):
     """
     This function is used to plot the chi profiles as they have outliers removed.
     It calls thefunction CheckMLEOutliers, which you should read to get details
@@ -1668,7 +1670,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
 
     # First we get all the information about outliers, m/n values and MLE
     # values from the CheckMLEOutliers function
-    Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
+    Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern, parallel=parallel)
 
     # Now get the chi profiles of all the basins and channels
     # Load from file and put into a pandas data frame
@@ -1897,7 +1899,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 
     # First we get all the information about outliers, m/n values and MLE
     # values from the CheckMLEOutliers function
-    Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern)
+    Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list, start_movern, d_movern, n_movern, parallel=parallel)
 
     # Now get the chi profiles of all the basins and channels
     # Load from file and put into a pandas data frame
@@ -2278,7 +2280,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
         ax.cla()
         plt.close(fig)
 
-def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_format='ESURF', FigFormat='png', start_movern=0.1, n_movern=7, d_movern=0.1, mn_method = "Chi", show_legend=True):
+def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_format='ESURF', FigFormat='png', start_movern=0.1, n_movern=7, d_movern=0.1, mn_method = "Chi", show_legend=True, parallel=False):
     """
     This function makes a joyplot showing the distribution of m/n values for each method
 
@@ -2333,8 +2335,11 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     # ax = fig.add_subplot(gs[5:100,10:95])
 
     # read in the summary csv
-    df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
-    print df
+    if not parallel:
+      df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
+    else:
+      print "MakeMOverNSummaryHistogram not parallelised yet"
+      return
 
     # get the basin keys
     basin_keys = df['basin_key'].tolist()
@@ -2891,7 +2896,7 @@ def PlotMOverNDicts(DataDirectory,fname_prefix,SA_based_dict,Chi_based_dict, Fig
     plt.savefig(ImageName, format=FigFormat, dpi=300)
     fig.clf()
 
-def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',size_format='ESURF'):
+def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',size_format='ESURF', parallel=False):
     """
     This function makes a plot of the MCMC uncertainty analysis for the MLE collinearity
     NOTE: haven't set this up for basins in parallel yet (FJC 19/10/17)
@@ -2902,6 +2907,7 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
         basin_list: list of basins to analyse. If none are passed then all basins are plotted.
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        parallel (bool): If true the data exists in multiple files for each basin and must be recombined (Default is False)
 
     Author: FJC
     """
@@ -2931,9 +2937,12 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     ax = fig.add_subplot(gs[5:100,10:95])
 
     # get the basin info
-
-    basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
-    basin_stats_df = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    if not parallel:
+      basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
+      basin_stats_df = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
+    else:
+      basin_df = Helper.AppendBasinInfoCSVs(DataDirectory)
+      basin_stats_df = Helper.AppendBasinStatsCSVs(DataDirectory)
 
     basin_keys = basin_df['basin_key']
 
@@ -3001,7 +3010,8 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
     if not parallel:
         basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
     else:
-        basin_Df = Helper.AppendBasinInfoCSVs(DataDirectory)
+        basin_df = Helper.AppendBasinInfoCSVs(DataDirectory)
+        
     basin_keys = basin_df['basin_key']
 
     if basin_list == []:
