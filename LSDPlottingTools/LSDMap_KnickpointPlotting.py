@@ -331,7 +331,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
         tsegmented_elev = segmented_elev[segmented_elev[grouping] == hussard]
         # Setting the alpha, if segmented elevation is plotted, we want to see it under the chi plots
         if (segments):
-            alo = 0.5
+            alo = 0.7
         else:
             alo = 1
 
@@ -340,18 +340,18 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
 
         # Plotting the segmented elevation -  it can be computationally expensive depending on your number of segments
         if(segments):
-            tcolseg = "g"
+            tcolseg = "#01DF01"
             for seg in tsegmented_elev["segment_number"].unique():
                 
                 # Setting the color of the segment and inverting it each turn
-                if(tcolseg == "g"):
-                    tcolseg = "k"
+                if(tcolseg == "#01DF01"):
+                    tcolseg = "#2E64FE"
                 else:
-                    tcolseg = "g"
+                    tcolseg = "#01DF01"
                 # selecting the unique segment I want
                 teploseg = tsegmented_elev[tsegmented_elev["segment_number"] == seg]
                 #plotting the segments
-                ax.plot(teploseg["chi"],teploseg["segmented_elevation"], color = tcolseg)
+                ax.plot(teploseg["chi"],teploseg["segmented_elevation"], color = tcolseg, lw = 0.68)
         ## end with the segments
 
         # Plotting the chi profile
