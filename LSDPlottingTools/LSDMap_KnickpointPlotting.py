@@ -248,7 +248,7 @@ def basic_hist(DataDirectory, fname_prefix ,basin_list = [] , size_format="ESURF
 
 
 
-def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], mancut = 0, outlier_detection_method = "None", grouping = "basin_key"):
+def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], mancut = 0, outlier_detection_method = "None", grouping = "basin_key", segments = True):
     
     """
     This creates a chi profiles with the knickpoint on top of the profile
@@ -261,6 +261,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
         mancut (float): manual cutoff for the data selection.
         outlier_detection_method (str): determine the outlier detection method to select the right knickpoints
+        segments (bool): if segments is True, it plots the Mchi segmented elevation
 
     Returns:
         Shaded relief plot with the basins outlines and the knickpoints sized by intensity
@@ -291,9 +292,12 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
     # add the knickpoints plots
     
     Kdf = Helper.ReadKnickpointCSV(DataDirectory,fname_prefix)
+
+    segmented_elev = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix, type = "knickpoint")
     # Selecting the basins in case you choose specific ones
     if(len(basls)>0):
-        Kdf = Kdf[kdf["basin_key"].isin(basls)]
+        Kdf = Kdf[Kdf["basin_key"].isin(basls)]
+        segmented_elev = segmented_elev[segmented_elev["basin_key"].isin(basls)]
 
     # Sorting data in case of manual cut_off
     if(mancut>0):
@@ -324,14 +328,39 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
         # Selecting the data for this basin
         tcdf = ChannelDF[ChannelDF[grouping] == hussard] 
         tKdf = Kdf[Kdf[grouping] == hussard]
+        tsegmented_elev = segmented_elev[segmented_elev[grouping] == hussard]
+        # Setting the alpha, if segmented elevation is plotted, we want to see it under the chi plots
+        if (segments):
+            alo = 0.5
+        else:
+            alo = 1
 
+        # Plotting the knickpoints
         ax.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"], s = tKdf["diff"])
 
-        ax.scatter(tcdf["chi"],tcdf["elevation"], c = tcdf["source_key"], cmap = "Accent", s = 1, lw = 0)
-        
+        # Plotting the segmented elevation -  it can be computationally expensive depending on your number of segments
+        if(segments):
+            tcolseg = "g"
+            for seg in tsegmented_elev["segment_number"].unique():
+                
+                # Setting the color of the segment and inverting it each turn
+                if(tcolseg == "g"):
+                    tcolseg = "k"
+                else:
+                    tcolseg = "g"
+                # selecting the unique segment I want
+                teploseg = tsegmented_elev[tsegmented_elev["segment_number"] == seg]
+                #plotting the segments
+                ax.plot(teploseg["chi"],teploseg["segmented_elevation"], color = tcolseg)
+        ## end with the segments
+
+        # Plotting the chi profile
+        ax.scatter(tcdf["chi"],tcdf["elevation"], c = tcdf["source_key"], cmap = "Accent", s = 1, lw = 0, alpha = alo)
+
+        # Details
         ax.set_xlabel("Chi")
         ax.set_ylabel("z")
-
+        # saving details
         save_name = raster_directory + fname_prefix + "_" + grouping + str(hussard) + "_"+outlier_detection_method+"."+FigFormat
 
         plt.savefig(save_name, dpi = 600)

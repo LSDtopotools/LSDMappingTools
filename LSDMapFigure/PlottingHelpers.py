@@ -615,7 +615,7 @@ def ReadMCPointsCSV(DataDirectory, fname_prefix):
     return df
 
 
-def ReadMChiSegCSV(DataDirectory, fname_prefix):
+def ReadMChiSegCSV(DataDirectory, fname_prefix, type = "Normal"):
     """
     This function reads in the file with the suffix
     '_MChiSegmented.csv'
@@ -630,8 +630,13 @@ def ReadMChiSegCSV(DataDirectory, fname_prefix):
 
     Author: BG
     """
-    # get the csv filename
-    suffix = '_MChiSegmented.csv'
+    # get the csv filename depending of what you need
+
+    # The "knickpoint" type is a special M_Chi file generated with the exact degmented elevation
+    if(type == "Normal"): 
+        suffix = '_MChiSegmented.csv'
+    elif(type == "knickpoint"):
+        suffix = "_MChiSegmented_Ks.csv"
     fname = fname_prefix+suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
