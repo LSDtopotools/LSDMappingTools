@@ -48,16 +48,16 @@ def get_outliers_from_DF(df, method = ""):
 
     if(method == "river"):
         print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the river")
-        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "source_key", threshold = 2.5)
+        df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "source_key", threshold = 2.5)
 
     elif(method == "basin"):
         print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
-        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "basin_key", threshold = 2.5)
+        df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "basin_key", threshold = 2.5)
 
     elif(method == "basin"):
         print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
         df["general"] = pd.Serie(np.ones(df.shape[0]),index = df.index)
-        df = SUT.extract_outliers_by_header(df,data_column_name = "diff", header_for_group = "general", threshold = 2.5)
+        df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "general", threshold = 2.5)
 
     return df
 
@@ -150,7 +150,7 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
     # Sorting data in case of manual cut_off
     if(mancut>0):
         print("I am manually cutting off the data. If you need a automated outliers detection, switch mancut option off")
-        Kdf = Kdf[Kdf["diff"]> mancut]
+        Kdf = Kdf[Kdf["rad_diff"]> mancut]
     elif(outlier_detection_method != "None"):
         print("I will now select the outliers following the method " + outlier_detection_method)
         Kdf = get_outliers_from_DF(Kdf, method = outlier_detection_method)
@@ -158,7 +158,7 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
 
 
     KdfPoints = LSDP.LSDMap_PointData(Kdf, data_type = "pandas", PANDEX = True)
-    MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='diff',alpha=1,max_point_size = 15,min_point_size = 1,zorder=200)
+    MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='rad_diff',alpha=1,max_point_size = 15,min_point_size = 1,zorder=200)
 
     #Saving and stuffs
     if(outlier_detection_method == "None"):
@@ -223,7 +223,7 @@ def basic_hist(DataDirectory, fname_prefix ,basin_list = [] , size_format="ESURF
     
     ls_baboty = []
     for i in df["basin_key"].unique():
-        ls_baboty.append(df["diff"][df["basin_key"] == i])
+        ls_baboty.append(df["rad_diff"][df["basin_key"] == i])
 
     n,bins, patch = ax.hist(ls_baboty,bins = 50, stacked  = True)
     n = np.array(n)
@@ -288,7 +288,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
     
 
     # add the channel network without color
-    ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix)
+    ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix, type = "knickpoint")
     # add the knickpoints plots
     
     Kdf = Helper.ReadKnickpointCSV(DataDirectory,fname_prefix)
@@ -302,7 +302,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
     # Sorting data in case of manual cut_off
     if(mancut>0):
         print("I am manually cutting off the data. If you need a automated outliers detection, switch mancut option off")
-        Kdf = Kdf[Kdf["diff"]> mancut]
+        Kdf = Kdf[Kdf["rad_diff"]> mancut]
     elif(outlier_detection_method != "None"):
         print("I will now select the outliers following the method " + outlier_detection_method)
         Kdf = get_outliers_from_DF(Kdf, method = outlier_detection_method)
@@ -335,8 +335,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
         else:
             alo = 1
 
-        # Plotting the knickpoints
-        ax.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"], s = tKdf["diff"])
+        
 
         # Plotting the segmented elevation -  it can be computationally expensive depending on your number of segments
         if(segments):
@@ -356,6 +355,9 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
 
         # Plotting the chi profile
         ax.scatter(tcdf["chi"],tcdf["elevation"], c = tcdf["source_key"], cmap = "Accent", s = 1, lw = 0, alpha = alo)
+        # Plotting the knickpoints
+        sizel = abs(tKdf["rad_diff"]) * 200
+        ax.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"], s = sizel, alpha = 0.6, lw = 0.5,  cmap = "gnuplot", edgecolor = "k")
 
         # Details
         ax.set_xlabel("Chi")
@@ -406,7 +408,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
 
 
 def plot_knickpoint_elevations(PointData, DataDirectory, basin_key=0, kp_threshold=0,
-                               FigFileName='Image.pdf', FigFormat='pdf', size_format='ESURF', kp_type = "diff"):
+                               FigFileName='Image.pdf', FigFormat='pdf', size_format='ESURF', kp_type = "rad_diff"):
     """
     Function to create a plot of knickpoint elevation vs flow distance for each
     basin. Knickpoints are colour-coded by source node, and the marker size represents
