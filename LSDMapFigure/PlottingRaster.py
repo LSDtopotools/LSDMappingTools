@@ -1494,7 +1494,7 @@ class MapFigure(object):
                  FigFormat = 'png',Fig_dpi = 100,
                  axis_style = "Normal", transparent=False,
                  adjust_cbar_characters=True,
-                 fixed_cbar_characters=4):
+                 fixed_cbar_characters=4, return_fig = False):
         """
         This saves the figure to file.
 
@@ -1507,6 +1507,7 @@ class MapFigure(object):
             transparent (bool): If true the background is transparent (i.e., you don't get a white rectangle in the background)
             adjust_cbar_characters (bool): If true, adjust the spacing of the colourbar to account for the characters in the cbar label
             fixed_cbar_characters (int): ONLY used if adjust_cbar_characters=False. The number of characters to pad the cbar for.
+            return_fig (bool): return the figure rather than saving a plot. In case you want some personnalisation. CAreful, if your personalisation may be useful for everyone, just code it for everyone.
 
         Author: SMM
         """
@@ -1580,13 +1581,14 @@ class MapFigure(object):
         # if cbar_axes != None:
         #     self.ax_list[-1].set_position(cbar_axes)
 
-        fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi, transparent=transparent)
-
-        #self.fig.show()
-        #print("The figure format is: " + self.FigFormat)
-        #plt.savefig(self.FigFileName,format=self.FigFormat)
-        fig.clf()
-        plt.close(fig)
+        # I am returning the figure if wanted, otherwise I am saving the figure and clearing it
+        if(return_fig):
+            return fig
+        else:
+            # saving and closing
+            fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi, transparent=transparent)
+            fig.clf()
+            plt.close(fig)
 
     def SetRCParams(self,label_size):
         """
