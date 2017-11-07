@@ -64,7 +64,8 @@ def main(argv):
     parser.add_argument("-cRKr", "--chi_RKEY_river", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each river, MAD method binned by rivers")
     parser.add_argument("-cRKb", "--chi_RKEY_basin", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each river, MAD method binned by basin")
     parser.add_argument("-cRKraw", "--chi_RKEY_raw", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each river, raw data")
-    
+    parser.add_argument("-kzp", "--knickzone_profile", type=bool, default = False, help="Turn to True to plot knickzones profiles for each rivers")
+
     # Mchi_related
     parser.add_argument("-mcstd", "--mchi_map_std", type=bool, default = False, help="Turn to True to plot a standart M_chi map on an HS. Small reminder, Mchi = Ksn if calculated with A0 = 1.")
     parser.add_argument("-mcbk", "--mchi_map_black", type=bool, default = False, help="Turn to True to plot a standart M_chi map on Black background. Small reminder, Mchi = Ksn if calculated with A0 = 1.")
@@ -162,6 +163,9 @@ def main(argv):
     if args.mchi_map_black:
         
         CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, bkbg = True)
+
+    if args.knickzone_profile:
+        KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys)
 
 
 

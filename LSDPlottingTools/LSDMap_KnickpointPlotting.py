@@ -372,6 +372,120 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
     print("done")
 
 
+def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = []):
+    
+    """
+    This creates a chi profiles with the knickpoint on top of the profile
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list (list): List of the basin ID you want.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        mancut (float): manual cutoff for the data selection.
+        outlier_detection_method (str): determine the outlier detection method to select the right knickpoints
+        segments (bool): if segments is True, it plots the Mchi segmented elevation
+
+    Returns:
+        Shaded relief plot with the basins outlines and the knickpoints sized by intensity
+
+    Author: BG - 05/10/2017
+    """
+
+    
+    # check if a directory exists for the chi plots. If not then make it.
+    raster_directory = DataDirectory+'knickzone_river/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
+
+    # Set up fonts for plots
+    basls = basin_list
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # read the knickpoint informations
+    Kdf = Helper.ReadKnickpointCSV(DataDirectory,fname_prefix)
+    Cdf = Helper.ReadMChiSegCSV(DataDirectory, fname_prefix, type = "knickpoint")
+
+    # Selecting the basins in case you choose specific ones
+    if(len(basls)>0):
+        Kdf = Kdf[Kdf["basin_key"].isin(basls)]
+        Cdf = Cdf[Cdf["basin_key"].isin(basls)]
+
+    #now plotting
+    print("I am plotting one figure per river, it can take a while. If you are processing a large area, I would recommend to select main channels")
+    #for hussard in Kdf["source_key"].unique():#  TO KEEP!!!!!! TESTING ONE RIVER ATM
+    for hussard in [0,19]:
+        # make a figure
+        if size_format == "geomorphology":
+            fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+            
+        elif size_format == "big":
+            fig = plt.figure(1, facecolor='white',figsize=(16,9))
+            
+        else:
+            fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+        # create the axis
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.85,top=0.95)
+        ax = fig.add_subplot(gs[0:100,0:100])
+
+        # Selecting the data for this river
+        tKdf = Kdf[Kdf["source_key"] == hussard]
+        tCdf = Cdf[Cdf["source_key"] == hussard]
+        #Sorting by Chi values, not automatic since I am probably weridly using itrator to print the map in c++
+        tKdf = tKdf.sort_values("chi")
+        tCdf = tCdf.sort_values("chi")
+
+        # Plotting the cumul ksn_variation
+        ## shifting first an initial value at 0 for the variations
+        tKdf.iloc[0, tKdf.columns.get_loc('chi')] = tCdf["chi"].min()
+        ## then plotting
+        ax.plot(tKdf["chi"],tKdf["cumul_ksn"], lw = 0.75, c = '#787878')
+        ax.fill_between(tKdf["chi"],0,tKdf["cumul_ksn"], color = "k", alpha = 0.3)
+        
+
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.85,top=0.95)
+        ax2 = fig.add_subplot(gs[0:100,0:100])
+        ax2.patch.set_visible(False)
+        ax.yaxis.set_ticks_position('right')
+        ax2.yaxis.set_label_position('right')
+        ax2.xaxis.set_ticks_position('none')
+        ax2.yaxis.label.set_color('#787878') 
+        ax2.plot(tCdf["chi"],tCdf["segmented_elevation"], lw = 1.2 , c ='#0089B9',zorder = 5)
+
+        # plotting the knickpoint and setting a min-max size
+        # min_size = 2
+        # max_size = 700
+        # sizepoint = (((tKdf["diff"]-tKdf["diff"].min())/tKdf["diff"].max())*max_size)+min_size
+        #sizepoint = tKdf["diff"].copy()
+        #sizepoint[sizepoint<20] = 20
+        ax2.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"],cmap = 'RdBu', s = tKdf["diff"].abs(), alpha = 0.7, lw = 0.5, edgecolor = "k", zorder = 10)
+
+        ax.set_xlim(ax2.get_xlim())
+        # Plotting the derivative
+        #ax2.plot(tKdf["chi"],tKdf["deriv_cumul_ksn"].abs(), lw = 0.5, c = '#000000')
+
+        #deriv_cumul_ksn
+
+        # Details
+        ax.set_xlabel(r'$\chi$')
+        ax.set_ylabel(r'$k_(sn)$')
+        ax2.set_ylabel(r'$\sum \Delta k_(sn)$')
+        # saving details
+        save_name = raster_directory + fname_prefix + "_KZ_Source" + str(hussard) + "."+FigFormat
+
+        plt.savefig(save_name, dpi = 400)
+        plt.clf()
+
+
+    print("done")
+
+
 
 
 
