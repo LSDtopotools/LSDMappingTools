@@ -406,8 +406,13 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
         ylabel_KZ = r'$\sum \Delta k_{sn}$'
         ylabel_der = r'$\vert \frac{d\sum \Delta k_{sn}}{d\chi} \vert$'
     elif (knickpoint_value == 'natural'):
-        print("The natural method is not coded yet, soonish probably")
-        quit()
+        knickpoint_col = "rad_diff"
+        cumul_col = "cumul_rad"
+        deriv_cumul = "deriv_cumul_rad"
+        suffix_method = "_angle"
+        ylabel_KZ = r'$\sum \Delta \theta$'
+        ylabel_der = r'$\vert \frac{d\sum \Delta \theta}{d\chi} \vert$'
+
     else:
         print("Unvalid value for the knickpoint method, ")
 
@@ -430,8 +435,8 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     #now plotting
     print("I am plotting one figure per river, it can take a while. If you are processing a large area, I would recommend to select main channels")
-    #for hussard in Kdf["source_key"].unique():#  TO KEEP!!!!!! TESTING ONE RIVER ATM
-    for hussard in [0,19]:
+    #for hussard in Kdf["source_key"].unique():
+    for hussard in [0,19]: #TEMPORARY TEST FOR COLUMBIA CA
         # make a figure with required dimensions
         if size_format == "geomorphology":
             fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))            
@@ -470,7 +475,7 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
         # Plotting the Chi profiles
         ax2.plot(tCdf["chi"],tCdf["segmented_elevation"], lw = 1.2 , c ='#0089B9',zorder = 7)
-        ax2.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"],cmap = 'RdBu', s = tKdf[knickpoint_col].abs(), alpha = 0.7, lw = 0.5, edgecolor = "k", zorder = 10)
+        ax2.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"],cmap = 'RdBu_r', s = tKdf[knickpoint_col].abs(), alpha = 0.75, lw = 0.5, edgecolor = "k", zorder = 10)
         
         # Plotting the derivative
         ax3.plot(tKdf["chi"],tKdf[deriv_cumul].abs(), lw = 0.7, c = '#E70B0B',alpha = 0.7,zorder = 5)

@@ -165,7 +165,8 @@ def main(argv):
         CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, bkbg = True)
 
     if args.knickzone_profile:
-        KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys)
+        KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, knickpoint_value = 'delta_ksn')
+        KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, knickpoint_value = 'natural')
 
 
 
