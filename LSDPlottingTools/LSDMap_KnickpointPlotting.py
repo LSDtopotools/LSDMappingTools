@@ -465,15 +465,15 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
         ## shifting first and initial value at 0 for the variations
         tKdf.iloc[0, tKdf.columns.get_loc('chi')] = tCdf["chi"].min()
         ## then plotting
-        ax.plot(tKdf["chi"],tKdf[cumul_col], lw = 0.75, c = '#787878')
-        ax.fill_between(tKdf["chi"],0,tKdf[cumul_col], color = "k", alpha = 0.3)
+        ax.plot(tKdf["chi"],tKdf[cumul_col]/10, lw = 0.75, c = '#787878')
+        ax.fill_between(tKdf["chi"],0,tKdf[cumul_col]/10, color = "k", alpha = 0.3)
 
         # Plotting the Chi profiles
         ax2.plot(tCdf["chi"],tCdf["segmented_elevation"], lw = 1.2 , c ='#0089B9',zorder = 7)
         ax2.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"],cmap = 'RdBu', s = tKdf[knickpoint_col].abs(), alpha = 0.7, lw = 0.5, edgecolor = "k", zorder = 10)
         
         # Plotting the derivative
-        ax3.plot(tKdf["chi"],tKdf[deriv_cumul].abs(), lw = 0.7, c = '#E70B0B',alpha = 0.7,zorder = 5)
+        ax3.plot(tKdf["chi"],tKdf[deriv_cumul].abs()/10, lw = 0.7, c = '#E70B0B',alpha = 0.7,zorder = 5)
 
         # Display options
         ## setting the same Chi xlimits to display on the same scale
