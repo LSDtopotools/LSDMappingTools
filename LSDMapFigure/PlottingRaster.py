@@ -1443,6 +1443,63 @@ class MapFigure(object):
 
         self.ax_list[0].quiver(new_X,new_Y,dx,dy,angles='xy',scale_units='xy',scale=1, width=0.002)
 
+    def add_strike_and_dip_symbols(self,dip_df,colour='black',linewidth=1,alpha=1, symbol_length=10):
+        """
+        This function adds strike and dip symbols to the map from a pandas
+        dataframe with the dip, dip direction, and strike
+        Will be labelled with the dip.
+
+        Args:
+            dip_df: pandas dataframe with the dip and dip direction info
+            colour: colour of the symbols
+            linewidth: linewidth of the symbols
+            alpha: transparency of the symbols.
+            symbol_length: length of the strike element of the strike/dip symbol
+
+        Author: FJC
+        """
+        # first we need get the strike to radians
+        strikes = np.array(dip_df['strike'])
+        strike_radians = np.radians(strikes)
+
+        # get points
+        X = np.array(dip_df['X'])
+        Y = np.array(dip_df['Y'])
+        # work out the dx and dy of the strike line
+        dx = np.array([ symbol_length*np.sin(i) for i in strike_radians ])
+        dy = np.array([ symbol_length*np.cos(i) for i in strike_radians ])
+        # we want the centre of the line to be at the X/Y point
+        start_X = X - dx/2
+        start_Y = Y - dy/2
+
+        # now we need to convert dip dirs to radians
+        dip_dirs = np.array(dip_df['dip_azimuth'])
+        dd_radians = np.radians(dip_dirs)
+        # get the dx and dy of the dip dir line
+        dx_dd = np.array([ (symbol_length/5)*np.sin(i) for i in dd_radians ])
+        dy_dd = np.array([ (symbol_length/5)*np.cos(i) for i in dd_radians ])
+
+        # get the dips as strings
+        dips = list(dip_df['dip'])
+        dips = [str(np.round(x,1)) for x in dips]
+
+        bbox_props = dict(boxstyle="Round4,pad=0.1", fc="none", ec="none", lw=0.5,alpha = alpha)
+
+        # now plot each symbol
+        for i, angle in enumerate(strike_radians):
+            # start and end for the strike
+            end_X = start_X[i] + dx[i]
+            end_Y = start_Y[i] + dy[i]
+            # start and end for the dip dir
+            end_X_dd = X[i] + dx_dd[i]
+            end_Y_dd = Y[i] + dy_dd[i]
+            # plot the lines
+            self.ax_list[0].plot([start_X[i], end_X],[start_Y[i], end_Y],c=colour, lw=linewidth,alpha=alpha)
+            self.ax_list[0].plot([X[i], end_X_dd], [Y[i], end_Y_dd], c=colour, lw=linewidth,alpha=alpha)
+            # add the dip labelling
+            self.ax_list[0].text(X[i], Y[i]-symbol_length, dips[i], fontsize=4, color=colour,alpha=alpha,bbox=bbox_props, ha= 'center',zorder=2)
+
+
     def plot_polygon_outlines(self,polygons, colour='black', linewidth=1, alpha = 1):
         """
         This function plots an outline of a series of shapely polygons
