@@ -342,11 +342,17 @@ def extract_outliers_by_header(df, data_column_name = "diff", header_for_group =
     for i in df[header_for_group].unique():
         # I am grouping the dataset for each value of the header, for example each basins
         tdf = df[df[header_for_group]==i]
+        tdfpositive = tdf[tdf["sign"] == 1]
+        tdfnegative = tdf[tdf["sign"] == -1]
+
 
         # masking the outliers
-        mask = is_outlier(tdf[data_column_name].values, thresh = threshold)
+        maskpositive = is_outlier(tdfpositive[data_column_name].values, thresh = threshold)
+        masknegative = is_outlier(tdfnegative[data_column_name].values, thresh = threshold)
         # Applying the mask
-        tdf = tdf[mask]
+        tdfpositive = tdfpositive[maskpositive]
+        tdfnegative = tdfnegative[masknegative]
+        tdf = pd.concat([tdfpositive,tdfnegative])
         # Feeding the out dataset
         
         if(isinstance(out_df, int)):

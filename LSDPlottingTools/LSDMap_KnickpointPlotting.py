@@ -62,14 +62,6 @@ def get_outliers_from_DF(df, method = ""):
     return df
 
 
-
-
-
-
-
-
-
-
 ###########################################################################################################
 
 #################### Plotting function ####################################################################
@@ -136,7 +128,7 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
     MF.plot_polygon_outlines(Basins, linewidth=0.5)
 
     # add the channel network without color
-    ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix)
+    ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix, type = "knickpoint")
     ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
     MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.5,min_point_size = 0.1,zorder=100)
 
@@ -371,8 +363,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
 
     print("done")
 
-
-def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], knickpoint_value = 'delta_ksn'):
+def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], knickpoint_value = 'delta_ksn', river_length_threshold = 0):
 
     """
     This creates a chi profiles with the knickpoint on top of the profile, and the knickzones information in the back.
@@ -383,7 +374,182 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
         basin_list (list): List of the basin ID you want.
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
-        knickpoint_value (str): select which knickpoint/zone to display: 'delta_ksn' for the slope of the profile; 'natural' for the angle
+        knickpoint_value (str): select which knickpoint/zone to display: 'delta_ksn' for the slope of the profile; 'ratio_ksn' for the slope of the ratio variations profile; 'natural' for the angle
+        river_length_threshold (int or float): ignore the rivers below a certain length. TO CODE.
+       
+    Returns:
+        Nothing, but save one figure for each rivers.
+
+    Author: BG - 08/11/2017
+    """
+
+    
+    # check if a directory exists for the chi plots. If not then make it.
+    raster_directory = DataDirectory+'knickzone_river/'
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)
+
+    # Setting the knickpoint/zone value to use 
+    if(knickpoint_value == 'delta_ksn'):
+        knickpoint_col = "diff"
+        cumul_col = "ksn"
+        deriv_cumul = "deriv_cumul_ksn"
+        suffix_method = "_dksn"
+        ylabel_KZ = r'$ \Delta k_{sn}$'
+        ylabel_der = r'$ \frac{d\sum \Delta k_{sn}}{d\chi} $'
+    elif (knickpoint_value == 'ratio_ksn'):
+        knickpoint_col = "ratio"
+        cumul_col = "rksn"
+        deriv_cumul = "deriv_cumul_rksn"
+        suffix_method = "_rksn"
+        ylabel_KZ = r'$ \Delta ratio k_{sn}$'
+        ylabel_der = r'$ \frac{d\sum \Delta ratio k_{sn}}{d\chi} $'
+    elif (knickpoint_value == 'natural'):
+        knickpoint_col = "rad_diff"
+        cumul_col = "rad"
+        deriv_cumul = "deriv_cumul_rad"
+        suffix_method = "_angle"
+        ylabel_KZ = r'$ \Delta \theta$'
+        ylabel_der = r'$ \frac{d\sum \Delta \theta}{d\chi} $'
+
+    else:
+        print("Unvalid value for the knickpoint method, ")
+
+
+    # Set up fonts for plots
+    basls = basin_list
+    label_size = 8
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # read the knickpoint informations
+    Kdf = Helper.ReadKnickpointCSV(DataDirectory,fname_prefix)
+    Cdf = Helper.ReadMChiSegCSV(DataDirectory, fname_prefix, type = "knickpoint")
+    Kzdf = Helper.ReadKnickzoneCSV(DataDirectory,fname_prefix)
+
+    # Selecting the basins in case you choose specific ones
+    if(len(basls)>0):
+        Kdf = Kdf[Kdf["basin_key"].isin(basls)]
+        Cdf = Cdf[Cdf["basin_key"].isin(basls)]
+        Kzdf = Kzdf[Kzdf["basin_key"].isin(basls)]
+
+    #now plotting
+    print("I am plotting one figure per river, it can take a while. If you are processing a large area, I would recommend to select main channels")
+    #for hussard in Kdf["source_key"].unique():
+    for hussard in [0,19]: #TEMPORARY TEST FOR COLUMBIA CA
+        # make a figure with required dimensions
+        if size_format == "geomorphology":
+            fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))            
+        elif size_format == "big":
+            fig = plt.figure(1, facecolor='white',figsize=(16,9))            
+        else:
+            fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+        # create the axis and its position
+        ## axis 1: The Chi profile and the knickpoints
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
+        ax = fig.add_subplot(gs[0:80,0:100])
+        ## axis 2: The cumul axis
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
+        ax2 = fig.add_subplot(gs[80:100,0:100])
+        
+        # Selecting the data for this river
+        tKdf = Kdf[Kdf["source_key"] == hussard]
+        tCdf = Cdf[Cdf["source_key"] == hussard]
+        tKzdf = Kzdf[Kzdf["source_key"] == hussard]
+
+        #Sorting by Chi values, not automatic since I am probably weridly using itrator to print the map in c++
+        tKdf = tKdf.sort_values("chi")
+        tCdf = tCdf.sort_values("chi")
+        #tKzdf = tKzdf.sort_values("chi")
+
+        # Plotting the cumul ksn_variation
+        ## shifting first and initial value at 0 for the variations
+        tKdf.iloc[0, tKdf.columns.get_loc('chi')] = tCdf["chi"].min()
+        ## then plotting
+        ax2.plot(tKdf['chi'], tKdf[knickpoint_col],lw = 0.5, c = '#787878' )
+        ax2.fill_between(tKdf["chi"],0,tKdf[knickpoint_col], color = "k", alpha = 0.9)
+        ax.fill_between(tCdf["chi"],0,tCdf["elevation"], color = '#AAAAAA' , alpha = 0.8)
+        for index, row in tKzdf.iterrows():
+            # ax2.plot([row['Achi'],row['Bchi']],[row[cumul_col],row[cumul_col]], lw = 0.75, c = '#787878')
+            if(row['sign'] == 1):
+                colotempolo = "#EF0808"
+            else:
+                colotempolo = "#0055FF"
+            tempdfforplotting = tCdf[tCdf["chi"]>=row['Achi']]
+            tempdfforplotting = tempdfforplotting[tempdfforplotting["chi"]<=row['Bchi']]
+
+            if(row['Achi'] ==row['Bchi']):
+                lw_temp = 0.5
+            else:
+                lw_temp = 0
+            ax.fill_between(tempdfforplotting["chi"],0,tempdfforplotting["elevation"], color = colotempolo , alpha = 0.5,lw = lw_temp)
+
+        # Plotting the Chi profiles
+        ax.plot(tCdf["chi"],tCdf["elevation"], lw = 1.2 , c ='#0089B9',alpha = 1,zorder = 7)
+
+        # sizing the points, casting between 10 and 100
+        size = tKdf[knickpoint_col].abs()
+        size = size/size.max()*100 + 10
+
+        ax.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"],cmap = 'RdBu_r', s = size, alpha = 0.75, lw = 0.5, edgecolor = "k", zorder = 10)
+
+        # Display options
+        ## setting the same Chi xlimits to display on the same scale
+        ax2.set_xlim(ax.get_xlim())
+        
+        ## distance from the axis
+        ax.yaxis.labelpad = 7
+        ax2.yaxis.labelpad = 7
+        ## Color of the label, ticks and axis
+        ### Cumul axis
+        # ax.yaxis.label.set_color('#787878')
+        # ax.tick_params(axis='y', colors='#787878')
+        # ax.spines['right'].set_color('#787878')
+        # ax.spines['bottom'].set_visible(False)
+
+        ## Name of the xlabels
+        ax2.set_xlabel(r'$\chi$')
+        ## Name of y labels
+        ax2.set_ylabel(ylabel_KZ, rotation = 90, fontsize = 7)
+        ax.set_ylabel('Elevation (m)', rotation = 90, fontsize = 7)
+        ## Disabling the xaxis of the cumul axis as this is the same than the firts one.
+        ax.xaxis.set_ticks_position('none')
+        ax.set_xticklabels([])
+        ax2.xaxis.set_ticks_position('none')
+        ax2.set_xticklabels([])
+        for axil in [ax,ax2]:
+            for tick in axil.yaxis.get_major_ticks():
+                tick.label.set_fontsize(7)
+        # Finally setting grids to test if this looks good
+        ax.grid(color = 'k', linestyle = '-', linewidth = 0.5, alpha = 0.1)
+        ax2.grid(color = 'k', linestyle = '-', linewidth = 0.5, alpha = 0.1)
+
+        # Saving the figure
+        ## Building the name, it has to be specific to avoid replacing files
+        save_name = raster_directory + fname_prefix + "_Source" + str(hussard) + suffix_method + "."+FigFormat
+        plt.savefig(save_name, dpi = 400)
+
+        # Clearing the figure to get ready for the new one
+        plt.clf()
+
+    # Printing done to tell people that this is done
+    print("done")
+
+def chi_profile_knickzone_old(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], knickpoint_value = 'delta_ksn', river_length_threshold = 0):
+
+    """
+    This creates a chi profiles with the knickpoint on top of the profile, and the knickzones information in the back.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list (list): List of the basin ID you want.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        knickpoint_value (str): select which knickpoint/zone to display: 'delta_ksn' for the slope of the profile; 'ratio_ksn' for the slope of the ratio variations profile; 'natural' for the angle
+        river_length_threshold (int or float): ignore the rivers below a certain length. TO CODE.
        
     Returns:
         Nothing, but save one figure for each rivers.
@@ -405,6 +571,13 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
         suffix_method = "_dksn"
         ylabel_KZ = r'$\sum \Delta k_{sn}$'
         ylabel_der = r'$ \frac{d\sum \Delta k_{sn}}{d\chi} $'
+    elif (knickpoint_value == 'ratio_ksn'):
+        knickpoint_col = "ratio"
+        cumul_col = "cumul_rksn"
+        deriv_cumul = "deriv_cumul_rksn"
+        suffix_method = "_rksn"
+        ylabel_KZ = r'$\sum \Delta ratio k_{sn}$'
+        ylabel_der = r'$ \frac{d\sum \Delta ratio k_{sn}}{d\chi} $'
     elif (knickpoint_value == 'natural'):
         knickpoint_col = "rad_diff"
         cumul_col = "cumul_rad"
@@ -446,18 +619,16 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
             fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
 
         # create the axis and its position
-                ## axis 1: the cumul axis
-        gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.85,top=0.95)
-        ax = fig.add_subplot(gs[0:50,0:100])
-        ## axis 3: the derivative axis
-        gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.85,top=0.95)
-        ax3 = fig.add_subplot(gs[50:100,0:100])
-        ## axis 2: The Chi profile and the knickpoints
-        gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.85,top=0.95)
-        ax2 = fig.add_subplot(gs[0:100,0:100])
-
+        ## axis 1: The Chi profile and the knickpoints
+        gs = plt.GridSpec(99,99,bottom=0.15,left=0.15,right=0.95,top=0.95)
+        ax = fig.add_subplot(gs[0:33,0:99])
+        ## axis 2: The cumul axis
+        gs = plt.GridSpec(99,99,bottom=0.15,left=0.15,right=0.95,top=0.95)
+        ax2 = fig.add_subplot(gs[33:66,0:99])
+        ## axis 3: The derivative axis
+        gs = plt.GridSpec(99,99,bottom=0.15,left=0.15,right=0.95,top=0.95)
+        ax3 = fig.add_subplot(gs[66:99,0:99])
         
-
         # Selecting the data for this river
         tKdf = Kdf[Kdf["source_key"] == hussard]
         tCdf = Cdf[Cdf["source_key"] == hussard]
@@ -470,55 +641,58 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
         ## shifting first and initial value at 0 for the variations
         tKdf.iloc[0, tKdf.columns.get_loc('chi')] = tCdf["chi"].min()
         ## then plotting
-        ax.plot(tKdf["chi"],tKdf[cumul_col], lw = 0.75, c = '#787878')
-        ax.fill_between(tKdf["chi"],0,tKdf[cumul_col], color = "k", alpha = 0.3)
+        ax2.plot(tKdf["chi"],tKdf[cumul_col], lw = 0.75, c = '#787878')
+        ax2.fill_between(tKdf["chi"],0,tKdf[cumul_col], color = "k", alpha = 0.3)
 
         # Plotting the Chi profiles
-        ax2.plot(tCdf["chi"],tCdf["segmented_elevation"], lw = 1.2 , c ='#0089B9',alpha = 1,zorder = 7)
-        ax2.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"],cmap = 'RdBu_r', s = tKdf[knickpoint_col].abs(), alpha = 0.75, lw = 0.5, edgecolor = "k", zorder = 10)
+        ax.plot(tCdf["chi"],tCdf["elevation"], lw = 1.2 , c ='#0089B9',alpha = 1,zorder = 7)
+        ax.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"],cmap = 'RdBu_r', s = tKdf[knickpoint_col].abs(), alpha = 0.75, lw = 0.5, edgecolor = "k", zorder = 10)
         
         # Plotting the derivative
         ax3.plot(tKdf["chi"],tKdf[deriv_cumul], lw = 0.7, c = '#E70B0B',alpha = 0.7,zorder = 5)
 
         # Display options
         ## setting the same Chi xlimits to display on the same scale
-        ax.set_xlim(ax2.get_xlim())
-        ax3.set_xlim(ax2.get_xlim())
-        ## set the tick/label for the sum of delta ksn on the right of the plot
-        ax.yaxis.set_ticks_position('right')
-        ax.yaxis.set_label_position('right')
-        ax3.yaxis.set_ticks_position('right')
-        ax3.yaxis.set_label_position('right')
+        ax2.set_xlim(ax.get_xlim())
+        ax3.set_xlim(ax.get_xlim())
+        
         ## distance from the axis
-        ax.yaxis.labelpad = 12
-        ax2.yaxis.labelpad = 7.5
-        ax3.yaxis.labelpad = 12
+        ax.yaxis.labelpad = 9
+        ax2.yaxis.labelpad = 9
+        ax3.yaxis.labelpad = 9
         ## Color of the label, ticks and axis
         ### Cumul axis
-        ax.yaxis.label.set_color('#787878')
-        ax.tick_params(axis='y', colors='#787878')
-        ax.spines['right'].set_color('#787878')
-        ax.spines['bottom'].set_visible(False)
+        # ax.yaxis.label.set_color('#787878')
+        # ax.tick_params(axis='y', colors='#787878')
+        # ax.spines['right'].set_color('#787878')
+        # ax.spines['bottom'].set_visible(False)
         ### Deriv Axis
-        ax3.yaxis.label.set_color('#E70B0B')
-        ax3.tick_params(axis='y', colors='#E70B0B')
-        ax3.spines['right'].set_color('#E70B0B')
-        ax3.spines['top'].set_visible(False)
+        # ax3.yaxis.label.set_color('#E70B0B')
+        # ax3.tick_params(axis='y', colors='#E70B0B')
+        # ax3.spines['right'].set_color('#E70B0B')
+        # ax3.spines['top'].set_visible(True)
         ## Name of the xlabels
-        ax2.set_xlabel(r'$\chi$')
+        ax3.set_xlabel(r'$\chi$')
         ## Name of y labels
-        ax.set_ylabel(ylabel_KZ, rotation = 0)
-        ax3.set_ylabel(ylabel_der, rotation = 0)
-        ax2.set_ylabel('Elevation (m)')
+        ax2.set_ylabel(ylabel_KZ, rotation = 0, fontsize = 7)
+        ax3.set_ylabel(ylabel_der, rotation = 0, fontsize = 7)
+        ax.set_ylabel('Elevation (m)', rotation = 0, fontsize = 7)
         ## Disabling the xaxis of the cumul axis as this is the same than the firts one.
         ax.xaxis.set_ticks_position('none')
         ax.set_xticklabels([])
-        ax.patch.set_visible(False)
-        ax3.patch.set_visible(False)
+        ax2.xaxis.set_ticks_position('none')
+        ax2.set_xticklabels([])
+        ax3.xaxis.set_ticks_position('bottom')
+        for axil in [ax,ax2,ax3]:
+            for tick in axil.yaxis.get_major_ticks():
+                tick.label.set_fontsize(6)
+        # ax2.patch.set_visible(False)
+        # ax3.patch.set_visible(False)
         ## Transparence of the background for the chi axis
-        ax2.patch.set_alpha(0.1)
+        # ax2.patch.set_alpha(0.1)
         # Finally setting grids to test if this looks good
         ax.grid(color = 'k', linestyle = '-', linewidth = 0.5, alpha = 0.1)
+        ax2.grid(color = 'k', linestyle = '-', linewidth = 0.5, alpha = 0.1)
         ax3.grid(color = 'k', linestyle = '-', linewidth = 0.5, alpha = 0.1)
 
         # Saving the figure
@@ -543,7 +717,7 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
 
 
-
+#################################################################################################################
 
 
 
@@ -560,11 +734,95 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
 #################################################################################################################
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #~~~~~~~~ THE FOLLOWING FUNCTIONS ARE TESTS AND EARLIER WORK, NOT USED WITH THE PlotKnickpointAnalysis ~~~~~~~~~#
+#~~~~~~~~~~~~ KEEP THEM AS THEY ARE THE BASE OF THE AUTOMATED FUNCTIONS AND FOR TESTING PURPOSES ~~~~~~~~~~~~~~~#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #################################################################################################################
 #################################################################################################################
 #################################################################################################################
 #################################################################################################################
+
+
+
+
+
+
+# Test to keep saved, it was before separating the plots in three graphs.
+
+
+    #     # Selecting the data for this river
+    #     tKdf = Kdf[Kdf["source_key"] == hussard]
+    #     tCdf = Cdf[Cdf["source_key"] == hussard]
+
+    #     #Sorting by Chi values, not automatic since I am probably weridly using itrator to print the map in c++
+    #     tKdf = tKdf.sort_values("chi")
+    #     tCdf = tCdf.sort_values("chi")
+
+    #     # Plotting the cumul ksn_variation
+    #     ## shifting first and initial value at 0 for the variations
+    #     tKdf.iloc[0, tKdf.columns.get_loc('chi')] = tCdf["chi"].min()
+    #     ## then plotting
+    #     ax.plot(tKdf["chi"],tKdf[cumul_col], lw = 0.75, c = '#787878')
+    #     ax.fill_between(tKdf["chi"],0,tKdf[cumul_col], color = "k", alpha = 0.3)
+
+    #     # Plotting the Chi profiles
+    #     ax2.plot(tCdf["chi"],tCdf["elevation"], lw = 1.2 , c ='#0089B9',alpha = 1,zorder = 7)
+    #     ax2.scatter(tKdf["chi"],tKdf["elevation"], c = tKdf["sign"],cmap = 'RdBu_r', s = tKdf[knickpoint_col].abs(), alpha = 0.75, lw = 0.5, edgecolor = "k", zorder = 10)
+        
+    #     # Plotting the derivative
+    #     ax3.plot(tKdf["chi"],tKdf[deriv_cumul], lw = 0.7, c = '#E70B0B',alpha = 0.7,zorder = 5)
+
+    #     # Display options
+    #     ## setting the same Chi xlimits to display on the same scale
+    #     ax.set_xlim(ax2.get_xlim())
+    #     ax3.set_xlim(ax2.get_xlim())
+    #     ## set the tick/label for the sum of delta ksn on the right of the plot
+    #     ax.yaxis.set_ticks_position('right')
+    #     ax.yaxis.set_label_position('right')
+    #     ax3.yaxis.set_ticks_position('right')
+    #     ax3.yaxis.set_label_position('right')
+    #     ## distance from the axis
+    #     ax.yaxis.labelpad = 12
+    #     ax2.yaxis.labelpad = 7.5
+    #     ax3.yaxis.labelpad = 12
+    #     ## Color of the label, ticks and axis
+    #     ### Cumul axis
+    #     ax.yaxis.label.set_color('#787878')
+    #     ax.tick_params(axis='y', colors='#787878')
+    #     ax.spines['right'].set_color('#787878')
+    #     ax.spines['bottom'].set_visible(False)
+    #     ### Deriv Axis
+    #     ax3.yaxis.label.set_color('#E70B0B')
+    #     ax3.tick_params(axis='y', colors='#E70B0B')
+    #     ax3.spines['right'].set_color('#E70B0B')
+    #     ax3.spines['top'].set_visible(False)
+    #     ## Name of the xlabels
+    #     ax2.set_xlabel(r'$\chi$')
+    #     ## Name of y labels
+    #     ax.set_ylabel(ylabel_KZ, rotation = 0)
+    #     ax3.set_ylabel(ylabel_der, rotation = 0)
+    #     ax2.set_ylabel('Elevation (m)')
+    #     ## Disabling the xaxis of the cumul axis as this is the same than the firts one.
+    #     ax.xaxis.set_ticks_position('none')
+    #     ax.set_xticklabels([])
+    #     ax.patch.set_visible(False)
+    #     ax3.patch.set_visible(False)
+    #     ## Transparence of the background for the chi axis
+    #     ax2.patch.set_alpha(0.1)
+    #     # Finally setting grids to test if this looks good
+    #     ax.grid(color = 'k', linestyle = '-', linewidth = 0.5, alpha = 0.1)
+    #     ax3.grid(color = 'k', linestyle = '-', linewidth = 0.5, alpha = 0.1)
+
+    #     # Saving the figure
+    #     ## Building the name, it has to be specific to avoid replacing files
+    #     save_name = raster_directory + fname_prefix + "_Source" + str(hussard) + suffix_method + "."+FigFormat
+    #     plt.savefig(save_name, dpi = 400)
+
+    #     # Clearing the figure to get ready for the new one
+    #     plt.clf()
+
+    # # Printing done to tell people that this is done
+    # print("done")
+
 
 
 
