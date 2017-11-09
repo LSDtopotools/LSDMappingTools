@@ -648,7 +648,7 @@ class MapFigure(object):
           BasinInfoDF = phelp.ReadBasinInfoCSV(Directory, BasinInfoPrefix)
         else:
           BasinInfoDF = phelp.AppendBasinInfoCSVs(Directory)
-        
+
         # Extract the basin keys
         basin_keys = list(BasinInfoDF['basin_key'])
         basin_keys = [int(x) for x in basin_keys]
@@ -1327,7 +1327,7 @@ class MapFigure(object):
         # rewrite with new values if you need to (for basins)
         print points
         print label_dict
-        
+
         new_points = {}
         if label_dict:
             for key, label in label_dict.iteritems():
@@ -1408,8 +1408,40 @@ class MapFigure(object):
 
         return texts
 
+    def add_arrows_from_points(self, arrow_df, azimuth_header='azimuth', arrow_length=0.1, colour='black', linewidth=1, alpha = 1):
+        """
+        This function adds arrows at locations and azimuths specified by the
+        pandas dataframe.  The X and Y locations should have column headers
+        called 'X' and 'Y', the user specifies the column header of the azimuths
+        column (default = 'azimuth')
 
+        Args:
+            arrow_df: pandas dataframe with the X and Y locations and the azimuths
+            azimuth_header (str): the name of the column header with the azimuth locations
+            colour: arrow colour, can pass in the name of one of the column headers and arrows will be coloured according to this.
 
+        Author: FJC
+
+        """
+        import math
+        import matplotlib.patches as patches
+
+        # convert azimuths to radians
+        azimuths = list(arrow_df[azimuth_header])
+        az_radians = np.radians(azimuths)
+        print az_radians
+
+        # get points
+        X = np.array(arrow_df['X'])
+        Y = np.array(arrow_df['Y'])
+        dx = np.array([ arrow_length*np.sin(i) for i in az_radians ])
+        dy = np.array([ arrow_length*np.cos(i) for i in az_radians ])
+        new_X = X - dx/2
+        new_Y = Y - dy/2
+
+        print dx,dy
+
+        self.ax_list[0].quiver(new_X,new_Y,dx,dy,angles='xy',scale_units='xy',scale=1, width=0.002)
 
     def plot_polygon_outlines(self,polygons, colour='black', linewidth=1, alpha = 1):
         """
