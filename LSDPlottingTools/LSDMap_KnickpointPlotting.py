@@ -29,7 +29,7 @@ from scipy.stats import norm
 
 ############################## Data (pre-)processing treatment ##########################################
 
-def get_outliers_from_DF(df, method = ""):
+def get_outliers_from_DF(df, method = "",binning = ""):
     """
     proxy function to detect the outliers according to a specified method
     
@@ -42,22 +42,26 @@ def get_outliers_from_DF(df, method = ""):
     
     Author: BG - 05/10/2017
     """
-    if( method not in ["basin","river","general"]):
+    if( binning not in df.columns.values):
         print("ERROR: The method you are trying to use is not a valid one. \n I am aborting.")
         quit()
+    if( method not in df.columns.values):
+        print("ERROR: The method you are trying to use is not a valid one. \n I am aborting.")
+        quit()
+    df = SUT.extract_outliers_by_header(df,data_column_name = method, header_for_group = binning, threshold = 2.5)
 
-    if(method == "river"):
-        print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the river")
-        df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "source_key", threshold = 2.5)
+    # if(method == "river"):
+    #     print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the river")
+    #     df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "source_key", threshold = 2.5)
 
-    elif(method == "basin"):
-        print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
-        df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "basin_key", threshold = 2.5)
+    # elif(method == "basin"):
+    #     print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
+    #     df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "basin_key", threshold = 2.5)
 
-    elif(method == "basin"):
-        print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
-        df["general"] = pd.Serie(np.ones(df.shape[0]),index = df.index)
-        df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "general", threshold = 2.5)
+    # elif(method == "general"):
+    #     print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
+    #     df["general"] = pd.Serie(np.ones(df.shape[0]),index = df.index)
+    #     df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "general", threshold = 2.5)
 
     return df
 
@@ -363,7 +367,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
 
     print("done")
 
-def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], knickpoint_value = 'delta_ksn', river_length_threshold = 0):
+def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], knickpoint_value = 'delta_ksn', river_length_threshold = 0, outlier_detection_method = '', outlier_detection_binning = ''):
 
     """
     This creates a chi profiles with the knickpoint on top of the profile, and the knickzones information in the back.
@@ -431,10 +435,13 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
         Cdf = Cdf[Cdf["basin_key"].isin(basls)]
         Kzdf = Kzdf[Kzdf["basin_key"].isin(basls)]
 
+    if(outlier_detection_binning != ''):
+        Kzdf = get_outliers_from_DF(Kzdf, method = outlier_detection_method, binning = outlier_detection_method)
+
     #now plotting
     print("I am plotting one figure per river, it can take a while. If you are processing a large area, I would recommend to select main channels")
-    #for hussard in Kdf["source_key"].unique():
-    for hussard in [0,19]: #TEMPORARY TEST FOR COLUMBIA CA
+    for hussard in Kdf["source_key"].unique():
+    # for hussard in [0,19]: #TEMPORARY TEST FOR COLUMBIA CA
         # make a figure with required dimensions
         if size_format == "geomorphology":
             fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))            
@@ -496,6 +503,9 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
         ## setting the same Chi xlimits to display on the same scale
         ax2.set_xlim(ax.get_xlim())
         
+        # setting the elevation limits
+        adjuster = 0.05 * (tCdf["elevation"].max()-tCdf["elevation"].min()) # This adjuster create larger ylimits for the elevation axis.  5 % from the min/max.
+        ax.set_ylim([tCdf["elevation"].min()-adjuster,tCdf["elevation"].max()+adjuster])
         ## distance from the axis
         ax.yaxis.labelpad = 7
         ax2.yaxis.labelpad = 7
@@ -514,8 +524,7 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
         ## Disabling the xaxis of the cumul axis as this is the same than the firts one.
         ax.xaxis.set_ticks_position('none')
         ax.set_xticklabels([])
-        ax2.xaxis.set_ticks_position('none')
-        ax2.set_xticklabels([])
+        ax2.xaxis.set_ticks_position('bottom')
         for axil in [ax,ax2]:
             for tick in axil.yaxis.get_major_ticks():
                 tick.label.set_fontsize(7)
@@ -525,7 +534,7 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
         # Saving the figure
         ## Building the name, it has to be specific to avoid replacing files
-        save_name = raster_directory + fname_prefix + "_Source" + str(hussard) + suffix_method + "."+FigFormat
+        save_name = raster_directory + fname_prefix + "_Source" + str(hussard) + suffix_method + '_' + outlier_detection_method +  "."+FigFormat
         plt.savefig(save_name, dpi = 400)
 
         # Clearing the figure to get ready for the new one
