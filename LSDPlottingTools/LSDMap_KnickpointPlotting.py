@@ -393,21 +393,18 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
     if(knickpoint_value == 'delta_ksn'):
         knickpoint_col = "diff"
         cumul_col = "ksn"
-        deriv_cumul = "deriv_cumul_ksn"
         suffix_method = "_dksn"
         ylabel_KZ = r'$ \Delta k_{sn}$'
         ylabel_der = r'$ \frac{d\sum \Delta k_{sn}}{d\chi} $'
     elif (knickpoint_value == 'ratio_ksn'):
         knickpoint_col = "ratio"
         cumul_col = "rksn"
-        deriv_cumul = "deriv_cumul_rksn"
         suffix_method = "_rksn"
         ylabel_KZ = r'$ \Delta ratio k_{sn}$'
         ylabel_der = r'$ \frac{d\sum \Delta ratio k_{sn}}{d\chi} $'
     elif (knickpoint_value == 'natural'):
         knickpoint_col = "rad_diff"
         cumul_col = "rad"
-        deriv_cumul = "deriv_cumul_rad"
         suffix_method = "_angle"
         ylabel_KZ = r'$ \Delta \theta$'
         ylabel_der = r'$ \frac{d\sum \Delta \theta}{d\chi} $'
