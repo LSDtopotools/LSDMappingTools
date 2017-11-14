@@ -42,26 +42,11 @@ def get_outliers_from_DF(df, method = "",binning = ""):
     
     Author: BG - 05/10/2017
     """
-    if( binning not in df.columns.values):
-        print("ERROR: The method you are trying to use is not a valid one. \n I am aborting.")
-        quit()
-    if( method not in df.columns.values):
-        print("ERROR: The method you are trying to use is not a valid one. \n I am aborting.")
-        quit()
-    df = SUT.extract_outliers_by_header(df,data_column_name = method, header_for_group = binning, threshold = 2.5)
-
-    # if(method == "river"):
-    #     print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the river")
-    #     df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "source_key", threshold = 2.5)
-
-    # elif(method == "basin"):
-    #     print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
-    #     df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "basin_key", threshold = 2.5)
-
-    # elif(method == "general"):
-    #     print("I gonna detect your outliers using the river method: I'll try to detect the outliers in comparison of the basins")
-    #     df["general"] = pd.Serie(np.ones(df.shape[0]),index = df.index)
-    #     df = SUT.extract_outliers_by_header(df,data_column_name = "rad_diff", header_for_group = "general", threshold = 2.5)
+    if(binning == "general"):
+        df["general"] = pd.Series(np.ones(df.shape[0]),index = df.index)
+    
+      
+    df = SUT.extract_outliers_by_header(df,data_column_name = method, header_for_group = binning, threshold = 1.5)
 
     return df
 
@@ -301,7 +286,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
         Kdf = Kdf[Kdf["rad_diff"]> mancut]
     elif(outlier_detection_method != "None"):
         print("I will now select the outliers following the method " + outlier_detection_method)
-        Kdf = get_outliers_from_DF(Kdf, method = outlier_detection_method)
+        Kdf = get_outliers_from_DF(Kdf, method = outlier_detection_method, binning = "general")
 
 
     #now plotting
@@ -436,12 +421,12 @@ def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigF
         Kzdf = Kzdf[Kzdf["basin_key"].isin(basls)]
 
     if(outlier_detection_binning != ''):
-        Kzdf = get_outliers_from_DF(Kzdf, method = outlier_detection_method, binning = outlier_detection_method)
+        Kzdf = get_outliers_from_DF(Kzdf, method = outlier_detection_method, binning = outlier_detection_binning)
 
     #now plotting
     print("I am plotting one figure per river, it can take a while. If you are processing a large area, I would recommend to select main channels")
-    for hussard in Kdf["source_key"].unique():
-    # for hussard in [0,19]: #TEMPORARY TEST FOR COLUMBIA CA
+    #for hussard in Kdf["source_key"].unique():
+    for hussard in [0,19]: #TEMPORARY TEST FOR COLUMBIA CA
         # make a figure with required dimensions
         if size_format == "geomorphology":
             fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))            

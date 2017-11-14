@@ -327,14 +327,6 @@ def extract_outliers_by_header(df, data_column_name = "diff", header_for_group =
 
     """
 
-    ### Pre check
-    if((data_column_name not in df.columns) or (header_for_group not in df.columns)):
-        print("STATSUTILITIES::extract_outliers_by_header: Invalid header_for_group or data_column_name, check your spelling")
-        quit()
-    if(not isinstance(df,pd.DataFrame)):
-        print("STATSUTILITIES::extract_outliers_by_header: I need a Pandas Dataframe for this function")
-        quit()
-
     ### Let's do it
 
     # Output dataframe initialized as an integer, you'll see why later 
@@ -344,7 +336,6 @@ def extract_outliers_by_header(df, data_column_name = "diff", header_for_group =
         tdf = df[df[header_for_group]==i]
         tdfpositive = tdf[tdf["sign"] == 1]
         tdfnegative = tdf[tdf["sign"] == -1]
-
 
         # masking the outliers
         maskpositive = is_outlier(tdfpositive[data_column_name].values, thresh = threshold)
