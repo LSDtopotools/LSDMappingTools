@@ -27,6 +27,153 @@ import pandas as pd
 from scipy.stats import norm
 
 
+
+
+
+class KnickInfo(object):
+    """
+    This create a KnickInfo object, my plan is to incorporate and preprocess the informations for knickstuff analysis to save time when saving figures
+    Author: BG - 14/11/2016
+    """
+    def __init__(self,fpath,fprefix, method = 'ksn',binning = 'general', outlier_detection = False, basin_list = [], weighting = True):
+
+        print("Preprocessing and loading your knickpoint/zone dataset")
+        self.fpath = fpath
+        self.fprefix = fprefix
+        self.method = method
+        self.binning = binning
+        self.outlier = outlier_detection
+
+        # Loading the data
+        self.knickpoint_raw = Helper.ReadKnickpointCSV(self.fpath,self.fprefix)
+        self.knickzone_raw = Helper.ReadKnickzoneCSV(self.fpath, self.fprefix)
+        self.chanNet = Helper.ReadMChiSegCSV(self.fpath, self.fprefix,type = 'knickpoint')
+
+        if(len(basin_list) > 0):
+            print("I am selecting your data for the following basins:")
+            print(basin_list)
+
+        # Processing the outlier
+        if(outlier_detection):
+            print("I am selecting outliers by %s, binned by %s"%(method,binning))
+            if(weighting):
+                self.knickzone_out = get_outliers_from_DF(self.knickzone_raw, method = 'Wg'+self.method, binning = self.binning)
+            else:
+                self.knickzone_out = get_outliers_from_DF(self.knickzone_raw, method = self.method, binning = self.binning)
+
+
+
+    def raster_plot_knickpoint(self, size_format='ESURF', FigFormat='png'):
+    
+        # check if a directory exists for the chi plots. If not then make it.
+        raster_directory = self.fpath+'raster_plots/'
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+
+        # Set up fonts for plots
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.size'] = 8
+
+        # set figure sizes based on format
+        if size_format == "geomorphology":
+            fig_width_inches = 6.25
+        elif size_format == "big":
+            fig_width_inches = 16
+        else:
+            fig_width_inches = 4.92126
+
+
+        # get the rasters
+        raster_ext = '.bil'
+        BackgroundRasterName = self.fprefix+raster_ext
+        HillshadeName = self.fprefix+'_hs'+raster_ext
+        BasinsName = self.fprefix+'_AllBasins'+raster_ext
+
+        
+        # create the map figure
+        MF = MapFigure(HillshadeName, self.fpath,coord_type="UTM_km", alpha = 0.7)
+        
+        # plot the basin outlines
+        Basins = LSDP.GetBasinOutlines(self.fpath, BasinsName)
+        MF.plot_polygon_outlines(Basins, linewidth=0.5)
+
+        # add the channel network without color
+        ChannelPoints = LSDP.LSDMap_PointData(self.chanNet, data_type = "pandas", PANDEX = True)
+        MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.5,min_point_size = 0.1,zorder=100)
+        # Selecting the knickpoints
+
+        if(self.outlier):
+            KdfPoints = LSDP.LSDMap_PointData(self.knickpoint_out, data_type = "pandas", PANDEX = True)
+        else:
+            KdfPoints = LSDP.LSDMap_PointData(self.knickpoint_raw, data_type = "pandas", PANDEX = True)
+
+        MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='rad_diff',alpha=1,max_point_size = 15,min_point_size = 1,zorder=200)
+
+  
+        ImageName = raster_directory+self.fprefix+"_Kp_"+self.method+'_'+self.binning+".png"
+        MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 500) # Save the figure
+
+    def raster_plot_knickzone(self, size_format='ESURF', FigFormat='png'):
+
+        # check if a directory exists for the chi plots. If not then make it.
+        raster_directory = self.fpath+'raster_plots/'
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+
+        # Set up fonts for plots
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.size'] = 8
+
+        # set figure sizes based on format
+        if size_format == "geomorphology":
+            fig_width_inches = 6.25
+        elif size_format == "big":
+            fig_width_inches = 16
+        else:
+            fig_width_inches = 4.92126
+
+
+        # get the rasters
+        raster_ext = '.bil'
+        BackgroundRasterName = self.fprefix+raster_ext
+        HillshadeName = self.fprefix+'_hs'+raster_ext
+        BasinsName = self.fprefix+'_AllBasins'+raster_ext
+
+        
+        # create the map figure
+        MF = MapFigure(HillshadeName, self.fpath,coord_type="UTM_km", alpha = 0.7)
+        
+        # plot the basin outlines
+        Basins = LSDP.GetBasinOutlines(self.fpath, BasinsName)
+        MF.plot_polygon_outlines(Basins, linewidth=0.5)
+
+        # add the channel network without color
+        ChannelPoints = LSDP.LSDMap_PointData(self.chanNet, data_type = "pandas", PANDEX = True)
+        MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.5,min_point_size = 0.1,zorder=100)
+       
+        # Selecting the knickzones
+        if(self.outlier):
+            Kz = self.knickzone_out
+        else:
+            Kz = self.knickzone_raw
+
+        for i in range(Kz.shape[0]):
+            if(Kz.sign.values[i] == 1):
+                this_color_zone = "#EF0808"
+            else:
+                this_color_zone = "#079F00"
+
+            MF.ax_list[0].plot(Kz["Achi"].values[i],Kz["Bchi"].values[i], c = this_color_zone, lw = 2)
+
+        ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+'_'+self.binning+".png"
+        MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 500) # Save the figure
+
+
+
+
+
 ############################## Data (pre-)processing treatment ##########################################
 
 def get_outliers_from_DF(df, method = "",binning = ""):
@@ -97,9 +244,6 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
         fig_width_inches = 16
     else:
         fig_width_inches = 4.92126
-
-
-
 
 
     # get the rasters
