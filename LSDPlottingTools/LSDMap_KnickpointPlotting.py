@@ -58,8 +58,21 @@ class KnickInfo(object):
             print("I am selecting outliers by %s, binned by %s"%(method,binning))
             if(weighting):
                 self.knickzone_out = get_outliers_from_DF(self.knickzone_raw, method = 'Wg'+self.method, binning = self.binning)
+                self.scaling_factor = 'Wg'+ method
             else:
                 self.knickzone_out = get_outliers_from_DF(self.knickzone_raw, method = self.method, binning = self.binning)
+                self.scaling_factor = method
+
+            self.knickpoint_out = get_outliers_from_DF(self.knickpoint_raw, method = self.method, binning = self.binning)
+        else:
+            self.scaling_factor = method
+
+        # initializing knickzone info
+                # generating the knickzones
+        if(self.outlier):
+            self.get_knickzone_segment_for_rasterplot(self.knickzone_out)
+        else:
+            self.get_knickzone_segment_for_rasterplot(self.knickzone_raw)
 
 
 
@@ -108,10 +121,12 @@ class KnickInfo(object):
         else:
             KdfPoints = LSDP.LSDMap_PointData(self.knickpoint_raw, data_type = "pandas", PANDEX = True)
 
-        MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='rad_diff',alpha=1,max_point_size = 15,min_point_size = 1,zorder=200)
+        MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling=self.method,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200)
 
-  
-        ImageName = raster_directory+self.fprefix+"_Kp_"+self.method+'_'+self.binning+".png"
+        if(self.outlier):
+            ImageName = raster_directory+self.fprefix+"_Kp_"+self.method+'_'+self.binning+".png"
+        else:
+            ImageName = raster_directory+self.fprefix+"_Kp_"+self.method+".png"
         MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 500) # Save the figure
 
     def raster_plot_knickzone(self, size_format='ESURF', FigFormat='png'):
@@ -134,7 +149,6 @@ class KnickInfo(object):
         else:
             fig_width_inches = 4.92126
 
-
         # get the rasters
         raster_ext = '.bil'
         BackgroundRasterName = self.fprefix+raster_ext
@@ -152,26 +166,170 @@ class KnickInfo(object):
         # add the channel network without color
         ChannelPoints = LSDP.LSDMap_PointData(self.chanNet, data_type = "pandas", PANDEX = True)
         MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.5,min_point_size = 0.1,zorder=100)
-       
-        # Selecting the knickzones
+
+        for kz in self.knickzone_plot:
+            if(kz[1].shape[0]>0):
+                if(kz[1][0] == 1): # if positive knickzone
+                    this_color_zone = "#EF0808"
+                else:
+                    this_color_zone = "#0017FF"
+
+                thisPointData = LSDP.LSDMap_PointData(kz[0], data_type = "pandas", PANDEX = True)
+                MF.plot_segment_of_knickzone(thisPointData, color = this_color_zone, lw = 1)
+
         if(self.outlier):
-            Kz = self.knickzone_out
+            ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+'_'+self.binning+".png"
         else:
-            Kz = self.knickzone_raw
-
-        for i in range(Kz.shape[0]):
-            if(Kz.sign.values[i] == 1):
-                this_color_zone = "#EF0808"
-            else:
-                this_color_zone = "#079F00"
-
-            MF.ax_list[0].plot(Kz["Achi"].values[i],Kz["Bchi"].values[i], c = this_color_zone, lw = 2)
-
-        ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+'_'+self.binning+".png"
+            ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+".png"
         MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 500) # Save the figure
 
 
+    def chi_profiles_knickzones(self,size_format='ESURF', FigFormat='png', river_length_threshold = 0):
+        """
+        Plotting routines for knickzoe chi-spaced profiles
 
+        """
+
+        # check if a directory exists for the chi plots. If not then make it.
+        raster_directory = self.fpath+'knickzone_river/'
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+
+        # Set up fonts for plots
+        label_size = 8
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.size'] = label_size
+
+        #now plotting
+        print("I am plotting one figure per river, it can take a while. If you are processing a large area, I would recommend to select main channels")
+        if(self.outlier):
+            kz = self.knickzone_out
+        else:
+            kz = self.knickzone_raw
+
+        for hussard in kz["source_key"].unique():
+
+            # make a figure with required dimensions
+            if size_format == "geomorphology":
+                fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))            
+            elif size_format == "big":
+                fig = plt.figure(1, facecolor='white',figsize=(16,9))            
+            else:
+                fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+            # create the axis and its position
+            ## axis 1: The Chi profile and the knickpoints
+            gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
+            ax = fig.add_subplot(gs[0:80,0:100])
+            ## axis 2: The cumul axis
+            gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
+            ax2 = fig.add_subplot(gs[80:100,0:100])
+            
+            # Selecting the data for this river
+            tKdf = self.knickpoint_raw[self.knickpoint_raw["source_key"] == hussard]
+            tCdf = self.chanNet[self.chanNet["source_key"] == hussard]
+            tKz = kz[kz["source_key"] == hussard]
+
+
+            #Sorting by Chi values, not automatic since I am probably weridly using itrator to print the map in c++
+            tCdf = tCdf.sort_values("chi")
+            #tKzdf = tKzdf.sort_values("chi")
+
+            # Plotting the cumul ksn_variation
+
+            ## then plotting
+            ax2.plot(tKdf['chi'], tKdf[self.method],lw = 0.5, c = '#787878' )
+            ax2.fill_between(tKdf["chi"],0,tKdf[self.method], color = "k", alpha = 0.9)
+            ax.fill_between(tCdf["chi"],0,tCdf["elevation"], color = '#AAAAAA' , alpha = 0.8)
+            for index, row in tKz.iterrows():
+                # ax2.plot([row['Achi'],row['Bchi']],[row[cumul_col],row[cumul_col]], lw = 0.75, c = '#787878')
+                if(row['sign'] == 1):
+                    colotempolo = "#EF0808"
+                else:
+                    colotempolo = "#0055FF"
+                tempdfforplotting = tCdf[tCdf["chi"]>=row['Achi']]
+                tempdfforplotting = tempdfforplotting[tempdfforplotting["chi"]<=row['Bchi']]
+
+                if(row['Achi'] ==row['Bchi']):
+                    lw_temp = 0.5
+                else:
+                    lw_temp = 0
+                ax.fill_between(tempdfforplotting["chi"],0,tempdfforplotting["elevation"], color = colotempolo , alpha = 0.5,lw = lw_temp)
+            
+                size = row[self.scaling_factor]
+                size = size/tKz[self.scaling_factor].abs().max()*100 + 10
+                ax.scatter(row["Achi"],row["Aelevation"], s = size, c = colotempolo)
+
+            # Plotting the Chi profiles
+            ax.plot(tCdf["chi"],tCdf["elevation"], lw = 1.2 , c ='#0089B9',alpha = 1,zorder = 7)
+
+
+            # Display options
+            ## setting the same Chi xlimits to display on the same scale
+            ax2.set_xlim(ax.get_xlim())
+            
+            # setting the elevation limits
+            adjuster = 0.05 * (tCdf["elevation"].max()-tCdf["elevation"].min()) # This adjuster create larger ylimits for the elevation axis.  5 % from the min/max.
+            ax.set_ylim([tCdf["elevation"].min()-adjuster,tCdf["elevation"].max()+adjuster])
+            ## distance from the axis
+            ax.yaxis.labelpad = 7
+            ax2.yaxis.labelpad = 7
+            ## Color of the label, ticks and axis
+            ### Cumul axis
+            # ax.yaxis.label.set_color('#787878')
+            # ax.tick_params(axis='y', colors='#787878')
+            # ax.spines['right'].set_color('#787878')
+            # ax.spines['bottom'].set_visible(False)
+
+            ## Name of the xlabels
+            ax2.set_xlabel(r'$\chi$')
+            ## Name of y labels
+
+            ax2.set_ylabel(self.method, rotation = 90, fontsize = 7)
+            ax.set_ylabel('Elevation (m)', rotation = 90, fontsize = 7)
+            ## Disabling the xaxis of the cumul axis as this is the same than the firts one.
+            ax.xaxis.set_ticks_position('none')
+            ax.set_xticklabels([])
+            ax2.xaxis.set_ticks_position('bottom')
+            for axil in [ax,ax2]:
+                for tick in axil.yaxis.get_major_ticks():
+                    tick.label.set_fontsize(7)
+            # Finally setting grids to test if this looks good
+            ax.grid(color = 'k', linestyle = '-', linewidth = 0.5, alpha = 0.1)
+            ax2.grid(color = 'k', linestyle = '-', linewidth = 0.5, alpha = 0.1)
+
+            # Saving the figure
+            ## Building the name, it has to be specific to avoid replacing files
+            if(self.outlier):
+                save_name = raster_directory + self.fprefix + "_Source" + str(hussard) + self.scaling_factor + "."+FigFormat
+            else:
+                save_name = raster_directory + self.fprefix + "_Source" + str(hussard) + "."+FigFormat
+            plt.savefig(save_name, dpi = 400)
+
+            # Clearing the figure to get ready for the new one
+            plt.clf()
+
+        # Printing done to tell people that this is done
+        print("done")
+
+
+
+    def get_knickzone_segment_for_rasterplot(self, knickzone_df):
+
+   
+        print("generating knickzone raster plotting informations")
+        self.knickzone_plot = []
+        for source in knickzone_df["source_key"].unique():
+            temp_df = knickzone_df[knickzone_df['source_key'] == source]
+            
+            for index,row in temp_df.iterrows():
+                this_kz_chi = self.chanNet[(self.chanNet["source_key"] == source) & (self.chanNet["chi"]<= row["Bchi"]) & (self.chanNet["chi"]>= row["Achi"])]
+                this_kz_sign = np.ones(this_kz_chi.shape[0])*row["sign"]
+
+                self.knickzone_plot.append([this_kz_chi,this_kz_sign])
+
+        print("done")
 
 
 ############################## Data (pre-)processing treatment ##########################################
@@ -496,7 +654,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
 
     print("done")
 
-def chi_profile_knickzone(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], knickpoint_value = 'delta_ksn', river_length_threshold = 0, outlier_detection_method = '', outlier_detection_binning = ''):
+def chi_profile_knickzone_old(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png', basin_list = [], knickpoint_value = 'delta_ksn', river_length_threshold = 0, outlier_detection_method = '', outlier_detection_binning = ''):
 
     """
     This creates a chi profiles with the knickpoint on top of the profile, and the knickzones information in the back.

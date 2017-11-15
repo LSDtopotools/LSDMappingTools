@@ -1216,6 +1216,28 @@ class MapFigure(object):
                 print("Let me add a colourbar for your point data")
                 self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
+    def plot_segment_of_knickzone(self, thisPointData, color = "k", lw = 1):
+        # Get the axis limits to assert after
+        this_xlim = self.ax_list[0].get_xlim()
+        this_ylim = self.ax_list[0].get_ylim()
+
+        EPSG_string = self._RasterList[0]._EPSGString
+        print("I am going to plot some points for you. The EPSG string is:"+EPSG_string)
+
+        # convert to easting and northing
+        [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+        print("I got the easting and northing")
+
+        if(len(easting)>1):
+            self.ax_list[0].plot(easting,northing, c = color, lw = lw)
+        elif (len(easting) == 1):
+
+            self.ax_list[0].scatter(easting,northing, c = color, s = lw * 0.2)
+        # Annoying but the scatter plot resets the extents so you need to reassert them
+        self.ax_list[0].set_xlim(this_xlim)
+        self.ax_list[0].set_ylim(this_ylim)
+
+
     def add_channel_network_from_points(self, thisPointData, colour='k', alpha = 0.7, zorder=1):
         """
         This function plots the channel network from the map figure, you must pass in the

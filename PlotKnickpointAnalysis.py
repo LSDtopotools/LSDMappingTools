@@ -75,7 +75,8 @@ def main(argv):
     parser.add_argument("-OUT", "--outlier", type=bool, default = False, help="Turn to True to only display outliers detected on some method")
     parser.add_argument("-KzW", "--knizone_weighted", type=bool, default = True, help="Knickzones are weighted by lenghth for the outlier detection. You can turn that off to have true raw data")
 
-    parser.add_argument("-S", "--Set", type=bool, default = False, help="Turn to True to plot a complete set of figures")
+    parser.add_argument("-Ras", "--raster", type=bool, default = False, help="Turn to True to plot a complete set of figures")
+    parser.add_argument("-Riv", "--river", type=bool, default = False, help="Turn to True to plot a complete set of figures")
 
 
     # ALL
@@ -133,9 +134,12 @@ def main(argv):
     KI = KP.KnickInfo(args.base_directory,args.fname_prefix, method = args.method,binning = args.binning, outlier_detection = args.outlier, basin_list = these_basin_keys, weighting = True)
 
 ##################### Plotting Facilities
-    if(args.Set):
+    if(args.raster):
         KI.raster_plot_knickpoint(size_format=args.size_format, FigFormat=args.FigFormat)
         KI.raster_plot_knickzone(size_format=args.size_format, FigFormat=args.FigFormat)
+
+    if(args.river):
+        KI.chi_profiles_knickzones(size_format=args.size_format, FigFormat=args.FigFormat)
 
 
 
