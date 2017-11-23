@@ -141,6 +141,16 @@ def main(argv):
     if(args.river):
         KI.chi_profiles_knickzones(size_format=args.size_format, FigFormat=args.FigFormat)
 
+    if args.AllAnalysis:
+        for m in ["ksn","rksn","rad"]:
+            KI = KP.KnickInfo(args.base_directory,args.fname_prefix, method =m ,binning = 'general', outlier_detection =False , basin_list = these_basin_keys, weighting = True)
+            KI.raster_plot_knickpoint(size_format=args.size_format, FigFormat=args.FigFormat)
+            KI.raster_plot_knickzone(size_format=args.size_format, FigFormat=args.FigFormat)
+            for b in ["general", "source_key", "basin_key"]:
+                KI = KP.KnickInfo(args.base_directory,args.fname_prefix, method =m ,binning = b, outlier_detection =True , basin_list = these_basin_keys, weighting = True)
+                KI.raster_plot_knickpoint(size_format=args.size_format, FigFormat=args.FigFormat)
+                KI.raster_plot_knickzone(size_format=args.size_format, FigFormat=args.FigFormat)
+
 
 
 ##################### OLD Plotting facilities

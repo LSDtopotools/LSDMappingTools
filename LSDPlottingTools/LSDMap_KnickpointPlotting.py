@@ -6,6 +6,7 @@
 ## 05/06/2017
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib import colors
@@ -181,7 +182,10 @@ class KnickInfo(object):
             ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+'_'+self.binning+".png"
         else:
             ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+".png"
+        
         MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 500) # Save the figure
+        
+        
 
 
     def chi_profiles_knickzones(self,size_format='ESURF', FigFormat='png', river_length_threshold = 0):
@@ -306,6 +310,7 @@ class KnickInfo(object):
             else:
                 save_name = raster_directory + self.fprefix + "_Source" + str(hussard) + "."+FigFormat
             plt.savefig(save_name, dpi = 400)
+            return fig
 
             # Clearing the figure to get ready for the new one
             plt.clf()
