@@ -254,7 +254,7 @@ def SaveChannelDataByBasin(DataDirectory,FilenamePrefix):
         #write to file
         BasinChannelData.to_csv(OutputFilename, index=False)
 
-def PlotChiElevationSegments(BasinID):
+def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
@@ -289,7 +289,7 @@ def PlotChiElevationSegments(BasinID):
     plt.tight_layout()
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevSeg.png", dpi=300)
 
-def PlotLongProfileSegments(BasinID):
+def PlotLongProfileSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
@@ -324,7 +324,7 @@ def PlotLongProfileSegments(BasinID):
     plt.tight_layout()
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfSeg.png", dpi=300)
 
-def PlotChiElevationMChi(BasinID):
+def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
@@ -372,7 +372,7 @@ def PlotChiElevationMChi(BasinID):
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevMChi.png", dpi=300)
 
-def PlotLongProfileMChi(BasinID):
+def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
@@ -420,7 +420,7 @@ def PlotLongProfileMChi(BasinID):
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfMChi.png", dpi=300)
 
-def PlotCHTAgainstChannelData(BasinID):
+def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
     This function makes a plot of hilltop curavture against data
     from the channel segments.
@@ -437,14 +437,19 @@ def PlotCHTAgainstChannelData(BasinID):
 
     # load the hillslopes data
     HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+    # isolate basin data
+    BasinChannelData = ChannelData[ChannelData.basin_key == BasinID]
+    BasinJunctions = HillslopeData.BasinID.unique()
     BasinHillslopeData = HillslopeData[HillslopeData.BasinID == BasinJunctions[BasinID]]
     MinimumDistance = BasinChannelData.flow_distance.min()
     MaximumMChi = BasinChannelData.m_chi.max()
 
-    # isolate basin data
-    BasinChannelData = ChannelData[ChannelData.basin_key == BasinID]
     # how many segments are we dealing with?
     Segments = BasinChannelData.segment_number.unique()
+
+    # separate into main stem and trib data
+    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
+    MainStemSegments = MainStemChannelData.segment_number.unique()
 
     # set up the figure
     Fig = CreateFigure()
@@ -454,21 +459,32 @@ def PlotCHTAgainstChannelData(BasinID):
     ColourMap = cm.viridis
 
     # loop through the channel data and get the CHT for this distance upstream.
-    MeanCHT = []
-    CentralDist = []
+    MainStemMeanCHT = []
+    MainStemDist = []
+    MainStemLH = []
+    TribsMeanCHT = []
+    TribsDist = []
+    TribsLH = []
+
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
         SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
         if SegmentHillslopeData.size != 0:
-            MeanCHT.append(SegmentHillslopeData.Cht.mean())
-            CentralDist.append(SegmentChannelData.flow_distance.median())
+            if Segments[i] in MainStemSegments:
+                MainStemMeanCHT.append(SegmentHillslopeData.Cht.mean())
+                MainStemDist.append(SegmentChannelData.flow_distance.median())
+                MainStemLH.append(SegmentHillslopeData.Lh)
+            else:
+                TribsMeanCHT.append(SegmentHillslopeData.Cht.mean())
+                TribsDist.append(SegmentChannelData.flow_distance.median())
 
     # now make the plot of the channel profile and the cht data
-    Ax.scatter(CentralDist, MeanCHT)
-    plt.xlabel('Flow distance (m)')
+    Ax.scatter(TribsDist, TribsMeanCHT, s=1, c='0.5', alpha=0.5)
+    Ax.scatter(MainStemDist, MainStemMeanCHT, s=5, c='k')
+    plt.xlabel('Distance from outlet ($m$)')
     plt.ylabel('Mean hilltop curvature ($m^{-1}$)')
-    plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
+    #plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
     plt.tight_layout()
-    
+
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_CHT_flowdist.png", dpi=300)
