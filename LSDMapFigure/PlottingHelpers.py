@@ -9,7 +9,7 @@ Released under GPL3
 22/06/2017
 """
 
-
+import os
 import pandas as pd
 
 #==============================================================================
@@ -511,6 +511,41 @@ def ReadBasinStatsCSV(DataDirectory, fname_prefix):
     df = pd.read_csv(DataDirectory+fname)
 
     return df
+    
+def AppendBasinStatsCSVs(DataDirectory):
+    """
+    This function reads in the files with the prefic "basin"
+    and the suffix '_movernstats_basinstats.csv'
+    to a pandas dataframe, for use with parallel analysis
+
+    Args:
+        DataDirectory: the data directory
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC, MDH
+    """
+    
+    # get the csv filename
+    basin_stats_suffix = '_movernstats_basinstats.csv'
+    
+    # decclare empty data frame
+    MasterDF = pd.DataFrame()
+    
+    # get the list of basins as a dict
+    basin_dict = MapBasinsToKeys(DataDirectory)
+    
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        print outlet_jn, basin_key
+        this_fname = "basin"+str(outlet_jn)+basin_stats_suffix
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+        
+    return MasterDF
 
 def ReadBasinStatsPointCSV(DataDirectory, fname_prefix):
     """
@@ -580,7 +615,7 @@ def ReadMCPointsCSV(DataDirectory, fname_prefix):
     return df
 
 
-def ReadMChiSegCSV(DataDirectory, fname_prefix):
+def ReadMChiSegCSV(DataDirectory, fname_prefix, type = "Normal"):
     """
     This function reads in the file with the suffix
     '_MChiSegmented.csv'
@@ -595,8 +630,13 @@ def ReadMChiSegCSV(DataDirectory, fname_prefix):
 
     Author: BG
     """
-    # get the csv filename
-    suffix = '_MChiSegmented.csv'
+    # get the csv filename depending of what you need
+
+    # The "knickpoint" type is a special M_Chi file generated with the exact degmented elevation
+    if(type == "Normal"): 
+        suffix = '_MChiSegmented.csv'
+    elif(type == "knickpoint"):
+        suffix = "_MChiSegmented_Ks.csv"
     fname = fname_prefix+suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
@@ -624,6 +664,29 @@ def ReadKnickpointCSV(DataDirectory, fname_prefix):
     """
     # get the csv filename
     suffix = '_KsnKn.csv'
+    fname = fname_prefix+suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
+def ReadKnickzoneCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix
+    '_KsnKn.csv'
+    This file holds the MCHI segmented data
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: BG
+    """
+    # get the csv filename
+    suffix = '_KsnKz.csv'
     fname = fname_prefix+suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
@@ -680,6 +743,36 @@ def ReadRawSAData(DataDirectory, fname_prefix):
 
     return df
 
+def AppendRawSAData(DataDirectory):
+    """
+    This function reads in the raw SA data to a pandas dataframe
+    from multiple CSV files with the filename prefix "basin"
+    For use with parallelised methods
+
+    Args:
+        DataDirectory: the data directory
+        
+    Returns:
+        pandas dataframe with the raw SA data
+
+    Author: MDH, FJC
+    """
+    # get the csv filename
+    csv_suffix = "_SAvertical.csv"
+    
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+        
+    return MasterDF
+    
 def ReadSegmentedSAData(DataDirectory, fname_prefix):
     """
     This function reads in the segmented SA data to a pandas dataframe
@@ -834,3 +927,383 @@ def ReadModelCSV(DataDirectory, Base_file):
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
     return df
+
+#-----------------------------------------------------------------------------#
+# Functions for appending csvs together for parallel basin running
+# FJC 19/10/17
+#-----------------------------------------------------------------------------#
+
+def AppendBasinCSVs(DataDirectory):
+    """
+    This function reads in a series of basin csv files and appends them together
+    into one function for plotting
+
+    Args:
+        DataDirectory (str): the data DataDirectory
+
+    Returns:
+        pandas dataframe with the appended basin csvs
+
+    Author: FJC
+    """
+
+    # get the csv filename
+    csv_suffix = "_movernstats_basinstats.csv"
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df.ix[0, 'basin_key'] = basin_key
+        df.ix[0, 'outlet_jn'] = outlet_jn
+        MasterDF = MasterDF.append(df.iloc[0], ignore_index = True)
+
+    return MasterDF
+
+def AppendFullStatsCSVs(DataDirectory, m_over_n):
+    """
+    This function reads in a series of full stats csvs and appends them together
+    into one function for plotting
+
+    Args:
+        DataDirectory (str): the data DataDirectory
+        m_over_n (float): the m/n value
+
+    Returns:
+        pandas dataframe with the appended fullstats csvs
+
+    Author: FJC
+    """
+
+    # get the csv filename
+    csv_suffix =  '_movernstats_%s_fullstats.csv' %str(m_over_n)
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+
+    return MasterDF
+
+def ReadMovernCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in a the movern csv with the suffix "_movern"
+
+    Args:
+        DataDirectory (str): the data DataDirectory
+        fname_prefix
+    Returns:
+        pandas dataframe with the appended movern csvs
+
+    Author: MDH
+    """
+    
+    # get the csv filename
+    csv_suffix = '_movern.csv'
+    
+    df = pd.read_csv(DataDirectory+fname_prefix+csv_suffix)
+    
+    return df
+
+def AppendMovernCSV(DataDirectory):
+    """
+    This function reads in a series of csvs with the suffix "_movern"
+    and appends them together into one function for plotting
+
+    Args:
+        DataDirectory (str): the data DataDirectory
+
+    Returns:
+        pandas dataframe with the appended movern csvs
+
+    Author: FJC
+    """
+
+    # get the csv filename
+    csv_suffix =  '_movern.csv'
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+
+    return MasterDF
+
+def AppendBasinInfoCSVs(DataDirectory):
+    """
+    This function reads in a series of csvs with the suffix "_AllBasinsInfo"
+    and appends them together into one function for plotting
+
+    Args:
+        DataDirectory (str): the data DataDirectory
+
+    Returns:
+        pandas dataframe with the appended movern csvs
+
+    Author: FJC
+    """
+
+    # get the csv filename
+    csv_suffix =  '_AllBasinsInfo.csv'
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        df['outlet_junction'] = outlet_jn
+        MasterDF = MasterDF.append(df, ignore_index = True)
+
+    return MasterDF
+
+def AppendChiDataMapCSVs(DataDirectory):
+    """
+    This function reads in a series of csvs with the suffix "_chi_data_map"
+    and appends them together into one function for plotting
+
+    Args:
+        DataDirectory (str): the data DataDirectory
+
+    Returns:
+        pandas dataframe with the appended csvs
+
+    Author: FJC
+    """
+
+    # get the csv filename
+    csv_suffix =  '_chi_data_map.csv'
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+
+    return MasterDF
+
+def AppendSABinnedCSVs(DataDirectory):
+    """
+    This function reads in a series of csvs with the suffix "_SAbinned"
+    and appends them together into one function for plotting
+
+    Args:
+        DataDirectory (str): the data directory
+
+    Returns:
+        pandas dataframe with the appended csvs
+
+    Author: FJC
+    """
+
+    # get the csv filename
+    csv_suffix =  '_SAbinned.csv'
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+
+    return MasterDF
+
+def AppendSASegmentedCSVs(DataDirectory):
+    """
+    This function reads in a series of csvs with the suffix "_SAsegmented"
+    and appends them together into one function for plotting
+
+    Args:
+        DataDirectory (str): the data directory
+
+    Returns:
+        pandas dataframe with the appended csvs
+
+    Author: FJC
+    """
+
+    # get the csv filename
+    csv_suffix =  '_SAsegmented.csv'
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+
+    return MasterDF
+
+def AppendSAVerticalCSVs(DataDirectory):
+    """
+    This function reads in a series of csvs with the suffix "_SAvertical"
+    and appends them together into one function for plotting
+
+    Args:
+        DataDirectory (str): the data directory
+
+    Returns:
+        pandas dataframe with the appended csvs
+
+    Author: FJC
+    """
+
+    # get the csv filename
+    csv_suffix =  '_SAvertical.csv'
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+
+    return MasterDF
+
+def AppendBasinPointCSVs(DataDirectory):
+    """
+    This function reads in a series of csvs with the suffix
+     "_MCpoint_points_MC_basinstats" and appends them together
+     into one function for plotting
+
+    Args:
+        DataDirectory (str): the data directory
+
+    Returns:
+        pandas dataframe with the appended csvs
+
+    Author: FJC
+    """
+
+    # get the csv filename
+    csv_suffix =  '_MCpoint_points_MC_basinstats.csv'
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        df['outlet_jn'] = outlet_jn
+        MasterDF = MasterDF.append(df, ignore_index = True)
+
+    return MasterDF
+
+def AppendChiResidualsCSVs(DataDirectory):
+    """
+    This function reads in a series of 3 csvs with the residuals data
+     and appends them together into one function for plotting
+
+    Args:
+        DataDirectory (str): the data directory
+
+    Returns:
+        pandas dataframe with the appended csvs
+
+    Author: FJC
+    """
+
+    # get the csv filename
+    fnames = ["_residual_movernstats_movern_residuals_median.csv","_residual_movernstats_movern_residuals_Q1.csv","_residual_movernstats_movern_residuals_Q3.csv"]
+
+    MasterDFs = []
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeys(DataDirectory)
+
+    for f in fnames:
+        # loop through and get each basin csv
+        for outlet_jn, basin_key in basin_dict.iteritems():
+            this_fname = "basin"+str(outlet_jn)+f
+            # append to master DF and change the basin key and the junction
+            df = pd.read_csv(DataDirectory+this_fname)
+            df = df[df['basin_key'] == 0]
+            df['basin_key'] = basin_key
+            df['outlet_jn'] = outlet_jn
+            MasterDF = MasterDF.append(df, ignore_index = True)
+        MasterDFs.append(MasterDF)
+
+    return MasterDFs
+
+def MapBasinsToKeys(DataDirectory):
+    """
+    This function reads in all of the basin files in a directory
+    and assigns a basin key to each basin based on the outlet junction.
+    This is used when appending these all together so that each basin still
+    has a unique ID
+
+    Args:
+        DataDirectory (str): the data directory
+
+    Returns:
+        dictionary where key is the outlet junction and value is the assigned
+        basin ID
+
+    Author: FJC
+    """
+    import os
+
+    # get the csv filename
+    csv_suffix = "_movernstats_basinstats.csv"
+
+    basin_dict = {}
+    key = 0
+
+    # loop through the directory and get each basin stats file
+    for fname in os.listdir(DataDirectory):
+        if fname.endswith(csv_suffix):
+            # get this basin junction and map to a key
+            fname = fname.split("/")[-1]
+            fname = fname.split("_")[0]
+            fname = fname.split("n")[-1] #stupid way of getting just the basin junction number
+            basin_dict[fname] = key
+            key+=1
+
+    return basin_dict

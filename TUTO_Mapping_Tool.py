@@ -61,7 +61,8 @@ MF.add_drape_image(DrapeRasterName,Directory, # Calling the function will add a 
                     alpha = 0.5, # transparency of this specific layer, 0 for fully transparent (why not) and 1 for fully opaque
                     show_colourbar = False, # Well, this one is explicit I think
                     colorbarlabel = "Colourbar", # Name of your Colourbar, it might bug though
-                    NFF_opti = True)
+                    NFF_opti = True,
+                    colour_min_max = [])
 
 
 

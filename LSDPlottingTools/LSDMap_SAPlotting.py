@@ -27,7 +27,7 @@ from LSDMapFigure import PlottingHelpers as Helper
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ## Regressions
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
+def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[],parallel=False):
     """
     This function performs a linear regression on all of the slope-area data.
     It returns a dataframe with the linear regression info for each basin key.
@@ -43,9 +43,10 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[]):
     Author: SMM and FJC
     """
     # read in binned data
-
-
-    df = Helper.ReadRawSAData(DataDirectory, DEM_prefix)
+    if not parallel:
+      df = Helper.ReadRawSAData(DataDirectory, DEM_prefix)
+    else:
+      df = Helper.AppendRawSAData(DataDirectory)
 
     # get a list of the basins if needed
     if basin_list == []:
@@ -287,7 +288,7 @@ def GetRangeMOverNRawDataByChannel(DataDirectory,fname_prefix,basin_list=[]):
 def SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = 'show', size_format = "ESURF",
                  show_raw = True, show_segments = True,
                  cmap = plt.cm.Set1, n_colours = 10,
-                 basin_keys = []):
+                 basin_keys = [], parallel=False):
     """
     This is a driver function that manages plotting of Slope-Area data
 
@@ -301,6 +302,7 @@ def SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = 'show', size_format = "E
         cmap (string or colourmap): the colourmap use to colour tributaries
         n_colours (int): The number of coulours used in plotting tributaries
         basin_keys (list): A list of the basin keys to plot. If empty, plot all the basins.
+        parallel (bool): If true the data is in multiple files and must be merged
 
     Returns:
         Slope-area plot for each basin

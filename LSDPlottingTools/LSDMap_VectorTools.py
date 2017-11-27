@@ -16,6 +16,7 @@ from osgeo import ogr, osr
 import LSDPlottingTools as LSDPT
 import gdal as gdal
 from osgeo.gdalconst import GA_ReadOnly
+from LSDMapFigure import PlottingHelpers as Helper
 
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 # BASIN FUNCTIONS
@@ -42,13 +43,48 @@ def GetBasinOutlines(DataDirectory, basins_fname):
 	# read in the basins raster
 	this_fname = basins_fname.split('.')
 	print(basins_fname)
-	print(this_fname[0])
 	OutputShapefile = this_fname[0]+'.shp'
 
 	# polygonise the raster
 	BasinDict = LSDMap_IO.PolygoniseRaster(DataDirectory, basins_fname, OutputShapefile)
 	return BasinDict
 
+def GetMultipleBasinOutlines(DataDirectory):
+  """
+	This function takes in multiple rasters of basins and gets a dict of basin polygons,
+	where the key is the basin key derived from the file name and the value is a shapely polygon of the basin.
+
+	IMPORTANT: In this case the "basin key" is usually the junction number:
+		this function will use the raster values as keys and in general
+		the basin rasters are output based on junction indices rather than keys
+
+	Args:
+		DataDirectory (str): the data directory with the basin raster
+
+	Returns:
+		list of shapely polygons with the basins
+
+	Author: MDH
+	"""
+  # get a list of basins and declare the dictionary to populate
+  basin_dict = Helper.MapBasinsToKeys(DataDirectory)
+  BasinsDict = {}
+  
+  #loop across the basins
+  for outlet_jn, basin_key in basin_dict.iteritems():
+    this_fname = "basin"+str(outlet_jn)+"_AllBasins.bil"
+    
+    TempBasins = GetBasinOutlines(DataDirectory,this_fname)
+  
+    for temp_outlet, temp_basin_key in TempBasins.iteritems():
+      if len(TempBasins) > 1:
+        print("WARNING: MULTIPLE BASINS IN basin #", outlet_jn)
+      TempBasins[int(outlet_jn)] = TempBasins.pop(temp_outlet)
+    
+    BasinsDict.update(TempBasins)
+  
+  return BasinsDict
+              
 def GetBasinCentroids(DataDirectory, basins_fname):
 	"""
 	This function takes in the raster of basins and returns a dict where the
@@ -105,6 +141,40 @@ def GetPointWithinBasins(DataDirectory,basins_fname):
 		PointDict[basin_key] = Point(basin.representative_point())
 
 	return PointDict
+
+def GetPointsWithinMultipleBasins(DataDirectory,basins_fname):
+  """
+  This function takes in rasters of basins and returns a dict where the
+  key is the basin key and the value is a shapely point that is representative
+  of the basin (guaranteed to be within the polygon)
+
+  In most cases the "basin key" is actually the junction index: it comes
+  from the basins labeled within the basin raster, which is output with
+  junction indices rather than junction keys
+
+  Args:
+	  DataDirectory (str): the data directory with the basin raster
+	  fname_prefix (str): the prefix for the DEM
+
+  Returns:
+	  dict of representative points
+
+  Author: FJC
+  """
+  # get the basin polygons
+  BasinDict = GetMultipleBasinOutlines(DataDirectory)
+  print("BASIN DICT IS")
+  print(BasinDict)
+  
+  # get the centroids
+  PointDict = {}
+  for basin_key, basin in BasinDict.iteritems():
+    PointDict[basin_key] = Point(basin.representative_point())
+
+  print("POINT DICT IS")
+  print(PointDict)
+
+  return PointDict
 
 def GetPointWithinBasinsBuffered(DataDirectory,basins_fname, basin_list = [], buffer_frac=0.1):
 	"""

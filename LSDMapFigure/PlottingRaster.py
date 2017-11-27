@@ -597,7 +597,7 @@ class MapFigure(object):
                          use_keys_not_junctions = True,
                          label_basins = True, adjust_text = False, rename_dict = {},
                          value_dict = {}, mask_list = [],
-                         edgecolour='black', linewidth=1, cbar_dict = {}):
+                         edgecolour='black', linewidth=1, cbar_dict = {}, parallel=False):
         """
         This is a basin plotting routine. It plots basins as polygons which
         can be coloured and labelled in various ways.
@@ -624,6 +624,7 @@ class MapFigure(object):
             cbar_dict (dict): an optional dictionary to set the min and max of the colourbars, where the key is the
             min and the max, and the values are what you want to set the colourbar to. Leave empty if you just want this
             to be the same as the value dict.
+            parallel (bool): option flag for processing multiple basin raster files triggered by parallel chi mapping tool.
 
         Author: SMM
         """
@@ -635,11 +636,18 @@ class MapFigure(object):
         # Get the basin outlines
         # Basins referes to a dict where the key is the junction index and the
         # value is a shapely polygon object
-        Basins = LSDP.GetBasinOutlines(Directory, RasterName)
+        if not parallel:
+          Basins = LSDP.GetBasinOutlines(Directory, RasterName)
+        else:
+          Basins = LSDP.GetMultipleBasinOutlines(Directory)
 
         # Now check if you want to mask the basins
         # get the basin IDs to make a discrete colourmap for each ID
-        BasinInfoDF = phelp.ReadBasinInfoCSV(Directory, BasinInfoPrefix)
+        #load the file
+        if not parallel:
+          BasinInfoDF = phelp.ReadBasinInfoCSV(Directory, BasinInfoPrefix)
+        else:
+          BasinInfoDF = phelp.AppendBasinInfoCSVs(Directory)
 
         # Extract the basin keys
         basin_keys = list(BasinInfoDF['basin_key'])
@@ -759,7 +767,8 @@ class MapFigure(object):
             # now plot the polygons
             print('Plotting the polygons, colouring by basin...')
             for key, poly in Basins.iteritems():
-                colourkey = key % n_colours
+                print(key, int(key))
+                colourkey = int(key) % n_colours
                 # We need two patches since we don't want the edges transparent
                 this_patch = PolygonPatch(poly, fc=new_colours.to_rgba(colourkey), ec="none", alpha=alpha)
                 self.ax_list[0].add_patch(this_patch)
@@ -787,13 +796,16 @@ class MapFigure(object):
             gray_colour = "#a9a9a9"
 
             # now plot the polygons
+            print Basins
+            print junction_to_key_dict
             print('Plotting the polygons, colouring by value...')
             for junc, poly in Basins.iteritems():
 
                 # If we are using keys, we need to check to see if the key referred to by
                 # this junction is in the value dict
                 if use_keys_not_junctions:
-                    this_key = junction_to_key_dict[junc]
+                    print junc
+                    this_key = junction_to_key_dict[int(junc)]
                     print ("This key is: "+str(this_key)+", and this value is: "+str(value_dict[this_key]))
                     if this_key in value_dict:
                         this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[this_key] ), ec="none", alpha=alpha)
@@ -1044,7 +1056,7 @@ class MapFigure(object):
 
 
     def add_point_data(self, thisPointData,column_for_plotting = "None",
-                       this_colourmap = "cubehelix", show_colourbar="False", colourbar_location = "bottom",
+                       this_colourmap = "cubehelix", show_colourbar = False, colourbar_location = "bottom",
                        colorbarlabel = "Colourbar",
                        scale_points = False,column_for_scaling = "None",
                        scaled_data_in_log = False,
@@ -1204,6 +1216,28 @@ class MapFigure(object):
                 print("Let me add a colourbar for your point data")
                 self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
+    def plot_segment_of_knickzone(self, thisPointData, color = "k", lw = 1):
+        # Get the axis limits to assert after
+        this_xlim = self.ax_list[0].get_xlim()
+        this_ylim = self.ax_list[0].get_ylim()
+
+        EPSG_string = self._RasterList[0]._EPSGString
+        print("I am going to plot some points for you. The EPSG string is:"+EPSG_string)
+
+        # convert to easting and northing
+        [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+        print("I got the easting and northing")
+
+        if(len(easting)>1):
+            self.ax_list[0].plot(easting,northing, c = color, lw = lw)
+        elif (len(easting) == 1):
+
+            self.ax_list[0].scatter(easting,northing, c = color, s = lw * 0.2)
+        # Annoying but the scatter plot resets the extents so you need to reassert them
+        self.ax_list[0].set_xlim(this_xlim)
+        self.ax_list[0].set_ylim(this_ylim)
+
+
     def add_channel_network_from_points(self, thisPointData, colour='k', alpha = 0.7, zorder=1):
         """
         This function plots the channel network from the map figure, you must pass in the
@@ -1312,13 +1346,16 @@ class MapFigure(object):
         """
         from shapely.geometry import Point
 
-
         # rewrite with new values if you need to (for basins)
+        print points
+        print label_dict
+
         new_points = {}
         if label_dict:
             for key, label in label_dict.iteritems():
                 # get the point for this key
                 new_points[label] = points.get(key)
+                print key, label, new_points[label]
             points = new_points
 
         # A list of text objects
@@ -1331,6 +1368,7 @@ class MapFigure(object):
         # Format the bounding box
         bbox_props = dict(boxstyle="Round4,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
 
+        print points
         for key, point in points.iteritems():
             x = point.x
             y = point.y
@@ -1392,7 +1430,96 @@ class MapFigure(object):
 
         return texts
 
+    def add_arrows_from_points(self, arrow_df, azimuth_header='azimuth', arrow_length=0.1, colour='black', linewidth=1, alpha = 1):
+        """
+        This function adds arrows at locations and azimuths specified by the
+        pandas dataframe.  The X and Y locations should have column headers
+        called 'X' and 'Y', the user specifies the column header of the azimuths
+        column (default = 'azimuth')
 
+        Args:
+            arrow_df: pandas dataframe with the X and Y locations and the azimuths
+            azimuth_header (str): the name of the column header with the azimuth locations
+            colour: arrow colour, can pass in the name of one of the column headers and arrows will be coloured according to this.
+
+        Author: FJC
+
+        """
+        import math
+        import matplotlib.patches as patches
+
+        # convert azimuths to radians
+        azimuths = list(arrow_df[azimuth_header])
+        az_radians = np.radians(azimuths)
+        print az_radians
+
+        # get points
+        X = np.array(arrow_df['X'])
+        Y = np.array(arrow_df['Y'])
+        dx = np.array([ arrow_length*np.sin(i) for i in az_radians ])
+        dy = np.array([ arrow_length*np.cos(i) for i in az_radians ])
+        new_X = X - dx/2
+        new_Y = Y - dy/2
+
+        print dx,dy
+
+        self.ax_list[0].quiver(new_X,new_Y,dx,dy,angles='xy',scale_units='xy',scale=1, width=0.002)
+
+    def add_strike_and_dip_symbols(self,dip_df,colour='black',linewidth=1,alpha=1, symbol_length=10):
+        """
+        This function adds strike and dip symbols to the map from a pandas
+        dataframe with the dip, dip direction, and strike
+        Will be labelled with the dip.
+
+        Args:
+            dip_df: pandas dataframe with the dip and dip direction info
+            colour: colour of the symbols
+            linewidth: linewidth of the symbols
+            alpha: transparency of the symbols.
+            symbol_length: length of the strike element of the strike/dip symbol
+
+        Author: FJC
+        """
+        # first we need get the strike to radians
+        strikes = np.array(dip_df['strike'])
+        strike_radians = np.radians(strikes)
+
+        # get points
+        X = np.array(dip_df['X'])
+        Y = np.array(dip_df['Y'])
+        # work out the dx and dy of the strike line
+        dx = np.array([ symbol_length*np.sin(i) for i in strike_radians ])
+        dy = np.array([ symbol_length*np.cos(i) for i in strike_radians ])
+        # we want the centre of the line to be at the X/Y point
+        start_X = X - dx/2
+        start_Y = Y - dy/2
+
+        # now we need to convert dip dirs to radians
+        dip_dirs = np.array(dip_df['dip_azimuth'])
+        dd_radians = np.radians(dip_dirs)
+        # get the dx and dy of the dip dir line
+        dx_dd = np.array([ (symbol_length/5)*np.sin(i) for i in dd_radians ])
+        dy_dd = np.array([ (symbol_length/5)*np.cos(i) for i in dd_radians ])
+
+        # get the dips as strings
+        dips = list(dip_df['dip'])
+        dips = [str(np.round(x,1)) for x in dips]
+
+        bbox_props = dict(boxstyle="Round4,pad=0.1", fc="none", ec="none", lw=0.5,alpha = alpha)
+
+        # now plot each symbol
+        for i, angle in enumerate(strike_radians):
+            # start and end for the strike
+            end_X = start_X[i] + dx[i]
+            end_Y = start_Y[i] + dy[i]
+            # start and end for the dip dir
+            end_X_dd = X[i] + dx_dd[i]
+            end_Y_dd = Y[i] + dy_dd[i]
+            # plot the lines
+            self.ax_list[0].plot([start_X[i], end_X],[start_Y[i], end_Y],c=colour, lw=linewidth,alpha=alpha)
+            self.ax_list[0].plot([X[i], end_X_dd], [Y[i], end_Y_dd], c=colour, lw=linewidth,alpha=alpha)
+            # add the dip labelling
+            self.ax_list[0].text(X[i], Y[i]-symbol_length, dips[i], fontsize=4, color=colour,alpha=alpha,bbox=bbox_props, ha= 'center',zorder=2)
 
 
     def plot_polygon_outlines(self,polygons, colour='black', linewidth=1, alpha = 1):
@@ -1478,7 +1605,7 @@ class MapFigure(object):
                  FigFormat = 'png',Fig_dpi = 100,
                  axis_style = "Normal", transparent=False,
                  adjust_cbar_characters=True,
-                 fixed_cbar_characters=4):
+                 fixed_cbar_characters=4, return_fig = False):
         """
         This saves the figure to file.
 
@@ -1491,6 +1618,7 @@ class MapFigure(object):
             transparent (bool): If true the background is transparent (i.e., you don't get a white rectangle in the background)
             adjust_cbar_characters (bool): If true, adjust the spacing of the colourbar to account for the characters in the cbar label
             fixed_cbar_characters (int): ONLY used if adjust_cbar_characters=False. The number of characters to pad the cbar for.
+            return_fig (bool): return the figure rather than saving a plot. In case you want some personnalisation. CAreful, if your personalisation may be useful for everyone, just code it for everyone.
 
         Author: SMM
         """
@@ -1564,13 +1692,14 @@ class MapFigure(object):
         # if cbar_axes != None:
         #     self.ax_list[-1].set_position(cbar_axes)
 
-        fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi, transparent=transparent)
-
-        #self.fig.show()
-        #print("The figure format is: " + self.FigFormat)
-        #plt.savefig(self.FigFileName,format=self.FigFormat)
-        fig.clf()
-        plt.close(fig)
+        # I am returning the figure if wanted, otherwise I am saving the figure and clearing it
+        if(return_fig):
+            return fig
+        else:
+            # saving and closing
+            fig.savefig(FigFileName, format=FigFormat, dpi=Fig_dpi, transparent=transparent)
+            fig.clf()
+            plt.close(fig)
 
     def SetRCParams(self,label_size):
         """
