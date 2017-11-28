@@ -833,6 +833,7 @@ class MapFigure(object):
             print("The colourbar orientation for basin plotting is: "+self.colourbar_orientation)
             if self.colourbar_orientation != "None":
                 print("Let me add a colourbar for your basin data")
+                print("CBAR TYPE IS", cbar_type)
                 this_cbar_type = cbar_type
                 this_cbarlabel = colorbarlabel
                 self.ax_list = self.add_objectless_colourbar(self.ax_list,
@@ -950,7 +951,8 @@ class MapFigure(object):
             vmax = max_value
         print("The min and max for the colourbar are:")
         print vmin, vmax
-
+        print n_colours
+        
         # get the additional end spacing for colourbar
         tick_spacing = (vmax-vmin)/(n_colours)
         print tick_spacing
@@ -1216,6 +1218,44 @@ class MapFigure(object):
                 print("Let me add a colourbar for your point data")
                 self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
+    def add_line_data(self, ThisLineFile, Dashed = False, LineWidth = 1, Colour = "k", ZOrder = 1):
+        """
+        This adds line data from a named shapefile to the map.
+
+        Args:
+            ThisLineFile (object): a shapefile for plotting lines.
+            Dashed: bool describing if lines should be dashed or solid
+            Colour: matplotlib color indicator
+            
+        Author: MDH
+        """
+        
+        # import linestring
+        from shapely.geometry import shape, LineString
+        import fiona
+        
+        # Get the axis limits to assert after
+        this_xlim = self.ax_list[0].get_xlim()
+        this_ylim = self.ax_list[0].get_ylim()
+
+        EPSG_string = self._RasterList[0]._EPSGString
+        print("I am going to plot some lines for you. The EPSG string is:"+EPSG_string)
+
+        # dashed line?
+        LineStyle="-"
+        if Dashed:
+            LineStyle="--"
+        # load the data
+        with fiona.open(ThisLineFile) as input:
+            for feature in input:
+                geom = shape(feature['geometry'])
+                x, y = geom.xy
+                self.ax_list[0].plot(x,y,LineStyle,color=Colour,lw=LineWidth,zorder=ZOrder)       
+        
+        # Annoying but the scatter plot resets the extents so you need to reassert them
+        self.ax_list[0].set_xlim(this_xlim)
+        self.ax_list[0].set_ylim(this_ylim)
+                       
     def plot_segment_of_knickzone(self, thisPointData, color = "k", lw = 1):
         # Get the axis limits to assert after
         this_xlim = self.ax_list[0].get_xlim()
@@ -1233,6 +1273,7 @@ class MapFigure(object):
         elif (len(easting) == 1):
 
             self.ax_list[0].scatter(easting,northing, c = color, s = lw * 0.2)
+            
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
         self.ax_list[0].set_ylim(this_ylim)

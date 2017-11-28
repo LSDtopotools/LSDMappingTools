@@ -1,11 +1,16 @@
-# -*- coding: utf-8 -*-
-"""
-Spyder Editor
-
-This is a temporary script file.
-"""
-
-#import modules
+#=============================================================================
+# These functions create figures for visualising the hillslope-channel data
+# produced by the hillslope morphology driver
+#
+# It creates separate plots for each basin in the DEM.
+#
+# Authors:
+#     Martin D. Hurst
+#     Fiona J. Clubb
+#=============================================================================
+#=============================================================================
+# IMPORT MODULES
+#=============================================================================
 from geopandas import GeoDataFrame
 import pandas as pd
 import numpy as np
@@ -23,12 +28,13 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import rcParams, ticker
 import matplotlib.pyplot as plt
-#plt.style.use('ggplot')
 from matplotlib import cm
-
-## modules
 from shapely.ops import cascaded_union
 from descartes import PolygonPatch
+
+#=============================================================================
+# PRELIMINARY FUNCTIONS
+#=============================================================================
 
 def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
     """
@@ -72,8 +78,6 @@ def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
     Fig = plt.figure(figsize=(FigWidth_Inches,FigWidth_Inches/AspectRatio))
 
     return Fig
-
-
 
 def ReadHillslopeData(DataDirectory, FilenamePrefix):
     """
@@ -157,6 +161,34 @@ def ReadHillslopeTraces(DataDirectory, FilenamePrefix):
     df = pd.read_csv(ReadFilename)
     geometry = [Point(xy) for xy in zip(df.Longitude, df.Latitude)]
     df = df.drop(['Easting','Northing','Longitude', 'Latitude'], axis=1)
+    crs = {'init': 'epsg:4326'}
+    geo_df = GeoDataFrame(df, crs=crs, geometry=geometry)
+
+    return geo_df
+
+def ReadTerraceData(DataDirectory,FilenamePrefix):
+    """
+    This function reads in the file with the suffix '_terrace_info.csv'
+    and creates a geopandas GeoDataFrame
+
+    Args:
+        DataDirectory: the data directory
+        FilenamePrefix: the file name prefix
+
+    Returns:
+        geopandas GeoDataFrame with data from the csv file spatially organised
+
+    Author: FJC
+    """
+    # get the csv filename
+    Suffix = '_terrace_info'
+    Extension = '.csv'
+    ReadFilename = DataDirectory+FilenamePrefix+Suffix+Extension
+
+    # read in the dataframe using pandas and convert to geopandas geodataframe
+    df = pd.read_csv(ReadFilename)
+    geometry = [Point(xy) for xy in zip(df.Longitude, df.Latitude)]
+    df = df.drop(['X','Y','Longitude', 'Latitude'], axis=1)
     crs = {'init': 'epsg:4326'}
     geo_df = GeoDataFrame(df, crs=crs, geometry=geometry)
 
@@ -249,7 +281,7 @@ def SaveChannelDataByBasin(DataDirectory,FilenamePrefix):
         #write to file
         BasinChannelData.to_csv(OutputFilename, index=False)
 
-def PlotChiElevationSegments(BasinID):
+def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
@@ -284,7 +316,7 @@ def PlotChiElevationSegments(BasinID):
     plt.tight_layout()
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevSeg.png", dpi=300)
 
-def PlotLongProfileSegments(BasinID):
+def PlotLongProfileSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
@@ -319,7 +351,7 @@ def PlotLongProfileSegments(BasinID):
     plt.tight_layout()
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfSeg.png", dpi=300)
 
-def PlotChiElevationMChi(BasinID):
+def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
@@ -367,7 +399,7 @@ def PlotChiElevationMChi(BasinID):
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevMChi.png", dpi=300)
 
-def PlotLongProfileMChi(BasinID):
+def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
@@ -415,90 +447,7 @@ def PlotLongProfileMChi(BasinID):
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfMChi.png", dpi=300)
 
-def PlotMChiCHT(BasinID):
-    # load the channel data
-    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
-
-    # isolate basin data
-    BasinChannelData = ChannelData[ChannelData.basin_key == BasinID]
-    MinimumDistance = BasinChannelData.flow_distance.min()
-    MaximumMChi = BasinChannelData.m_chi.max()
-
-    # how many segments are we dealing with?
-    Segments = BasinChannelData.segment_number.unique()
-
-    # setup the figure
-    Fig = CreateFigure()
-
-    #choose colormap
-    ColourMap = cm.viridis
-
-def PlotMChiEstar(BasinID):
-    # load the channel data
-    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
-
-    #load the hillslopes data
-    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
-
-    # isolate basin data
-    BasinChannelData = ChannelData[ChannelData.basin_key == BasinID]
-    BasinJunctions = HillslopeData.BasinID.unique()
-    BasinHillslopeData = HillslopeData[HillslopeData.BasinID == BasinJunctions[BasinID]]
-    MinimumDistance = BasinChannelData.flow_distance.min()
-    MaximumMChi = BasinChannelData.m_chi.max()
-
-    # how many segments are we dealing with?
-    Segments = BasinChannelData.segment_number.unique()
-
-    # setup the figure
-    Fig = CreateFigure(AspectRatio=1.)
-    Ax = plt.subplot(111)
-
-    #choose colormap
-    ColourMap = cm.viridis
-
-    # For each segment get the MChi value and collect dimensionless hillslope data
-    # record the number of traces in each segment
-    MChi = []
-    EstarMean = []
-    EstarStD = []
-    EstarStE = []
-    NTraces = []
-    for i in range(0, len(Segments)):
-        SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
-        if SegmentHillslopeData.size != 0:
-            MChi.append(ChannelData.m_chi[ChannelData.segment_number == Segments[i]].unique()[0])
-            EstarMean.append(SegmentHillslopeData.E_Star.mean())
-            EstarStD.append(SegmentHillslopeData.E_Star.std())
-            EstarStE.append(SegmentHillslopeData.E_Star.std()/np.sqrt(float(SegmentHillslopeData.size)))
-            NTraces.append(SegmentHillslopeData.size)
-
-    #make the plot and colour code by number of hillslope traces
-    NTraces = np.asarray(NTraces,dtype=float)
-    [plt.errorbar(MChi[i],EstarMean[i],yerr=EstarStD[i],fmt='s',elinewidth=1.5,ecolor=ColourMap(NTraces[i]/np.max(NTraces)),mfc=ColourMap(NTraces[i]/np.max(NTraces))) for i in range(0,len(MChi))]
-    print NTraces
-
-    # Finalise the figure
-    plt.xlabel('$M_{\chi}$ m$^{0.64}$')
-    plt.ylabel('$E*$')
-    plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
-    plt.tight_layout()
-
-    #add colourbar
-    CAx = Fig.add_axes([0.6,0.2,0.3,0.02])
-    m = cm.ScalarMappable(cmap=ColourMap)
-    m.set_array(NTraces)
-    cbar = plt.colorbar(m, cax=CAx, orientation='horizontal')
-    tick_locator = ticker.MaxNLocator(nbins=5)
-    cbar.locator = tick_locator
-    cbar.update_ticks()
-    plt.xlabel(r'N$^o$ Hillslope Traces')
-
-    #save output
-    plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_MChiEstar.png", dpi=300)
-
-
-def PlotCHTAgainstChannelData(BasinID):
+def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
     This function makes a plot of hilltop curavture against data
     from the channel segments.
@@ -529,6 +478,10 @@ def PlotCHTAgainstChannelData(BasinID):
     MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
     MainStemSegments = MainStemChannelData.segment_number.unique()
 
+    # read in the terrace data
+    HS.ReadTerraceData(DataDirectory,FilenamePrefix)
+
+
     # set up the figure
     Fig = CreateFigure()
     Ax = plt.subplot(111)
@@ -543,43 +496,27 @@ def PlotCHTAgainstChannelData(BasinID):
     TribsMeanCHT = []
     TribsDist = []
     TribsLH = []
+
+
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
         SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
         if SegmentHillslopeData.size != 0:
             if Segments[i] in MainStemSegments:
                 MainStemMeanCHT.append(SegmentHillslopeData.Cht.mean())
-                MainStemDist.append(SegmentChannelData.flow_distance.median())
+                MainStemDist.append(SegmentChannelData.flow_distance.median()/1000)
+                MainStemLH.append(SegmentHillslopeData.Lh)
             else:
                 TribsMeanCHT.append(SegmentHillslopeData.Cht.mean())
-                TribsDist.append(SegmentChannelData.flow_distance.median())
+                TribsDist.append(SegmentChannelData.flow_distance.median()/1000)
 
     # now make the plot of the channel profile and the cht data
-    Ax.scatter(TribsDist, TribsMeanCHT, s=1, c='0.5', alpha=0.5)
+    Ax.scatter(TribsDist, TribsMeanCHT, s=1, c='0.5')
     Ax.scatter(MainStemDist, MainStemMeanCHT, s=5, c='k')
-    plt.xlabel('Distance from outlet ($m$)')
+    plt.xlabel('Distance from outlet ($km$)')
     plt.ylabel('Mean hilltop curvature ($m^{-1}$)')
     #plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
     plt.tight_layout()
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_CHT_flowdist.png", dpi=300)
-
-
-if __name__ == "__main__":
-    #do something
-    # Directory = "/home/martin/bolinas/"
-    # DataDirectory = "/home/martin/bolinas/data/"
-    # PlotDirectory = "/home/martin/bolinas/plots/"
-    RasterExtension = "bil"
-    # FilenamePrefix = "bolinas"
-    DataDirectory = '/home/s0923330/Data_for_papers/mendocino/bear_river/'
-    PlotDirectory = '/home/s0923330/Data_for_papers/mendocino/bear_river/hillslope_plots/'
-    FilenamePrefix = "Bear_River"
-
-    SaveHillslopeDataByBasin(DataDirectory,FilenamePrefix)
-    SaveChannelDataByBasin(DataDirectory,FilenamePrefix)
-    # PlotChiElevationMChi(0)
-    # PlotLongProfileMChi(0)
-    # PlotMChiEstar(0)
-    PlotCHTAgainstChannelData(0)
