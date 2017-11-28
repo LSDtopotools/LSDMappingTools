@@ -36,7 +36,7 @@ class KnickInfo(object):
     This create a KnickInfo object, my plan is to incorporate and preprocess the informations for knickstuff analysis to save time when saving figures
     Author: BG - 14/11/2016
     """
-    def __init__(self,fpath,fprefix, method = 'ksn',binning = 'general', outlier_detection = False, basin_list = [], weighting = True):
+    def __init__(self,fpath,fprefix, method = 'ksn',binning = 'general', outlier_detection = False, basin_list = [], weighting = True, source_key_selection = []):
 
         print("Preprocessing and loading your knickpoint/zone dataset")
         self.fpath = fpath
@@ -50,6 +50,13 @@ class KnickInfo(object):
         self.knickzone_raw = Helper.ReadKnickzoneCSV(self.fpath, self.fprefix)
         self.chanNet = Helper.ReadMChiSegCSV(self.fpath, self.fprefix,type = 'knickpoint')
 
+        if(len(source_key_selection) >0):
+            print("I am selecting the requested sources")
+            self.knickpoint_raw = self.knickpoint_raw[self.knickpoint_raw["source_key"].isin(source_key_selection)]
+            self.knickzone_raw = self.knickzone_raw[self.knickzone_raw["source_key"].isin(source_key_selection)]
+            self.chanNet = self.chanNet[self.chanNet["source_key"].isin(source_key_selection)]
+
+
         if(len(basin_list) > 0):
             print("I am selecting your data for the following basins:")
             print(basin_list)
@@ -60,20 +67,22 @@ class KnickInfo(object):
             if(weighting):
                 self.knickzone_out = get_outliers_from_DF(self.knickzone_raw, method = 'Wg'+self.method, binning = self.binning)
                 self.scaling_factor = 'Wg'+ method
+                # self.knickzone_base_to_lip = self.get_base_to_lip(self.knickzone_out)
             else:
                 self.knickzone_out = get_outliers_from_DF(self.knickzone_raw, method = self.method, binning = self.binning)
                 self.scaling_factor = method
-
+                self.knickzone_base_to_lip =self.get_base_to_lip(self.knickzone_out)
             self.knickpoint_out = get_outliers_from_DF(self.knickpoint_raw, method = self.method, binning = self.binning)
         else:
             self.scaling_factor = method
-
+            # self.knickzone_base_to_lip = self.get_base_to_lip(self.knickzone_raw)
         # initializing knickzone info
                 # generating the knickzones
         if(self.outlier):
             self.get_knickzone_segment_for_rasterplot(self.knickzone_out)
         else:
             self.get_knickzone_segment_for_rasterplot(self.knickzone_raw)
+
 
 
 
@@ -130,7 +139,9 @@ class KnickInfo(object):
             ImageName = raster_directory+self.fprefix+"_Kp_"+self.method+".png"
         MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 500) # Save the figure
 
-    def raster_plot_knickzone(self, size_format='ESURF', FigFormat='png'):
+    
+
+    def raster_plot_knickzone(self, size_format='ESURF', FigFormat='png', comparison_point = []):
 
         # check if a directory exists for the chi plots. If not then make it.
         raster_directory = self.fpath+'raster_plots/'
@@ -178,17 +189,27 @@ class KnickInfo(object):
                 thisPointData = LSDP.LSDMap_PointData(kz[0], data_type = "pandas", PANDEX = True)
                 MF.plot_segment_of_knickzone(thisPointData, color = this_color_zone, lw = 1)
 
+        # This part is specific in the case of comparison with Nelly's KZP algorithm, it uses a different method and produces nice results -> DOI: 10.1002/2017JF004250
+        if(len(comparison_point)>0):
+            base = LSDP.LSDMap_PointData(comparison_point[0], data_type = "pandas", PANDEX = True)
+            lips = LSDP.LSDMap_PointData(comparison_point[1], data_type = "pandas", PANDEX = True)
+            MF.add_point_data(base,column_for_plotting = "nature",this_colourmap = "Wistia", manual_size = 5, zorder = 200)
+            MF.add_point_data(lips,column_for_plotting = "nature",this_colourmap = "Wistia_r", manual_size = 5, zorder = 200)
+
         if(self.outlier):
             ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+'_'+self.binning+".png"
+        elif(len(comparison_point)>0):
+            ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+'_'+self.binning+"_compare_to_nelly.png"
         else:
             ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+".png"
+
         
         MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 500) # Save the figure
         
         
 
 
-    def chi_profiles_knickzones(self,size_format='ESURF', FigFormat='png', river_length_threshold = 0):
+    def chi_profiles_knickzones(self,size_format='ESURF', FigFormat='png', comparison_point = []):
         """
         Plotting routines for knickzoe chi-spaced profiles
 
@@ -212,8 +233,10 @@ class KnickInfo(object):
         else:
             kz = self.knickzone_raw
 
-        for hussard in kz["source_key"].unique():
 
+        for hussard in kz["source_key"].unique():
+            print hussard
+            print kz["source_key"].unique()
             # make a figure with required dimensions
             if size_format == "geomorphology":
                 fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))            
@@ -238,6 +261,8 @@ class KnickInfo(object):
 
             #Sorting by Chi values, not automatic since I am probably weridly using itrator to print the map in c++
             tCdf = tCdf.sort_values("chi")
+            tKz = tKz.sort_values("Achi")
+            tKdf = tKdf.sort_values("chi")
             #tKzdf = tKzdf.sort_values("chi")
 
             # Plotting the cumul ksn_variation
@@ -263,10 +288,16 @@ class KnickInfo(object):
             
                 size = row[self.scaling_factor]
                 size = size/tKz[self.scaling_factor].abs().max()*100 + 10
-                ax.scatter(row["Achi"],row["Aelevation"], s = size, c = colotempolo)
+                ax.scatter(row["Achi"],row["Aelevation"], s = size, c = colotempolo, alpha = 0.5, lw =1)
 
             # Plotting the Chi profiles
             ax.plot(tCdf["chi"],tCdf["elevation"], lw = 1.2 , c ='#0089B9',alpha = 1,zorder = 7)
+            ax.plot(tCdf["chi"],tCdf["segmented_elevation"], lw = 0.7 , c ='k',alpha = 1,zorder = 8)
+            if(len(comparison_point) == 2):
+                print("I am adding the comparison_point to the profiles")
+                ax.scatter(comparison_point[0]["chi"][comparison_point[0]["source_key"] == hussard], comparison_point[0]["elevation"][comparison_point[0]["source_key"] == hussard], marker = "x", c = "k", s = 50,lw = 0.8, zorder = 500)
+                ax.scatter(comparison_point[1]["chi"][comparison_point[1]["source_key"] == hussard], comparison_point[1]["elevation"][comparison_point[1]["source_key"] == hussard], marker = "+", c = "k", s = 50,lw = 0.8, zorder = 500)
+
 
 
             # Display options
@@ -310,7 +341,7 @@ class KnickInfo(object):
             else:
                 save_name = raster_directory + self.fprefix + "_Source" + str(hussard) + "."+FigFormat
             plt.savefig(save_name, dpi = 400)
-            return fig
+            print("test")
 
             # Clearing the figure to get ready for the new one
             plt.clf()
@@ -336,6 +367,177 @@ class KnickInfo(object):
 
         print("done")
 
+    def get_base_to_lip_from_knickpoint(self, df):
+        """
+        Function that returns a list of kbase_to_lip knickzones, basic version that only deal with knickpoints
+        """
+        self.base_to_lip_from_knickpoint =  []
+        id_btlkz_basic = 0
+        for source in df["source_key"].unique():
+            working_df = df[df["source_key"] == source]
+            working_df = working_df.sort_values("chi")
+            base = 0
+            lips = 0
+            for index,row in working_df.iterrows():
+                if base == 0:
+                    if(row["ksn"] > 0):
+                        base = row["chi"]
+                        base_df = row
+                        
+                elif(row["ksn"]<0 and base >0):
+                    lips = row["chi"]
+                    lips_df = row
+                    self.base_to_lip_from_knickpoint.append(self.chanNet[(self.chanNet["source_key"] == source) & (self.chanNet["chi"]<=lips) &  (self.chanNet["chi"]>= base)])
+                    base = 0
+                    lips = 0
+
+    def plot_base_to_lip_from_knickpoint_map(self, df = 0, comparison_point = [], size_format='ESURF', FigFormat='png'):
+
+        # check if a directory exists for the chi plots. If not then make it.
+
+        if(isinstance(df,int)):
+            df = self.knickpoint_raw
+        raster_directory = self.fpath+'raster_plots/'
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+
+        self.get_base_to_lip_from_knickpoint(df)
+        # Set up fonts for plots
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.size'] = 8
+
+        # set figure sizes based on format
+        if size_format == "geomorphology":
+            fig_width_inches = 6.25
+        elif size_format == "big":
+            fig_width_inches = 16
+        else:
+            fig_width_inches = 4.92126
+
+        # get the rasters
+        raster_ext = '.bil'
+        BackgroundRasterName = self.fprefix+raster_ext
+        HillshadeName = self.fprefix+'_hs'+raster_ext
+        BasinsName = self.fprefix+'_AllBasins'+raster_ext
+
+        
+        # create the map figure
+        MF = MapFigure(HillshadeName, self.fpath,coord_type="UTM_km", alpha = 0.7)
+        
+        # plot the basin outlines
+        Basins = LSDP.GetBasinOutlines(self.fpath, BasinsName)
+        MF.plot_polygon_outlines(Basins, linewidth=0.5)
+
+        # add the channel network without color
+        ChannelPoints = LSDP.LSDMap_PointData(self.chanNet, data_type = "pandas", PANDEX = True)
+        MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.5,max_point_size = 0.5,min_point_size = 0.1,zorder=100)
+        for zones in self.base_to_lip_from_knickpoint:
+            if(zones.shape[0]>0):
+                base = LSDP.LSDMap_PointData(zones.iloc[[0]], data_type = "pandas", PANDEX = True)
+                lips = LSDP.LSDMap_PointData(zones.iloc[[-1]], data_type = "pandas", PANDEX = True)
+                MF.add_point_data(base,column_for_plotting = "basin_key",this_colourmap = "RdBu", manual_size = 7, zorder = 200)
+                MF.add_point_data(lips,column_for_plotting = "basin_key",this_colourmap = "RdBu_r", manual_size = 7, zorder = 200)
+
+        # This part is specific in the case of comparison with Nelly's KZP algorithm, it uses a different method and produces nice results -> DOI: 10.1002/2017JF004250
+        if(len(comparison_point)>0):
+            base = LSDP.LSDMap_PointData(comparison_point[0], data_type = "pandas", PANDEX = True)
+            lips = LSDP.LSDMap_PointData(comparison_point[1], data_type = "pandas", PANDEX = True)
+            MF.add_point_data(base,column_for_plotting = "nature",this_colourmap = "Wistia", manual_size = 5, zorder = 200)
+            MF.add_point_data(lips,column_for_plotting = "nature",this_colourmap = "Wistia_r", manual_size = 5, zorder = 200)
+
+        # if(self.outlier):
+        #     ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+'_'+self.binning+".png"
+        # elif(len(comparison_point)>0):
+        #     ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+'_'+self.binning+"_compare_to_nelly.png"
+        # else:
+        #     ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+".png"
+
+        
+        MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = raster_directory + "base_to_lip_from_knickpoint.png", FigFormat=FigFormat, Fig_dpi = 500) # Save the figure
+
+
+
+
+    def plot_base_to_lip_from_knickpoint_profile(self, df = 0, comparison_point = [], size_format='ESURF', FigFormat='png'):
+
+        if(isinstance(df,int)):
+            df = self.knickpoint_raw
+        raster_directory = self.fpath+'raster_plots/'
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+
+        self.get_base_to_lip_from_knickpoint(df)
+
+        for source in df["source_key"].unique():
+            print(source)
+            # make a figure with required dimensions
+            if size_format == "geomorphology":
+                fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))            
+            elif size_format == "big":
+                fig = plt.figure(1, facecolor='white',figsize=(16,9))            
+            else:
+                fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.5))
+
+            # create the axis and its position
+            ## axis 1: The Chi profile and the knickpoints
+            gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
+            ax = fig.add_subplot(gs[0:100,0:100])
+            CN = self.chanNet[self.chanNet["source_key"] == source]
+            ax.plot(CN["chi"], CN["elevation"],zorder = 100)
+            for i in self.base_to_lip_from_knickpoint:
+                if i.iloc[0]["source_key"] == source:
+                    ax.scatter(i.iloc[0]["chi"],i.iloc[0]["segmented_elevation"], s = 10, c = "r", zorder = 150)
+                    ax.scatter(i.iloc[-1]["chi"],i.iloc[-1]["segmented_elevation"], s = 10, c = "b", zorder = 150)
+
+            if(len(comparison_point) == 2):
+                print("I am adding the comparison_point to the profiles")
+                ax.scatter(comparison_point[0]["chi"][comparison_point[0]["source_key"] == source], comparison_point[0]["elevation"][comparison_point[0]["source_key"] == source], marker = "x", c = "r", s = 20,lw = 0.8, zorder = 500)
+                ax.scatter(comparison_point[1]["chi"][comparison_point[1]["source_key"] == source], comparison_point[1]["elevation"][comparison_point[1]["source_key"] == source], marker = "x", c = "y", s = 20,lw = 0.8, zorder = 500)
+
+
+            plt.savefig(raster_directory +"profile_base_to_lip"+str(source)+".png",dpi = 300)
+            plt.clf()
+
+    def clean_enclaved_knickzones(self,kdf):
+        """
+        Remove all the included knickzone
+        """
+        # going through the sources
+        out_df = pd.DataFrame(data=None, columns=kdf.columns)
+        for source in kdf["knickzone_key"].unique():
+            # Selecting the source in the dataset
+            working_df = kdf[kdf["knickzone_key"] == source]
+            working_df = working_df.sort_values("Achi")
+            # now testing hte knickzone: I am identifying the size of the potential biggest knickzone
+            min_chi_kz = working_df["Achi"].min()
+            max_chi_kz = working_df["Bchi"].max()
+            # if a knickzone correspond to that size, that's the one and I am selecting it, and only it
+            if(working_df[(working_df["Achi"] == min_chi_kz) & (working_df["Bchi"] == max_chi_kz)].shape[0] == 1):
+                out_df.append(working_df[(working_df["Achi"] == min_chi_kz) & (working_df["Bchi"] == max_chi_kz)])
+            else:
+                #This happens if there are several knickzones derived from a large first order knickzone
+
+                while(working_df.shape[0]>0):
+                    # selection of the largest knickzone
+                    if(working_df["Achi"][working_df["length"] == working_df["length"].max()].shape[0]>1):
+                        print("you have more than one maximum length knickzone with exactly the same size. Deal with it in the code, I am breacking")
+                        quit()
+                    min_chi_kz = working_df["Achi"][working_df["length"] == working_df["length"].max()]
+                    max_chi_kz = working_df["Bchi"][working_df["length"] == working_df["length"].max()]
+                    # removing the enclaved ones
+                    working_df.drop(working_df[((working_df["Achi"] >= min_chi_kz) & (working_df["Bchi"] != max_chi_kz) & (working_df["Achi"] <= max_chi_kz) ) & 
+                                    ((working_df["Bchi"] >= min_chi_kz) & (working_df["Achi"] != min_chi_kz) & (working_df["Bchi"] >= min_chi_kz) ) ])
+                    # Saving the knickzone
+                    out_df.append(working_df[working_df["length"] == working_df["length"].max()])
+                    # removing the knickzone
+                    working_df.drop(working_df[working_df["length"] == working_df["length"].max()])
+                    # the loop will continue while the working df still contain knickzones
+
+        return out_df
+
+
+
 
 ############################## Data (pre-)processing treatment ##########################################
 
@@ -356,9 +558,17 @@ def get_outliers_from_DF(df, method = "",binning = ""):
         df["general"] = pd.Series(np.ones(df.shape[0]),index = df.index)
     
       
-    df = SUT.extract_outliers_by_header(df,data_column_name = method, header_for_group = binning, threshold = 1.5)
+    df = SUT.extract_outliers_by_header(df,data_column_name = method, header_for_group = binning, threshold = 10)
 
     return df
+
+
+
+
+
+
+
+
 
 
 ###########################################################################################################

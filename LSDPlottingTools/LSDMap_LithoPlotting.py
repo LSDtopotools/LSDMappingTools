@@ -70,6 +70,7 @@ def litho_pre_check(directory, lk = "", fname = ""):
 		else:
 			if len(result) >1:
 				print("I found several lithokey file. Please specify it with -lk flag cause I cannot choose by myself, give a butcher's by yourself")
+				print(result)
 				quit()
 			else:
 				if len(result) == 0:

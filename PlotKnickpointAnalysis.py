@@ -194,11 +194,11 @@ def main(argv):
 
     if args.mchi_map_std:
         
-        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo)
+        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, knickpoint = True)
 
     if args.mchi_map_black:
         
-        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, bkbg = True)
+        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, bkbg = True, knickpoint = True)
 
     if args.knickzone_profile:
         KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, knickpoint_value = 'delta_ksn')
