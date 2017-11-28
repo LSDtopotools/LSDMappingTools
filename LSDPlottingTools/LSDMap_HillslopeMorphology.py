@@ -166,6 +166,33 @@ def ReadHillslopeTraces(DataDirectory, FilenamePrefix):
 
     return geo_df
 
+def ReadTerraceData(DataDirectory,FilenamePrefix):
+    """
+    This function reads in the file with the suffix '_terrace_info.csv'
+    and creates a geopandas GeoDataFrame
+
+    Args:
+        DataDirectory: the data directory
+        FilenamePrefix: the file name prefix
+
+    Returns:
+        geopandas GeoDataFrame with data from the csv file spatially organised
+
+    Author: FJC
+    """
+    # get the csv filename
+    Suffix = '_terrace_info'
+    Extension = '.csv'
+    ReadFilename = DataDirectory+FilenamePrefix+Suffix+Extension
+
+    # read in the dataframe using pandas and convert to geopandas geodataframe
+    df = pd.read_csv(ReadFilename)
+    geometry = [Point(xy) for xy in zip(df.Longitude, df.Latitude)]
+    df = df.drop(['X','Y','Longitude', 'Latitude'], axis=1)
+    crs = {'init': 'epsg:4326'}
+    geo_df = GeoDataFrame(df, crs=crs, geometry=geometry)
+
+    return geo_df
 
 def WriteHillslopeTracesShp(DataDirectory,FilenamePrefix):
     """
@@ -451,6 +478,10 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
     MainStemSegments = MainStemChannelData.segment_number.unique()
 
+    # read in the terrace data
+    HS.ReadTerraceData(DataDirectory,FilenamePrefix)
+
+
     # set up the figure
     Fig = CreateFigure()
     Ax = plt.subplot(111)
@@ -466,22 +497,23 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     TribsDist = []
     TribsLH = []
 
+
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
         SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
         if SegmentHillslopeData.size != 0:
             if Segments[i] in MainStemSegments:
                 MainStemMeanCHT.append(SegmentHillslopeData.Cht.mean())
-                MainStemDist.append(SegmentChannelData.flow_distance.median())
+                MainStemDist.append(SegmentChannelData.flow_distance.median()/1000)
                 MainStemLH.append(SegmentHillslopeData.Lh)
             else:
                 TribsMeanCHT.append(SegmentHillslopeData.Cht.mean())
-                TribsDist.append(SegmentChannelData.flow_distance.median())
+                TribsDist.append(SegmentChannelData.flow_distance.median()/1000)
 
     # now make the plot of the channel profile and the cht data
-    Ax.scatter(TribsDist, TribsMeanCHT, s=1, c='0.5', alpha=0.5)
+    Ax.scatter(TribsDist, TribsMeanCHT, s=1, c='0.5')
     Ax.scatter(MainStemDist, MainStemMeanCHT, s=5, c='k')
-    plt.xlabel('Distance from outlet ($m$)')
+    plt.xlabel('Distance from outlet ($km$)')
     plt.ylabel('Mean hilltop curvature ($m^{-1}$)')
     #plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
     plt.tight_layout()
