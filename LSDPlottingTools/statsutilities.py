@@ -51,6 +51,85 @@ def is_outlier(points, thresh=3.5):
 
     return modified_z_score > thresh
 
+
+def get_MAD(points):
+    """
+    Returns the MAD of a ampled population:
+    -----------
+        points : An numobservations by numdimensions array of observations
+        
+    Returns:
+    --------
+        MAD.
+
+    References:
+    ----------
+        Boris Iglewicz and David Hoaglin (1993), "Volume 16: How to Detect and
+        Handle Outliers", The ASQC Basic References in Quality Control:
+        Statistical Techniques, Edward F. Mykytka, Ph.D., Editor.
+    """
+    if len(points.shape) == 1:
+        points = points[:,None]
+    median = np.median(points, axis=0)
+    diff = np.sum((points - median)**2, axis=-1)
+    diff = np.sqrt(diff)
+    med_abs_deviation = np.median(diff)
+
+   
+    return med_abs_deviation
+
+
+def get_outlier_from_KernelDensityStuff(df, column = "", binning = "", threshold = 6, method = "gaussian", sort_by = ""):
+
+    from sklearn.neighbors.kde import KernelDensity as harry
+
+
+    if(column ==""):
+        print("I need a column")
+        quit()
+
+
+
+
+
+    out_df = pd.DataFrame(data = None, columns = df.columns)
+
+    if(binning != ""):
+        for potter in df[binning].unique():
+            tdf = df[df[binning] == potter]
+            if(sort_by!= ""):
+                tdf = tdf.sort_values(sort_by)
+
+            if(column == "deriv_ksn"):
+                tdf["deriv_ksn"] = pd.Series(np.abs(tdf.ksn.diff()/tdf.chi.diff()),index = tdf.index)
+                tdf["deriv_ksn"].iloc[0] = 0
+                print(tdf.shape[0])
+
+            dumbledore = np.copy(tdf[column].values.reshape((-1,1)))
+
+            severus = harry(kernel = method).fit(dumbledore)
+
+            snake = np.abs(severus.score_samples(dumbledore))
+
+            McGonagal = []
+            for gobelins in snake:
+                if gobelins<threshold:
+                    McGonagal.append(False)
+                else:
+                    McGonagal.append(True)
+
+            aCat = tdf[McGonagal]
+
+
+            out_df = pd.concat([out_df,aCat])
+
+
+    return out_df
+
+
+
+
+
 def add_outlier_column_to_PD(df, column = "none", threshold = "none"):
 
     """

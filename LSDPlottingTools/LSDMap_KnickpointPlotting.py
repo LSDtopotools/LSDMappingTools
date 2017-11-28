@@ -83,6 +83,10 @@ class KnickInfo(object):
         else:
             self.get_knickzone_segment_for_rasterplot(self.knickzone_raw)
 
+        tempDF = self.knickpoint_raw
+        
+        
+        self.outlier_KDS = SUT.get_outlier_from_KernelDensityStuff(tempDF, column = "deriv_ksn", binning = "source_key", threshold = 6, method = "gaussian", sort_by = "chi")
 
 
 
@@ -202,6 +206,60 @@ class KnickInfo(object):
             ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+'_'+self.binning+"_compare_to_nelly.png"
         else:
             ImageName = raster_directory+self.fprefix+"_Kz_"+self.method+".png"
+
+        
+        MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 500) # Save the figure
+
+
+    def raster_plot_KDS(self, size_format='ESURF', FigFormat='png', comparison_point = []):
+
+        # check if a directory exists for the chi plots. If not then make it.
+        raster_directory = self.fpath+'raster_plots/'
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+
+        # Set up fonts for plots
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.size'] = 8
+
+        # set figure sizes based on format
+        if size_format == "geomorphology":
+            fig_width_inches = 6.25
+        elif size_format == "big":
+            fig_width_inches = 16
+        else:
+            fig_width_inches = 4.92126
+
+        # get the rasters
+        raster_ext = '.bil'
+        BackgroundRasterName = self.fprefix+raster_ext
+        HillshadeName = self.fprefix+'_hs'+raster_ext
+        BasinsName = self.fprefix+'_AllBasins'+raster_ext
+
+        
+        # create the map figure
+        MF = MapFigure(HillshadeName, self.fpath,coord_type="UTM_km", alpha = 0.7)
+        
+        # plot the basin outlines
+        Basins = LSDP.GetBasinOutlines(self.fpath, BasinsName)
+        MF.plot_polygon_outlines(Basins, linewidth=0.5)
+
+        # add the channel network without color
+        ChannelPoints = LSDP.LSDMap_PointData(self.chanNet, data_type = "pandas", PANDEX = True)
+        MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.5,min_point_size = 0.1,zorder=100)
+
+        KDS_point = LSDP.LSDMap_PointData(self.outlier_KDS, data_type = "pandas", PANDEX = True)        
+        MF.add_point_data(KDS_point, manual_size = 2, this_colourmap = "gray", zorder = 500)
+
+        # This part is specific in the case of comparison with Nelly's KZP algorithm, it uses a different method and produces nice results -> DOI: 10.1002/2017JF004250
+        if(len(comparison_point)>0):
+            base = LSDP.LSDMap_PointData(comparison_point[0], data_type = "pandas", PANDEX = True)
+            lips = LSDP.LSDMap_PointData(comparison_point[1], data_type = "pandas", PANDEX = True)
+            MF.add_point_data(base,column_for_plotting = "nature",this_colourmap = "Wistia", manual_size = 5, zorder = 200)
+            MF.add_point_data(lips,column_for_plotting = "nature",this_colourmap = "Wistia_r", manual_size = 5, zorder = 200)
+
+        ImageName = raster_directory + "KALIBKDS.png"
 
         
         MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 500) # Save the figure
