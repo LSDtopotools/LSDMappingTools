@@ -63,6 +63,7 @@ def main(argv):
     # The analysis you want to do
     parser.add_argument("-Mchi", "--plot_mchi", type=bool, default=False, help="If this is true, I'll make some plots of the hillslope-channel data against Mchi")
     parser.add_argument("-CHT", "--plot_CHT", type=bool, default=False, help="If this is true, I'll make some plots of hilltop curvature against data from the channel segments.")
+    parser.add_argument("-segments", "--plot_segments", type=bool, default=False, help="If this is true, I'll make some long profile plots of the channel segments.")
 
     args = parser.parse_args()
 
@@ -75,7 +76,7 @@ def main(argv):
     print(args.basin_keys)
 
     if len(args.basin_keys) == 0:
-        print("No basins found, I will basin 0")
+        print("No basins found, I will plot basin 0")
         these_basin_keys = [0]
     else:
         these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
@@ -109,6 +110,10 @@ def main(argv):
     if args.plot_CHT:
         for basin_key in these_basin_keys:
             HS.PlotCHTAgainstChannelData(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+    if args.plot_segments:
+        for basin_key in these_basin_keys:
+            HS.PlotLongProfileSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+            HS.PlotChiElevationSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
 
 
 #=============================================================================
