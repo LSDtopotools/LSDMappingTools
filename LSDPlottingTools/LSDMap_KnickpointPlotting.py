@@ -28,8 +28,113 @@ import pandas as pd
 from scipy.stats import norm
 
 
+class KP_dev(object):
+    """
+        This class is a development version of the knickpoint algorithm. 
+        Its aim is to deal with knickpoint picking stuffs via python code, 
+        in a development aim as I am significantly changing methods relatively often.
+        B.G.
+    """
 
 
+    def __init__(self, fpath,fprefix, binning = "source_key", basins = [], sources = []):
+        """
+            Initialization method, it creates a Knickpoint object and preprocess the stat before plotting.
+        """
+        
+        print("Let me first preprocess and check your files")
+
+        # Loading the attributes
+        self.fpath = fpath # the path of your file : /home/your/path/
+        self.fprefix = fprefix # the common prefix of all your files
+        self.binning = binning # The binning method you want
+        self.basins = basins
+        self.sources = sources
+
+
+        # Loading the file
+        ## TODO exception_management
+        self.df = pd.read_csv(self.fpath+self.fprefix+"_smugglers_KsnKn.csv")
+        if(len(basins)>0 or len(sources>0)):
+            self.sort_my_df()
+
+        # sort the basins and/or source_keys
+
+        # Correcting the first knickpoint of each rivers
+        self.links = pd.read_csv(self.fpath+self.fprefix+"_SourcesLinks.csv")
+        self.add_knickpoints_from_source()
+
+        # Derivative per river
+
+        self.derivative_per_river()
+
+
+
+    def add_knickpoints_from_source(self):
+        """
+        Function to alleviate the initialization function
+        """
+        print("TODO WHEN THE CPP CODE WILL BE OK")
+
+    def sort_my_df(self):
+        """
+        Another function to alleviate the main one, it sorts the df, removing the unwanted sources and basins
+        """
+
+        ### TO DO ###
+        # Add more exceptions and warning 
+
+
+        # I am sorting the df by basins first and then by sources
+        if (len(self.basins)>0 and len(self.sources)>0):
+            
+            print("\n \n \n WARNING: You gave me a list a basins_keys and sources_keys to sort your basin. If your sources are not in the basin you have choosen they won't be saved as well! WARNING \n")
+
+        if(len(self.basins)>0):
+            self.df = self.df[self.df["basin_key"].isin(self.basins)]
+        if(len(sources)>0):
+            self.df = self.df[self.df["source_key"].isin(self.sources)]
+
+
+
+    def derivative_per_river(self):
+        """
+            derive the 
+        """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############################################################################################################################################################
+######################################## This is the class I will implement to provide nice plots callable from the command-line #############################
+##############################################################################################################################################################
 
 class KnickInfo(object):
     """
@@ -2465,7 +2570,8 @@ def plot_2d_density_map(dataframe, DataDirectory, columns = ["drainage area", "d
 
 
 
-
+if __name__ == "__main__":
+    print("Do not use this file as a script, refer to LSDMT documentation for instructions")
 
 
 
