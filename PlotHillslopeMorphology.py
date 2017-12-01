@@ -118,6 +118,8 @@ def main(argv):
     if args.plot_ER:
         for basin_key in these_basin_keys:
             HS.PlotEStarRStar(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+            HS.PlotRStarDistance(this_dir, args.fname_prefix, PlotDirectory,basin_key)
+            HS.PlotLHDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
 
 
 #=============================================================================
