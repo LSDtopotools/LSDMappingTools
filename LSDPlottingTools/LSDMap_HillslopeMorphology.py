@@ -32,6 +32,8 @@ from matplotlib import cm
 from shapely.ops import cascaded_union
 from descartes import PolygonPatch
 
+# plotting tools for using LSDMapFigure
+
 #=============================================================================
 # PRELIMINARY FUNCTIONS
 #=============================================================================
@@ -73,7 +75,7 @@ def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = 10
-    rcParams['text.usetex'] = True
+    #rcParams['text.usetex'] = True
 
     Fig = plt.figure(figsize=(FigWidth_Inches,FigWidth_Inches/AspectRatio))
 
@@ -480,7 +482,7 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     MainStemSegments = MainStemChannelData.segment_number.unique()
 
     # read in the terrace data
-    #ReadTerraceData(DataDirectory,FilenamePrefix)
+    TerraceData = ReadTerraceData(DataDirectory,FilenamePrefix)
 
 
     # set up the figure
@@ -497,7 +499,9 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     TribsMeanCHT = []
     TribsDist = []
     TribsLH = []
-
+    TribsCHTData = []
+    MainStemCHTData = []
+    MainStemSTDev = []
 
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
@@ -507,24 +511,38 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
                 MainStemMeanCHT.append(SegmentHillslopeData.Cht.mean())
                 MainStemDist.append(SegmentChannelData.flow_distance.median()/1000)
                 MainStemLH.append(SegmentHillslopeData.Lh)
+                MainStemCHTData.append(np.array(SegmentHillslopeData.Cht))
+                MainStemSTDev.append(SegmentHillslopeData.Cht.std())
             else:
                 TribsMeanCHT.append(SegmentHillslopeData.Cht.mean())
                 TribsDist.append(SegmentChannelData.flow_distance.median()/1000)
+                TribsCHTData.append(np.array(SegmentHillslopeData.Cht))
 
-    # bin the data by distance upstream
-    bin_width = 0.1
-    print TribsMeanCHT
-    edges, bins, patches = np.histogram(TribsMeanCHT, bins=100)
-    print bins
+    print TribsCHTData
 
+    # # bin the data by distance upstream
+    # bin_width = 5
+    # n_bins = int((MaximumDistance-MinimumDistance)/bin_width)
+    # bins = np.linspace(MinimumDistance,MaximumDistance,n_bins)
+    # print bins
     #
+    # n, dist_bins = np.histogram(TribsDist, bins=n_bins)
+    # print dist_bins
+    # s_TribsCHT, dist_bins = np.histogram(TribsDist, bins=n_bins, weights=TribsMeanCHT)
+    # mean_CHTs = s_TribsCHT/n
+    #
+    # print mean_CHTs
 
-
+    #Ax.violinplot(TribsCHTData, TribsDist, points=20, widths=1,showmeans=True, showextrema=False, showmedians=True)
     # now make the plot of the channel profile and the cht data
-    Ax.scatter(TribsDist, TribsMeanCHT, s=1, c='0.5')
-    Ax.scatter(MainStemDist, MainStemMeanCHT, s=5, c='k')
+    #Ax.scatter(TribsDist, TribsMeanCHT, s=1, c='0.5')
+    # Ax.scatter(bins/1000, mean_CHTs, s=1)
+    Ax.errorbar(MainStemDist, MainStemMeanCHT, yerr=MainStemSTDev, mec='k',mfc='white',zorder=2, ecolor='k',fmt='o', ms=5)
+    # Ax.violinplot(MainStemCHTData, MainStemDist, points=20, widths=1, showmeans=True, showmedians=True)
+    #Ax.boxplot(MainStemCHTData, positions=MainStemDist, manage_xticks=False, widths=1, sym='')
     plt.xlabel('Distance from outlet ($km$)')
     plt.ylabel('Mean hilltop curvature ($m^{-1}$)')
+    #Ax.set_xlim(0,50)
     #plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
     plt.tight_layout()
 
