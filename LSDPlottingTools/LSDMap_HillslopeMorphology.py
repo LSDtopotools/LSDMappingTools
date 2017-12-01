@@ -469,6 +469,7 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     BasinJunctions = HillslopeData.BasinID.unique()
     BasinHillslopeData = HillslopeData[HillslopeData.BasinID == BasinJunctions[BasinID]]
     MinimumDistance = BasinChannelData.flow_distance.min()
+    MaximumDistance = BasinChannelData.flow_distance.max()
     MaximumMChi = BasinChannelData.m_chi.max()
 
     # how many segments are we dealing with?
@@ -479,7 +480,7 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     MainStemSegments = MainStemChannelData.segment_number.unique()
 
     # read in the terrace data
-    HS.ReadTerraceData(DataDirectory,FilenamePrefix)
+    #ReadTerraceData(DataDirectory,FilenamePrefix)
 
 
     # set up the figure
@@ -509,6 +510,15 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
             else:
                 TribsMeanCHT.append(SegmentHillslopeData.Cht.mean())
                 TribsDist.append(SegmentChannelData.flow_distance.median()/1000)
+
+    # bin the data by distance upstream
+    bin_width = 0.1
+    print TribsMeanCHT
+    edges, bins, patches = np.histogram(TribsMeanCHT, bins=100)
+    print bins
+
+    # 
+
 
     # now make the plot of the channel profile and the cht data
     Ax.scatter(TribsDist, TribsMeanCHT, s=1, c='0.5')
