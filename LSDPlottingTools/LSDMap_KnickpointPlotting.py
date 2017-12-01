@@ -6,7 +6,6 @@
 ## 05/06/2017
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib import colors
@@ -71,13 +70,15 @@ class KP_dev(object):
         # Derivative per river
 
         self.derivative_per_river()
-
-        print(self.df.shape)
-        print(self.df.dropna().shape)
+        
+        self.df = self.df.replace([np.inf, -np.inf], np.nan)
+        self.df = self.df.dropna()
 
 
         # Get the KDE
         self.KDE_from_scipy()
+
+        print("I have ingested and preprocessed your dataset")
 
 
 
@@ -107,7 +108,7 @@ class KP_dev(object):
 
         # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
         self.df = out_df.copy()
-        self.df = self.df.reset_index()
+        self.df = self.df.reset_index(drop = True)
 
 
 
@@ -165,7 +166,7 @@ class KP_dev(object):
 
         # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
         self.df = out_df.copy()
-        self.df = self.df.reset_index()
+        self.df = self.df.reset_index(drop = True)
 
 
     def KDE_from_scipy(self):
@@ -184,23 +185,23 @@ class KP_dev(object):
 
             temp_df = self.df[self.df["source_key"] == source]
             self.kernel_deriv_ksn = gKDE(temp_df["deriv_ksn"].values)
-            self.kernel_deriv_ksn.set_bandwith(bw_method = 'silverman')
-            self.kernel_deriv_ksn.set_bandwith(bw_method=self.kernel_deriv_ksn.factor / 3.)
+            self.kernel_deriv_ksn.set_bandwidth(bw_method = 'silverman')
+            self.kernel_deriv_ksn.set_bandwidth(bw_method=self.kernel_deriv_ksn.factor / 3.)
 
-            temp_df["KDE_ksn"] = pd.Series(data = self.kernel_deriv_ksn(data = temp_df["chi"].values, index = temp_df.index))
+            temp_df["KDE_ksn"] = pd.Series(data = self.kernel_deriv_ksn(temp_df["chi"].values), index = temp_df.index)
 
 
             self.kernel_deriv_delta_ksn = gKDE(temp_df["deriv_delta_ksn"].values)
-            self.kernel_deriv_delta_ksn.set_bandwith(bw_method = 'silverman')
-            self.kernel_deriv_delta_ksn.set_bandwith(bw_method=self.kernel_deriv_delta_ksn.factor / 3.)
+            self.kernel_deriv_delta_ksn.set_bandwidth(bw_method = 'silverman')
+            self.kernel_deriv_delta_ksn.set_bandwidth(bw_method=self.kernel_deriv_delta_ksn.factor / 3.)
 
-            temp_df["KDE_delta_ksn"] = pd.Series(data = self.kernel_deriv_ksn(data = temp_df["chi"].values, index = temp_df.index))
+            temp_df["KDE_delta_ksn"] = pd.Series(data = self.kernel_deriv_ksn( temp_df["chi"].values), index = temp_df.index)
             out_df = pd.concat([out_df,temp_df])
 
 
         # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
         self.df = out_df.copy()
-        self.df = self.df.reset_index()
+        self.df = self.df.reset_index(drop = True)
 
 
     def plot_KDE_per_river(self):
@@ -220,13 +221,13 @@ class KP_dev(object):
             gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
             ax1 = fig.add_subplot(gs[0:100,0:100])
             ax2 = fig.add_subplot(gs[0:100,0:100])
-            ax2.axis('off')
 
-            ax1.scatter(self.df["chi"], self.df["elevation"], s = 1, c = "b", lw = 0, label = "")
-            ax2.scatter(self.df["chi"], self.df["KDE_ksn"], s = 10, marker = "+", lw = 0, c = "k", label = "KDE d(ksn)/d(chi)")
-            ax2.scatter(self.df["chi"], self.df["KDE_dksn"], s = 10, marker = "x", lw = 0, c = "k",label = "KDE d2(ksn)/d(chi)")
+
+            ax1.scatter(this_df["chi"], this_df["elevation"], s = 1, c = "b", lw = 0, label = "")
+            ax2.scatter(this_df["chi"], this_df["KDE_ksn"], s = 100, marker = "+", lw = 1, c = "k", label = "KDE d(ksn)/d(chi)")
+            ax2.scatter(this_df["chi"], this_df["KDE_delta_ksn"], s = 100, marker = "x", lw = 1, c = "k",label = "KDE d2(ksn)/d(chi)")
             ax2.legend()
-            plt.set_title(source)
+            plt.title(str(source))
 
             plt.savefig(svdir+"KDE_plot_source_" + str(source) + ".png", dpi = 300)
             plt.clf()
