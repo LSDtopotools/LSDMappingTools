@@ -26,6 +26,7 @@ import sys
 import os
 import pandas as pd
 from scipy.stats import norm
+pd.options.mode.chained_assignment = None
 
 
 class KP_dev(object):
@@ -54,8 +55,10 @@ class KP_dev(object):
 
         # Loading the file
         ## TODO exception_management
-        self.df = pd.read_csv(self.fpath+self.fprefix+"_smugglers_KsnKn.csv")
-        if(len(basins)>0 or len(sources>0)):
+        self.df = pd.read_csv(self.fpath+self.fprefix+"_KsnKn.csv")
+        self.CNMC = pd.read_csv(self.fpath+self.fprefix+"_MChiSegmented_Ks.csv")
+
+        if(len(basins)>0 or len(sources)>0):
             self.sort_my_df()
 
         # sort the basins and/or source_keys
@@ -64,9 +67,17 @@ class KP_dev(object):
         self.links = pd.read_csv(self.fpath+self.fprefix+"_SourcesLinks.csv")
         self.add_knickpoints_from_source()
 
+
         # Derivative per river
 
         self.derivative_per_river()
+
+        print(self.df.shape)
+        print(self.df.dropna().shape)
+
+
+        # Get the KDE
+        self.KDE_from_scipy()
 
 
 
@@ -74,7 +85,34 @@ class KP_dev(object):
         """
         Function to alleviate the initialization function
         """
-        print("TODO WHEN THE CPP CODE WILL BE OK")
+        
+        out_df = pd.DataFrame(data = None, columns = self.df.columns)
+        for source in self.df["source_key"].unique():
+            # getting the right dfs
+            temp_df = self.df[self.df["source_key"] == source]
+            temp_CNDF = self.CNMC[self.CNMC["source_key"] ==  source]
+            # make sure that it is in the right order
+            temp_inter = self.links[self.links["source_key"] == source]
+            temp_df = temp_df.sort_values("chi")
+
+            #creating the date for the first row           
+            data = []
+            singularity = temp_CNDF[temp_CNDF["elevation"] == temp_CNDF["elevation"].min()]
+            data = pd.DataFrame.from_dict({"latitude" : singularity["latitude"].values, "longitude" : singularity["longitude"].values, "elevation": singularity["elevation"].values,"flow_distance": singularity["flow_distance"].values, "chi": singularity["chi"].values,"drainage_area" : singularity["drainage_area"].values,"ksn": (singularity["m_chi"].values - temp_inter["m_chi"].values),"rksn":  (singularity["m_chi"].values / temp_inter["m_chi"].values),"rad" : -9999, "cumul_ksn" : -9999,  "cumul_rksn" : -9999,"cumul_rad" : -9999, "source_key" : source, "basin_key" : singularity["basin_key"].values})
+            # implementing the dataset
+            temp_df = pd.concat([data, temp_df], ignore_index = True)
+
+            #preparing the save
+            out_df = pd.concat([temp_df,out_df], ignore_index = True)
+
+        # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
+        self.df = out_df.copy()
+        self.df = self.df.reset_index()
+
+
+
+
+
 
     def sort_my_df(self):
         """
@@ -92,15 +130,114 @@ class KP_dev(object):
 
         if(len(self.basins)>0):
             self.df = self.df[self.df["basin_key"].isin(self.basins)]
-        if(len(sources)>0):
+            self.CNMC = self.CNMC[self.CNMC["basin_key"].isin(self.basins)]
+        if(len(self.sources)>0):
             self.df = self.df[self.df["source_key"].isin(self.sources)]
+            self.CNMC = self.CNMC[self.CNMC["source_key"].isin(self.sources)]
 
 
 
     def derivative_per_river(self):
         """
-            derive the 
+            d(delta(m_chi))/d(chi).
+
         """
+
+        out_df = pd.DataFrame(data = None, columns = self.df.columns)
+        out_df["deriv_delta_ksn"] = pd.Series(data = None, index = out_df.index)
+        out_df["deriv_ksn"] = pd.Series(data = None, index = out_df.index)
+
+        for source in self.df["source_key"].unique():
+            # getting the right dfs
+            temp_df = self.df[self.df["source_key"] == source]
+            # derivative
+            t = (temp_df["ksn"]/temp_df["chi"].diff())
+            t.iloc[0] = 0
+            temp_df["deriv_ksn"] = pd.Series(data = t, index =temp_df.index)
+
+            t = (temp_df["ksn"].diff()/temp_df["chi"].diff())
+            t.iloc[0] = 0
+            temp_df["deriv_delta_ksn"] = pd.Series(data = t, index =temp_df.index)
+            # The first value is NaN, resetting to 0, it won't have any effect on the result and most of the plotting routines panic when NaN values are involved
+            out_df = pd.concat([out_df,temp_df])
+
+
+
+        # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
+        self.df = out_df.copy()
+        self.df = self.df.reset_index()
+
+
+    def KDE_from_scipy(self):
+        """
+        Function to alleviate the initialization. Calculate the KDE
+        """
+
+        from scipy.stats import gaussian_kde as gKDE
+
+        out_df = pd.DataFrame(data = None, columns = self.df.columns)
+        out_df["KDE_ksn"] = pd.Series(data = None, index = self.df.index)
+        out_df["KDE_delta_ksn"] = pd.Series(data = None, index = self.df.index)
+
+        for source in self.df[self.binning].unique():
+
+
+            temp_df = self.df[self.df["source_key"] == source]
+            self.kernel_deriv_ksn = gKDE(temp_df["deriv_ksn"].values)
+            self.kernel_deriv_ksn.set_bandwith(bw_method = 'silverman')
+            self.kernel_deriv_ksn.set_bandwith(bw_method=self.kernel_deriv_ksn.factor / 3.)
+
+            temp_df["KDE_ksn"] = pd.Series(data = self.kernel_deriv_ksn(data = temp_df["chi"].values, index = temp_df.index))
+
+
+            self.kernel_deriv_delta_ksn = gKDE(temp_df["deriv_delta_ksn"].values)
+            self.kernel_deriv_delta_ksn.set_bandwith(bw_method = 'silverman')
+            self.kernel_deriv_delta_ksn.set_bandwith(bw_method=self.kernel_deriv_delta_ksn.factor / 3.)
+
+            temp_df["KDE_delta_ksn"] = pd.Series(data = self.kernel_deriv_ksn(data = temp_df["chi"].values, index = temp_df.index))
+            out_df = pd.concat([out_df,temp_df])
+
+
+        # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
+        self.df = out_df.copy()
+        self.df = self.df.reset_index()
+
+
+    def plot_KDE_per_river(self):
+        """
+            Statistical plot to calibrate the KDE per rivers
+        """
+
+                # check if a directory exists for the chi plots. If not then make it.
+        svdir = self.fpath+'statplots/'
+        if not os.path.isdir(svdir):
+            os.makedirs(svdir)
+
+        
+        for source in self.df.source_key.unique():
+            this_df = self.df[self.df["source_key"] == source]
+            fig = plt.figure(1, facecolor='white',figsize=(16,9))
+            gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
+            ax1 = fig.add_subplot(gs[0:100,0:100])
+            ax2 = fig.add_subplot(gs[0:100,0:100])
+            ax2.axis('off')
+
+            ax1.scatter(self.df["chi"], self.df["elevation"], s = 1, c = "b", lw = 0, label = "")
+            ax2.scatter(self.df["chi"], self.df["KDE_ksn"], s = 10, marker = "+", lw = 0, c = "k", label = "KDE d(ksn)/d(chi)")
+            ax2.scatter(self.df["chi"], self.df["KDE_dksn"], s = 10, marker = "x", lw = 0, c = "k",label = "KDE d2(ksn)/d(chi)")
+            ax2.legend()
+            plt.set_title(source)
+
+            plt.savefig(svdir+"KDE_plot_source_" + str(source) + ".png", dpi = 300)
+            plt.clf()
+
+
+
+        
+
+
+
+
 
 
 
