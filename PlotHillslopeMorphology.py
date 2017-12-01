@@ -64,6 +64,7 @@ def main(argv):
     parser.add_argument("-Mchi", "--plot_mchi", type=bool, default=False, help="If this is true, I'll make some plots of the hillslope-channel data against Mchi")
     parser.add_argument("-CHT", "--plot_CHT", type=bool, default=False, help="If this is true, I'll make some plots of hilltop curvature against data from the channel segments.")
     parser.add_argument("-segments", "--plot_segments", type=bool, default=False, help="If this is true, I'll make some long profile plots of the channel segments.")
+    parser.add_argument("-ER", "--plot_ER", type=bool, default=False, help="If this is true, I'll make E*R* plots of the basin where the points are coloured by the distance upstream")
 
     args = parser.parse_args()
 
@@ -114,6 +115,9 @@ def main(argv):
         for basin_key in these_basin_keys:
             HS.PlotLongProfileSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotChiElevationSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+    if args.plot_ER:
+        for basin_key in these_basin_keys:
+            HS.PlotEStarRStar(this_dir, args.fname_prefix, PlotDirectory, basin_key)
 
 
 #=============================================================================
