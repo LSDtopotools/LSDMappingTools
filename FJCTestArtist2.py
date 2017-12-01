@@ -97,12 +97,12 @@ def rand_cmap(nlabels, type='bright', first_color_black=True, last_color_black=F
 #
 #init_plotting_DV()
 
-Directory = "/home/s0923330/Datastore/5m_dems/scotland/DEM_comparison/river_tay/"
+Directory = "/media/fionaclubb/terrace_lidar/Mendocino_TJ/mendocino/coastal_california/"
 #Directory = "T:\\analysis_for_papers\\Meghalaya\\divide_migration\\"
-Base_file = "Tay_Terrain5"
+Base_file = "California_clip"
 
 #BackgroundRasterName = Base_file+".bil"
-DrapeRasterName = Base_file+"_HS.bil"
+DrapeRasterName = Base_file+"_hs.bil"
 BasinsName = Base_file+"_basins.bil"
 
 #BR = BaseRaster(BackgroundRasterName, Directory)

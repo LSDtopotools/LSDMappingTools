@@ -216,7 +216,7 @@ def rand_cmap(nlabels, type='bright', first_color_black=True, last_color_black=F
     from https://github.com/delestro/rand_cmap
     """
     from matplotlib.colors import LinearSegmentedColormap
-    import colorsys
+    import colors
     import numpy as np
 
     if type not in ('bright', 'soft'):
