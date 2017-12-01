@@ -425,7 +425,7 @@ def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
         Elevation = ChannelData.elevation[ChannelData.segment_number == Segments[i]]
         SegmentedElevation = ChannelData.segmented_elevation[ChannelData.segment_number == Segments[i]]
         MChi = ChannelData.m_chi[ChannelData.segment_number == Segments[i]].unique()[0]
-
+``
         #normalise distance by outlet distance
         Dist = Dist-MinimumDistance
         #plot, colouring segments
@@ -517,7 +517,7 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     edges, bins, patches = np.histogram(TribsMeanCHT, bins=100)
     print bins
 
-    # 
+    #
 
 
     # now make the plot of the channel profile and the cht data
@@ -530,3 +530,59 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_CHT_flowdist.png", dpi=300)
+
+def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+    """
+    Makes a plot of E* against R* where the points are coloured by
+    their distance from the outlet of the basin
+
+    Author: FJC
+    """
+    # load the channel data
+    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    # isolate basin data
+    BasinChannelData = ChannelData[ChannelData.basin_key == BasinID]
+    BasinJunctions = HillslopeData.BasinID.unique()
+    BasinHillslopeData = HillslopeData[HillslopeData.BasinID == BasinJunctions[BasinID]]
+    MinimumDistance = BasinChannelData.flow_distance.min()
+    MaximumDistance = BasinChannelData.flow_distance.max()
+    MaximumMChi = BasinChannelData.m_chi.max()
+
+    # how many segments are we dealing with?
+    Segments = BasinChannelData.segment_number.unique()
+
+    # separate into main stem and trib data
+    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
+    MainStemSegments = MainStemChannelData.segment_number.unique()
+
+    # set up the figure
+    Fig = CreateFigure()
+    Ax = plt.subplot(111)
+
+    #choose colormap
+    ColourMap = cm.viridis
+
+    # loop through the channel data and get the E* and R* for this distance upstream.
+    MainStemEStar = []
+    MainStemRStar = []
+    MainStemDist = []
+    TribsEStar = []
+    TribsRStar = []
+    TribsDist = []
+
+    for i in range (0, len(Segments)):
+        SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
+        SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
+        if SegmentHillslopeData.size != 0:
+            if Segments[i] in MainStemSegments:
+                MainStemEStar.append(SegmentHillslopeData.E_star.mean())
+                MainStemRStar.append(SegmentHillslopeData.R_star.mean())
+                MainStemDist.append(SegmentChannelData.flow_distance.median()/1000)
+            else:
+                TribsEStar.append(SegmentHillslopeData.E_star.mean())
+                TribsRStar.append(SegmentHillslopeData.R_star.mean())
+                TribsDist.append(SegmentChannelData.flow_distance.median()/1000)
