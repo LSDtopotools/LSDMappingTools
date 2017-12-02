@@ -37,7 +37,7 @@ class KP_dev(object):
     """
 
 
-    def __init__(self, fpath,fprefix, binning = "source_key", basins = [], sources = []):
+    def __init__(self, fpath,fprefix, binning = "source_key", basins = [], sources = [], bd_KDE = 5):
         """
             Initialization method, it creates a Knickpoint object and preprocess the stat before plotting.
         """
@@ -50,6 +50,9 @@ class KP_dev(object):
         self.binning = binning # The binning method you want
         self.basins = basins
         self.sources = sources
+        self.bd_KDE = bd_KDE
+        self.dict_of_KDE_ksn = {}
+        self.dict_of_KDE_dksn = {}
 
 
         # Loading the file
@@ -76,7 +79,7 @@ class KP_dev(object):
 
 
         # Get the KDE
-        self.KDE_from_scipy()
+        self.KDE_from_scipy(bd_KDE = self.bd_KDE)
 
         print("I have ingested and preprocessed your dataset")
 
@@ -154,11 +157,11 @@ class KP_dev(object):
             # derivative
             t = (temp_df["ksn"]/temp_df["chi"].diff())
             t.iloc[0] = 0
-            temp_df["deriv_ksn"] = pd.Series(data = t, index =temp_df.index)
+            temp_df["deriv_ksn"] = pd.Series(data = t.abs(), index =temp_df.index)
 
             t = (temp_df["ksn"].diff()/temp_df["chi"].diff())
             t.iloc[0] = 0
-            temp_df["deriv_delta_ksn"] = pd.Series(data = t, index =temp_df.index)
+            temp_df["deriv_delta_ksn"] = pd.Series(data = t.abs(), index =temp_df.index)
             # The first value is NaN, resetting to 0, it won't have any effect on the result and most of the plotting routines panic when NaN values are involved
             out_df = pd.concat([out_df,temp_df])
 
@@ -169,7 +172,7 @@ class KP_dev(object):
         self.df = self.df.reset_index(drop = True)
 
 
-    def KDE_from_scipy(self):
+    def KDE_from_scipy(self, bd_KDE = 5):
         """
         Function to alleviate the initialization. Calculate the KDE
         """
@@ -180,22 +183,26 @@ class KP_dev(object):
         out_df["KDE_ksn"] = pd.Series(data = None, index = self.df.index)
         out_df["KDE_delta_ksn"] = pd.Series(data = None, index = self.df.index)
 
+
         for source in self.df[self.binning].unique():
 
 
             temp_df = self.df[self.df["source_key"] == source]
             self.kernel_deriv_ksn = gKDE(temp_df["deriv_ksn"].values)
-            self.kernel_deriv_ksn.set_bandwidth(bw_method = 'silverman')
-            self.kernel_deriv_ksn.set_bandwidth(bw_method=self.kernel_deriv_ksn.factor / 3.)
+            self.kernel_deriv_ksn.set_bandwidth(bw_method = bd_KDE)
+            #self.kernel_deriv_ksn.set_bandwidth(bw_method=self.kernel_deriv_ksn.factor )
+            self.dict_of_KDE_ksn[source] = self.kernel_deriv_ksn
 
             temp_df["KDE_ksn"] = pd.Series(data = self.kernel_deriv_ksn(temp_df["chi"].values), index = temp_df.index)
 
 
             self.kernel_deriv_delta_ksn = gKDE(temp_df["deriv_delta_ksn"].values)
-            self.kernel_deriv_delta_ksn.set_bandwidth(bw_method = 'silverman')
-            self.kernel_deriv_delta_ksn.set_bandwidth(bw_method=self.kernel_deriv_delta_ksn.factor / 3.)
+            self.kernel_deriv_delta_ksn.set_bandwidth(bw_method = bd_KDE)
+            #self.kernel_deriv_delta_ksn.set_bandwidth(bw_method=self.kernel_deriv_delta_ksn.factor )
+            self.dict_of_KDE_dksn[source] = self.kernel_deriv_delta_ksn
 
             temp_df["KDE_delta_ksn"] = pd.Series(data = self.kernel_deriv_ksn( temp_df["chi"].values), index = temp_df.index)
+
             out_df = pd.concat([out_df,temp_df])
 
 
@@ -216,21 +223,30 @@ class KP_dev(object):
 
         
         for source in self.df.source_key.unique():
-            this_df = self.df[self.df["source_key"] == source]
-            fig = plt.figure(1, facecolor='white',figsize=(16,9))
-            gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
-            ax1 = fig.add_subplot(gs[0:100,0:100])
-            ax2 = fig.add_subplot(gs[0:100,0:100])
+            if not np.isnan(source):
+                this_df = self.df[self.df["source_key"] == source]
+                fig = plt.figure(1, facecolor='white',figsize=(16,9))
+                gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
+                ax1 = fig.add_subplot(gs[0:100,0:100])
+                ax2 = fig.add_subplot(gs[0:100,0:100])
 
+                #print this_df["KDE_ksn"]
+                #ax1.scatter(this_df["chi"], this_df["elevation"], s = 1, c = "b", lw = 0, label = "")
+                X = np.linspace(0,this_df["deriv_ksn"].max(), 100)
+                Y = self.dict_of_KDE_ksn[source](X)
+                ax2.fill_between(X, 0, Y)
+                ax2.scatter(this_df["deriv_ksn"], np.zeros(this_df.shape[0])+this_df["KDE_ksn"].min(), s = 100, marker = "+", lw = 1, c = 'k' , label = "d(k_sn)/d(chi)")
+                ax2.scatter(this_df["deriv_ksn"], this_df["KDE_ksn"], s =10, lw = 0, c = "k", label = "KDE d(ksn)/d(chi)")
+                this_df = this_df.sort_values("deriv_ksn")
+                
+                ax2.set_ylim(this_df["KDE_ksn"].min(),this_df["KDE_ksn"].max())
+                ax2.set_xlim(0,1000)
+                #ax2.scatter(this_df["deriv_delta_ksn"], this_df["KDE_delta_ksn"], s = 100, marker = "x", lw = 1, c = "k",label = "KDE d2(ksn)/d(chi)")
+                ax2.legend()
+                plt.title(str(source))
 
-            ax1.scatter(this_df["chi"], this_df["elevation"], s = 1, c = "b", lw = 0, label = "")
-            ax2.scatter(this_df["chi"], this_df["KDE_ksn"], s = 100, marker = "+", lw = 1, c = "k", label = "KDE d(ksn)/d(chi)")
-            ax2.scatter(this_df["chi"], this_df["KDE_delta_ksn"], s = 100, marker = "x", lw = 1, c = "k",label = "KDE d2(ksn)/d(chi)")
-            ax2.legend()
-            plt.title(str(source))
-
-            plt.savefig(svdir+"KDE_plot_source_" + str(source) + ".png", dpi = 300)
-            plt.clf()
+                plt.savefig(svdir+"KDE_plot_source_" + str(source) + ".png", dpi = 300)
+                plt.clf()
 
 
 
