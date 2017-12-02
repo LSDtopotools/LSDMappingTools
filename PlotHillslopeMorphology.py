@@ -117,9 +117,10 @@ def main(argv):
             HS.PlotChiElevationSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
     if args.plot_ER:
         for basin_key in these_basin_keys:
-            HS.PlotEStarRStar(this_dir, args.fname_prefix, PlotDirectory, basin_key)
-            HS.PlotRStarDistance(this_dir, args.fname_prefix, PlotDirectory,basin_key)
-            HS.PlotLHDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+            # HS.PlotEStarRStar(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+            # HS.PlotRStarDistance(this_dir, args.fname_prefix, PlotDirectory,basin_key)
+            # HS.PlotLHDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+            HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
 
 
 #=============================================================================
