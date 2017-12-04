@@ -37,9 +37,10 @@ class KP_dev(object):
     """
 
 
-    def __init__(self, fpath,fprefix, binning = "source_key", basins = [], sources = [], bd_KDE = 5, first_min_coeff = 0.01):
+    def __init__(self, fpath,fprefix, binning = "source_key", basins = [], sources = [], bd_KDE = 5, first_min_coeff = 0.001, load_last = False, save_last = True, remove_nodata = True):
         """
             Initialization method, it creates a Knickpoint object and preprocess the stat before plotting.
+
         """
         
         print("Let me first preprocess and check your files")
@@ -57,9 +58,12 @@ class KP_dev(object):
 
 
         # Loading the file
-        ## TODO exception_management
         self.df = pd.read_csv(self.fpath+self.fprefix+"_KsnKn.csv")
         self.CNMC = pd.read_csv(self.fpath+self.fprefix+"_MChiSegmented_Ks.csv")
+        if(remove_nodata):
+            self.CNMC = self.CNMC[self.CNMC["m_chi"]>= 0]
+
+        # TODO remove small river option
         print("I have loaded the files from the cpp code")
 
         if(len(basins)>0 or len(sources)>0):
@@ -69,26 +73,32 @@ class KP_dev(object):
 
         # Correcting the first knickpoint of each rivers
         self.links = pd.read_csv(self.fpath+self.fprefix+"_SourcesLinks.csv")
-        self.add_knickpoints_from_source()
-        print("I have preprocessed your selected sources/basin")
+
+        if(load_last):
+            self.df = pd.read_pickle(self.fpath+self.fprefix+"_LASTDATASET.boris")
+        else:
+            self.add_knickpoints_from_source()
+            print("I have preprocessed your selected sources/basin")
 
 
-        # Derivative per river
+            # Derivative per river
 
-        self.derivative_per_river()
-        
-        self.df = self.df.replace([np.inf, -np.inf], np.nan)
-        self.df = self.df.dropna()
+            self.derivative_per_river()
+            
+            self.df = self.df.replace([np.inf, -np.inf], np.nan)
+            self.df = self.df.dropna()
 
 
-        # Get the KDE
-        self.KDE_from_scipy(bd_KDE = self.bd_KDE)
+            # Get the KDE
+            self.KDE_from_scipy(bd_KDE = self.bd_KDE)
 
-        # Get the outliers
-        self.Select_the_outliers(first_min_coeff = self.first_min_coeff)
-        print("I have done my statistics and I have selected the main variation in Mx/k_sn")
+            # Get the outliers
+            self.Select_the_outliers(first_min_coeff = self.first_min_coeff)
+            print("I have done my statistics and I have selected the main variation in Mx/k_sn")
 
         print("I have ingested and preprocessed your dataset, I am ready to plot")
+        if(save_last):
+            self.df.to_pickle(self.fpath+self.fprefix+"_LASTDATASET.boris")
 
 
 
@@ -193,24 +203,26 @@ class KP_dev(object):
 
         for source in self.df[self.binning].unique():
 
+            try:
+                temp_df = self.df[self.df[self.binning] == source]
+                self.kernel_deriv_ksn = gKDE(temp_df["deriv_ksn"].values)
+                self.kernel_deriv_ksn.set_bandwidth(bw_method = bd_KDE)
+                #self.kernel_deriv_ksn.set_bandwidth(bw_method=self.kernel_deriv_ksn.factor )
+                self.dict_of_KDE_ksn[source] = self.kernel_deriv_ksn
 
-            temp_df = self.df[self.df[self.binning] == source]
-            self.kernel_deriv_ksn = gKDE(temp_df["deriv_ksn"].values)
-            self.kernel_deriv_ksn.set_bandwidth(bw_method = bd_KDE)
-            #self.kernel_deriv_ksn.set_bandwidth(bw_method=self.kernel_deriv_ksn.factor )
-            self.dict_of_KDE_ksn[source] = self.kernel_deriv_ksn
-
-            temp_df["KDE_ksn"] = pd.Series(data = self.kernel_deriv_ksn(temp_df["chi"].values), index = temp_df.index)
+                temp_df["KDE_ksn"] = pd.Series(data = self.kernel_deriv_ksn(temp_df["chi"].values), index = temp_df.index)
 
 
-            self.kernel_deriv_delta_ksn = gKDE(temp_df["deriv_delta_ksn"].values)
-            self.kernel_deriv_delta_ksn.set_bandwidth(bw_method = bd_KDE)
-            #self.kernel_deriv_delta_ksn.set_bandwidth(bw_method=self.kernel_deriv_delta_ksn.factor )
-            self.dict_of_KDE_dksn[source] = self.kernel_deriv_delta_ksn
+                self.kernel_deriv_delta_ksn = gKDE(temp_df["deriv_delta_ksn"].values)
+                self.kernel_deriv_delta_ksn.set_bandwidth(bw_method = bd_KDE)
+                #self.kernel_deriv_delta_ksn.set_bandwidth(bw_method=self.kernel_deriv_delta_ksn.factor )
+                self.dict_of_KDE_dksn[source] = self.kernel_deriv_delta_ksn
 
-            temp_df["KDE_delta_ksn"] = pd.Series(data = self.kernel_deriv_ksn( temp_df["chi"].values), index = temp_df.index)
+                temp_df["KDE_delta_ksn"] = pd.Series(data = self.kernel_deriv_ksn( temp_df["chi"].values), index = temp_df.index)
 
-            out_df = pd.concat([out_df,temp_df])
+                out_df = pd.concat([out_df,temp_df])
+            except ValueError:
+                    print("I am ignoring source " +str(source) +", the river is probably too small")
 
 
         # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
@@ -230,24 +242,32 @@ class KP_dev(object):
         for source in self.df[self.binning].unique():
 
             if not np.isnan(source):
-                this_df = self.df[self.df[self.binning] == source]
-                this_df["out_KDE_ksn"] = pd.Series(data = np.zeros(this_df.shape[0]), index = this_df.index)
-                X = np.linspace(0,this_df["deriv_ksn"].max(), 1000)
-                Y = self.dict_of_KDE_ksn[source](X)
-                th = np.min(X[Y<first_min_coeff*Y.max()])
-                this_df["out_KDE_ksn"][this_df["deriv_ksn"]>=th] = 1
+                try:
+                    this_df = self.df[self.df[self.binning] == source]
+                    this_df["out_KDE_ksn"] = pd.Series(data = np.zeros(this_df.shape[0]), index = this_df.index)
+                    X = np.linspace(0,this_df["deriv_ksn"].max(), 1000)
+                    Y = self.dict_of_KDE_ksn[source](X)
+                    th = np.min(X[Y<first_min_coeff*Y.max()])
+                    this_df["out_KDE_ksn"][this_df["deriv_ksn"]>=th] = 1
 
-                this_df["out_KDE_dksn"] = pd.Series(data = np.zeros(this_df.shape[0]), index = this_df.index)
-                X = np.linspace(0,this_df["deriv_ksn"].max(), 1000)
-                Y = self.dict_of_KDE_dksn[source](X)
-                th = np.min(X[Y<first_min_coeff*Y.max()])
-                this_df["out_KDE_dksn"][this_df["deriv_delta_ksn"]>=th] = 1
+                    this_df["out_KDE_dksn"] = pd.Series(data = np.zeros(this_df.shape[0]), index = this_df.index)
+                    X = np.linspace(0,this_df["deriv_ksn"].max(), 1000)
+                    Y = self.dict_of_KDE_dksn[source](X)
+                    th = np.min(X[Y<first_min_coeff*Y.max()])
+                    this_df["out_KDE_dksn"][this_df["deriv_delta_ksn"]>=th] = 1
 
-                out_df = pd.concat([out_df, this_df])
+                    out_df = pd.concat([out_df, this_df])
+
+                except ValueError:
+                    print("I am ignoring source " +str(source) +", the river is probably too small")
 
         # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
         self.df = out_df.copy()
-        self.df = self.df.reset_index(drop = True)       
+        self.df = self.df.reset_index(drop = True)  
+
+
+
+    ################## Plotting routines for the object #########################     
 
 
 
@@ -401,7 +421,7 @@ class KP_dev(object):
                 plt.clf()
 
 
-    def map_of_knickpoint(self, color_extent_Mx = [], method = "deriv_ksn"):
+    def map_of_knickpoint(self, color_extent_Mx = [], method = "deriv_ksn", cut_off = 0):
         """
             This function plot a map of the knickpoints in a latitude/longitude way
 
@@ -430,12 +450,14 @@ class KP_dev(object):
         ax1 = fig.add_subplot(gs[0:100,0:100], facecolor = "black")
 
 
-        scale = (self.CNMC["drainage_area"].values / self.CNMC["drainage_area"].max()) -  self.CNMC["drainage_area"].min()
-        scale = scale*3+0.5
-        cb = ax1.scatter(self.CNMC["longitude"], self.CNMC["latitude"],cmap = "RdBu_r", s = 3, c = self.CNMC["m_chi"], vmin = cmin, vmax = cmax, label = r"$M_{\chi}$" )
+        scale = self.CNMC["drainage_area"] / self.CNMC["drainage_area"].max()
+        ax1.scatter(self.CNMC["longitude"], self.CNMC["latitude"],cmap = "RdBu_r", s = 1, c = self.CNMC["m_chi"], vmin = cmin, vmax = cmax, label = r"$M_{\chi}$" )
         plotting_df = self.df[self.df[method] == 1]
 
-        ax1.scatter(plotting_df["longitude"], plotting_df["latitude"], marker = "o", s = 40, lw = 1, c = plotting_df["ksn"], label = "knickpoint", cmap = "plasma_r")
+        if(cut_off >0):
+            plotting_df = plotting_df[plotting_df["ksn"].abs()>=cut_off]
+
+        cb = ax1.scatter(plotting_df["longitude"], plotting_df["latitude"], marker = "o", s = 26, lw = 1, c = plotting_df["ksn"], label = "knickpoint", cmap = "autumn_r")
         ax1.legend()
 
         plt.colorbar(cb)
