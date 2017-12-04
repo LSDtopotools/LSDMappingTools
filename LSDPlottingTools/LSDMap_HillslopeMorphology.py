@@ -894,25 +894,29 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     R_star_std = []
     E_star = []
     E_star_std = []
+    M_chi = []
+    M_chi_std = []
 
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
         SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
         if SegmentHillslopeData.size != 0:
             # only analysing segments directly connected to the main stem
-            #if Segments[i] in MainStemSegments:
-            DistanceFromOutlet.append(SegmentChannelData.flow_distance.median()/1000)
-            Lh.append(SegmentHillslopeData.Lh.mean())
-            Lh_std.append(SegmentHillslopeData.Lh.std())
-            Cht.append(SegmentHillslopeData.Cht.mean())
-            Cht_std.append(SegmentHillslopeData.Cht.std())
-            R_star.append(SegmentHillslopeData.R_Star.mean())
-            R_star_std.append(SegmentHillslopeData.R_Star.std())
-            E_star.append(SegmentHillslopeData.E_Star.mean())
-            E_star_std.append(SegmentHillslopeData.E_Star.std())
+            if Segments[i] in MainStemSegments:
+                DistanceFromOutlet.append(SegmentChannelData.flow_distance.median()/1000)
+                Lh.append(SegmentHillslopeData.Lh.mean())
+                Lh_std.append(SegmentHillslopeData.Lh.std())
+                Cht.append(SegmentHillslopeData.Cht.mean())
+                Cht_std.append(SegmentHillslopeData.Cht.std())
+                R_star.append(SegmentHillslopeData.R_Star.mean())
+                R_star_std.append(SegmentHillslopeData.R_Star.std())
+                E_star.append(SegmentHillslopeData.E_Star.mean())
+                E_star_std.append(SegmentHillslopeData.E_Star.std())
+                M_chi.append(SegmentChannelData.m_chi.mean())
+                M_chi_std.append(SegmentChannelData.m_chi.std())
 
     # set up the figure
-    fig, ax = plt.subplots(nrows = 3, ncols=1, sharex=True)
+    fig, ax = plt.subplots(nrows = 4, ncols=1, sharex=True, figsize=(6,7))
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
@@ -929,8 +933,12 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     ax[2].errorbar(DistanceFromOutlet,R_star,yerr=R_star_std,fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
     ax[2].set_ylabel('$R*$')
 
+    #plot the R*
+    ax[3].errorbar(DistanceFromOutlet,M_chi,yerr=M_chi_std,fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+    ax[3].set_ylabel('$M_\chi$')
+
     # set the axes labels
-    ax[2].set_xlabel('Distance from outlet (km)')
+    ax[3].set_xlabel('Distance from outlet (km)')
     plt.tight_layout()
 
     #save output
@@ -962,12 +970,14 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     Lh_std = []
     mean_Rstar = []
     R_star_std = []
+    mean_mchi = []
+    mchi_std = []
 
     for key, jn in basin_dict.iteritems():
         BasinHillslopeData = HillslopeData[HillslopeData.BasinID == jn]
         BasinChannelData = ChannelData[ChannelData.basin_key == key]
 
-        # now get all the cht data for this basin
+        # now get all the hillslope data for this basin
         mean_cht.append(BasinHillslopeData.Cht.mean())
         cht_std.append(BasinHillslopeData.Cht.std())
         mean_Lh.append(BasinHillslopeData.Lh.mean())
@@ -975,8 +985,12 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
         mean_Rstar.append(BasinHillslopeData.R_Star.mean())
         R_star_std.append(BasinHillslopeData.R_Star.std())
 
+        # get the channel data
+        mean_mchi.append(BasinChannelData.m_chi.mean())
+        mchi_std.append(BasinChannelData.m_chi.std())
+
     # set up the figure
-    fig, ax = plt.subplots(nrows = 4, ncols=1, sharex=True, figsize=(6,8))
+    fig, ax = plt.subplots(nrows = 5, ncols=1, sharex=True, figsize=(6,10))
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
@@ -992,17 +1006,21 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     ax[2].errorbar(basin_keys,mean_Rstar,yerr=R_star_std,fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
     ax[2].set_ylabel('$R*$')
 
+    #plot the Mchi
+    ax[3].errorbar(basin_keys,mean_mchi,yerr=mchi_std,fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+    ax[3].set_ylabel('$M_\chi$')
+
     # read the uplift data in
     # read in the csv
     uplift_df = pd.read_csv(DataDirectory+'m_over_n.csv')
 
     # get the data
     uplift_rate = uplift_df['Uplift_rate']
-    ax[3].plot(basin_keys, uplift_rate, c='k', ls='--')
-    ax[3].set_ylabel('Uplift rate (mm/yr)')
+    ax[4].plot(basin_keys, uplift_rate, c='k', ls='--')
+    ax[4].set_ylabel('Uplift rate (mm/yr)')
 
     # set the axes labels
-    ax[3].set_xlabel('Basin ID')
+    ax[4].set_xlabel('Basin ID')
     plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1))
     plt.tight_layout()
 
