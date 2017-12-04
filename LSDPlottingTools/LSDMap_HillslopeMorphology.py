@@ -32,6 +32,8 @@ from matplotlib import cm
 from shapely.ops import cascaded_union
 from descartes import PolygonPatch
 
+# plotting tools for using LSDMapFigure
+
 #=============================================================================
 # PRELIMINARY FUNCTIONS
 #=============================================================================
@@ -73,7 +75,7 @@ def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = 10
-    rcParams['text.usetex'] = True
+    #rcParams['text.usetex'] = True
 
     Fig = plt.figure(figsize=(FigWidth_Inches,FigWidth_Inches/AspectRatio))
 
@@ -193,6 +195,52 @@ def ReadTerraceData(DataDirectory,FilenamePrefix):
     geo_df = GeoDataFrame(df, crs=crs, geometry=geometry)
 
     return geo_df
+
+def ReadBaselineData(DataDirectory,fname_prefix):
+    """
+    This function reads in the csv file with the extension "_baseline_channel_info.csv"
+    and returns it as a pandas dataframe. Used for comparing
+    terrace locations to the main channel.
+
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the name of the DEM
+
+    Returns:
+        pandas dataframe with the channel info
+
+    Author: FJC
+    """
+    csv_suffix = '_baseline_channel_info.csv'
+    fname = DataDirectory+fname_prefix+csv_suffix
+
+    df = pd.read_csv(fname)
+
+    return df
+
+def MapBasinKeysToJunctions(DataDirectory,FilenamePrefix):
+    """
+    Function to write a dict of basin keys vs junctions
+
+    Author: FJC
+    """
+    # load the channel data
+    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+    #print BasinChannelData
+
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    basin_keys = ChannelData.basin_key.unique()
+    basin_junctions = HillslopeData.BasinID.unique()
+
+    basin_dict = {}
+
+    for i, key in enumerate(basin_keys):
+        basin_dict[key] = basin_junctions[i]
+
+    print basin_dict
+    return basin_dict
 
 def WriteHillslopeTracesShp(DataDirectory,FilenamePrefix):
     """
@@ -469,6 +517,7 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     BasinJunctions = HillslopeData.BasinID.unique()
     BasinHillslopeData = HillslopeData[HillslopeData.BasinID == BasinJunctions[BasinID]]
     MinimumDistance = BasinChannelData.flow_distance.min()
+    MaximumDistance = BasinChannelData.flow_distance.max()
     MaximumMChi = BasinChannelData.m_chi.max()
 
     # how many segments are we dealing with?
@@ -479,7 +528,7 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     MainStemSegments = MainStemChannelData.segment_number.unique()
 
     # read in the terrace data
-    HS.ReadTerraceData(DataDirectory,FilenamePrefix)
+    TerraceData = ReadTerraceData(DataDirectory,FilenamePrefix)
 
 
     # set up the figure
@@ -496,7 +545,9 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     TribsMeanCHT = []
     TribsDist = []
     TribsLH = []
-
+    TribsCHTData = []
+    MainStemCHTData = []
+    MainStemSTDev = []
 
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
@@ -506,17 +557,455 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
                 MainStemMeanCHT.append(SegmentHillslopeData.Cht.mean())
                 MainStemDist.append(SegmentChannelData.flow_distance.median()/1000)
                 MainStemLH.append(SegmentHillslopeData.Lh)
+                MainStemCHTData.append(np.array(SegmentHillslopeData.Cht))
+                MainStemSTDev.append(SegmentHillslopeData.Cht.std())
             else:
                 TribsMeanCHT.append(SegmentHillslopeData.Cht.mean())
                 TribsDist.append(SegmentChannelData.flow_distance.median()/1000)
+                TribsCHTData.append(np.array(SegmentHillslopeData.Cht))
 
+    print TribsCHTData
+
+    # # bin the data by distance upstream
+    # bin_width = 5
+    # n_bins = int((MaximumDistance-MinimumDistance)/bin_width)
+    # bins = np.linspace(MinimumDistance,MaximumDistance,n_bins)
+    # print bins
+    #
+    # n, dist_bins = np.histogram(TribsDist, bins=n_bins)
+    # print dist_bins
+    # s_TribsCHT, dist_bins = np.histogram(TribsDist, bins=n_bins, weights=TribsMeanCHT)
+    # mean_CHTs = s_TribsCHT/n
+    #
+    # print mean_CHTs
+
+    #Ax.violinplot(TribsCHTData, TribsDist, points=20, widths=1,showmeans=True, showextrema=False, showmedians=True)
     # now make the plot of the channel profile and the cht data
-    Ax.scatter(TribsDist, TribsMeanCHT, s=1, c='0.5')
-    Ax.scatter(MainStemDist, MainStemMeanCHT, s=5, c='k')
+    #Ax.scatter(TribsDist, TribsMeanCHT, s=1, c='0.5')
+    # Ax.scatter(bins/1000, mean_CHTs, s=1)
+    Ax.errorbar(MainStemDist, MainStemMeanCHT, yerr=MainStemSTDev, mec='k',mfc='white',zorder=2, ecolor='k',fmt='o', ms=5)
+    # Ax.violinplot(MainStemCHTData, MainStemDist, points=20, widths=1, showmeans=True, showmedians=True)
+    #Ax.boxplot(MainStemCHTData, positions=MainStemDist, manage_xticks=False, widths=1, sym='')
     plt.xlabel('Distance from outlet ($km$)')
     plt.ylabel('Mean hilltop curvature ($m^{-1}$)')
+    #Ax.set_xlim(0,50)
     #plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
     plt.tight_layout()
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_CHT_flowdist.png", dpi=300)
+
+def PlotEStarRStar(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+    """
+    Makes a plot of E* against R* where the points are coloured by
+    their distance from the outlet of the basin
+
+    Author: FJC
+    """
+    import math
+    # load the channel data
+    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    # isolate basin data
+    BasinChannelData = ChannelData[ChannelData.basin_key == BasinID]
+    BasinJunctions = HillslopeData.BasinID.unique()
+    BasinHillslopeData = HillslopeData[HillslopeData.BasinID == BasinJunctions[BasinID]]
+    MinimumDistance = BasinChannelData.flow_distance.min()
+    MaximumDistance = BasinChannelData.flow_distance.max()
+    MaximumMChi = BasinChannelData.m_chi.max()
+
+    # how many segments are we dealing with?
+    Segments = BasinChannelData.segment_number.unique()
+
+    # separate into main stem and trib data
+    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
+    MainStemSegments = MainStemChannelData.segment_number.unique()
+
+    # set up the figure
+    Fig = CreateFigure()
+    Ax = plt.subplot(111)
+
+    #choose colormap
+    ColourMap = cm.viridis
+
+    # loop through the channel data and get the E* and R* for this distance upstream.
+    MainStemEStar = []
+    MainStemRStar = []
+    MainStemDist = []
+    TribsEStar = []
+    TribsRStar = []
+    TribsDist = []
+
+    for i in range (0, len(Segments)):
+        SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
+        SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
+        if SegmentHillslopeData.size != 0:
+            if Segments[i] in MainStemSegments:
+                MainStemEStar.append(SegmentHillslopeData.E_Star.mean())
+                MainStemRStar.append(SegmentHillslopeData.R_Star.mean())
+                MainStemDist.append(SegmentChannelData.flow_distance.median()/1000)
+            else:
+                TribsEStar.append(SegmentHillslopeData.E_Star.mean())
+                TribsRStar.append(SegmentHillslopeData.R_Star.mean())
+                TribsDist.append(SegmentChannelData.flow_distance.median()/1000)
+
+    # get the model data for this E_Star
+    ModelRStar = []
+    for x in MainStemEStar:
+        ModelRStar.append((1./x) * (np.sqrt(1.+(x*x)) - np.log(0.5*(1. + np.sqrt(1.+(x*x)))) - 1.))
+
+    ModelEStar = [x for x,_ in sorted(zip(MainStemEStar,ModelRStar))]
+    ModelRStar = [y for _,y in sorted(zip(MainStemEStar,ModelRStar))]
+
+
+    Ax.plot(ModelEStar,ModelRStar, c='k')
+    Ax.scatter(MainStemEStar,MainStemRStar,c=MainStemDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
+    # Ax.scatter(TribsEStar,TribsRStar,c=TribsDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
+    # Ax.set_xscale('log')
+    # Ax.set_yscale('log')
+    plt.xlabel('$E*$')
+    plt.ylabel('$R*$')
+
+
+
+    plt.subplots_adjust(left=0.18,right=0.85, bottom=0.2, top=0.9)
+    CAx = Fig.add_axes([0.86,0.2,0.02,0.7])
+    m = cm.ScalarMappable(cmap=ColourMap)
+    m.set_array(MainStemDist)
+    plt.colorbar(m, cax=CAx,orientation='vertical', label='Distance from outlet (km)')
+
+    #Ax.set_ylim(-20,1)
+    #plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
+    #plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_EStar_RStar.png", dpi=300)
+    plt.clf()
+
+def PlotRStarDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+    """
+    Makes a plot of R* against distance from outlet
+
+    Author: FJC
+    """
+    import math
+    # load the channel data
+    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    # isolate basin data
+    BasinChannelData = ChannelData[ChannelData.basin_key == BasinID]
+    BasinJunctions = HillslopeData.BasinID.unique()
+    BasinHillslopeData = HillslopeData[HillslopeData.BasinID == BasinJunctions[BasinID]]
+    MinimumDistance = BasinChannelData.flow_distance.min()
+    MaximumDistance = BasinChannelData.flow_distance.max()
+    MaximumMChi = BasinChannelData.m_chi.max()
+
+    # how many segments are we dealing with?
+    Segments = BasinChannelData.segment_number.unique()
+
+    # separate into main stem and trib data
+    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
+    MainStemSegments = MainStemChannelData.segment_number.unique()
+
+    # set up the figure
+    Fig = CreateFigure()
+    Ax = plt.subplot(111)
+
+    #choose colormap
+    ColourMap = cm.viridis
+
+    # loop through the channel data and get the E* and R* for this distance upstream.
+    MainStemEStar = []
+    MainStemRStar = []
+    MainStemDist = []
+    TribsEStar = []
+    TribsRStar = []
+    TribsDist = []
+
+    for i in range (0, len(Segments)):
+        SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
+        SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
+        if SegmentHillslopeData.size != 0:
+            if Segments[i] in MainStemSegments:
+                MainStemEStar.append(SegmentHillslopeData.E_Star.mean())
+                MainStemRStar.append(SegmentHillslopeData.R_Star.mean())
+                MainStemDist.append(SegmentChannelData.flow_distance.median()/1000)
+            else:
+                TribsEStar.append(SegmentHillslopeData.E_Star.mean())
+                TribsRStar.append(SegmentHillslopeData.R_Star.mean())
+                TribsDist.append(SegmentChannelData.flow_distance.median()/1000)
+
+    # get the model data for this E_Star
+    ModelRStar = []
+    for x in MainStemEStar:
+        ModelRStar.append((1./x) * (np.sqrt(1.+(x*x)) - np.log(0.5*(1. + np.sqrt(1.+(x*x)))) - 1.))
+
+    ModelEStar = [x for x,_ in sorted(zip(MainStemEStar,ModelRStar))]
+    ModelRStar = [y for _,y in sorted(zip(MainStemEStar,ModelRStar))]
+
+
+    #Ax.plot(ModelEStar,ModelRStar, c='k')
+    Ax.scatter(MainStemDist,MainStemRStar,c=MainStemEStar,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
+    # Ax.scatter(TribsEStar,TribsRStar,c=TribsDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
+    # Ax.set_xscale('log')
+    # Ax.set_yscale('log')
+    plt.xlabel('Distance from outlet (km)')
+    plt.ylabel('$R*$')
+
+
+
+    plt.subplots_adjust(left=0.18,right=0.85, bottom=0.2, top=0.9)
+    CAx = Fig.add_axes([0.86,0.2,0.02,0.7])
+    m = cm.ScalarMappable(cmap=ColourMap)
+    m.set_array(MainStemDist)
+    plt.colorbar(m, cax=CAx,orientation='vertical', label='$E*$')
+
+    #Ax.set_ylim(-20,1)
+    #plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
+    #plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_RStar_Dist.png", dpi=300)
+    plt.clf()
+
+def PlotLHDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+    """
+    Makes a plot of Lh against distance from outlet
+
+    Author: FJC
+    """
+
+    # load the channel data
+    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    # isolate basin data
+    BasinChannelData = ChannelData[ChannelData.basin_key == BasinID]
+    BasinJunctions = HillslopeData.BasinID.unique()
+    BasinHillslopeData = HillslopeData[HillslopeData.BasinID == BasinJunctions[BasinID]]
+    MinimumDistance = BasinChannelData.flow_distance.min()
+    MaximumDistance = BasinChannelData.flow_distance.max()
+    MaximumMChi = BasinChannelData.m_chi.max()
+
+    # how many segments are we dealing with?
+    Segments = BasinChannelData.segment_number.unique()
+
+    # separate into main stem and trib data
+    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
+    MainStemSegments = MainStemChannelData.segment_number.unique()
+
+    # set up the figure
+    Fig = CreateFigure()
+    Ax = plt.subplot(111)
+
+    #choose colormap
+    ColourMap = cm.viridis
+
+    # loop through the channel data and get the E* and R* for this distance upstream.
+    MainStemLh = []
+    MainStemDist = []
+    TribsLh = []
+    TribsRStar = []
+    TribsDist = []
+
+    for i in range (0, len(Segments)):
+        SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
+        SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
+        if SegmentHillslopeData.size != 0:
+            if Segments[i] in MainStemSegments:
+                MainStemLh.append(SegmentHillslopeData.Lh.mean())
+                MainStemDist.append(SegmentChannelData.flow_distance.median()/1000)
+            else:
+                TribsLh.append(SegmentHillslopeData.Lh.mean())
+                TribsDist.append(SegmentChannelData.flow_distance.median()/1000)
+
+
+    #Ax.plot(ModelEStar,ModelRStar, c='k')
+    Ax.scatter(MainStemDist,MainStemLh, c = 'k', s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
+    # Ax.scatter(TribsEStar,TribsRStar,c=TribsDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
+    # Ax.set_xscale('log')
+    # Ax.set_yscale('log')
+    plt.xlabel('Distance from outlet (km)')
+    plt.ylabel('$L_h$')
+
+
+
+    # plt.subplots_adjust(left=0.18,right=0.85, bottom=0.2, top=0.9)
+    # CAx = Fig.add_axes([0.86,0.2,0.02,0.7])
+    # m = cm.ScalarMappable(cmap=ColourMap)
+    # m.set_array(MainStemDist)
+    # plt.colorbar(m, cax=CAx,orientation='vertical', label='$E*$')
+
+    #Ax.set_ylim(-20,1)
+    #plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
+    plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_Lh_dist.png", dpi=300)
+    plt.clf()
+
+def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+    """
+    This function makes some composite plots of the hillslope data vs
+    distance upstream from the outlet
+
+    Author: FJC
+    """
+    # load the channel data
+    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+    #print BasinChannelData
+
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    # isolate basin data
+    BasinChannelData = ChannelData[ChannelData.basin_key == BasinID]
+    BasinJunctions = HillslopeData.BasinID.unique()
+    BasinHillslopeData = HillslopeData[HillslopeData.BasinID == BasinJunctions[BasinID]]
+    MinimumDistance = BasinChannelData.flow_distance.min()
+    MaximumDistance = BasinChannelData.flow_distance.max()
+    MaximumMChi = BasinChannelData.m_chi.max()
+
+    # how many segments are we dealing with?
+    Segments = BasinChannelData.segment_number.unique()
+
+    # separate into main stem and trib data
+    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
+    MainStemSegments = MainStemChannelData.segment_number.unique()
+
+    #choose colormap
+    ColourMap = cm.viridis
+
+    # loop through the channel data and get the E* and R* for this distance upstream.
+    DistanceFromOutlet = []
+    Lh = []
+    Lh_std = []
+    Cht = []
+    Cht_std = []
+    R_star = []
+    R_star_std = []
+    E_star = []
+    E_star_std = []
+
+    for i in range (0, len(Segments)):
+        SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
+        SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
+        if SegmentHillslopeData.size != 0:
+            # only analysing segments directly connected to the main stem
+            #if Segments[i] in MainStemSegments:
+            DistanceFromOutlet.append(SegmentChannelData.flow_distance.median()/1000)
+            Lh.append(SegmentHillslopeData.Lh.mean())
+            Lh_std.append(SegmentHillslopeData.Lh.std())
+            Cht.append(SegmentHillslopeData.Cht.mean())
+            Cht_std.append(SegmentHillslopeData.Cht.std())
+            R_star.append(SegmentHillslopeData.R_Star.mean())
+            R_star_std.append(SegmentHillslopeData.R_Star.std())
+            E_star.append(SegmentHillslopeData.E_Star.mean())
+            E_star_std.append(SegmentHillslopeData.E_Star.std())
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows = 3, ncols=1, sharex=True)
+    # Remove horizontal space between axes
+    fig.subplots_adjust(hspace=0)
+
+    # plot the hillslope length
+    print DistanceFromOutlet
+    ax[0].errorbar(DistanceFromOutlet,Lh,yerr=Lh_std,fmt='o', ecolor='0.5',markersize=5,mec='k')
+    ax[0].set_ylabel('$L_h$')
+
+    #plot the cht
+    ax[1].errorbar(DistanceFromOutlet,Cht,yerr=Cht_std,fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
+    ax[1].set_ylabel('$C_{HT}$')
+
+    #plot the R*
+    ax[2].errorbar(DistanceFromOutlet,R_star,yerr=R_star_std,fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
+    ax[2].set_ylabel('$R*$')
+
+    # set the axes labels
+    ax[2].set_xlabel('Distance from outlet (km)')
+    plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_hillslopes_distance.png", dpi=300)
+    #plt.clf()
+
+def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
+    """
+    Function to make plots of hillslope data vs basin id.
+    Martin probably has nice versions of this but I need something
+    quick for my poster
+
+    Author: FJC
+    """
+
+    # load the channel data
+    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+    #print BasinChannelData
+
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    basin_dict = MapBasinKeysToJunctions(DataDirectory,FilenamePrefix)
+    basin_keys = basin_dict.keys()
+
+    mean_cht = []
+    cht_std = []
+    mean_Lh = []
+    Lh_std = []
+    mean_Rstar = []
+    R_star_std = []
+
+    for key, jn in basin_dict.iteritems():
+        BasinHillslopeData = HillslopeData[HillslopeData.BasinID == jn]
+        BasinChannelData = ChannelData[ChannelData.basin_key == key]
+
+        # now get all the cht data for this basin
+        mean_cht.append(BasinHillslopeData.Cht.mean())
+        cht_std.append(BasinHillslopeData.Cht.std())
+        mean_Lh.append(BasinHillslopeData.Lh.mean())
+        Lh_std.append(BasinHillslopeData.Lh.std())
+        mean_Rstar.append(BasinHillslopeData.R_Star.mean())
+        R_star_std.append(BasinHillslopeData.R_Star.std())
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows = 4, ncols=1, sharex=True, figsize=(6,8))
+    # Remove horizontal space between axes
+    fig.subplots_adjust(hspace=0)
+
+    # plot the hillslope length
+    ax[0].errorbar(basin_keys,mean_Lh,yerr=Lh_std,fmt='o', ecolor='0.5',markersize=5,mec='k')
+    ax[0].set_ylabel('$L_h$')
+
+    #plot the cht
+    ax[1].errorbar(basin_keys,mean_cht,yerr=cht_std,fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
+    ax[1].set_ylabel('$C_{HT}$')
+
+    #plot the R*
+    ax[2].errorbar(basin_keys,mean_Rstar,yerr=R_star_std,fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
+    ax[2].set_ylabel('$R*$')
+
+    # read the uplift data in
+    # read in the csv
+    uplift_df = pd.read_csv(DataDirectory+'m_over_n.csv')
+
+    # get the data
+    uplift_rate = uplift_df['Uplift_rate']
+    ax[3].plot(basin_keys, uplift_rate, c='k', ls='--')
+    ax[3].set_ylabel('Uplift rate (mm/yr)')
+
+    # set the axes labels
+    ax[3].set_xlabel('Basin ID')
+    plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1))
+    plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_mean_hillslope_data.png", dpi=300)
+    #plt.clf()

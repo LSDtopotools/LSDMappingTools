@@ -6,7 +6,6 @@
 ## 05/06/2017
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib import colors
@@ -26,10 +25,466 @@ import sys
 import os
 import pandas as pd
 from scipy.stats import norm
+pd.options.mode.chained_assignment = None
+
+
+class KP_dev(object):
+    """
+        This class is a development version of the knickpoint algorithm. 
+        Its aim is to deal with knickpoint picking stuffs via python code, 
+        in a development aim as I am significantly changing methods relatively often.
+        B.G.
+    """
+
+
+    def __init__(self, fpath,fprefix, binning = "source_key", basins = [], sources = [], bd_KDE = 5, first_min_coeff = 0.01):
+        """
+            Initialization method, it creates a Knickpoint object and preprocess the stat before plotting.
+        """
+        
+        print("Let me first preprocess and check your files")
+
+        # Loading the attributes
+        self.fpath = fpath # the path of your file : /home/your/path/
+        self.fprefix = fprefix # the common prefix of all your files
+        self.binning = binning # The binning method you want
+        self.basins = basins
+        self.sources = sources
+        self.bd_KDE = bd_KDE
+        self.dict_of_KDE_ksn = {}
+        self.dict_of_KDE_dksn = {}
+        self.first_min_coeff = first_min_coeff
+
+
+        # Loading the file
+        ## TODO exception_management
+        self.df = pd.read_csv(self.fpath+self.fprefix+"_KsnKn.csv")
+        self.CNMC = pd.read_csv(self.fpath+self.fprefix+"_MChiSegmented_Ks.csv")
+        print("I have loaded the files from the cpp code")
+
+        if(len(basins)>0 or len(sources)>0):
+            self.sort_my_df()
+
+        # sort the basins and/or source_keys
+
+        # Correcting the first knickpoint of each rivers
+        self.links = pd.read_csv(self.fpath+self.fprefix+"_SourcesLinks.csv")
+        self.add_knickpoints_from_source()
+        print("I have preprocessed your selected sources/basin")
+
+
+        # Derivative per river
+
+        self.derivative_per_river()
+        
+        self.df = self.df.replace([np.inf, -np.inf], np.nan)
+        self.df = self.df.dropna()
+
+
+        # Get the KDE
+        self.KDE_from_scipy(bd_KDE = self.bd_KDE)
+
+        # Get the outliers
+        self.Select_the_outliers(first_min_coeff = self.first_min_coeff)
+        print("I have done my statistics and I have selected the main variation in Mx/k_sn")
+
+        print("I have ingested and preprocessed your dataset, I am ready to plot")
+
+
+
+    def add_knickpoints_from_source(self):
+        """
+        Function to alleviate the initialization function
+        """
+        
+        out_df = pd.DataFrame(data = None, columns = self.df.columns)
+        for source in self.df["source_key"].unique():
+            # getting the right dfs
+            temp_df = self.df[self.df["source_key"] == source]
+            temp_CNDF = self.CNMC[self.CNMC["source_key"] ==  source]
+            # make sure that it is in the right order
+            temp_inter = self.links[self.links["source_key"] == source]
+            temp_df = temp_df.sort_values("chi")
+
+            #creating the date for the first row           
+            data = []
+            singularity = temp_CNDF[temp_CNDF["elevation"] == temp_CNDF["elevation"].min()]
+            data = pd.DataFrame.from_dict({"latitude" : singularity["latitude"].values, "longitude" : singularity["longitude"].values, "elevation": singularity["elevation"].values,"flow_distance": singularity["flow_distance"].values, "chi": singularity["chi"].values,"drainage_area" : singularity["drainage_area"].values,"ksn": (singularity["m_chi"].values - temp_inter["m_chi"].values),"rksn":  (singularity["m_chi"].values / temp_inter["m_chi"].values),"rad" : -9999, "cumul_ksn" : -9999,  "cumul_rksn" : -9999,"cumul_rad" : -9999, "source_key" : source, "basin_key" : singularity["basin_key"].values})
+            # implementing the dataset
+            temp_df = pd.concat([data, temp_df], ignore_index = True)
+
+            #preparing the save
+            out_df = pd.concat([temp_df,out_df], ignore_index = True)
+
+        # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
+        self.df = out_df.copy()
+        self.df = self.df.reset_index(drop = True)
 
 
 
 
+
+
+    def sort_my_df(self):
+        """
+        Another function to alleviate the main one, it sorts the df, removing the unwanted sources and basins
+        """
+
+        ### TO DO ###
+        # Add more exceptions and warning 
+
+
+        # I am sorting the df by basins first and then by sources
+        if (len(self.basins)>0 and len(self.sources)>0):
+            
+            print("\n \n \n WARNING: You gave me a list a basins_keys and sources_keys to sort your basin. If your sources are not in the basin you have choosen they won't be saved as well! WARNING \n")
+
+        if(len(self.basins)>0):
+            self.df = self.df[self.df["basin_key"].isin(self.basins)]
+            self.CNMC = self.CNMC[self.CNMC["basin_key"].isin(self.basins)]
+        if(len(self.sources)>0):
+            self.df = self.df[self.df["source_key"].isin(self.sources)]
+            self.CNMC = self.CNMC[self.CNMC["source_key"].isin(self.sources)]
+
+
+
+    def derivative_per_river(self):
+        """
+            d(delta(m_chi))/d(chi).
+
+        """
+
+        out_df = pd.DataFrame(data = None, columns = self.df.columns)
+        out_df["deriv_delta_ksn"] = pd.Series(data = None, index = out_df.index)
+        out_df["deriv_ksn"] = pd.Series(data = None, index = out_df.index)
+
+        for source in self.df["source_key"].unique():
+            # getting the right dfs
+            temp_df = self.df[self.df["source_key"] == source]
+            # derivative
+            t = (temp_df["ksn"]/temp_df["chi"].diff())
+            t.iloc[0] = 0
+            temp_df["deriv_ksn"] = pd.Series(data = t.abs(), index =temp_df.index)
+
+            t = (temp_df["ksn"].diff()/temp_df["chi"].diff())
+            t.iloc[0] = 0
+            temp_df["deriv_delta_ksn"] = pd.Series(data = t.abs(), index =temp_df.index)
+            # The first value is NaN, resetting to 0, it won't have any effect on the result and most of the plotting routines panic when NaN values are involved
+            out_df = pd.concat([out_df,temp_df])
+
+
+
+        # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
+        self.df = out_df.copy()
+        self.df = self.df.reset_index(drop = True)
+
+
+    def KDE_from_scipy(self, bd_KDE = 5):
+        """
+        Function to alleviate the initialization. Calculate the KDE
+        """
+
+        from scipy.stats import gaussian_kde as gKDE
+
+        out_df = pd.DataFrame(data = None, columns = self.df.columns)
+        out_df["KDE_ksn"] = pd.Series(data = None, index = self.df.index)
+        out_df["KDE_delta_ksn"] = pd.Series(data = None, index = self.df.index)
+
+
+        for source in self.df[self.binning].unique():
+
+
+            temp_df = self.df[self.df[self.binning] == source]
+            self.kernel_deriv_ksn = gKDE(temp_df["deriv_ksn"].values)
+            self.kernel_deriv_ksn.set_bandwidth(bw_method = bd_KDE)
+            #self.kernel_deriv_ksn.set_bandwidth(bw_method=self.kernel_deriv_ksn.factor )
+            self.dict_of_KDE_ksn[source] = self.kernel_deriv_ksn
+
+            temp_df["KDE_ksn"] = pd.Series(data = self.kernel_deriv_ksn(temp_df["chi"].values), index = temp_df.index)
+
+
+            self.kernel_deriv_delta_ksn = gKDE(temp_df["deriv_delta_ksn"].values)
+            self.kernel_deriv_delta_ksn.set_bandwidth(bw_method = bd_KDE)
+            #self.kernel_deriv_delta_ksn.set_bandwidth(bw_method=self.kernel_deriv_delta_ksn.factor )
+            self.dict_of_KDE_dksn[source] = self.kernel_deriv_delta_ksn
+
+            temp_df["KDE_delta_ksn"] = pd.Series(data = self.kernel_deriv_ksn( temp_df["chi"].values), index = temp_df.index)
+
+            out_df = pd.concat([out_df,temp_df])
+
+
+        # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
+        self.df = out_df.copy()
+        self.df = self.df.reset_index(drop = True)
+
+    def Select_the_outliers(self, first_min_coeff = 0.01):
+        """
+         Another function to alluviate the initialization one. this one add columns to the dataset to indentify the outliers
+         I will implement the different methods!
+         Author: B.G. 02/12/2017
+        """
+        out_df = pd.DataFrame(data = None, columns = self.df.columns)
+        out_df["out_KDE_ksn"] = pd.Series(data = None, index = self.df.index)
+        out_df["out_KDE_dksn"] = pd.Series(data = None, index = self.df.index)
+
+        for source in self.df[self.binning].unique():
+
+            if not np.isnan(source):
+                this_df = self.df[self.df[self.binning] == source]
+                this_df["out_KDE_ksn"] = pd.Series(data = np.zeros(this_df.shape[0]), index = this_df.index)
+                X = np.linspace(0,this_df["deriv_ksn"].max(), 1000)
+                Y = self.dict_of_KDE_ksn[source](X)
+                th = np.min(X[Y<first_min_coeff*Y.max()])
+                this_df["out_KDE_ksn"][this_df["deriv_ksn"]>=th] = 1
+
+                this_df["out_KDE_dksn"] = pd.Series(data = np.zeros(this_df.shape[0]), index = this_df.index)
+                X = np.linspace(0,this_df["deriv_ksn"].max(), 1000)
+                Y = self.dict_of_KDE_dksn[source](X)
+                th = np.min(X[Y<first_min_coeff*Y.max()])
+                this_df["out_KDE_dksn"][this_df["deriv_delta_ksn"]>=th] = 1
+
+                out_df = pd.concat([out_df, this_df])
+
+        # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
+        self.df = out_df.copy()
+        self.df = self.df.reset_index(drop = True)       
+
+
+
+    def plot_KDE(self, method = "deriv_ksn", group = "source_key"):
+        """
+            Statistical plot to calibrate the KDE per rivers
+        """
+        print("I am going to print one plot per rivers to display the statistics I used. you can calibrate your data using these plots")
+                # check if a directory exists for the chi plots. If not then make it.
+        svdir = self.fpath+'statplots/'
+        if not os.path.isdir(svdir):
+            os.makedirs(svdir)
+        if method == "deriv_ksn":
+            out_method = "out_KDE_ksn"
+
+        elif method == "deriv_delta_ksn":
+            out_method = "out_KDE_dksn"
+
+
+        
+        for source in self.df[group].unique():
+            if not np.isnan(source):
+                this_df = self.df[self.df[group] == source]
+                fig = plt.figure(1, facecolor='white',figsize=(9,5))
+                gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
+                #ax1 = fig.add_subplot(gs[0:100,0:100])
+                ax2 = fig.add_subplot(gs[0:100,0:100])
+
+                #print this_df["KDE_ksn"]
+                #ax1.scatter(this_df["chi"], this_df["elevation"], s = 1, c = "b", lw = 0, label = "")
+                X = np.linspace(0,this_df[method].max(), 1000)
+                Y = self.dict_of_KDE_ksn[source](X)
+                #print Y
+                ax2.fill_between(X, 0, Y)
+                ax2.scatter(this_df[method], np.zeros(this_df.shape[0])+0.10*(Y.min()+Y.max()), s = 10, marker = "+", lw = 1, c = 'k' , label = "d(k_sn)/d(chi)")
+                ou = this_df[this_df[out_method]==1]
+                ax2.scatter(ou[method], np.zeros(ou.shape[0])+0.10*(Y.min()+Y.max()), s = 50, lw = 1, facecolors = "None", edgecolors = "r" , label = "outliers")
+                ax2.scatter(X, Y, s =5, lw = 0, c = "k", label = "KDE d(ksn)/d(chi)")
+                this_df = this_df.sort_values(method)
+                
+                ax2.set_ylim(Y.min(),Y.max())
+                ax2.set_xlabel(r'$\frac{\delta M_{\chi}}{\delta\chi}}$')
+                ax2.set_ylabel("PDF from KDE")
+                #ax2.set_xlim(0,1000)
+                #ax2.scatter(this_df["deriv_delta_ksn"], this_df["KDE_delta_ksn"], s = 100, marker = "x", lw = 1, c = "k",label = "KDE d2(ksn)/d(chi)")
+                ax2.legend()
+                plt.title(group + " #" +str(source)+", nodes: " + str(this_df.shape[0]))
+
+                plt.savefig(svdir+"KDE_plot_source_" + str(source) + "_out_" + method+ ".png", dpi = 300)
+                plt.clf()
+
+    def plot_mchi_segments(self, method = "deriv_ksn", group = "source_key"):
+        """
+            Statistical plot to calibrate the KDE per rivers
+        """
+        print("I am going to plot the m_chi/ksn segments to check my knickpoints")
+                # check if a directory exists for the chi plots. If not then make it.
+        svdir = self.fpath+'river_plots/'
+        if not os.path.isdir(svdir):
+            os.makedirs(svdir)
+
+        if method == "deriv_ksn":
+            out_method = "out_KDE_ksn"
+
+        elif method == "deriv_delta_ksn":
+            out_method = "out_KDE_dksn"
+
+        
+        for source in self.df[group].unique():
+            if not np.isnan(source):
+                this_df = self.df[self.df[group] == source]
+                this_MCdf = self.CNMC[self.CNMC[group] == source]
+                fig = plt.figure(2, facecolor='white',figsize=(9,5))
+                gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
+                ax1 = fig.add_subplot(gs[0:100,0:100])
+                ax2 = fig.add_subplot(gs[0:100,0:100], facecolor = "None")
+
+                ax2.scatter(this_MCdf["chi"], this_MCdf["m_chi"], s = 1, lw = 1, c = this_MCdf["m_chi"], cmap = "RdBu_r")
+                ou = this_df[this_df[out_method]==1]
+                ax1.scatter(ou["chi"], ou["ksn"], s = 40, c = ou["source_key"], lw = 1,marker = "+", label = "outliers", cmap = "jet")
+                ax1.vlines(ou["chi"], ou["ksn"].min() , ou["ksn"].max(), linestyles  = "dashdot", lw = 0.5 )
+
+
+                ax2.set_xlabel(r'$\chi$')
+                ax2.set_ylabel(r"$M_\chi$")
+                #ax2.set_xlim(0,1000)
+                #ax2.scatter(this_df["deriv_delta_ksn"], this_df["KDE_delta_ksn"], s = 100, marker = "x", lw = 1, c = "k",label = "KDE d2(ksn)/d(chi)")
+                ax1.xaxis.set_visible(False)
+                ax1.yaxis.set_ticks_position("right")
+                ax1.yaxis.set_label_position("right")
+                ax1.set_ylabel(r'$\Delta K_{sn}$')
+                ax1.set_xlim(ax2.get_xlim())
+                ax1.legend
+
+                plt.title(group + " #" +str(source))
+
+                plt.savefig(svdir+"M_chi_plot_"+ str(group)+ "_" + str(source) + "_out_" + method+ ".png", dpi = 300)
+                plt.clf()
+
+
+    def plot_chi_profiles(self, method = "deriv_ksn", group = "source_key"):
+        """
+            Statistical plot to calibrate the KDE per rivers
+        """
+        print("I am going to print the chi profile per river/basins depending on what you asked")
+                # check if a directory exists for the chi plots. If not then make it.
+        svdir = self.fpath+'river_plots/'
+        if not os.path.isdir(svdir):
+            os.makedirs(svdir)
+
+        if method == "deriv_ksn":
+            out_method = "out_KDE_ksn"
+
+        elif method == "deriv_delta_ksn":
+            out_method = "out_KDE_dksn"
+
+        
+        for source in self.df[group].unique():
+            if not np.isnan(source):
+                this_df = self.df[self.df[group] == source]
+                this_MCdf = self.CNMC[self.CNMC[group] == source]
+                fig = plt.figure(2, facecolor='white',figsize=(9,5))
+                gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
+                ax1 = fig.add_subplot(gs[0:100,0:90])
+                ax2 = fig.add_subplot(gs[0:100,0:90], facecolor = "None")
+                axa = fig.add_subplot(gs[0:100,90:100])
+                cax = fig.add_subplot(gs[0:100,91:95])
+
+
+                ax2.scatter(this_MCdf["chi"], this_MCdf["elevation"], s = 1, lw = 0, c = this_MCdf["source_key"], cmap = "RdBu_r")
+                ou = this_df[this_df[out_method]==1]
+                cb = ax1.scatter(ou["chi"], ou["elevation"], s = 50, c = ou["ksn"], lw = 0,marker = "o", label = "Knickpoint", cmap = "RdBu_r")
+
+                ax2.set_xlabel(r'$\chi$')
+                ax2.set_ylabel("elevation (m)")
+                #ax2.set_xlim(0,1000)
+                #ax2.scatter(this_df["deriv_delta_ksn"], this_df["KDE_delta_ksn"], s = 100, marker = "x", lw = 1, c = "k",label = "KDE d2(ksn)/d(chi)")
+                ax1.xaxis.set_visible(False)
+                ax1.yaxis.set_visible(False)
+
+                ax1.set_xlim(ax2.get_xlim())
+                ax1.set_ylim(ax2.get_ylim())
+                ax1.set_title(group + " #" +str(source))
+                ax1.legend(loc = 2)
+                
+
+                plt.colorbar(cb,cax = cax, ax = axa)
+                axa.axis("off")
+
+                plt.savefig(svdir+"Chi_profile_"+ str(group)+ "_" + str(source) + "_out_" + method+ ".png", dpi = 300)
+                plt.clf()
+
+
+    def map_of_knickpoint(self, color_extent_Mx = [], method = "deriv_ksn"):
+        """
+            This function plot a map of the knickpoints in a latitude/longitude way
+
+        """
+        print("Now printing a map of the knickpoint and ksn")
+        svdir = self.fpath+'raster_plots/'
+        if not os.path.isdir(svdir):
+            os.makedirs(svdir)
+
+        # preprocessing data
+
+        if(len(color_extent_Mx) >0):
+            cmin = color_extent_Mx[0]
+            cmax = color_extent_Mx[1]
+        else:
+            cmin = self.CNMC["m_chi"].min()
+            cmax = self.CNMC["m_chi"].max()
+
+        if method == "deriv_ksn":
+            method = "out_KDE_ksn"
+        elif method == "deriv_delta_ksn":
+            method = "out_KDE_dksn"
+
+        fig = plt.figure(1, facecolor='black',figsize=(9,5))
+        gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
+        ax1 = fig.add_subplot(gs[0:100,0:100], facecolor = "black")
+
+
+        scale = (self.CNMC["drainage_area"].values / self.CNMC["drainage_area"].max()) -  self.CNMC["drainage_area"].min()
+        scale = scale*3+0.5
+        cb = ax1.scatter(self.CNMC["longitude"], self.CNMC["latitude"],cmap = "RdBu_r", s = 3, c = self.CNMC["m_chi"], vmin = cmin, vmax = cmax, label = r"$M_{\chi}$" )
+        plotting_df = self.df[self.df[method] == 1]
+
+        ax1.scatter(plotting_df["longitude"], plotting_df["latitude"], marker = "o", s = 40, lw = 1, c = plotting_df["ksn"], label = "knickpoint", cmap = "plasma_r")
+        ax1.legend()
+
+        plt.colorbar(cb)
+
+        figname = svdir+self.fprefix +"_mapofKP.png"
+        plt.savefig(figname, dpi = 300)
+        plt.clf()
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############################################################################################################################################################
+######################################## This is the class I will implement to provide nice plots callable from the command-line #############################
+##############################################################################################################################################################
 
 class KnickInfo(object):
     """
@@ -2465,7 +2920,8 @@ def plot_2d_density_map(dataframe, DataDirectory, columns = ["drainage area", "d
 
 
 
-
+if __name__ == "__main__":
+    print("Do not use this file as a script, refer to LSDMT documentation for instructions")
 
 
 
