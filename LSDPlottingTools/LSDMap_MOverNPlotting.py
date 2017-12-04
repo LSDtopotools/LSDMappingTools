@@ -2014,7 +2014,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         ax.cla()
     plt.close(fig)
 
-def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True):
+def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True,parallel=False):
     """
     This function makes a summary plot of the best fit m/n from the different
     methods.
@@ -2059,10 +2059,12 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
         #l_pad = -35
 
+    print("SHOW LEGEND", show_legend)
+    
     if show_legend:
         gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
     else:
-        gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.95,top=0.95)
 
     ax = fig.add_subplot(gs[5:100,10:95])
 
@@ -2144,8 +2146,8 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         tick.set_pad(2)
 
     # change tick spacing
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
-    ax.set_xlim(0,)
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=2))
+    ax.set_xlim(-1,)
     #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
 
     #set y axis lims

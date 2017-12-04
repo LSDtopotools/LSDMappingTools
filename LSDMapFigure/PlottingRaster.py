@@ -952,9 +952,10 @@ class MapFigure(object):
         print("The min and max for the colourbar are:")
         print vmin, vmax
         print n_colours
+        print cbar_type
         
         # get the additional end spacing for colourbar
-        tick_spacing = (vmax-vmin)/(n_colours)
+        tick_spacing = float(vmax-vmin)/float(n_colours)
         print tick_spacing
         new_vmin = vmin-(tick_spacing/2)
         new_vmax = vmax+(tick_spacing/2)+tick_spacing
