@@ -25,6 +25,7 @@ import sys
 import os
 import pandas as pd
 from scipy.stats import norm
+import utm
 pd.options.mode.chained_assignment = None
 
 
@@ -64,6 +65,7 @@ class KP_dev(object):
             self.CNMC = self.CNMC[self.CNMC["m_chi"]>= 0]
 
         # TODO remove small river option
+
         print("I have loaded the files from the cpp code")
 
         if(len(basins)>0 or len(sources)>0):
@@ -421,7 +423,7 @@ class KP_dev(object):
                 plt.clf()
 
 
-    def map_of_knickpoint(self, color_extent_Mx = [], method = "deriv_ksn", cut_off = 0):
+    def map_of_knickpoint(self, color_extent_Mx = [], method = "deriv_ksn", cut_off = 0, utm_coord = False):
         """
             This function plot a map of the knickpoints in a latitude/longitude way
 
@@ -440,6 +442,14 @@ class KP_dev(object):
             cmin = self.CNMC["m_chi"].min()
             cmax = self.CNMC["m_chi"].max()
 
+        if(utm_coord):
+            x_col = "X"
+            y_col = "Y"
+        else:
+            x_col = "longitude"
+            y_col = "latitude"
+
+
         if method == "deriv_ksn":
             method = "out_KDE_ksn"
         elif method == "deriv_delta_ksn":
@@ -451,13 +461,15 @@ class KP_dev(object):
 
 
         scale = self.CNMC["drainage_area"] / self.CNMC["drainage_area"].max()
-        ax1.scatter(self.CNMC["longitude"], self.CNMC["latitude"],cmap = "RdBu_r", s = 1, c = self.CNMC["m_chi"], vmin = cmin, vmax = cmax, label = r"$M_{\chi}$" )
+        ax1.scatter(self.CNMC[x_col], self.CNMC[y_col],cmap = "RdBu_r", s = scale, c = self.CNMC["m_chi"], vmin = cmin, vmax = cmax, label = r"$M_{\chi}$" )
+        
         plotting_df = self.df[self.df[method] == 1]
-
+        
         if(cut_off >0):
             plotting_df = plotting_df[plotting_df["ksn"].abs()>=cut_off]
+        
 
-        cb = ax1.scatter(plotting_df["longitude"], plotting_df["latitude"], marker = "o", s = 26, lw = 1, c = plotting_df["ksn"], label = "knickpoint", cmap = "autumn_r")
+        cb = ax1.scatter(plotting_df[x_col], plotting_df[y_col], marker = "o", s = 26, lw = 1, c = plotting_df["ksn"], label = "knickpoint", cmap = "autumn_r")
         ax1.legend()
 
         plt.colorbar(cb)
