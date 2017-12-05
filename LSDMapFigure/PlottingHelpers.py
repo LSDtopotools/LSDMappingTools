@@ -1110,7 +1110,7 @@ def AppendChiDataMapCSVs(DataDirectory):
 
     return MasterDF
 
-def AppendSABinnedCSVs(DataDirectory):
+def AppendSABinnedCSVs(DataDirectory, fname_prefix):
     """
     This function reads in a series of csvs with the suffix "_SAbinned"
     and appends them together into one function for plotting
@@ -1139,9 +1139,12 @@ def AppendSABinnedCSVs(DataDirectory):
         df['basin_key'] = basin_key
         MasterDF = MasterDF.append(df, ignore_index = True)
 
+    # write to a new csv
+    MasterDF.to_csv(DataDirectory+fname_prefix+csv_suffix)
+    
     return MasterDF
 
-def AppendSASegmentedCSVs(DataDirectory):
+def AppendSASegmentedCSVs(DataDirectory, fname_prefix):
     """
     This function reads in a series of csvs with the suffix "_SAsegmented"
     and appends them together into one function for plotting
@@ -1170,9 +1173,12 @@ def AppendSASegmentedCSVs(DataDirectory):
         df['basin_key'] = basin_key
         MasterDF = MasterDF.append(df, ignore_index = True)
 
+    # write to a new csv
+    MasterDF.to_csv(DataDirectory+fname_prefix+csv_suffix)
+    
     return MasterDF
 
-def AppendSAVerticalCSVs(DataDirectory):
+def AppendSAVerticalCSVs(DataDirectory, fname_prefix):
     """
     This function reads in a series of csvs with the suffix "_SAvertical"
     and appends them together into one function for plotting
@@ -1201,6 +1207,9 @@ def AppendSAVerticalCSVs(DataDirectory):
         df['basin_key'] = basin_key
         MasterDF = MasterDF.append(df, ignore_index = True)
 
+    # write to a new csv
+    MasterDF.to_csv(DataDirectory+fname_prefix+csv_suffix)
+    
     return MasterDF
 
 def AppendBasinPointCSVs(DataDirectory):

@@ -196,6 +196,52 @@ def ReadTerraceData(DataDirectory,FilenamePrefix):
 
     return geo_df
 
+def ReadBaselineData(DataDirectory,fname_prefix):
+    """
+    This function reads in the csv file with the extension "_baseline_channel_info.csv"
+    and returns it as a pandas dataframe. Used for comparing
+    terrace locations to the main channel.
+
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the name of the DEM
+
+    Returns:
+        pandas dataframe with the channel info
+
+    Author: FJC
+    """
+    csv_suffix = '_baseline_channel_info.csv'
+    fname = DataDirectory+fname_prefix+csv_suffix
+
+    df = pd.read_csv(fname)
+
+    return df
+
+def MapBasinKeysToJunctions(DataDirectory,FilenamePrefix):
+    """
+    Function to write a dict of basin keys vs junctions
+
+    Author: FJC
+    """
+    # load the channel data
+    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+    #print BasinChannelData
+
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    basin_keys = ChannelData.basin_key.unique()
+    basin_junctions = HillslopeData.BasinID.unique()
+
+    basin_dict = {}
+
+    for i, key in enumerate(basin_keys):
+        basin_dict[key] = basin_junctions[i]
+
+    print basin_dict
+    return basin_dict
+
 def WriteHillslopeTracesShp(DataDirectory,FilenamePrefix):
     """
     This function writes a shapefile of hillslope traces
@@ -815,6 +861,7 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     """
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+    #print BasinChannelData
 
     # load the hillslopes data
     HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
@@ -847,6 +894,8 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     R_star_std = []
     E_star = []
     E_star_std = []
+    M_chi = []
+    M_chi_std = []
 
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
@@ -863,13 +912,16 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
                 R_star_std.append(SegmentHillslopeData.R_Star.std())
                 E_star.append(SegmentHillslopeData.E_Star.mean())
                 E_star_std.append(SegmentHillslopeData.E_Star.std())
+                M_chi.append(SegmentChannelData.m_chi.mean())
+                M_chi_std.append(SegmentChannelData.m_chi.std())
 
     # set up the figure
-    fig, ax = plt.subplots(nrows = 3, ncols=1, sharex=True)
+    fig, ax = plt.subplots(nrows = 4, ncols=1, sharex=True, figsize=(6,7))
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
     # plot the hillslope length
+    print DistanceFromOutlet
     ax[0].errorbar(DistanceFromOutlet,Lh,yerr=Lh_std,fmt='o', ecolor='0.5',markersize=5,mec='k')
     ax[0].set_ylabel('$L_h$')
 
@@ -881,10 +933,97 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     ax[2].errorbar(DistanceFromOutlet,R_star,yerr=R_star_std,fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
     ax[2].set_ylabel('$R*$')
 
+    #plot the R*
+    ax[3].errorbar(DistanceFromOutlet,M_chi,yerr=M_chi_std,fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+    ax[3].set_ylabel('$M_\chi$')
+
     # set the axes labels
-    ax[2].set_xlabel('Distance from outlet (km)')
+    ax[3].set_xlabel('Distance from outlet (km)')
     plt.tight_layout()
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_hillslopes_distance.png", dpi=300)
-    plt.clf()
+    #plt.clf()
+
+def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
+    """
+    Function to make plots of hillslope data vs basin id.
+    Martin probably has nice versions of this but I need something
+    quick for my poster
+
+    Author: FJC
+    """
+
+    # load the channel data
+    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+    #print BasinChannelData
+
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    basin_dict = MapBasinKeysToJunctions(DataDirectory,FilenamePrefix)
+    basin_keys = basin_dict.keys()
+
+    mean_cht = []
+    cht_std = []
+    mean_Lh = []
+    Lh_std = []
+    mean_Rstar = []
+    R_star_std = []
+    mean_mchi = []
+    mchi_std = []
+
+    for key, jn in basin_dict.iteritems():
+        BasinHillslopeData = HillslopeData[HillslopeData.BasinID == jn]
+        BasinChannelData = ChannelData[ChannelData.basin_key == key]
+
+        # now get all the hillslope data for this basin
+        mean_cht.append(BasinHillslopeData.Cht.mean())
+        cht_std.append(BasinHillslopeData.Cht.std())
+        mean_Lh.append(BasinHillslopeData.Lh.mean())
+        Lh_std.append(BasinHillslopeData.Lh.std())
+        mean_Rstar.append(BasinHillslopeData.R_Star.mean())
+        R_star_std.append(BasinHillslopeData.R_Star.std())
+
+        # get the channel data
+        mean_mchi.append(BasinChannelData.m_chi.mean())
+        mchi_std.append(BasinChannelData.m_chi.std())
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows = 5, ncols=1, sharex=True, figsize=(6,10))
+    # Remove horizontal space between axes
+    fig.subplots_adjust(hspace=0)
+
+    # plot the hillslope length
+    ax[0].errorbar(basin_keys,mean_Lh,yerr=Lh_std,fmt='o', ecolor='0.5',markersize=5,mec='k')
+    ax[0].set_ylabel('$L_h$')
+
+    #plot the cht
+    ax[1].errorbar(basin_keys,mean_cht,yerr=cht_std,fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
+    ax[1].set_ylabel('$C_{HT}$')
+
+    #plot the R*
+    ax[2].errorbar(basin_keys,mean_Rstar,yerr=R_star_std,fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
+    ax[2].set_ylabel('$R*$')
+
+    #plot the Mchi
+    ax[3].errorbar(basin_keys,mean_mchi,yerr=mchi_std,fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+    ax[3].set_ylabel('$M_\chi$')
+
+    # read the uplift data in
+    # read in the csv
+    uplift_df = pd.read_csv(DataDirectory+'m_over_n.csv')
+
+    # get the data
+    uplift_rate = uplift_df['Uplift_rate']
+    ax[4].plot(basin_keys, uplift_rate, c='k', ls='--')
+    ax[4].set_ylabel('Uplift rate (mm/yr)')
+
+    # set the axes labels
+    ax[4].set_xlabel('Basin ID')
+    plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1))
+    plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_mean_hillslope_data.png", dpi=300)
+    #plt.clf()

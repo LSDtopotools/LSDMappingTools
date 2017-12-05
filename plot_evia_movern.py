@@ -84,7 +84,7 @@ def main(argv):
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format
-    size_format = "geomorphology"
+    size_format = ""
     if size_format == "geomorphology":
         fig_width_inches = 6.25
     elif size_format == "big":
@@ -114,14 +114,14 @@ def main(argv):
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
 
     # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='right')
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='top')
 
     # add the basins drape
     BasinsDict = dict(zip(basin_keys,basin_keys))
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, label_basins=False,
                       use_keys_not_junctions = True, show_colourbar = True, 
-                      value_dict = BasinsDict, discrete_cmap=False, n_colours=len(basin_keys),
-                      colorbarlabel = "Basin ID", 
+                      value_dict = BasinsDict, discrete_cmap=True, n_colours=len(basin_keys),
+                      colorbarlabel = "Basin ID", cbar_type=int,
                       colourmap = cmap, edgecolour='none', adjust_text = True, parallel=parallel)
 
     # add the faults

@@ -64,25 +64,14 @@ def main(argv):
     parser.add_argument("-Mchi", "--plot_mchi", type=bool, default=False, help="If this is true, I'll make some plots of the hillslope-channel data against Mchi")
     parser.add_argument("-CHT", "--plot_CHT", type=bool, default=False, help="If this is true, I'll make some plots of hilltop curvature against data from the channel segments.")
     parser.add_argument("-segments", "--plot_segments", type=bool, default=False, help="If this is true, I'll make some long profile plots of the channel segments.")
-    parser.add_argument("-ER", "--plot_ER", type=bool, default=False, help="If this is true, I'll make E*R* plots of the basin where the points are coloured by the distance upstream")
+    parser.add_argument("-in_basin", "--plot_data_within_basin", type=bool, default=False, help="If this is true, I'll make plots of the hillslope data vs distance upstream for each basin")
+    parser.add_argument("-means", "--plot_mean_basin_data", type=bool, default=False, help="If this is true I'll make plots of the mean hillslope data vs basin ID")
 
     args = parser.parse_args()
 
     if not args.fname_prefix:
         print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
         sys.exit()
-
-    # check the basins
-    print("You told me that the basin keys are: ")
-    print(args.basin_keys)
-
-    if len(args.basin_keys) == 0:
-        print("No basins found, I will plot basin 0")
-        these_basin_keys = [0]
-    else:
-        these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
-        print("The basins I will plot are:")
-        print(these_basin_keys)
 
     # get the base directory
     if args.base_directory:
@@ -93,6 +82,20 @@ def main(argv):
             this_dir = this_dir+"/"
     else:
         this_dir = os.getcwd()
+
+    # check the basins
+    print("You told me that the basin keys are: ")
+    print(args.basin_keys)
+
+    if len(args.basin_keys) == 0:
+        print("No basins found, I will plot all the basins")
+        df = HS.ReadChannelData(this_dir, args.fname_prefix)
+        these_basin_keys = list(df['basin_key'].unique())
+        print (these_basin_keys)
+    else:
+        these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
+        print("The basins I will plot are:")
+        print(these_basin_keys)
 
 
     # separate the data into basin csvs
@@ -115,12 +118,15 @@ def main(argv):
         for basin_key in these_basin_keys:
             HS.PlotLongProfileSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotChiElevationSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
-    if args.plot_ER:
+    if args.plot_data_within_basin:
         for basin_key in these_basin_keys:
+            print "This basin key is: ", basin_key
             # HS.PlotEStarRStar(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             # HS.PlotRStarDistance(this_dir, args.fname_prefix, PlotDirectory,basin_key)
             # HS.PlotLHDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+    if args.plot_mean_basin_data:
+        HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
 
 
 #=============================================================================
