@@ -38,7 +38,8 @@ class KP_dev(object):
     """
 
 
-    def __init__(self, fpath,fprefix, binning = "source_key", basins = [], sources = [], bd_KDE = 5, first_min_coeff = 0.001, load_last = False, save_last = True, remove_nodata = True):
+    def __init__(self, fpath,fprefix, binning = "source_key", basins = [], sources = [], bd_KDE = 5, first_min_coeff = 0.001, load_last = False, save_last = True, remove_nodata = True,
+        remove_river_threshold_node = 0):
         """
             Initialization method, it creates a Knickpoint object and preprocess the stat before plotting.
 
@@ -59,7 +60,9 @@ class KP_dev(object):
 
 
         # Loading the file
+
         self.df = pd.read_csv(self.fpath+self.fprefix+"_KsnKn.csv")
+        
         self.CNMC = pd.read_csv(self.fpath+self.fprefix+"_MChiSegmented_Ks.csv")
         if(remove_nodata):
             self.CNMC = self.CNMC[self.CNMC["m_chi"]>= 0]
@@ -70,6 +73,10 @@ class KP_dev(object):
 
         if(len(basins)>0 or len(sources)>0):
             self.sort_my_df()
+
+        if (remove_river_threshold_node>0):
+            self.remove_small_river(remove_river_threshold_node)
+
 
         # sort the basins and/or source_keys
 
@@ -84,7 +91,7 @@ class KP_dev(object):
 
 
             # Derivative per river
-
+            print("derivative processing")
             self.derivative_per_river()
             
             self.df = self.df.replace([np.inf, -np.inf], np.nan)
@@ -92,15 +99,45 @@ class KP_dev(object):
 
 
             # Get the KDE
+            print("KDE calculation")
             self.KDE_from_scipy(bd_KDE = self.bd_KDE)
 
             # Get the outliers
+            print("outliers selection")
             self.Select_the_outliers(first_min_coeff = self.first_min_coeff)
+
+            # Now merging the knickpoints from composite break in slope
+            print("merging the composite knickpoints") 
+            self.merge_composite_knickpoints()
+
+            print("\n#\n##\n###")
             print("I have done my statistics and I have selected the main variation in Mx/k_sn")
 
         print("I have ingested and preprocessed your dataset, I am ready to plot")
         if(save_last):
             self.df.to_pickle(self.fpath+self.fprefix+"_LASTDATASET.boris")
+            self.final_out.to_pickle(self.fpath+self.fprefix+"_LASTDATASET_OUT.boris")
+
+
+    def remove_small_river(self, threshold):
+        """
+            Preprocessing alluviating function that remove the rivers under a certain umber of nodes
+        """
+        out_df = pd.DataFrame(data = None, columns = self.CNMC.columns)
+        out_df_2 = pd.DataFrame(data = None, columns = self.df.columns)
+        for source in self.CNMC["source_key"].unique():
+            temp_df = self.CNMC[self.CNMC["source_key"] == source]
+            temp_df2 = self.df[self.df["source_key"] == source]
+            if(temp_df.shape[0]>threshold):
+                out_df = pd.concat([out_df,temp_df])
+                out_df_2 = pd.concat([out_df_2,temp_df2])
+
+        # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
+        self.CNMC = out_df.copy()
+        self.CNMC = self.CNMC.reset_index(drop = True)
+        self.df = out_df_2.copy()
+        self.df = self.df.reset_index(drop = True)
+
 
 
 
@@ -120,13 +157,15 @@ class KP_dev(object):
 
             #creating the date for the first row           
             data = []
-            singularity = temp_CNDF[temp_CNDF["elevation"] == temp_CNDF["elevation"].min()]
-            data = pd.DataFrame.from_dict({"latitude" : singularity["latitude"].values, "longitude" : singularity["longitude"].values, "elevation": singularity["elevation"].values,"flow_distance": singularity["flow_distance"].values, "chi": singularity["chi"].values,"drainage_area" : singularity["drainage_area"].values,"ksn": (singularity["m_chi"].values - temp_inter["m_chi"].values),"rksn":  (singularity["m_chi"].values / temp_inter["m_chi"].values),"rad" : -9999, "cumul_ksn" : -9999,  "cumul_rksn" : -9999,"cumul_rad" : -9999, "source_key" : source, "basin_key" : singularity["basin_key"].values})
+            singularity = temp_CNDF.sort_values("elevation")
+            singularity = singularity.iloc[0]
+            data = pd.DataFrame.from_dict({"X":singularity["X"], "Y": singularity["Y"], "latitude" : singularity["latitude"], "longitude" : singularity["longitude"], "elevation": singularity["elevation"],"flow_distance": singularity["flow_distance"], "chi": temp_inter["chi"],"drainage_area" : singularity["drainage_area"],"ksn": (singularity["m_chi"] - temp_inter["m_chi"]),"rksn":  (singularity["m_chi"] / temp_inter["m_chi"]),"rad" : -9999, "cumul_ksn" : -9999,  "cumul_rksn" : -9999,"cumul_rad" : -9999, "source_key" : source, "basin_key" : singularity["basin_key"]})
             # implementing the dataset
+
             temp_df = pd.concat([data, temp_df], ignore_index = True)
 
             #preparing the save
-            out_df = pd.concat([temp_df,out_df], ignore_index = True)
+            out_df = pd.concat([out_df,temp_df], ignore_index = True)
 
         # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
         self.df = out_df.copy()
@@ -240,8 +279,9 @@ class KP_dev(object):
         out_df = pd.DataFrame(data = None, columns = self.df.columns)
         out_df["out_KDE_ksn"] = pd.Series(data = None, index = self.df.index)
         out_df["out_KDE_dksn"] = pd.Series(data = None, index = self.df.index)
-
+        ignored_sources = []
         for source in self.df[self.binning].unique():
+            
 
             if not np.isnan(source):
                 try:
@@ -261,11 +301,76 @@ class KP_dev(object):
                     out_df = pd.concat([out_df, this_df])
 
                 except ValueError:
-                    print("I am ignoring source " +str(source) +", the river is probably too small")
+                    ignored_sources.append(source)
+
+        
+        print("I ignored " + str(len(ignored_sources))+ " sources, usually because they are knickpointless.")
 
         # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
         self.df = out_df.copy()
         self.df = self.df.reset_index(drop = True)  
+
+
+    def merge_composite_knickpoints(self):
+        """
+            alleviating function for initialization: merge the composite knickpoints that are detected in between two fuzzy segment:
+            
+            |oooo
+            |
+            |    ooooo
+        ksn |         o
+            |           o
+            |           o
+            |             ooooo
+            |___________________
+                    chi
+
+                       ^
+
+
+
+        """
+
+        # looping trhough the sources
+        out_df = pd.DataFrame(data = None, columns = self.df.columns)
+        for source in self.df["source_key"].unique():
+
+            # Sorting some stuffs
+            temp_df = self.df[self.df["source_key"] == source]
+            temp_df = temp_df[temp_df["out_KDE_ksn"]>0]
+            temp_df = temp_df.sort_values("chi")
+            if(temp_df.shape[0] > 0):
+                # Delta chi for each knickpoints. If there is a serie of really close one, I merge them
+                temp_df["dchi_kp_out"] = pd.Series(data = temp_df["chi"].diff(), index = temp_df.index)
+                temp_df["group_id"] = pd.Series(data = np.zeros(temp_df.shape[0]), index = temp_df.index)
+                temp_df["dchi_kp_out"].iloc[0] = 0
+                incrementatorus = 1
+                last_tested = True
+                for index,row in temp_df.iterrows():
+                    if row["dchi_kp_out"] <= 0.1:
+                        temp_df["group_id"][index] = incrementatorus
+                        last_tested = True
+                    elif(last_tested == True):
+                        last_tested = False
+                        incrementatorus += 1
+
+                for un in temp_df["group_id"].unique() :
+                    if un != 0:
+                        dalaf = temp_df[temp_df["group_id"] == un]
+                        olaf = pd.DataFrame(data = [dalaf.mean().values], columns = dalaf.columns.values)
+                        olaf["ksn"].iloc[0] = dalaf["ksn"].sum()
+                        out_df = pd.concat([out_df,olaf])
+
+                
+                out_df = pd.concat([out_df,temp_df[temp_df["group_id"]==0]])
+
+        self.final_out = out_df.copy()
+        self.final_out = self.final_out.reset_index(drop = True)
+
+
+
+
+
 
 
 
@@ -349,8 +454,10 @@ class KP_dev(object):
 
                 ax2.scatter(this_MCdf["chi"], this_MCdf["m_chi"], s = 1, lw = 1, c = this_MCdf["m_chi"], cmap = "RdBu_r")
                 ou = this_df[this_df[out_method]==1]
-                ax1.scatter(ou["chi"], ou["ksn"], s = 40, c = ou["source_key"], lw = 1,marker = "+", label = "outliers", cmap = "jet")
+                ax1.scatter(ou["chi"], ou["ksn"], s = 40, c = ou["source_key"], lw = 1,marker = "+", label = "outliers before merging", cmap = "jet")
                 ax1.vlines(ou["chi"], ou["ksn"].min() , ou["ksn"].max(), linestyles  = "dashdot", lw = 0.5 )
+                ouf = self.final_out[self.final_out[group] == source]
+                ax1.scatter(ouf["chi"], ouf["ksn"], marker = "x", s = 50, lw = 1,c = "g", label = "outliers after merging" )
 
 
                 ax2.set_xlabel(r'$\chi$')
@@ -400,7 +507,7 @@ class KP_dev(object):
 
 
                 ax2.scatter(this_MCdf["chi"], this_MCdf["elevation"], s = 1, lw = 0, c = this_MCdf["source_key"], cmap = "RdBu_r")
-                ou = this_df[this_df[out_method]==1]
+                ou = self.final_out[self.final_out[group] == source]
                 cb = ax1.scatter(ou["chi"], ou["elevation"], s = 50, c = ou["ksn"], lw = 0,marker = "o", label = "Knickpoint", cmap = "RdBu_r")
 
                 ax2.set_xlabel(r'$\chi$')
@@ -423,7 +530,7 @@ class KP_dev(object):
                 plt.clf()
 
 
-    def map_of_knickpoint(self, color_extent_Mx = [], method = "deriv_ksn", cut_off = 0, utm_coord = False):
+    def map_of_knickpoint(self, color_extent_Mx = [], method = "deriv_ksn", cut_off = 0, utm_coord = False, color_extent_kp = []):
         """
             This function plot a map of the knickpoints in a latitude/longitude way
 
@@ -463,13 +570,20 @@ class KP_dev(object):
         scale = self.CNMC["drainage_area"] / self.CNMC["drainage_area"].max()
         ax1.scatter(self.CNMC[x_col], self.CNMC[y_col],cmap = "RdBu_r", s = scale, c = self.CNMC["m_chi"], vmin = cmin, vmax = cmax, label = r"$M_{\chi}$" )
         
-        plotting_df = self.df[self.df[method] == 1]
+        plotting_df = self.final_out
         
         if(cut_off >0):
             plotting_df = plotting_df[plotting_df["ksn"].abs()>=cut_off]
         
+        if(len(color_extent_kp)>0):
+            kpmin = color_extent_kp[0]
+            kpmax = color_extent_kp[1]
+        else:
+            kpmin = plotting_df["ksn"].min()
+            kpmax = plotting_df["ksn"].max()
 
-        cb = ax1.scatter(plotting_df[x_col], plotting_df[y_col], marker = "o", s = 26, lw = 1, c = plotting_df["ksn"], label = "knickpoint", cmap = "autumn_r")
+
+        cb = ax1.scatter(plotting_df[x_col], plotting_df[y_col], marker = "o", s = 26, lw = 1, c = plotting_df["ksn"], label = "knickpoint", cmap = "autumn_r", vmin = kpmin, vmax = kpmax)
         ax1.legend()
 
         plt.colorbar(cb)
@@ -518,6 +632,7 @@ class KP_dev(object):
 
 ##############################################################################################################################################################
 ######################################## This is the class I will implement to provide nice plots callable from the command-line #############################
+########################################   Deprecated, I'll rewrite it when the method will be finally confirmed and finalized   #############################
 ##############################################################################################################################################################
 
 class KnickInfo(object):

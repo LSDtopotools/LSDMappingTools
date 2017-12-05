@@ -131,7 +131,7 @@ def main(argv):
 
 
 
-    KI = KP.KnickInfo(args.base_directory,args.fname_prefix, method = args.method,binning = args.binning, outlier_detection = args.outlier, basin_list = these_basin_keys, weighting = True)
+    #KI = KP.KnickInfo(args.base_directory,args.fname_prefix, method = args.method,binning = args.binning, outlier_detection = args.outlier, basin_list = these_basin_keys, weighting = True)
 
 ##################### Plotting Facilities
     if(args.raster):
