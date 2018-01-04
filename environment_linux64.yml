@@ -111,5 +111,5 @@ dependencies:
 - pip:
   - backports-abc==0.5
   - backports.ssl-match-hostname==3.5.0.1
-prefix: /home/fionaclubb/miniconda2/envs/LSDTT_linux64
+prefix: ~/miniconda2/envs/LSDTT_linux64
 
