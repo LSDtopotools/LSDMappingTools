@@ -4,7 +4,6 @@ channels:
 - defaults
 dependencies:
 - affine=2.1.0=py_1
-- attrs=17.2.0=py27_0
 - backports_abc=0.5=py27_0
 - basemap=1.1.0=py27_2
 - blas=1.1=openblas
