@@ -30,6 +30,7 @@ from matplotlib import rcParams, ticker
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from shapely.ops import cascaded_union
+import matplotlib.colors as colors
 from descartes import PolygonPatch
 
 # plotting tools for using LSDMapFigure
@@ -412,26 +413,31 @@ def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     # how many segments are we dealing with?
     Segments = BasinChannelData.segment_number.unique()
 
+    # separate into main stem and trib data
+    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
+    MainStemSegments = MainStemChannelData.segment_number.unique()
+
     # setup the figure
-    Fig = CreateFigure()
+    Fig = CreateFigure(AspectRatio=4./3.)
 
     #choose colormap
-    ColourMap = cm.viridis
+    ColourMap = cm.coolwarm
 
     # Get the data columns for plotting
     for i in range(0, len(Segments)):
-        #get data arrays
-        Chi = ChannelData.chi[ChannelData.segment_number == Segments[i]]
-        Elevation = ChannelData.elevation[ChannelData.segment_number == Segments[i]]
-        SegmentedElevation = ChannelData.segmented_elevation[ChannelData.segment_number == Segments[i]]
-        MChi = ChannelData.m_chi[ChannelData.segment_number == Segments[i]].unique()[0]
+        if Segments[i] in MainStemSegments:
+            #get data arrays
+            Chi = ChannelData.chi[ChannelData.segment_number == Segments[i]]
+            Elevation = ChannelData.elevation[ChannelData.segment_number == Segments[i]]
+            SegmentedElevation = ChannelData.segmented_elevation[ChannelData.segment_number == Segments[i]]
+            MChi = ChannelData.m_chi[ChannelData.segment_number == Segments[i]].unique()[0]
 
-        #normalise chi by outlet chi
-        Chi = Chi-MinimumChi
-        #plot, colouring segments
-        Colour = MChi/MaximumMChi
-        plt.plot(Chi,Elevation,'k--',dashes=(2,2), lw=0.5,zorder=10)
-        plt.plot(Chi, SegmentedElevation, '-', lw=2, c=ColourMap(Colour),zorder=9)
+            #normalise chi by outlet chi
+            Chi = Chi-MinimumChi
+            #plot, colouring segments
+            Colour = MChi/MaximumMChi
+            plt.plot(Chi,Elevation,'k--',dashes=(2,2), lw=0.5,zorder=10)
+            plt.plot(Chi, SegmentedElevation, '-', lw=2, c=ColourMap(Colour),zorder=9)
 
     # Finalise the figure
     plt.xlabel(r'$\chi$ (m)')
@@ -440,10 +446,11 @@ def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     plt.tight_layout()
     #add colourbar
     CAx = Fig.add_axes([0.15,0.8,0.4,0.05])
-    m = cm.ScalarMappable(cmap=ColourMap)
+    m = cm.ScalarMappable(cmap=ColourMap,norm=colors.Normalize(vmin=0, vmax=MaximumMChi))
     m.set_array(ChannelData.m_chi)
     plt.colorbar(m, cax=CAx,orientation='horizontal')
-    plt.xlabel('$M_{\chi}$ m$^{0.64}$')
+    CAx.tick_params(labelsize=6)
+    plt.xlabel('$k_{sn}$')
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevMChi.png", dpi=300)
 
@@ -935,7 +942,7 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
 
     #plot the R*
     ax[3].errorbar(DistanceFromOutlet,M_chi,yerr=M_chi_std,fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
-    ax[3].set_ylabel('$M_\chi$')
+    ax[3].set_ylabel('$k_{sn}$')
 
     # set the axes labels
     ax[3].set_xlabel('Distance from outlet (km)')
@@ -1008,7 +1015,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     #plot the Mchi
     ax[3].errorbar(basin_keys,mean_mchi,yerr=mchi_std,fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
-    ax[3].set_ylabel('$M_\chi$')
+    ax[3].set_ylabel('$k_{sn}$')
 
     # read the uplift data in
     # read in the csv
@@ -1026,4 +1033,63 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix +"_mean_hillslope_data.png", dpi=300)
-    #plt.clf()
+    plt.clf()
+
+    output_list = [('basin_keys', basin_keys),
+                   ('Lh_mean', mean_Lh),
+                   ('Lh_std', Lh_std),
+                   ('Cht_mean', mean_cht),
+                   ('Cht_std', cht_std),
+                   ('R_star_mean', mean_Rstar),
+                   ('R_star_std', R_star_std),
+                   ('M_chi_mean', mean_mchi),
+                   ('M_chi_std', mchi_std)]
+
+    # write output to csv
+    OutDF = pd.DataFrame.from_items(output_list)
+    csv_outname = PlotDirectory+FilenamePrefix+'_hillslope_means.csv'
+    OutDF.to_csv(csv_outname,index=False)
+
+def PlotHillslopeDataWithBasinsFromCSV(DataDirectory, FilenamePrefix):
+    """
+    Function to make same plot as above but read data from csv
+    with the extension '_hillslope_means.csv'
+
+    Author: FJC
+    Will clean this up after AGU
+    """
+    input_csv = DataDirectory+FilenamePrefix+'_hillslope_means.csv'
+    df = pd.read_csv(input_csv)
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows = 5, ncols=1, sharex=True, figsize=(6,10))
+    # Remove horizontal space between axes
+    fig.subplots_adjust(hspace=0)
+
+    # plot the hillslope length
+    ax[0].errorbar(df['basin_keys'],df['Lh_mean'],yerr=df['Lh_std'],fmt='o', ecolor='0.5',markersize=5,mec='k')
+    ax[0].set_ylabel('$L_h$')
+
+    #plot the cht
+    ax[1].errorbar(df['basin_keys'],df['Cht_mean'],yerr=df['Cht_std'],fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
+    ax[1].set_ylabel('$C_{HT}$')
+
+    #plot the R*
+    ax[2].errorbar(df['basin_keys'],df['R_star_mean'],yerr=df['R_star_std'],fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
+    ax[2].set_ylabel('$R*$')
+
+    #plot the Mchi
+    ax[3].errorbar(df['basin_keys'],df['M_chi_mean'],yerr=df['M_chi_std'],fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+    ax[3].set_ylabel('$k_{sn}$')
+
+    ax[4].plot(df['basin_keys'], df['uplift_rate'], c='k', ls='--')
+    ax[4].set_ylabel('Uplift rate (mm/yr)')
+
+    # set the axes labels
+    ax[4].set_xlabel('Basin ID')
+    plt.xticks(np.arange(min(df['basin_keys']), max(df['basin_keys'])+1, 1))
+    plt.tight_layout()
+
+    #save output
+    plt.savefig(DataDirectory+FilenamePrefix +"_mean_hillslope_data.png", dpi=300)
+    plt.clf()

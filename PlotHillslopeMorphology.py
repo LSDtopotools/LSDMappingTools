@@ -99,8 +99,8 @@ def main(argv):
 
 
     # separate the data into basin csvs
-    HS.SaveHillslopeDataByBasin(this_dir, args.fname_prefix)
-    HS.SaveChannelDataByBasin(this_dir, args.fname_prefix)
+    #HS.SaveHillslopeDataByBasin(this_dir, args.fname_prefix)
+    #HS.SaveChannelDataByBasin(this_dir, args.fname_prefix)
 
     # make the directory for saving the plots
     PlotDirectory = this_dir+'hillslope_plots/'
@@ -126,7 +126,8 @@ def main(argv):
             # HS.PlotLHDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
     if args.plot_mean_basin_data:
-        HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
+        #HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
+        HS.PlotHillslopeDataWithBasinsFromCSV(this_dir, args.fname_prefix)
 
 
 #=============================================================================
