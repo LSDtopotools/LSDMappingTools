@@ -243,7 +243,7 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = "None")
     MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = cmap, alpha = 0.6)
     MF.add_point_data(thisPointData,column_for_plotting = "basin_key",
-                       scale_points = True,column_for_scaling = "drainage area",
+                       scale_points = True,column_for_scaling = "drainage_area",
                        scaled_data_in_log = True,
                        max_point_size = 5, min_point_size = 1)
 
@@ -324,7 +324,7 @@ def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, 
     MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.1, discrete_cmap=False, n_colours=len(basin_keys), show_colourbar = False, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys, cbar_type = int)
 
     MF.add_point_data(thisPointData,column_for_plotting = "basin_key",
-                       scale_points = True,column_for_scaling = "drainage area",
+                       scale_points = True,column_for_scaling = "drainage_area",
                        this_colourmap = cmap, scaled_data_in_log = True,
                        max_point_size = 3, min_point_size = 1)
 
