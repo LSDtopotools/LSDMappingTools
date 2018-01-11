@@ -17,12 +17,13 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import matplotlib.ticker as ticker
 import pandas as pd
+import math
 
 #=============================================================================
 # ANALYSIS FUNCTIONS
 #=============================================================================
 
-def ClockwiseAngleAndDistance(point, origin):
+def ClockwiseAngleAndDistance(point):
     """
     Function to calculate clockwise angle and distance
     between two points.
@@ -62,3 +63,24 @@ def SortBasinPerimeter(PerimeterDF, OutletNode):
 
     Author: FJC
     """
+    df
+    #get x and y coords of the perimeter
+    perimeter_x = PerimeterDF.x
+    perimeter_y = PerimeterDF.y
+
+    df.assign(zip(perimeter_x, perimeter_y))
+    print df
+
+    OutletRow = df.loc[df['node'] == OutletNode]
+    origin = [OutletRow.x, OutletRow.y]
+
+    # get the coordinates of the outlet junction
+    refvec = [0, 1]
+    df.assign()
+    sorted_points = sorted(points, key=ClockwiseAngleAndDistance)
+
+    sorted_points = zip(*sorted_points)
+    sorted_x = sorted_points[0]
+    sorted_y = sorted_points[1]
+
+    # now sort the dataframe based on this
