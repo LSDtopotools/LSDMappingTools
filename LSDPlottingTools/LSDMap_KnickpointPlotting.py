@@ -29,6 +29,146 @@ import utm
 pd.options.mode.chained_assignment = None
 
 
+
+class KP_dev_v2(object):
+    """
+        This class is a development version of the knickpoint algorithm. 
+        Its aim is to deal with knickpoint picking stuffs via python code, 
+        in a development aim as I am significantly changing methods relatively often.
+        B.G.
+    """
+
+
+    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0):
+
+        print("Let me first preprocess and check your files")
+
+        # Loading the attributes
+        self.fpath = fpath # the path of your file : /home/your/path/
+        self.fprefix = fprefix # the common prefix of all your files
+
+        # Loading the files
+
+        print("Loading the knickpoint-related files")
+        
+        try:
+            self.df_river = Helper.ReadMChiSegCSV(self.fpath, self.fprefix, type = "knickpoint")
+            self.df_kp = Helper.ReadKnickpointCSV(self.fpath, self.fprefix)
+            self.df_SK = Helper.readSKKPstats(self.fpath, self.fprefix)
+        except IOError:
+            print("I didnae find your knickpoint related files make sure that:")
+            print("- Your path is good and finishing by '/' e.g. /home/name/kazakhstan/ ")
+            quit()
+
+
+        print("Managing the data:")
+        if(basin_key == []):
+            print("All the basins are selected:")
+            print(self.df_SK["basin_key"])
+        else:
+            print("You selected the following basins:")
+            print(basin_key)
+            self.df_river = self.df_river[self.df_river["basin_key"].isin(basin_key)]
+            self.df_kp = self.df_kp[self.df_kp["basin_key"].isin(basin_key)]
+            self.df_SK = self.df_SK[self.df_SK["basin_key"].isin(basin_key)]
+
+        if(source_key == [] and min_length == 0):
+            print("All the basins are selected:")
+            print(self.df_SK["source_key"])
+        elif(min_length > 0):
+            print("Let me remove the river smaller than " +str(min_length))
+            self.df_SK = self.df_SK[self.df_SK["length"]>min_length]
+            source_key = self.df_SK["source_key"].unique()
+            self.df_river = self.df_river[self.df_river["source_key"].isin(source_key)]
+            self.df_kp = self.df_kp[self.df_kp["source_key"].isin(source_key)]
+            self.df_SK = self.df_SK[self.df_SK["source_key"].isin(source_key)]
+        else:
+            print("You selected the following Sources: ")
+            print(source_key)
+            self.df_river = self.df_river[self.df_river["source_key"].isin(source_key)]
+            self.df_kp = self.df_kp[self.df_kp["source_key"].isin(source_key)]
+            self.df_SK = self.df_SK[self.df_SK["source_key"].isin(source_key)]
+
+        # TODO Adding some sorting functions based on the source key
+
+        print("Done now")
+
+
+
+    def print_ksn_filters(self):
+        """
+            This function is used to print one ksn profile per river to check the effect of the different filters on the dataset
+            BG - 12/01/2018
+        """
+        plt.clf()
+        print("I will now print ksn(chi) with the different filter")
+        svdir = self.fpath+'river_plots/'
+        if not os.path.isdir(svdir):
+            os.makedirs(svdir)
+
+        for SK in self.df_river["source_key"].unique():
+            print("printing river: " +str(SK))
+
+            # Selecting the river
+            df = self.df_river[self.df_river["source_key"] == SK]
+
+            fig = plt.figure(1, facecolor='white',figsize=(9,5))
+
+            gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
+            ax1 = fig.add_subplot(gs[0:100,0:100])
+
+            ax1.scatter(df["chi"], df["m_chi"], c = "r", s = 1, marker = "o", label = "ksn")
+            ax1.scatter(df["chi"], df["lumped_ksn"], c = "g", s = 1, marker = "s", label = "lumped ksn")
+            ax1.scatter(df["chi"], df["TVD_ksn"], c = "k", s = 1, marker = "+", label = "TVD ksn")
+
+            ax1.legend()
+
+            plt.savefig(svdir + self.fprefix + "_ksn_SK_" +str(SK)+".png", dpi = 300)
+            plt.clf()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############################## Old versions to keep ################################
+
+
+
+
+# Dev version obsolete now
 class KP_dev(object):
     """
         This class is a development version of the knickpoint algorithm. 
@@ -39,7 +179,7 @@ class KP_dev(object):
 
 
     def __init__(self, fpath,fprefix, binning = "source_key", basins = [], sources = [], bd_KDE = 5, first_min_coeff = 0.001, load_last = False, save_last = True, remove_nodata = True,
-        remove_river_threshold_node = 0):
+        remove_river_threshold_node = 0, min_chi_dist_for_kp = 0.1, max_coeff = 1):
         """
             Initialization method, it creates a Knickpoint object and preprocess the stat before plotting.
 
@@ -57,6 +197,8 @@ class KP_dev(object):
         self.dict_of_KDE_ksn = {}
         self.dict_of_KDE_dksn = {}
         self.first_min_coeff = first_min_coeff
+        self.min_chi_dist_for_kp = min_chi_dist_for_kp
+        self.max_coeff = max_coeff
 
 
         # Loading the file
@@ -104,12 +246,12 @@ class KP_dev(object):
 
             # Get the outliers
             print("outliers selection")
-            self.Select_the_outliers(first_min_coeff = self.first_min_coeff)
+            self.Select_the_outliers(first_min_coeff = self.first_min_coeff, max_coeff = self.max_coeff)
 
             # Now merging the knickpoints from composite break in slope
             print("merging the composite knickpoints") 
-            self.merge_composite_knickpoints()
-
+            self.merge_composite_knickpoints(chi_th = self.min_chi_dist_for_kp)
+            #self.final_out = self.df[self.df["out_KDE_ksn"] >0]
             print("\n#\n##\n###")
             print("I have done my statistics and I have selected the main variation in Mx/k_sn")
 
@@ -151,21 +293,31 @@ class KP_dev(object):
             # getting the right dfs
             temp_df = self.df[self.df["source_key"] == source]
             temp_CNDF = self.CNMC[self.CNMC["source_key"] ==  source]
-            # make sure that it is in the right order
-            temp_inter = self.links[self.links["source_key"] == source]
-            temp_df = temp_df.sort_values("chi")
+            if(temp_df.shape[0]>0 and temp_CNDF.shape[0]>0):
+                # make sure that it is in the right order
+                temp_inter = self.links[self.links["source_key"] == source]
+                temp_df = temp_df.sort_values("chi")
 
-            #creating the date for the first row           
-            data = []
-            singularity = temp_CNDF.sort_values("elevation")
-            singularity = singularity.iloc[0]
-            data = pd.DataFrame.from_dict({"X":singularity["X"], "Y": singularity["Y"], "latitude" : singularity["latitude"], "longitude" : singularity["longitude"], "elevation": singularity["elevation"],"flow_distance": singularity["flow_distance"], "chi": temp_inter["chi"],"drainage_area" : singularity["drainage_area"],"ksn": (singularity["m_chi"] - temp_inter["m_chi"]),"rksn":  (singularity["m_chi"] / temp_inter["m_chi"]),"rad" : -9999, "cumul_ksn" : -9999,  "cumul_rksn" : -9999,"cumul_rad" : -9999, "source_key" : source, "basin_key" : singularity["basin_key"]})
-            # implementing the dataset
+                #creating the date for the first row           
+                data = []
+                singularity = temp_CNDF.sort_values("elevation")
+                singularity = singularity.iloc[0]
+                data = pd.DataFrame.from_dict({"X":singularity["X"], "Y": singularity["Y"], "latitude" : singularity["latitude"], "longitude" : singularity["longitude"], "elevation": singularity["elevation"],"flow_distance": singularity["flow_distance"], "chi": temp_inter["chi"],"drainage_area" : singularity["drainage_area"],"ksn": (singularity["m_chi"] - temp_inter["m_chi"]),"rksn":  (singularity["m_chi"] / temp_inter["m_chi"]),"rad" : -9999, "cumul_ksn" : -9999,  "cumul_rksn" : -9999,"cumul_rad" : -9999, "source_key" : source, "basin_key" : singularity["basin_key"]})
+                # implementing the dataset
+                # print(temp_df["chi"].iloc[0])
+                # print("###############################################")
+                # print(temp_df["chi"].iloc[1])
+                # print("###############################################")
+                # print("###############################################")
+                temp_df = pd.concat([data, temp_df], ignore_index = True)
+                temp_df = temp_df.sort_values("chi")
+                # print(temp_df["chi"].iloc[0])
+                # print("###############################################")
+                # print(temp_df["chi"].iloc[1])
+                # quit()
 
-            temp_df = pd.concat([data, temp_df], ignore_index = True)
-
-            #preparing the save
-            out_df = pd.concat([out_df,temp_df], ignore_index = True)
+                #preparing the save
+                out_df = pd.concat([out_df,temp_df], ignore_index = True)
 
         # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
         self.df = out_df.copy()
@@ -214,6 +366,8 @@ class KP_dev(object):
             temp_df = self.df[self.df["source_key"] == source]
             # derivative
             t = (temp_df["ksn"]/temp_df["chi"].diff())
+            
+
             t.iloc[0] = 0
             temp_df["deriv_ksn"] = pd.Series(data = t.abs(), index =temp_df.index)
 
@@ -222,7 +376,6 @@ class KP_dev(object):
             temp_df["deriv_delta_ksn"] = pd.Series(data = t.abs(), index =temp_df.index)
             # The first value is NaN, resetting to 0, it won't have any effect on the result and most of the plotting routines panic when NaN values are involved
             out_df = pd.concat([out_df,temp_df])
-
 
 
         # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
@@ -270,7 +423,7 @@ class KP_dev(object):
         self.df = out_df.copy()
         self.df = self.df.reset_index(drop = True)
 
-    def Select_the_outliers(self, first_min_coeff = 0.01):
+    def Select_the_outliers(self, first_min_coeff = 0.01, max_coeff = 1):
         """
          Another function to alluviate the initialization one. this one add columns to the dataset to indentify the outliers
          I will implement the different methods!
@@ -284,34 +437,48 @@ class KP_dev(object):
             
 
             if not np.isnan(source):
-                try:
-                    this_df = self.df[self.df[self.binning] == source]
+                this_coeff = first_min_coeff
+                failure = True
+                
+                this_df = self.df[self.df[self.binning] == source]
+                if(this_df.shape[0] >0):
                     this_df["out_KDE_ksn"] = pd.Series(data = np.zeros(this_df.shape[0]), index = this_df.index)
                     X = np.linspace(0,this_df["deriv_ksn"].max(), 1000)
                     Y = self.dict_of_KDE_ksn[source](X)
-                    th = np.min(X[Y<first_min_coeff*Y.max()])
-                    this_df["out_KDE_ksn"][this_df["deriv_ksn"]>=th] = 1
+                    this_coeff = first_min_coeff*Y.max()
+                    while(failure):
+                        try:
+                            th = np.min(X[Y<this_coeff])
+                            this_df["out_KDE_ksn"][this_df["deriv_ksn"]>=th] = 1
 
-                    this_df["out_KDE_dksn"] = pd.Series(data = np.zeros(this_df.shape[0]), index = this_df.index)
-                    X = np.linspace(0,this_df["deriv_ksn"].max(), 1000)
-                    Y = self.dict_of_KDE_dksn[source](X)
-                    th = np.min(X[Y<first_min_coeff*Y.max()])
-                    this_df["out_KDE_dksn"][this_df["deriv_delta_ksn"]>=th] = 1
+                            # this_df["out_KDE_dksn"] = pd.Series(data = np.zeros(this_df.shape[0]), index = this_df.index)
+                            # X = np.linspace(0,this_df["deriv_ksn"].max(), 1000)
+                            # Y = self.dict_of_KDE_dksn[source](X)
+                            # th = np.min(X[Y<first_min_coeff*Y.max()])
+                            # this_df["out_KDE_dksn"][this_df["deriv_delta_ksn"]>=th] = 1
 
-                    out_df = pd.concat([out_df, this_df])
+                            out_df = pd.concat([out_df, this_df])
+                            failure = False
 
-                except ValueError:
+                        except ValueError:
+                            this_coeff = Y.min()*1.1
+                            if th>max_coeff:
+                                print("ignoring source: %s" %(source))
+                                ignored_sources.append(source)
+                                failure = False
+                else:
                     ignored_sources.append(source)
 
+
         
-        print("I ignored " + str(len(ignored_sources))+ " sources, usually because they are knickpointless.")
+        print("I ignored " + str(len(ignored_sources))+ " sources out of " +str(self.df[self.binning].unique().shape[0]) + ", usually because they are knickpointless.")
 
         # saving the new state of the global variables and resetting the index for more readability if someone wants to use the index base thing
         self.df = out_df.copy()
         self.df = self.df.reset_index(drop = True)  
 
 
-    def merge_composite_knickpoints(self):
+    def merge_composite_knickpoints(self, chi_th = 0.3):
         """
             alleviating function for initialization: merge the composite knickpoints that are detected in between two fuzzy segment:
             
@@ -339,20 +506,25 @@ class KP_dev(object):
             temp_df = self.df[self.df["source_key"] == source]
             temp_df = temp_df[temp_df["out_KDE_ksn"]>0]
             temp_df = temp_df.sort_values("chi")
-            if(temp_df.shape[0] > 0):
+            if(temp_df.shape[0] > 1):
+
                 # Delta chi for each knickpoints. If there is a serie of really close one, I merge them
                 temp_df["dchi_kp_out"] = pd.Series(data = temp_df["chi"].diff(), index = temp_df.index)
                 temp_df["group_id"] = pd.Series(data = np.zeros(temp_df.shape[0]), index = temp_df.index)
                 temp_df["dchi_kp_out"].iloc[0] = 0
                 incrementatorus = 1
+                num_line = 0
                 last_tested = True
                 for index,row in temp_df.iterrows():
-                    if row["dchi_kp_out"] <= 0.1:
-                        temp_df["group_id"][index] = incrementatorus
-                        last_tested = True
-                    elif(last_tested == True):
-                        last_tested = False
-                        incrementatorus += 1
+                    if(num_line>0):
+                        if row["dchi_kp_out"] <= chi_th:
+                            temp_df["group_id"].iloc[num_line-1] = incrementatorus
+                            temp_df["group_id"].iloc[num_line] = incrementatorus
+                            last_tested = True
+                        elif(last_tested == True):
+                            last_tested = False
+                            incrementatorus += 1
+                    num_line +=1
 
                 for un in temp_df["group_id"].unique() :
                     if un != 0:
@@ -362,7 +534,10 @@ class KP_dev(object):
                         out_df = pd.concat([out_df,olaf])
 
                 
+                print temp_df["group_id"].unique()
                 out_df = pd.concat([out_df,temp_df[temp_df["group_id"]==0]])
+            elif (temp_df.shape[0] == 1):
+                out_df = pd.concat([out_df,temp_df])
 
         self.final_out = out_df.copy()
         self.final_out = self.final_out.reset_index(drop = True)
@@ -398,33 +573,37 @@ class KP_dev(object):
         for source in self.df[group].unique():
             if not np.isnan(source):
                 this_df = self.df[self.df[group] == source]
-                fig = plt.figure(1, facecolor='white',figsize=(9,5))
-                gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
-                #ax1 = fig.add_subplot(gs[0:100,0:100])
-                ax2 = fig.add_subplot(gs[0:100,0:100])
+                if(this_df.shape[0]>0):
+                    try:
+                        fig = plt.figure(1, facecolor='white',figsize=(9,5))
+                        gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
+                        #ax1 = fig.add_subplot(gs[0:100,0:100])
+                        ax2 = fig.add_subplot(gs[0:100,0:100])
 
-                #print this_df["KDE_ksn"]
-                #ax1.scatter(this_df["chi"], this_df["elevation"], s = 1, c = "b", lw = 0, label = "")
-                X = np.linspace(0,this_df[method].max(), 1000)
-                Y = self.dict_of_KDE_ksn[source](X)
-                #print Y
-                ax2.fill_between(X, 0, Y)
-                ax2.scatter(this_df[method], np.zeros(this_df.shape[0])+0.10*(Y.min()+Y.max()), s = 10, marker = "+", lw = 1, c = 'k' , label = "d(k_sn)/d(chi)")
-                ou = this_df[this_df[out_method]==1]
-                ax2.scatter(ou[method], np.zeros(ou.shape[0])+0.10*(Y.min()+Y.max()), s = 50, lw = 1, facecolors = "None", edgecolors = "r" , label = "outliers")
-                ax2.scatter(X, Y, s =5, lw = 0, c = "k", label = "KDE d(ksn)/d(chi)")
-                this_df = this_df.sort_values(method)
-                
-                ax2.set_ylim(Y.min(),Y.max())
-                ax2.set_xlabel(r'$\frac{\delta M_{\chi}}{\delta\chi}}$')
-                ax2.set_ylabel("PDF from KDE")
-                #ax2.set_xlim(0,1000)
-                #ax2.scatter(this_df["deriv_delta_ksn"], this_df["KDE_delta_ksn"], s = 100, marker = "x", lw = 1, c = "k",label = "KDE d2(ksn)/d(chi)")
-                ax2.legend()
-                plt.title(group + " #" +str(source)+", nodes: " + str(this_df.shape[0]))
+                        #print this_df["KDE_ksn"]
+                        #ax1.scatter(this_df["chi"], this_df["elevation"], s = 1, c = "b", lw = 0, label = "")
+                        X = np.linspace(0,this_df[method].max(), 1000)
+                        Y = self.dict_of_KDE_ksn[source](X)
+                        #print Y
+                        ax2.fill_between(X, 0, Y)
+                        ax2.scatter(this_df[method], np.zeros(this_df.shape[0])+0.10*(Y.min()+Y.max()), s = 10, marker = "+", lw = 1, c = 'k' , label = "d(k_sn)/d(chi)")
+                        ou = this_df[this_df[out_method]==1]
+                        ax2.scatter(ou[method], np.zeros(ou.shape[0])+0.10*(Y.min()+Y.max()), s = 50, lw = 1, facecolors = "None", edgecolors = "r" , label = "outliers")
+                        ax2.scatter(X, Y, s =5, lw = 0, c = "k", label = "KDE d(ksn)/d(chi)")
+                        this_df = this_df.sort_values(method)
+                        
+                        ax2.set_ylim(Y.min(),Y.max())
+                        ax2.set_xlabel(r'$\frac{\delta M_{\chi}}{\delta\chi}}$')
+                        ax2.set_ylabel("PDF from KDE")
+                        #ax2.set_xlim(0,1000)
+                        #ax2.scatter(this_df["deriv_delta_ksn"], this_df["KDE_delta_ksn"], s = 100, marker = "x", lw = 1, c = "k",label = "KDE d2(ksn)/d(chi)")
+                        ax2.legend()
+                        plt.title(group + " #" +str(source)+", nodes: " + str(this_df.shape[0]))
 
-                plt.savefig(svdir+"KDE_plot_source_" + str(source) + "_out_" + method+ ".png", dpi = 300)
-                plt.clf()
+                        plt.savefig(svdir+"KDE_plot_source_" + str(source) + "_out_" + method+ ".png", dpi = 300)
+                        plt.clf()
+                    except KeyError:
+                        print("Ignoring %s #%s, something wrong happened in the KDE estimation"%(group,source))
 
     def plot_mchi_segments(self, method = "deriv_ksn", group = "source_key"):
         """
@@ -469,7 +648,7 @@ class KP_dev(object):
                 ax1.yaxis.set_label_position("right")
                 ax1.set_ylabel(r'$\Delta K_{sn}$')
                 ax1.set_xlim(ax2.get_xlim())
-                ax1.legend
+                ax1.legend()
 
                 plt.title(group + " #" +str(source))
 

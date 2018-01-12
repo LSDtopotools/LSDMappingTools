@@ -636,7 +636,7 @@ def ReadMChiSegCSV(DataDirectory, fname_prefix, type = "Normal"):
     if(type == "Normal"): 
         suffix = '_MChiSegmented.csv'
     elif(type == "knickpoint"):
-        suffix = "_MChiSegmented_Ks.csv"
+        suffix = "_ksnkp_mchi.csv"
     fname = fname_prefix+suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
@@ -644,6 +644,30 @@ def ReadMChiSegCSV(DataDirectory, fname_prefix, type = "Normal"):
     # Getting rid of NoData
 
     df = df[df["chi"] >= 0]
+
+    return df
+
+
+def readSKKPstats(DataDirectory, fname_prefix):
+    """
+    This function reads in the file with the suffix
+    '_KsnKn.csv'
+    This file holds the MCHI segmented data
+
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: BG
+    """
+    # get the csv filename
+    suffix = '_ksnkp_SK.csv'
+    fname = fname_prefix+suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
 
     return df
 
@@ -663,7 +687,7 @@ def ReadKnickpointCSV(DataDirectory, fname_prefix):
     Author: BG
     """
     # get the csv filename
-    suffix = '_KsnKn.csv'
+    suffix = '_ksnkp_raw.csv'
     fname = fname_prefix+suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
