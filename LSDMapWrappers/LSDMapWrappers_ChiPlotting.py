@@ -170,8 +170,9 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
 
     MF.add_point_data(thisPointData,column_for_plotting = plotting_column,
                        scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = "bottom",
-                       this_colourmap = cmap, scaled_data_in_log = True,colour_log = True,
-                       max_point_size = 3, min_point_size = 1,discrete_colours = discrete_colours, NColours = NColours)
+                       this_colourmap = cmap,
+                       scaled_data_in_log = True,
+                       max_point_size = 5, min_point_size = 1,discrete_colours = discrete_colours, NColours = NColours)
 
     # Save the image
     ImageName = DataDirectory+fname_prefix+"_channels_with_basins."+fig_format
