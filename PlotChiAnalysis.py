@@ -111,7 +111,8 @@ def main(argv):
         #LSDMW.PrintChiChannels(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="source_key")
         
         print("Now for the MChi map")
-        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 500,plotting_column="m_chi")
+        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = True, cmap = "YlOrBr", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \mathrm{ of } k_{sn}$", Basin_remove_list = [9,8,6,5,3,1,0,2,5,7,11,15,20])
+
         
         #MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, simple_format, parallel=args.parallel)
         bil = ".bil"

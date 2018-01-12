@@ -97,7 +97,7 @@ def PrintChiChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labe
 
 
 
-def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10):
+def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", Basin_remove_list = [] ):
     """
     This function prints a channel map over a hillshade.
 
@@ -157,6 +157,12 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     chi_csv_fname = DataDirectory+ChannelFileName
 
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
+    
+    #thisPointData.ThinDataSelection("basin_key",[10])
+    
+    thisPointData.selectValue("basin_key",value = [9], operator = "==")
+    print("The new point data is:")
+    print(thisPointData.GetLongitude())
 
 
     # clear the plot
@@ -165,17 +171,20 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     # set up the base image and the map
     print("I am showing the basins without text labels.")
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location="None")
-    MF.plot_polygon_outlines(Basins, linewidth=0.8)
-    MF.add_drape_image(BasinsName, DataDirectory, colourmap = "gray", alpha = 0.1, discrete_cmap=False, n_colours=len(basin_keys), show_colourbar = False, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys, cbar_type = int)
+
+    # This adds the basins
+    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list,show_colourbar = False,
+                      colourmap = "gray")    
+    
 
     MF.add_point_data(thisPointData,column_for_plotting = plotting_column,
                        scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = "bottom",
-                       this_colourmap = cmap,
+                       colorbarlabel = colorbarlabel, this_colourmap = cmap,
                        scaled_data_in_log = True,
-                       max_point_size = 5, min_point_size = 1,discrete_colours = discrete_colours, NColours = NColours)
+                       max_point_size = 5, min_point_size = 1,zorder=10, colour_log = True, discrete_colours = discrete_colours, NColours = NColours)
 
     # Save the image
-    ImageName = DataDirectory+fname_prefix+"_channels_with_basins."+fig_format
+    ImageName = DataDirectory+fname_prefix+"_channels_with_basins_removed."+fig_format
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 

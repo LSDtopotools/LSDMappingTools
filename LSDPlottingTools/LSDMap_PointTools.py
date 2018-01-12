@@ -393,12 +393,15 @@ class LSDMap_PointData(object):
         # The lat long are in epsg 4326 which is WGS84
         inProj = Proj(init='epsg:4326')
         outProj = Proj(init=EPSG_string)
-        this_Lat = self.Latitude[0]
-        this_Lon = self.Longitude[0]
+        #this_Lat = self.Latitude[0]
+        #this_Lon = self.Longitude[0]
 
-        print("Lat-long: ")
-        print(this_Lat)
-        print(this_Lon)
+        print("The latitude is: ")
+        print(self.Latitude)
+        
+        print("Now the lat is")
+        print(self.Latitude.values)
+        #print(this_Lon)
 
         easting =[]
         northing = []

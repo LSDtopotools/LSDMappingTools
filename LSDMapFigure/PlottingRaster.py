@@ -1120,11 +1120,9 @@ class MapFigure(object):
         # Log the color if required
         if(colour_log):
             this_data = np.log10(this_data)
-            print("I logged (is it a verb?) your colour data, the minimum is %s and the maximum is %s" %(np.nanmin(this_data), np.nanmax(this_data)))
+            print("I have taken the log your colour data, the minimum is %s and the maximum is %s" %(np.nanmin(this_data), np.nanmax(this_data)))
 
         # Now the data for scaling. Point size will be scaled by these data
-
-
         scale_data = thisPointData.QueryData(column_for_scaling)
         print("I also got the data for scaling, which is in column "+column_for_scaling)
         scale_data = np.asarray(scale_data)
@@ -1173,8 +1171,7 @@ class MapFigure(object):
             point_scale = manual_size
 
             
-            
-            
+                        
         print("I will plot the points now.")
         if len(this_data) == 0 or len(this_data) != len(easting):
             print("I am only plotting the points.")
@@ -1208,23 +1205,7 @@ class MapFigure(object):
                     
                     sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=channel_data,cmap=this_colourmap,norm=cNorm,edgecolors='none', alpha = alpha,zorder=zorder)
                 else:
-                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
-  
-                if discrete_colours:
-                    # make a color map of fixed colors
-                    NUM_COLORS = NColours
-
-                    this_cmap = this_colourmap
-                    cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
-                    plt.cm.ScalarMappable(norm=cNorm, cmap=this_colourmap)
-                    channel_data = [x % NUM_COLORS for x in this_data]
-                    
-                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=channel_data,cmap=this_colourmap,norm=cNorm,edgecolors='none', alpha = alpha,zorder=zorder)
-                else:
-                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
-
-            
-                
+                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)               
                 
         # Setting the labelling
         if(label_field != "None"):
