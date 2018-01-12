@@ -782,8 +782,11 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
         source_info = FindSourceInformation(thisPointData)
         remaining_sources = FindShortSourceChannels(source_info,source_thinning_threshold)
         thisPointData.ThinDataSelection("source_key",remaining_sources)
+    else:
+        print("I am not thinning by source")
 
     # convert to easting and northing
+    print("Converting to easting and northing")
     [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
 
     # The image is inverted so we have to invert the northing coordinate
@@ -803,6 +806,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
     channel_data = [x % NUM_COLORS for x in these_data]
 
+    print("Printing the scatter map")
     ax.scatter(easting,Ncoord,s=0.5, c=channel_data,norm=cNorm,cmap=this_cmap,edgecolors='none')
 
     # This affects all axes because we set share_all = True.
