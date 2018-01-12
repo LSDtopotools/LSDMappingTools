@@ -38,3 +38,4 @@ prefix = "puerto_rico"
 Jaguar = KP.KP_dev_v2(path,prefix, min_length = 20000)
 
 Jaguar.print_ksn_filters()
+Jaguar.print_KDE()
