@@ -1066,7 +1066,7 @@ class MapFigure(object):
                        max_point_size = 5, min_point_size = 0.5,
                        colour_log = False, colour_manual_scale = [],
                        manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10, label_field = "None",
-                       font_size = 6, offset = 100, zorder=1):
+                       font_size = 6, offset = 100, zorder=1, discrete_colours = False, NColours = 10):
         """
         This add point data to the map.
 
@@ -1091,6 +1091,8 @@ class MapFigure(object):
             offset (int/float): offset of the text below the point
             font_size (int): everything is in the title
             zorder (int): priority for plotting
+            discrete_colours (bool): If true, the colourmap will be discrete
+            NColours (int) The number of colours n the colourmap
 
         Author: SMM, BG
         """
@@ -1172,7 +1174,6 @@ class MapFigure(object):
             
             
         print("I will plot the points now.")
-        discrete_colours = True
         if len(this_data) == 0 or len(this_data) != len(easting):
             print("I am only plotting the points.")
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c="blue",cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder)
@@ -1195,7 +1196,7 @@ class MapFigure(object):
             else:
                 if discrete_colours:
                     # make a color map of fixed colors
-                    NUM_COLORS = 15
+                    NUM_COLORS = NColours
 
                     this_cmap = this_colourmap
                     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
