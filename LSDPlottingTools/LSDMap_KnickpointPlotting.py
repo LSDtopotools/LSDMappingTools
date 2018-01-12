@@ -123,7 +123,42 @@ class KP_dev_v2(object):
 
             ax1.legend()
 
+            ax1.set_xlabel(r'$ \chi$')
+            ax1.set_ylabel(r'$ k_{sn}$')
+
             plt.savefig(svdir + self.fprefix + "_ksn_SK_" +str(SK)+".png", dpi = 300)
+            plt.clf()
+
+
+
+    def print_KDE(self):
+        """
+            This function is used to print one ksn profile per river to check the effect of the different filters on the dataset
+            BG - 12/01/2018
+        """
+        plt.clf()
+        print("I will now print ksn(chi) with the different KDE")
+        svdir = self.fpath+'river_plots/'
+        if not os.path.isdir(svdir):
+            os.makedirs(svdir)
+
+        for SK in self.df_kp["source_key"].unique():
+            print("printing river: " +str(SK))
+
+            # Selecting the river
+            df = self.df_kp[self.df_kp["source_key"] == SK]
+
+            fig = plt.figure(1, facecolor='white',figsize=(9,5))
+
+            gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
+            ax1 = fig.add_subplot(gs[0:100,0:100])
+
+            ax1.scatter(df["dksn/dchi"], df["KDE"], c = "k", s = 1, marker = "+", label = "ksn")
+
+            ax1.set_xlabel(r'$ \frac{dk_{sn}}{\chi}$')
+            ax1.set_ylabel(r'$ KDE_pdf $')
+
+            plt.savefig(svdir + self.fprefix + "_KDE_SK_" +str(SK)+".png", dpi = 300)
             plt.clf()
 
 
