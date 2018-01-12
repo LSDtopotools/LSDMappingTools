@@ -323,7 +323,7 @@ class LSDMap_PointData(object):
         if PrintToScreen:
             print(self.Latitude)
 
-        return self.Latitude
+        return self.Latitude.values
 
 
     # Get data elements
@@ -343,7 +343,7 @@ class LSDMap_PointData(object):
         if PrintToScreen:
             print(self.Longitude)
 
-        return self.Longitude
+        return self.Longitude.values
 
     def QueryData(self,data_name,PrintToScreen = False, PANDEX=False):
 
@@ -396,17 +396,17 @@ class LSDMap_PointData(object):
         #this_Lat = self.Latitude[0]
         #this_Lon = self.Longitude[0]
 
-        print("The latitude is: ")
-        print(self.Latitude)
+        #print("The latitude is: ")
+        #print(self.Latitude)
         
-        print("Now the lat is")
-        print(self.Latitude.values)
+        #print("Now the lat is")
+        #print(self.Latitude.values)
         #print(this_Lon)
 
         easting =[]
         northing = []
         if(self.PANDEX == True):
-            easting,northing = transform(inProj,outProj,self.Longitude,self.Latitude)
+            easting,northing = transform(inProj,outProj,self.Longitude.values,self.Latitude.values)
         else:
             for idx, Lon in enumerate(self.Longitude):
                 Lat = self.Latitude[idx]
