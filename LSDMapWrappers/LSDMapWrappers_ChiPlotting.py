@@ -97,7 +97,7 @@ def PrintChiChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labe
 
 
 
-def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", Basin_remove_list = [] ):
+def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} ):
     """
     This function prints a channel map over a hillshade.
 
@@ -114,6 +114,8 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
         plotting_column (str): the name of the column to plot
         discrete_colours (bool): if true use a discrete colourmap
         NColours (int): the number of colours to cycle through when making the colourmap
+        Basin_remove_list (list): A lists containing either key or junction indices of basins you want to remove from plotting
+        Basin_rename_dict (dict): A dict where the key is either basin key or junction index, and the value is a new name for the basin denoted by the key
 
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
@@ -160,9 +162,9 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     
     #thisPointData.ThinDataSelection("basin_key",[10])
     
-    thisPointData.selectValue("basin_key",value = [9], operator = "==")
-    print("The new point data is:")
-    print(thisPointData.GetLongitude())
+    thisPointData.selectValue("basin_key",value = Basin_remove_list, operator = "!=")
+    #print("The new point data is:")
+    #print(thisPointData.GetLongitude())
 
 
     # clear the plot
@@ -173,7 +175,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location="None")
 
     # This adds the basins
-    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list,show_colourbar = False,
+    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, show_colourbar = False,
                       colourmap = "gray")    
     
 
