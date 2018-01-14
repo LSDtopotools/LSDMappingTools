@@ -175,7 +175,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location="None")
 
     # This adds the basins
-    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, show_colourbar = False,
+    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, label_basins = add_basin_labels, show_colourbar = False,
                       colourmap = "gray")    
     
 

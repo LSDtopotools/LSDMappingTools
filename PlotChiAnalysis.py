@@ -16,8 +16,8 @@ matplotlib.use('Agg')
 import sys
 import os
 from LSDPlottingTools import LSDMap_MOverNPlotting as MN
-from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 import LSDMapWrappers as LSDMW
+from LSDMapFigure import PlottingHelpers as phelp
 
 
 #=============================================================================
@@ -92,6 +92,31 @@ def main(argv):
     else:
         this_dir = os.getcwd()
 
+        
+    # See if a basin info file exists and if so get the basin list
+    print("Let me check if there is a basins info csv file.")
+    BasinInfoPrefix = args.fname_prefix+"_AllBasinsInfo.csv"
+    BasinInfoFileName = this_dir+BasinInfoPrefix
+    existing_basin_keys = []
+    if os.path.isfile(BasinInfoFileName): 
+        print("There is a basins info csv file")
+        BasinInfoDF = phelp.ReadBasinInfoCSV(this_dir, args.fname_prefix)
+        existing_basin_keys = list(BasinInfoDF['basin_key'])
+        existing_basin_keys = [int(x) for x in existing_basin_keys]
+    else:
+        print("I didn't find a basins info csv file. Check directory or filename.")
+    
+    print("Let me mask get a list of the masked basins")
+    
+    # Python is so amazing. Look at the line below. 
+    Mask_basin_keys = [i for i in existing_basin_keys if i not in these_basin_keys]
+    print("All basins are: ")
+    print(existing_basin_keys)
+    print("The basins to keep are:")
+    print(these_basin_keys)
+    print("The basins to mask are:")
+    print(Mask_basin_keys)
+    
 
     # some formatting for the figures
     if args.FigFormat == "manuscipt_svg":
@@ -111,9 +136,10 @@ def main(argv):
         #LSDMW.PrintChiChannels(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="source_key")
         
         print("Now for the MChi map")
-        BRD = {18: "chumba", 4: "bumba"}
+        #BRD = {18: "chumba", 4: "bumba"}
+        BRD = {}
         
-        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = True, cmap = "YlOrBr", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \mathrm{ of } k_{sn}$", Basin_remove_list = [9,8,6,5,3,1,0,2,5,7,11,15,20], Basin_rename_dict = BRD)
+        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "viridis", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = BRD)
 
         
         #MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, simple_format, parallel=args.parallel)
