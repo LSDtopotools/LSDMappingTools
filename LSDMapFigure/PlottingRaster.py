@@ -1175,6 +1175,7 @@ class MapFigure(object):
         print("I will plot the points now.")
         if len(this_data) == 0 or len(this_data) != len(easting):
             print("I am only plotting the points.")
+            unicolor = "blue"
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c= unicolor,cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
         else:
             print("I will colour by the points")

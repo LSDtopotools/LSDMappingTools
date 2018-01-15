@@ -406,7 +406,11 @@ class LSDMap_PointData(object):
         easting =[]
         northing = []
         if(self.PANDEX == True):
-            easting,northing = transform(inProj,outProj,self.Longitude.values,self.Latitude.values)
+            # Adding exception management, depending on your version of the different packages you may have to add the .values or not
+            try:
+                easting,northing = transform(inProj,outProj,self.Longitude.values,self.Latitude.values)
+            except AttributeError:
+                easting,northing = transform(inProj,outProj,self.Longitude,self.Latitude)
         else:
             for idx, Lon in enumerate(self.Longitude):
                 Lat = self.Latitude[idx]
