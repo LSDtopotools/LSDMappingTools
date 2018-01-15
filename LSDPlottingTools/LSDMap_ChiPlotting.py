@@ -1497,7 +1497,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        FigFormat = 'png',elevation_threshold = 0,
                        first_basin = 0, last_basin = 0, basin_order_list = [],
                        basin_rename_list = [],
-                       this_cmap = plt.cm.cubehelix,data_name = 'chi', X_offset = 5,
+                       this_cmap = "viridis",data_name = 'chi', X_offset = 5,
                        plotting_data_format = 'log',
                        label_sources = False, source_thinning_threshold = 0,
                        size_format = "ESURF"):
@@ -1534,6 +1534,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     #from adjust_text import adjust_text
 
     label_size = 10
+    
+    print("STARTING stacks. Cmap is: "+this_cmap)
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
@@ -1618,7 +1620,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         colorbarlabel = "log$_{10}k_{sn}$"
 
     # Add the cubehelix colourbar
-    this_cmap = cubehelix.cmap(rot=1, reverse=True,start=3,gamma=1.0,sat=2.0)
+    #this_cmap = cubehelix.cmap(rot=1, reverse=True,start=3,gamma=1.0,sat=2.0)
 
     # need to convert everything into arrays so we can mask different basins
     Xdata = np.asarray(x_data)
@@ -1779,6 +1781,9 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     sc.set_clim(0, M_chi_axis_max)
     #bounds = (0, M_chi_axis_max)
 
+    print("Heya, this cmap is:")
+    print(this_cmap)
+    
     # This is the axis for the colorbar
     ax2 = fig.add_subplot(gs[10:15,15:70])
     cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)
