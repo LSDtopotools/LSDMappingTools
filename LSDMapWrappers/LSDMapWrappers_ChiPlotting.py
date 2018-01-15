@@ -5,7 +5,7 @@
     The documentation of the examples can be found here:
     https://lsdtopotools.github.io/LSDTopoTools_ChiMudd2014/
 
-    Simon Mudd and Fiona Clubb, June 2017
+    Simon Mudd and Fiona Clubb, January 2018
 
     Released under GPL3
 
@@ -37,7 +37,7 @@ import LSDMapFigure.PlottingHelpers as PlotHelp
 #import LSDPlottingTools.LSDMap_VectorTools as LSDMap_VT
 
 
-def PrintChiChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10):
+def PrintChiChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10, out_fname_prefix = ""):
     """
     This function prints a channel map over a hillshade.
 
@@ -55,10 +55,11 @@ def PrintChiChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labe
         plotting_column (str): the name of the column to plot
         discrete_colours (bool): if true use a discrete colourmap
         NColours (int): the number of colours to cycle through when making the colourmap
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
 
 
     Returns:
-        Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
+        Shaded relief plot with the channels coloured by a plotting column designated by the plotting_column keyword. Uses a colourbar to show each basin
 
     Author: SMM
     """
@@ -92,12 +93,16 @@ def PrintChiChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labe
                        max_point_size = 5, min_point_size = 1,discrete_colours = discrete_colours, NColours = NColours)
 
     # Save the image
-    ImageName = DataDirectory+fname_prefix+"_channels_by_basin."+fig_format
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+fname_prefix+"_chi_channels."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_chi_channels."+fig_format   
+        
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
 
-def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} ):
+def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} , out_fname_prefix = ""):
     """
     This function prints a channel map over a hillshade.
 
@@ -116,6 +121,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
         NColours (int): the number of colours to cycle through when making the colourmap
         Basin_remove_list (list): A lists containing either key or junction indices of basins you want to remove from plotting
         Basin_rename_dict (dict): A dict where the key is either basin key or junction index, and the value is a new name for the basin denoted by the key
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
 
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
@@ -186,7 +192,11 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
                        max_point_size = 5, min_point_size = 1,zorder=10, colour_log = True, discrete_colours = discrete_colours, NColours = NColours)
 
     # Save the image
-    ImageName = DataDirectory+fname_prefix+"_channels_with_basins_removed."+fig_format
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+fname_prefix+"_chi_channels_and_basins."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_chi_channels_and_basins."+fig_format   
+    
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 

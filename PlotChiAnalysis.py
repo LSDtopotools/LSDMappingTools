@@ -28,7 +28,7 @@ def print_welcome():
     print("\n\n=======================================================================")
     print("Hello! I'm going to plot chi analysis results for you.")
     print("You will need to tell me which directory to look in.")
-    print("Use the -wd flag to define the working directory.")
+    print("Use the -dir flag to define the working directory.")
     print("If you don't do this I will assume the data is in the same directory as this script.")
     print("For help type:")
     print("   python PlotChiAnalysis.py -h\n")
@@ -50,17 +50,18 @@ def main(argv):
     # The location of the data files
     parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the m/n analysis. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error (unless you're running the parallel plotting).")
-
+    parser.add_argument("-out_fname", "--out_fname_prefix", type=str, help="The prefix of the figures WITHOUT EXTENSION!!! If not supplied the fname prefix will be used.")
+    
     # What sort of analyses you want
     parser.add_argument("-PR", "--plot_rasters", type=bool, default=False, help="If this is true, I'll make raster plots of the m/n value and basin keys")
 
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
+    
+    parser.add_argument("-rename_dict", "--rename_dict",type=str,default = "", help = "This is a string that initiates a dictionary for renaming basins. The different dict entries should be comma separated, and key and value should be separated by a colon. Default = no dict")
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
-    parser.add_argument("-animate", "--animate", type=bool, default=True, help="If this is true I will create an animation of the chi plots. Must be used with the -PC flag set to True.")
-    parser.add_argument("-keep_pngs", "--keep_pngs", type=bool, default=False, help="If this is true I will delete the png files when I animate the figures. Must be used with the -animate flag set to True.")
     parser.add_argument("-parallel", "--parallel", type=bool, default=False, help="If this is true I'll assume you ran the code in parallel and append all your CSVs together before plotting.")
 
     args = parser.parse_args()
@@ -81,6 +82,22 @@ def main(argv):
         these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
         print("The basins I will plot are:")
         print(these_basin_keys)
+        
+    if len(args.rename_dict) == 0:
+        print("No rename dictionary found. I will label with the original basin keys")
+        this_rename_dict = {}
+    else:
+        listified_entry = [item for item in args.rename_dict.split(',')]
+        this_rename_dict = {}
+        
+        # now loop through these creating a dict
+        for entry in listified_entry:
+            split_entry = entry.split(":")
+            this_rename_dict[int(split_entry[0])]=split_entry[1]
+            
+    print("The rename dict is:")
+    print(this_rename_dict)        
+        
 
     # get the base directory
     if args.base_directory:
@@ -135,11 +152,8 @@ def main(argv):
         ChannelFname = "Mega_clip_MChiSegmented.csv"
         #LSDMW.PrintChiChannels(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="source_key")
         
-        print("Now for the MChi map")
-        #BRD = {18: "chumba", 4: "bumba"}
-        BRD = {}
         
-        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "viridis", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = BRD)
+        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = True, cmap = "viridis", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict)
 
         
         #MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, simple_format, parallel=args.parallel)
