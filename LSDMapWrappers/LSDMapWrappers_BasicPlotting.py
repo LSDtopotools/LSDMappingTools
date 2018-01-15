@@ -43,8 +43,8 @@ def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", s
     by the basin ID.
 
     Args:
-        DataDirectory (str): the data directory with the m/n csv files
-        Base_file (str): The prefix for the m/n csv files
+        DataDirectory (str): the data directory with the rasters
+        Base_file (str): The prefix for the rasters
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_loc (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
@@ -96,8 +96,8 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
     an animation. Used with the MuddPILE model
 
     Args:
-        DataDirectory (str): the data directory with the m/n csv files
-        Base_file (str): The prefix for the m/n csv files
+        DataDirectory (str): the data directory with the data files
+        Base_file (str): The prefix for the data files
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_loc (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
@@ -203,7 +203,7 @@ def PrintAllChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap =
     
     # Save the image
     if len(out_fname_prefix) == 0:
-        ImageName = DataDirectory+Base_file+"_channels."+fig_format
+        ImageName = DataDirectory+fname_prefix+"_channels."+fig_format
     else:
         ImageName = DataDirectory+out_fname_prefix+"_channels."+fig_format    
     
@@ -266,7 +266,7 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
 
     # Save the image
     if len(out_fname_prefix) == 0:
-        ImageName = DataDirectory+Base_file+"_channels_coloured_by_basin."+fig_format
+        ImageName = DataDirectory+fname_prefix+"_channels_coloured_by_basin."+fig_format
     else:
         ImageName = DataDirectory+out_fname_prefix+"_channels_coloured_by_basin."+fig_format   
     
@@ -352,7 +352,7 @@ def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, 
 
     # Save the image
     if len(out_fname_prefix) == 0:
-        ImageName = DataDirectory+Base_file+"_channels_with_basins."+fig_format
+        ImageName = DataDirectory+fname_prefix+"_channels_with_basins."+fig_format
     else:
         ImageName = DataDirectory+out_fname_prefix+"_channels_with_basins."+fig_format  
         
@@ -444,7 +444,7 @@ def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet
 
     # Save the image
     if len(out_fname_prefix) == 0:
-        ImageName = DataDirectory+Base_file+"_basins."+fig_format
+        ImageName = DataDirectory+fname_prefix+"_basins."+fig_format
     else:
         ImageName = DataDirectory+out_fname_prefix+"_basins."+fig_format  
         
@@ -529,7 +529,7 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
 
     # Save the image
     if len(out_fname_prefix) == 0:
-        ImageName = DataDirectory+Base_file+"_selected_basins."+fig_format
+        ImageName = DataDirectory+fname_prefix+"_selected_basins."+fig_format
     else:
         ImageName = DataDirectory+out_fname_prefix+"_selected_basins."+fig_format  
         
