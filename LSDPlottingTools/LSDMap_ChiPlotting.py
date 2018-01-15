@@ -1494,7 +1494,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
 ## This function plots channels, color coded in chi space with a gradient
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
-                       FigFormat = 'show',elevation_threshold = 0,
+                       FigFormat = 'png',elevation_threshold = 0,
                        first_basin = 0, last_basin = 0, basin_order_list = [],
                        basin_rename_list = [],
                        this_cmap = plt.cm.cubehelix,data_name = 'chi', X_offset = 5,
@@ -1531,7 +1531,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
 
     import math
     import matplotlib.patches as patches
-    from adjust_text import adjust_text
+    #from adjust_text import adjust_text
 
     label_size = 10
 
@@ -1554,9 +1554,20 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[25:100,10:95])
 
+    print("Getting data from the file: "+chi_csv_fname)
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
-    thisPointData.ThinData('elevation',elevation_threshold)
-    thisPointData.ThinData('chi',0)
+    
+    thisPointData.GetLongitude(PrintToScreen = True)
+
+    
+    
+    thisPointData.selectValue('elevation',value = elevation_threshold,operator = ">")
+    thisPointData.selectValue('chi',value = 0,operator = ">")
+    
+        
+    #SK = thisPointData.QueryData("source_key")
+    #print("Source keys are")
+    #print(SK)
 
     # Thin the sources. Do this after the colouring so that thinned source colours
     # will be the same as unthinned source colours.
@@ -1571,23 +1582,27 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
 
     # Get the chi, m_chi, basin number, and source ID code
     if data_name  == 'chi':
-        x_data = thisPointData.QueryData('chi')
+        x_data = thisPointData.QueryData('chi').values
         x_data = [float(x) for x in x_data]
     elif data_name == 'flow_distance':
-        x_data = thisPointData.QueryData('flow distance')
+        x_data = thisPointData.QueryData('flow_distance').values
         x_data = [float(x) for x in x_data]
     else:
         print("I did not understand the data name. Choices are chi and flow distance. Defaulting to chi.")
         x_data = thisPointData.QueryData('chi')
         x_data = [float(x) for x in x_data]
 
-    elevation = thisPointData.QueryData('elevation')
+    elevation = thisPointData.QueryData('elevation').values
     elevation = [float(x) for x in elevation]
-    m_chi = thisPointData.QueryData('m_chi')
+    m_chi = thisPointData.QueryData('m_chi').values
     m_chi = [float(x) for x in m_chi]
-    basin = thisPointData.QueryData('basin_key')
+    basin = thisPointData.QueryData('basin_key').values
     basin = [int(x) for x in basin]
-    source = thisPointData.QueryData('source_key')
+    
+    #print("The basins are:")
+    #print(basin)
+    
+    source = thisPointData.QueryData('source_key').values
     source = [int(x) for x in source]
 
     colorbarlabel = "$k_{sn}$"
@@ -1796,7 +1811,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     ax.set_xlim(0,X_axis_max)
 
     # adjust the text
-    adjust_text(texts)
+    #adjust_text(texts)
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
     ax.tick_params(axis='both', width=1, pad = 2)

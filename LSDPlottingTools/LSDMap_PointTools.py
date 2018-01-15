@@ -107,6 +107,7 @@ class LSDMap_PointData(object):
             print("The object file prefix is: " + self.FilePrefix)
 
         self.PANDEX = PANDEX
+        
 
         ######################### THIS PART OF THE CODE IS ONLY USING PANDAS #########################
         if(self.PANDEX == True):
@@ -323,7 +324,7 @@ class LSDMap_PointData(object):
         if PrintToScreen:
             print(self.Latitude)
 
-        return self.Latitude.values
+        return self.Latitude
 
 
     # Get data elements
@@ -343,7 +344,7 @@ class LSDMap_PointData(object):
         if PrintToScreen:
             print(self.Longitude)
 
-        return self.Longitude.values
+        return self.Longitude
 
     def QueryData(self,data_name,PrintToScreen = False, PANDEX=False):
 
