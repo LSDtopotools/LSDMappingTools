@@ -5,7 +5,7 @@
     The documentation of the examples can be found here:
     https://lsdtopotools.github.io/LSDTopoTools_ChiMudd2014/
 
-    Simon Mudd and Fiona Clubb, June 2017
+    Simon Mudd and Fiona Clubb, January 2018
 
     Released under GPL3
 
@@ -58,7 +58,7 @@ def PrintChiChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labe
 
 
     Returns:
-        Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
+        Shaded relief plot with the channels coloured by a plotting column designated by the plotting_column keyword. Uses a colourbar to show each basin
 
     Author: SMM
     """

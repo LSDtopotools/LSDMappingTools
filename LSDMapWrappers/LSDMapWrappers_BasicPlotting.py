@@ -37,7 +37,7 @@ import LSDMapFigure.PlottingHelpers as PlotHelp
 #import LSDPlottingTools.LSDMap_VectorTools as LSDMap_VT
 
 
-def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
+def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
@@ -51,6 +51,7 @@ def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", s
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
 
     Returns:
         Shaded relief plot. The elevation is also included in the plot.
@@ -79,13 +80,17 @@ def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", s
     MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = "Elevation (m)")
 
     # Save the image
-    ImageName = DataDirectory+Base_file+"_hillshade."+fig_format
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+Base_file+"_hillshade."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_hillshade."+fig_format
+    
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", 
                                 size_format = "ESURF", fig_format = "png", 
                                 dpi = 250, imgnumber = 0, full_basefile = [], 
-                                custom_cbar_min_max = []):
+                                custom_cbar_min_max = [], out_fname_prefix = ""):
     """
     This function make a hillshade image that is optimised for creating 
     an animation. Used with the MuddPILE model
@@ -102,6 +107,7 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
         imgnumber (int): the number of the image. Usually frames from model runs have integer numbers after them
         full_basefile (str): The root name of the figures you want. If empty, it uses the data_directory+base_file
         custom_min_max (list of int/float): if it contains two elements, recast the raster to [min,max] values for display.
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
 
     Returns:
         Shaded relief plot. The elevation is also included in the plot.
@@ -130,8 +136,11 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
     MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = "Elevation (m)",colour_min_max = custom_cbar_min_max)
 
     # Save the image
-    if(full_basefile == []):
-        ImageName = DataDirectory+Base_file+"_img"+"%004d" % (imgnumber)+"."+fig_format
+    if(full_basefile == []):       
+        if len(out_fname_prefix) == 0:
+            ImageName = DataDirectory+Base_file+"_img"+"%004d" % (imgnumber)+"."+fig_format
+        else:
+            ImageName = DataDirectory+out_fname_prefix+"_img"+"%004d" % (imgnumber)+"."+fig_format
     else:
         ImageName = full_basefile+"_img"+"%004d" % (imgnumber)+"."+fig_format
     
@@ -139,7 +148,7 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
                  fixed_cbar_characters=4)
 
 
-def PrintAllChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
+def PrintAllChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):
     """
     This function prints a channel map over a hillshade. It gets ALL the channels within the DEM
 
@@ -153,6 +162,7 @@ def PrintAllChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap =
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
 
 
     Returns:
@@ -190,13 +200,19 @@ def PrintAllChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap =
                        scaled_data_in_log = False,
                        max_point_size = 5, min_point_size = 1)
 
+    
     # Save the image
-    ImageName = DataDirectory+fname_prefix+"_channels."+fig_format
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+Base_file+"_channels."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_channels."+fig_format    
+    
+    
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
 
-def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
+def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):
     """
     This function prints a channel map over a hillshade.
 
@@ -210,6 +226,7 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
 
 
     Returns:
@@ -248,12 +265,16 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
                        max_point_size = 5, min_point_size = 1)
 
     # Save the image
-    ImageName = DataDirectory+fname_prefix+"_channels_by_basin."+fig_format
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+Base_file+"_channels_coloured_by_basin."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_channels_coloured_by_basin."+fig_format   
+    
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
 
-def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
+def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):
     """
     This function prints a channel map over a hillshade.
 
@@ -267,6 +288,7 @@ def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, 
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
 
 
     Returns:
@@ -329,13 +351,17 @@ def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, 
                        max_point_size = 3, min_point_size = 1)
 
     # Save the image
-    ImageName = DataDirectory+fname_prefix+"_channels_with_basins."+fig_format
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+Base_file+"_channels_with_basins."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_channels_with_basins."+fig_format  
+        
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
 
 
-def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250):
+def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
@@ -355,6 +381,7 @@ def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
 
 
     Returns:
@@ -415,7 +442,12 @@ def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet
         MF.plot_polygon_outlines(Basins, linewidth=0.8)
         MF.add_drape_image(BasinsName, DataDirectory, colourmap = cmap, alpha = 0.8, colorbarlabel='Basin ID', discrete_cmap=True, n_colours=len(basin_keys), show_colourbar = True, modify_raster_values=True, old_values=basin_junctions, new_values=basin_keys, cbar_type = int)
 
-    ImageName = DataDirectory+fname_prefix+'_coloured_basins.'+fig_format
+    # Save the image
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+Base_file+"_basins."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_basins."+fig_format  
+        
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi) # Save the figure
 
 
@@ -426,7 +458,7 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
                    use_keys_not_junctions = True, show_colourbar = False,
                    Remove_Basins = [], Rename_Basins = {}, Value_dict= {},
                    cmap = "jet", cbar_loc = "right", size_format = "ESURF",
-                   fig_format = "png", dpi = 250):
+                   fig_format = "png", dpi = 250, out_fname_prefix = ""):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
@@ -446,10 +478,10 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
-
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
 
     Returns:
-        Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin
+        Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin. This allows more complex plotting with renamed and excluded basins. 
 
     Author: FJC, SMM
     """
@@ -495,5 +527,10 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
                       discrete_cmap=True, n_colours=15, colorbarlabel = "$m/n$",
                       colourmap = plt.cm.jet, adjust_text = False)
 
-    ImageName = DataDirectory+fname_prefix+'_complex_coloured_basins.'+fig_format
+    # Save the image
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+Base_file+"_selected_basins."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_selected_basins."+fig_format  
+        
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi) # Save the figure

@@ -26,7 +26,7 @@ def print_welcome():
     print("\n\n=======================================================================")
     print("Hello! I'm going to plot the m/n analysis results for you.")
     print("You will need to tell me which directory to look in.")
-    print("Use the -wd flag to define the working directory.")
+    print("Use the -dir flag to define the working directory.")
     print("If you don't do this I will assume the data is in the same directory as this script.")
     print("For help type:")
     print("   python PlotMOverNAnalysis.py -h\n")
