@@ -1564,6 +1564,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     thisPointData.selectValue('elevation',value = elevation_threshold,operator = ">")
     thisPointData.selectValue('chi',value = 0,operator = ">")
     
+    print("First basin is: "+str(first_basin)+ " and last basin is: "+ str(last_basin))
         
     #SK = thisPointData.QueryData("source_key")
     #print("Source keys are")
@@ -1647,6 +1648,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
 
     # Now calculate the spacing of the stacks
     this_X_offset = 0
+    
+    print("The chi offset is: "+ str(X_offset))
     if basin_order_list:
         basins_list = basin_order_list
 
@@ -1667,7 +1670,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         added_X = X_offset*n_stacks
         print(("The number of stacks is: "+str(n_stacks)+" the old max: "+str(X_axis_max)))
         X_axis_max = X_axis_max+added_X
-        print(("The nex max is: "+str(X_axis_max)))
+        print(("The new max is: "+str(X_axis_max)))
 
 
     # Logic for stacked labels. You need to run this after source thinning to

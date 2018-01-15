@@ -259,7 +259,7 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
 
     LSDCP.StackedProfilesGradient(chi_csv_fname, FigFileName = ImageName,
                        FigFormat = 'png',elevation_threshold = 0,
-                       first_basin = 0, last_basin = 0, basin_order_list = [],
+                       first_basin = first_basin, last_basin = last_basin, basin_order_list = [],
                        basin_rename_list = [],
                        this_cmap = plt.cm.cubehelix,data_name = 'chi', X_offset = 5,
                        plotting_data_format = 'log',
