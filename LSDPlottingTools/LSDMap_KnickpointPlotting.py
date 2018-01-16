@@ -64,7 +64,7 @@ class KP_dev_v2(object):
         print("Managing the data:")
         if(basin_key == []):
             print("All the basins are selected:")
-            print(self.df_SK["basin_key"])
+            print(self.df_SK["basin_key"].unique().tolist())
         else:
             print("You selected the following basins:")
             print(basin_key)
@@ -73,8 +73,8 @@ class KP_dev_v2(object):
             self.df_SK = self.df_SK[self.df_SK["basin_key"].isin(basin_key)]
 
         if(source_key == [] and min_length == 0):
-            print("All the basins are selected:")
-            print(self.df_SK["source_key"])
+            print("All the sources are selected:")
+            print(self.df_SK["source_key"].unique().tolist())
         elif(min_length > 0):
             print("Let me remove the river smaller than " +str(min_length))
             self.df_SK = self.df_SK[self.df_SK["length"]>min_length]
@@ -154,7 +154,9 @@ class KP_dev_v2(object):
 
             # ax1.scatter(df["chi"], df["m_chi"], c = "r", s = 1, marker = "o", label = "ksn")
             # ax1.scatter(df["chi"], df["lumped_ksn"], c = "g", s = 1, marker = "s", label = "lumped ksn")
+            ax1.scatter(df["chi"], df["TVD_ksn_NC"], c = "purple", s = 2, marker = "x", label = "TVD ksn non corrected")
             ax1.scatter(df["chi"], df["TVD_ksn"], c = "k", s = 1, marker = "+", label = "TVD ksn")
+
             ax1.scatter(dfo["chi"][dfo["out_MZS"]==1], dfo["delta_ksn"][dfo["out_MZS"]==1], c = "r" , marker = "s", s = 2)
 
 
@@ -219,6 +221,7 @@ class KP_dev_v2(object):
             ax2.set_ylabel(r'$ \frac{d(TVD_ksn)}{d\chi}$')
 
             plt.savefig(svdir + self.fprefix + "_ksn_rawkp_SK_" +str(SK)+".png", dpi = 300)
+            # plt.show()
             plt.clf()
 
 
