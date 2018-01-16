@@ -1733,7 +1733,7 @@ class MapFigure(object):
         fig.set_size_inches(fig_size_inches[0], fig_size_inches[1])
         self.ax_list[0].set_position(map_axes)
 
-        # Annoying but the scatter plot resets the extens so you need to reassert them
+        # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(self._xmin,self._xmax)
         self.ax_list[0].set_ylim(self._ymax,self._ymin)
 

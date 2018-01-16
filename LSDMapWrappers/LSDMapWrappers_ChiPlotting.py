@@ -200,7 +200,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
-def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} , out_fname_prefix = "", first_basin = 0, last_basin = 0):
+def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", Basin_select_list = [], Basin_rename_dict = {} , out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2):
     """
     This function prints a channel map over a hillshade.
 
@@ -260,9 +260,9 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
     print("Cmap is: "+cmap)
     LSDCP.StackedProfilesGradient(chi_csv_fname, FigFileName = ImageName,
                        FigFormat = 'png',elevation_threshold = 0,
-                       first_basin = first_basin, last_basin = last_basin, basin_order_list = [],
-                       basin_rename_list = [],
+                       first_basin = first_basin, last_basin = last_basin, basin_order_list = Basin_select_list,
+                       basin_rename_dict = Basin_rename_dict ,
                        this_cmap = cmap,data_name = 'chi', X_offset = 5,
                        plotting_data_format = 'log',
                        label_sources = False, source_thinning_threshold = 0,
-                       size_format = "ESURF")
+                       size_format = size_format, aspect_ratio = figure_aspect_ratio, dpi = dpi)
