@@ -166,6 +166,61 @@ class KP_dev_v2(object):
             plt.savefig(svdir + self.fprefix + "_outksn_SK_" +str(SK)+".png", dpi = 300)
             plt.clf()
 
+    def print_ksn_dksndchi(self):
+        """
+            This function is used to print one ksn profile per river to check the effect of the different filters on the dataset
+            BG - 12/01/2018
+        """
+        plt.clf()
+        print("I will now print ksn(chi) with outliers")
+        svdir = self.fpath+'river_plots/'
+        if not os.path.isdir(svdir):
+            os.makedirs(svdir)
+
+        for SK in self.df_river["source_key"].unique():
+            print("printing river: " +str(SK))
+
+            # Selecting the river
+            df = self.df_river[self.df_river["source_key"] == SK]
+            dfo = self.df_kp[self.df_kp["source_key"] == SK]
+
+            fig = plt.figure(1, facecolor='white',figsize=(9,5))
+
+            gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.90,top=0.95)
+            ax1 = fig.add_subplot(gs[0:100,0:100])
+            ax2 = fig.add_subplot(gs[0:100,0:100], facecolor = "None")
+
+
+
+            ax1.scatter(df["chi"], df["m_chi"], c = "gray", s = 1, marker = "o", label = "ksn")
+            # ax1.scatter(df["chi"], df["lumped_ksn"], c = "g", s = 1, marker = "s", label = "lumped ksn")
+            
+            ax1.scatter(df["chi"], df["TVD_ksn"], c = "k", s = 1, marker = "+", label = "TVD ksn")
+            ylim = ax1.get_ylim()
+            ax2.scatter(dfo["chi"], dfo["delta_ksn"], c = "r", s = 3, marker = "s", label = r'$ \frac{d(TVD_ksn)}{d\chi}$')
+
+            ax2.yaxis.set_label_position('right')
+            ax2.yaxis.set_ticks_position('right')
+            ax2.xaxis.set_visible(False)
+            ax1.yaxis.set_label_position('left')
+            ax1.yaxis.set_ticks_position('left')
+
+
+
+            ax2.set_xlim(ax1.get_xlim())
+            ax1.set_ylim(ylim)
+            # ax1.scatter(dfo["chi"][dfo["out_MZS"]==1], dfo["delta_ksn"][dfo["out_MZS"]==1], c = "r" , marker = "s", s = 2)
+
+
+            # ax1.legend()
+
+            ax1.set_xlabel(r'$ \chi$')
+            ax1.set_ylabel(r'$ k_{sn}$')
+            ax2.set_ylabel(r'$ \frac{d(TVD_ksn)}{d\chi}$')
+
+            plt.savefig(svdir + self.fprefix + "_ksn_rawkp_SK_" +str(SK)+".png", dpi = 300)
+            plt.clf()
+
 
 
     def print_KDE(self):
