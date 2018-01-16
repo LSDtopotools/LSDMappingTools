@@ -1497,7 +1497,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        FigFormat = 'png',elevation_threshold = 0,
                        first_basin = 0, last_basin = 0, basin_order_list = [],
                        basin_rename_dict = {},
-                       this_cmap = "viridis",data_name = 'chi', X_offset = 5,
+                       this_cmap = "viridis",axis_data_name = 'chi', colour_data_name = "m_chi", colorbarlabel = "Colourbar", X_offset = 5,
                        plotting_data_format = 'log',
                        label_sources = False, source_thinning_threshold = 0,
                        size_format = "ESURF", aspect_ratio = 2, dpi = 500):
@@ -1588,10 +1588,10 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         thisPointData.ThinDataSelection("source_key",remaining_sources)
 
     # Get the chi, m_chi, basin number, and source ID code
-    if data_name  == 'chi':
+    if axis_data_name  == 'chi':
         x_data = thisPointData.QueryData('chi').values
         x_data = [float(x) for x in x_data]
-    elif data_name == 'flow_distance':
+    elif axis_data_name == 'flow_distance':
         x_data = thisPointData.QueryData('flow_distance').values
         x_data = [float(x) for x in x_data]
     else:
@@ -1601,30 +1601,32 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
 
     elevation = thisPointData.QueryData('elevation').values
     elevation = [float(x) for x in elevation]
-    m_chi = thisPointData.QueryData('m_chi').values
+    m_chi = thisPointData.QueryData(colour_data_name).values
     m_chi = [float(x) for x in m_chi]
     basin = thisPointData.QueryData('basin_key').values
     basin = [int(x) for x in basin]
-    
-    #print("The basins are:")
-    #print(basin)
-    
     source = thisPointData.QueryData('source_key').values
     source = [int(x) for x in source]
+    
+    colour_data = thisPointData.QueryData(colour_data_name).values
+    colour_data = [float(x) for x in colour_data]
 
-    colorbarlabel = "$k_{sn}$"
     if (plotting_data_format == 'log'):
         log_m_chi = []
+        log_colour_data = []
         for value in m_chi:
             if value < 0.1:
                 log_m_chi.append(0)
             else:
                 log_m_chi.append(math.log10(value))
         m_chi = log_m_chi
-        colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"
-
-    # Add the cubehelix colourbar
-    #this_cmap = cubehelix.cmap(rot=1, reverse=True,start=3,gamma=1.0,sat=2.0)
+        
+        for cvalue in colour_data:
+            if cvalue < 0.1:
+                log_colour_data.append(0)
+            else:
+                log_colour_data.append(math.log10(cvalue))
+        colour_data = log_colour_data
 
     # need to convert everything into arrays so we can mask different basins
     Xdata = np.asarray(x_data)
@@ -1632,6 +1634,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     M_chi = np.asarray(m_chi)
     Basin = np.asarray(basin)
     Source = np.asarray(source)
+    Colour_data = np.asarray(colour_data)
 
     max_basin = np.amax(Basin)
     max_X = np.amax(Xdata)
@@ -1719,10 +1722,13 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         this_max_x =np.nanmax(maskX)
         width_box = this_max_x-this_min_x
 
+        # First subtract the minimum from the X data
+        maskX = np.subtract(maskX,this_min_x)        
+        
         # Now add the offset to the minimum and maximum
-        this_min_x = this_min_x+this_X_offset
-        this_max_x = this_max_x+this_X_offset
-
+        this_min_x = this_X_offset
+        this_max_x = width_box
+        
         # Now add the offset to the data
         maskX = np.add(maskX,this_X_offset)
 
@@ -1790,19 +1796,13 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                 texts.append(ax.text(source_X+this_X_offset, source_Elevation, str(this_source), style='italic',
                         verticalalignment='bottom', horizontalalignment='left',fontsize=8,bbox=bbox_props))
         
-        # Now plot the scatter for this stack
-        sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskMChi,cmap=this_cmap,edgecolors='none')
+        # Now plot the scatter for this stack. The colour limits are for all plots
+        sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskMChi,cmap=this_cmap,edgecolors='none',vmin = 0, vmax = M_chi_axis_max)
 
         # increment the offset
         this_X_offset = this_X_offset+X_offset
         print("The new chi offset is: "+str(this_X_offset))
 
-    # set the colour limits
-    sc.set_clim(0, M_chi_axis_max)
-    #bounds = (0, M_chi_axis_max)
-
-    #print("Heya, this cmap is:")
-    #print(this_cmap)
     
     # This is the axis for the colorbar
     ax2 = fig.add_axes([0.1,0.8,0.05,0.2])
@@ -1820,7 +1820,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     ax.set_ylabel("Elevation (m)")
 
     # we need special formatting for the fow distance, since we want locations in kilometres
-    if data_name == 'flow_distance':
+    if axis_data_name == 'flow_distance':
         # now get the tick marks
         n_target_tics = 5
         X_axis_min = 0

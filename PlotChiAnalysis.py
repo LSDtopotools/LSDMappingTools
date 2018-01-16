@@ -162,11 +162,12 @@ def main(argv):
         bil = ".bil"
         
     if args.plot_chi_stack:
+        #cbl = "funkmonkey"
+        cbl = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"
+        print("I am going to plot some chi stacks for you.")
+        #LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="chi",colorbarlabel = cbl, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_chi")
         
-        print("I am going to plot some chi stacks gfor you.")
-        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$",
-        first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict)
-    
+        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "elevation", plotting_data_format = 'normal', colorbarlabel = cbl, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_FD")    
 
  
  

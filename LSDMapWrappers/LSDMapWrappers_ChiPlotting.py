@@ -200,7 +200,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
-def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", Basin_select_list = [], Basin_rename_dict = {} , out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2):
+def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plot_data_name = "m_chi", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2):
     """
     This function prints a channel map over a hillshade.
 
@@ -220,6 +220,8 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
         Basin_remove_list (list): A lists containing either key or junction indices of basins you want to remove from plotting
         Basin_rename_dict (dict): A dict where the key is either basin key or junction index, and the value is a new name for the basin denoted by the key
         out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
+        axis_data_name (str): the data used as the x axis
+        plot_data_name (str): the data name used to colour the plot
 
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Includes channels. These can be plotted by various metrics denoted but the plotting_column parameter. 
@@ -255,14 +257,20 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_stacked_chi."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_stacked_chi."+fig_format   
+        ImageName = DataDirectory+out_fname_prefix+"_stacked_chi."+fig_format  
+        
+    if axis_data_name == "flow_distance":
+        x_offset = 50000
+    else:
+        x_offset = 5
 
     print("Cmap is: "+cmap)
     LSDCP.StackedProfilesGradient(chi_csv_fname, FigFileName = ImageName,
                        FigFormat = 'png',elevation_threshold = 0,
                        first_basin = first_basin, last_basin = last_basin, basin_order_list = Basin_select_list,
                        basin_rename_dict = Basin_rename_dict ,
-                       this_cmap = cmap,data_name = 'chi', X_offset = 5,
-                       plotting_data_format = 'log',
+                       this_cmap = cmap,axis_data_name = axis_data_name, colour_data_name = plot_data_name, 
+                       colorbarlabel = colorbarlabel, X_offset = x_offset,
+                       plotting_data_format = plotting_data_format,
                        label_sources = False, source_thinning_threshold = 0,
                        size_format = size_format, aspect_ratio = figure_aspect_ratio, dpi = dpi)
