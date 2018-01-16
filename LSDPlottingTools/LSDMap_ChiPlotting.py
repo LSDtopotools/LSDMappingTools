@@ -1691,8 +1691,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         source_info = FindSourceInformation(thisPointData)
 
     # Now start looping through the basins
-    dot_pos = FigFileName.rindex('.')
-    newFilename = FigFileName[:dot_pos]+'_GradientStack'+str(first_basin)+FigFileName[dot_pos:]
+    #dot_pos = FigFileName.rindex('.')
+    #newFilename = FigFileName[:dot_pos]+'_GradientStack'+str(first_basin)+FigFileName[dot_pos:]
 
 
     texts = []
@@ -1735,6 +1735,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
             if basin_number in basin_rename_dict:
                 print("I found this basin in the rename list. I am renaming.")
                 this_basin_text = "Basin "+str(basin_rename_dict[basin_number])
+            else: 
+                this_basin_text = "Basin "+str(basin_number)
         else:
             this_basin_text = "Basin "+str(basin_number)
 
@@ -1867,7 +1869,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     elif FigFormat == 'return':
         return fig
     else:
-        plt.savefig(newFilename,format=FigFormat,dpi=dpi)
+        plt.savefig(FigFileName,format=FigFormat,dpi=dpi)
         fig.clf()
 
 def ChannelProfilePlot(DataDirectory, fname_prefix, FigFormat='png', size_format='ESURF',basin_key=[0], source_key=[0]):

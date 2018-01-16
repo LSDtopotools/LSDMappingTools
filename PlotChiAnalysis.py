@@ -165,7 +165,7 @@ def main(argv):
         
         print("I am going to plot some chi stacks gfor you.")
         LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$",
-        first_basin = 16, last_basin = 19)
+        first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict)
     
 
  
