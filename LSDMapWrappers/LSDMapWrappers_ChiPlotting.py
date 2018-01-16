@@ -200,7 +200,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
-def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plot_data_name = "m_chi", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2):
+def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "bottom", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plot_data_name = "m_chi", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2):
     """
     This function prints a channel map over a hillshade.
 
@@ -263,6 +263,8 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
         x_offset = 50000
     else:
         x_offset = 5
+        
+    print("The colourbar is located on the "+cbar_loc)
 
     print("Cmap is: "+cmap)
     LSDCP.StackedProfilesGradient(chi_csv_fname, FigFileName = ImageName,
@@ -270,7 +272,8 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
                        first_basin = first_basin, last_basin = last_basin, basin_order_list = Basin_select_list,
                        basin_rename_dict = Basin_rename_dict ,
                        this_cmap = cmap,axis_data_name = axis_data_name, colour_data_name = plot_data_name, 
-                       colorbarlabel = colorbarlabel, X_offset = x_offset,
+                       discrete_colours = discrete_colours, NColours = NColours,
+                       colorbarlabel = colorbarlabel, cbar_loc = cbar_loc, X_offset = x_offset,
                        plotting_data_format = plotting_data_format,
                        label_sources = False, source_thinning_threshold = 0,
                        size_format = size_format, aspect_ratio = figure_aspect_ratio, dpi = dpi)

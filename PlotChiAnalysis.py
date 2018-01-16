@@ -165,11 +165,11 @@ def main(argv):
         #cbl = "funkmonkey"
         cbl = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"
         print("I am going to plot some chi stacks for you.")
-        #LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="chi",colorbarlabel = cbl, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_chi")
+        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, cbar_loc = "top", first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_chi")
         
-        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "elevation", plotting_data_format = 'normal', colorbarlabel = cbl, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_FD")    
+        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_FD")    
 
- 
+        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 15, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_Sources")     
  
 
 #=============================================================================
