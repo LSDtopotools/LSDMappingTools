@@ -1115,7 +1115,12 @@ class MapFigure(object):
         print(easting[0],northing[0])
 
         # check if the column for plotting exists
-        this_data = thisPointData.QueryData(column_for_plotting).values
+        # BG - 16/01/2018 - Adding some exception management. Sometimes, a list can be returned by QueryData and crash here
+        try:
+            this_data = thisPointData.QueryData(column_for_plotting).values
+        except AttributeError:
+            this_data = thisPointData.QueryData(column_for_plotting)
+
         print("I got the data column you wanted")
         # Log the color if required
         if(colour_log):
