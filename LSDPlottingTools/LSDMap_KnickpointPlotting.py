@@ -53,6 +53,7 @@ class KP_dev_v2(object):
         
         try:
             self.df_river = Helper.ReadMChiSegCSV(self.fpath, self.fprefix, type = "knickpoint")
+            self.df_kp_raw = Helper.ReadKnickpointCSV(self.fpath, self.fprefix, ftype = "raw")
             self.df_kp = Helper.ReadKnickpointCSV(self.fpath, self.fprefix)
             self.df_SK = Helper.readSKKPstats(self.fpath, self.fprefix)
         except IOError:
@@ -69,6 +70,7 @@ class KP_dev_v2(object):
             print("You selected the following basins:")
             print(basin_key)
             self.df_river = self.df_river[self.df_river["basin_key"].isin(basin_key)]
+            self.df_kp_raw = self.df_kp_raw[self.df_kp_raw["basin_key"].isin(basin_key)]
             self.df_kp = self.df_kp[self.df_kp["basin_key"].isin(basin_key)]
             self.df_SK = self.df_SK[self.df_SK["basin_key"].isin(basin_key)]
 
@@ -80,12 +82,14 @@ class KP_dev_v2(object):
             self.df_SK = self.df_SK[self.df_SK["length"]>min_length]
             source_key = self.df_SK["source_key"].unique()
             self.df_river = self.df_river[self.df_river["source_key"].isin(source_key)]
+            self.df_kp_raw = self.df_kp_raw[self.df_kp_raw["source_key"].isin(source_key)]
             self.df_kp = self.df_kp[self.df_kp["source_key"].isin(source_key)]
             self.df_SK = self.df_SK[self.df_SK["source_key"].isin(source_key)]
         else:
             print("You selected the following Sources: ")
             print(source_key)
             self.df_river = self.df_river[self.df_river["source_key"].isin(source_key)]
+            self.df_kp_raw = self.df_kp_raw[self.df_kp_raw["source_key"].isin(source_key)]
             self.df_kp = self.df_kp[self.df_kp["source_key"].isin(source_key)]
             self.df_SK = self.df_SK[self.df_SK["source_key"].isin(source_key)]
 
@@ -145,7 +149,7 @@ class KP_dev_v2(object):
 
             # Selecting the river
             df = self.df_river[self.df_river["source_key"] == SK]
-            dfo = self.df_kp[self.df_kp["source_key"] == SK]
+            dfo = self.df_kp_raw[self.df_kp_raw["source_key"] == SK]
 
             fig = plt.figure(1, facecolor='white',figsize=(9,5))
 
@@ -184,7 +188,7 @@ class KP_dev_v2(object):
 
             # Selecting the river
             df = self.df_river[self.df_river["source_key"] == SK]
-            dfo = self.df_kp[self.df_kp["source_key"] == SK]
+            dfo = self.df_kp_raw[self.df_kp_raw["source_key"] == SK]
 
             fig = plt.figure(1, facecolor='white',figsize=(9,5))
 
@@ -237,11 +241,11 @@ class KP_dev_v2(object):
         if not os.path.isdir(svdir):
             os.makedirs(svdir)
 
-        for SK in self.df_kp["source_key"].unique():
+        for SK in self.df_kp_raw["source_key"].unique():
             print("printing river: " +str(SK))
 
             # Selecting the river
-            df = self.df_kp[self.df_kp["source_key"] == SK]
+            df = self.df_kp_raw[self.df_kp_raw["source_key"] == SK]
 
             fig = plt.figure(1, facecolor='white',figsize=(9,5))
 
@@ -256,7 +260,39 @@ class KP_dev_v2(object):
             plt.savefig(svdir + self.fprefix + "_KDE_SK_" +str(SK)+".png", dpi = 300)
             plt.clf()
 
+    def DEBUG_print_ksn_comparison(self):
+        """
+            This function is used to print one ksn profile per river to check the effect of the different filters on the dataset
+            BG - 12/01/2018
+        """
+        plt.clf()
+        print("I will now print ksn(chi) with the different filter")
+        svdir = self.fpath+'river_plots/'
+        if not os.path.isdir(svdir):
+            os.makedirs(svdir)
 
+        for SK in self.df_river["source_key"].unique():
+            print("printing river: " +str(SK))
+
+            # Selecting the river
+            df = self.df_river[self.df_river["source_key"] == SK]
+
+            fig = plt.figure(1, facecolor='white',figsize=(9,5))
+
+            gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
+            ax1 = fig.add_subplot(gs[0:100,0:100])
+
+            ax1.scatter(df["chi"], df["m_chi"], c = "r", s = 1, marker = "o", label = "ksn")
+            ax1.scatter(df["chi"], df["lumped_ksn"], c = "g", s = 1, marker = "s", label = "lumped ksn")
+            ax1.scatter(df["chi"], df["TVD_ksn"], c = "k", s = 1, marker = "+", label = "TVD ksn")
+
+            ax1.legend()
+
+            ax1.set_xlabel(r'$ \chi$')
+            ax1.set_ylabel(r'$ k_{sn}$')
+
+            plt.savefig(svdir + self.fprefix + "_ksn_SK_" +str(SK)+".png", dpi = 300)
+            plt.clf()
 
 
 

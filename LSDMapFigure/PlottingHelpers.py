@@ -671,7 +671,7 @@ def readSKKPstats(DataDirectory, fname_prefix):
 
     return df
 
-def ReadKnickpointCSV(DataDirectory, fname_prefix):
+def ReadKnickpointCSV(DataDirectory, fname_prefix, ftype = "normal"):
     """
     This function reads in the file with the suffix
     '_KsnKn.csv'
@@ -687,7 +687,10 @@ def ReadKnickpointCSV(DataDirectory, fname_prefix):
     Author: BG
     """
     # get the csv filename
-    suffix = '_ksnkp_raw.csv'
+    if(type == raw):
+        suffix = '_ksnkp_raw.csv'
+    else:
+        suffix = '_ksnkp_raw'
     fname = fname_prefix+suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
