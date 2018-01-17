@@ -60,6 +60,7 @@ def main(argv):
     parser.add_argument("-PR", "--plot_rasters", type=bool, default=False, help="If this is true, I'll make raster plots of the m/n value and basin keys")
     parser.add_argument("-PCS", "--plot_chi_stack", type=bool, default=False, help="If this is true, I'll make a stack of chi plots.")
 
+    parser.add_argument("-all", "--all_chi_plots", type=bool, default=False, help="If this is true, I'll make all the plots including raster and chi profile plots.")
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
@@ -126,8 +127,12 @@ def main(argv):
         print("I didn't find a basins info csv file. Check directory or filename.")
     
     print("Let me mask get a list of the masked basins")
-    
-    # Python is so amazing. Look at the line below. 
+       
+    # If the basin keys are not supplited then assume all basins are used. 
+    if these_basin_keys == []:
+        these_basin_keys = existing_basin_keys
+        
+    # Python is so amazing. Look at the line below.
     Mask_basin_keys = [i for i in existing_basin_keys if i not in these_basin_keys]
     print("All basins are: ")
     print(existing_basin_keys)
@@ -135,6 +140,11 @@ def main(argv):
     print(these_basin_keys)
     print("The basins to mask are:")
     print(Mask_basin_keys)
+    
+    # get a value dict for a single colour basin
+    value_dict_single_basin = {}
+    for basin in these_basin_keys:
+        value_dict_single_basin[basin] = 1
     
 
     # some formatting for the figures
@@ -169,8 +179,58 @@ def main(argv):
         
         LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_FD")    
 
-        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 15, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_Sources")     
- 
+        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 15, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_Sources")
+        
+    # This bundles a number of different analyses    
+    if args.all_chi_plots:
+        print("First let me check if the directories exist.")
+        
+        # check if a raster directory exists. If not then make it.
+        raster_directory = this_dir+'raster_plots/'
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+            
+        # check if a chi profile directory exists. If not then make it.
+        chi_profile_directory = this_dir+'chi_profile_plots/'
+        if not os.path.isdir(chi_profile_directory):
+            os.makedirs(chi_profile_directory)   
+        
+        # Get the names of the relevant files
+        ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
+        
+        raster_out_prefix = "/raster_plots/"+args.fname_prefix
+        
+        # get the value dict for a single 
+        
+        # Now for raster plots
+        # First the basins, labeled:
+        #LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", cbar_loc = "right", size_format = "ESURF",fig_format = "png", dpi = 250, out_fname_prefix = raster_out_prefix)
+        
+        # Now the chi steepness
+        #LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "viridis", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = value_dict_single_basin, out_fname_prefix = raster_out_prefix)
+        
+        # Now do the chi profiles. 
+        # We find it is difficult to stack more than 4 profiles. Simply stack as an order of basins
+        basin_stack_list = []
+        basin_stack_list.append([3,4,6])
+        basin_stack_list.append([8,10,12])
+        basin_stack_list.append([17,16,14])
+        basin_stack_list.append([19,13,18])
+
+        cbl = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"
+        
+        print("I am going to plot some chi stacks for you.")
+        i = 0
+        this_rename_dict = {}
+        for little_list in basin_stack_list:
+            i = i+1
+            this_prefix = "chi_profile_plots/Stacked_"+str(i)+"_" 
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, cbar_loc = "top", first_basin = 16, last_basin = 19, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi")
+        
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"__FD")    
+
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 15, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources")        
+
 
 #=============================================================================
 if __name__ == "__main__":
