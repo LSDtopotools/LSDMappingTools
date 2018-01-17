@@ -37,9 +37,9 @@ def print_welcome():
 #=============================================================================
 # This parses a comma separated string
 #=============================================================================    
-def parse_comma_separated_string(a_string):
+def parse_list_from_string(a_string):
     if len(a_string) == 0:
-        print("No basins found, I will plot all of them")
+        print("No items found, I am returning and empty list.")
         return_list = []
     else:
         return_list = [int(item) for item in a_string.split(',')]
@@ -53,7 +53,7 @@ def parse_comma_separated_string(a_string):
 #=============================================================================    
 def parse_dict_from_string(a_string):
     if len(a_string) == 0:
-        print("No rename dictionary found. I will return and empty dict")
+        print("No rename dictionary found. I will return and empty dict.")
         this_rename_dict = {}
     else:
         listified_entry = [item for item in a_string.split(',')]
@@ -74,7 +74,7 @@ def parse_dict_from_string(a_string):
 def parse_list_of_list_from_string(a_string):
     
     if len(a_string) == 0:
-        print("No list of list found. I will return an empty dict")
+        print("No list of list found. I will return an empty list.")
         list_of_list = []
     else:
         listified_entry = [item for item in a_string.split(':')]
@@ -89,6 +89,33 @@ def parse_list_of_list_from_string(a_string):
     print(list_of_list)
     
     return list_of_list
+
+#=============================================================================
+# This pads an offset list so it is the same size as the basin list
+#=============================================================================     
+def pad_offset_lists(basin_stack_list,offset_list):
+    
+    # I need to check chi the offsets
+    n_basin_stacks = len(basin_stack_list)
+    if len(offset_list) == 0:
+        const_offset = 5
+    else:
+        const_offset = offset_list[-1]
+    final_offsets = offset_list
+    if len(offset_list) < n_basin_stacks:
+        final_offsets = offset_list + [const_offset]*(n_basin_stacks - len(offset_list))
+    else:
+        final_offsets = offset_list
+
+    print("Initial offsets are: ")
+    print(offset_list)
+    print("And const offset is: "+str(const_offset))
+    print("Final offset is: ")
+    print(final_offsets)
+    
+    return final_offsets
+    
+    
     
 #=============================================================================
 # This is the main function that runs the whole thing
@@ -136,12 +163,22 @@ def main(argv):
 
     
     # Parse any lists, dicts, or list of lists from the arguments   
-    these_basin_keys = parse_list_from_string(args.args.basin_keys)
+    these_basin_keys = parse_list_from_string(args.basin_keys)
     this_rename_dic = parse_dict_from_string(args.rename_dict)
     basin_stack_list = parse_list_of_list_from_string(args.basin_lists)
     chi_offset_list = parse_list_from_string(args.chi_offsets)
-    FD_offset_list = parse_list_from_string(args.flow_distance_offsets)
-        
+    fd_offset_list = parse_list_from_string(args.flow_distance_offsets)
+
+    # Set default offsets
+    if len(chi_offset_list) == 0:
+        chi_offset_list.append(5)
+    if len(fd_offset_list) == 0:
+        fd_offset_list.append(20000)
+    
+    print("I am matching the offest list lengths to the number of basin stacks")    
+    final_chi_offsets = pad_offset_lists(basin_stack_list,chi_offset_list)
+    final_fd_offsets = pad_offset_lists(basin_stack_list,fd_offset_list)
+
     # get the base directory
     if args.base_directory:
         this_dir = args.base_directory
@@ -152,7 +189,7 @@ def main(argv):
     else:
         this_dir = os.getcwd()
 
-        
+       
     # See if a basin info file exists and if so get the basin list
     print("Let me check if there is a basins info csv file.")
     BasinInfoPrefix = args.fname_prefix+"_AllBasinsInfo.csv"
@@ -166,7 +203,7 @@ def main(argv):
     else:
         print("I didn't find a basins info csv file. Check directory or filename.")
     
-    print("Let me mask get a list of the masked basins")
+    print("Let me get a list of the masked basins")
        
     # If the basin keys are not supplited then assume all basins are used. 
     if these_basin_keys == []:
@@ -248,25 +285,24 @@ def main(argv):
         # Now the chi steepness
         #LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "viridis", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = value_dict_single_basin, out_fname_prefix = raster_out_prefix)
         
-        # Now do the chi profiles. 
-        # We find it is difficult to stack more than 4 profiles. Simply stack as an order of basins
-        basin_stack_list = []
-        basin_stack_list.append([3,4,6])
-        basin_stack_list.append([8,10,12])
-        basin_stack_list.append([17,16,14])
-        basin_stack_list.append([19,13,18])
 
-        cbl = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"
         
+
+            
+            
+        
+         
         print("I am going to plot some chi stacks for you.")
+        cbl = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"  
         i = 0
         this_rename_dict = {}
         for little_list in basin_stack_list:
             i = i+1
             this_prefix = "chi_profile_plots/Stacked_"+str(i)+"_" 
-            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, cbar_loc = "top", first_basin = 16, last_basin = 19, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi")
+            
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, cbar_loc = "bottom", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi")
         
-            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"__FD")    
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_FD")    
 
             LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 15, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources")        
 
