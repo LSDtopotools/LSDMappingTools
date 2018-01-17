@@ -35,6 +35,62 @@ def print_welcome():
     print("=======================================================================\n\n ")
 
 #=============================================================================
+# This parses a comma separated string
+#=============================================================================    
+def parse_comma_separated_string(a_string):
+    if len(a_string) == 0:
+        print("No basins found, I will plot all of them")
+        return_list = []
+    else:
+        return_list = [int(item) for item in a_string.split(',')]
+        print("The parsed string is:")
+        print(return_list)
+        
+    return return_list
+
+#=============================================================================
+# This parses a dict separated string
+#=============================================================================    
+def parse_dict_from_string(a_string):
+    if len(a_string) == 0:
+        print("No rename dictionary found. I will return and empty dict")
+        this_rename_dict = {}
+    else:
+        listified_entry = [item for item in a_string.split(',')]
+        this_rename_dict = {}
+        
+        # now loop through these creating a dict
+        for entry in listified_entry:
+            split_entry = entry.split(":")
+            this_rename_dict[int(split_entry[0])]=split_entry[1]
+    
+    print("The parsed dict is: ")
+    print(this_rename_dict)
+    return this_rename_dict
+
+#=============================================================================
+# This parses a list of lists separated string. Each list is separated by a colon
+#=============================================================================    
+def parse_list_of_list_from_string(a_string):
+    
+    if len(a_string) == 0:
+        print("No list of list found. I will return an empty dict")
+        list_of_list = []
+    else:
+        listified_entry = [item for item in a_string.split(':')]
+        list_of_list = []
+        
+        # now loop through these creating a dict
+        for entry in listified_entry:
+            split_entry = [int(item) for item in entry.split(',')]
+            list_of_list.append(split_entry)
+    
+    print("This list of lists is: ")
+    print(list_of_list)
+    
+    return list_of_list
+    
+#=============================================================================
 # This is the main function that runs the whole thing
 #=============================================================================
 def main(argv):
@@ -55,7 +111,11 @@ def main(argv):
     # Selecting and renaming basins
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")  
     parser.add_argument("-rename_dict", "--rename_dict",type=str,default = "", help = "This is a string that initiates a dictionary for renaming basins. The different dict entries should be comma separated, and key and value should be separated by a colon. Default = no dict")   
-     
+    parser.add_argument("-basin_lists", "--basin_lists",type=str,default = "", help = "This is a string that initiates a list of a list for grouping basins. The object becomes a list of a list but the syntax is comma seperated lists, and each one is separated by a colon. Default = no dict")
+    parser.add_argument("-chi_offsets", "--chi_offsets",type=str,default = "", help = "This is a string that initiates a list of chi offsets for each of the basin lists. Default = no list")
+    parser.add_argument("-fd_offsets", "--flow_distance_offsets",type=str,default = "", help = "This is a string that initiates a list of flow distance offsets for each of the basin lists. Default = no list")
+    
+    
     # What sort of analyses you want
     parser.add_argument("-PR", "--plot_rasters", type=bool, default=False, help="If this is true, I'll make raster plots of the m/n value and basin keys")
     parser.add_argument("-PCS", "--plot_chi_stack", type=bool, default=False, help="If this is true, I'll make a stack of chi plots.")
@@ -74,34 +134,14 @@ def main(argv):
             print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
             sys.exit()
 
-    # check the basins
-    print("You told me that the basin keys are: ")
-    print(args.basin_keys)
-
-    if len(args.basin_keys) == 0:
-        print("No basins found, I will plot all of them")
-        these_basin_keys = []
-    else:
-        these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
-        print("The basins I will plot are:")
-        print(these_basin_keys)
+    
+    # Parse any lists, dicts, or list of lists from the arguments   
+    these_basin_keys = parse_list_from_string(args.args.basin_keys)
+    this_rename_dic = parse_dict_from_string(args.rename_dict)
+    basin_stack_list = parse_list_of_list_from_string(args.basin_lists)
+    chi_offset_list = parse_list_from_string(args.chi_offsets)
+    FD_offset_list = parse_list_from_string(args.flow_distance_offsets)
         
-    if len(args.rename_dict) == 0:
-        print("No rename dictionary found. I will label with the original basin keys")
-        this_rename_dict = {}
-    else:
-        listified_entry = [item for item in args.rename_dict.split(',')]
-        this_rename_dict = {}
-        
-        # now loop through these creating a dict
-        for entry in listified_entry:
-            split_entry = entry.split(":")
-            this_rename_dict[int(split_entry[0])]=split_entry[1]
-            
-    print("The rename dict is:")
-    print(this_rename_dict)        
-        
-
     # get the base directory
     if args.base_directory:
         this_dir = args.base_directory
@@ -145,7 +185,6 @@ def main(argv):
     value_dict_single_basin = {}
     for basin in these_basin_keys:
         value_dict_single_basin[basin] = 1
-    
 
     # some formatting for the figures
     if args.FigFormat == "manuscipt_svg":
