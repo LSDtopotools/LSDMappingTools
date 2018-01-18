@@ -91,6 +91,25 @@ def parse_list_of_list_from_string(a_string):
     return list_of_list
 
 #=============================================================================
+# This takes the basin stack list and then gives each basin in a stack layer
+# a constant value. Used for plotting. 
+#=============================================================================  
+def convert_basin_stack_to_value_dict(basin_stack_list):
+    
+    N_stacks = len(basin_stack_list)
+    print("The number of stacks are: "+ str(N_stacks))
+    if len(basin_stack_list) == 0:
+        this_value_dict = {}
+    else:
+        this_value_dict = {}
+        for idx,stack in enumerate(basin_stack_list):
+            value = float(idx)/float(N_stacks)
+            for item in stack:
+                this_value_dict[item] = value
+    return this_value_dict
+                
+
+#=============================================================================
 # This pads an offset list so it is the same size as the basin list
 #=============================================================================     
 def pad_offset_lists(basin_stack_list,offset_list):
@@ -144,9 +163,6 @@ def main(argv):
     
     
     # What sort of analyses you want
-    parser.add_argument("-PR", "--plot_rasters", type=bool, default=False, help="If this is true, I'll make raster plots of the m/n value and basin keys")
-    parser.add_argument("-PCS", "--plot_chi_stack", type=bool, default=False, help="If this is true, I'll make a stack of chi plots.")
-
     parser.add_argument("-all", "--all_chi_plots", type=bool, default=False, help="If this is true, I'll make all the plots including raster and chi profile plots.")
     parser.add_argument("-all_rasters", "--all_raster_plots", type=bool, default=False, help="If this is true, I'll make all the raster plots.")
     parser.add_argument("-all_stacks", "--all_stacked_plots", type=bool, default=False, help="If this is true, I'll make all the stacked plots.")
@@ -164,26 +180,6 @@ def main(argv):
             print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
             sys.exit()
 
-            
-    
-    
-    # Parse any lists, dicts, or list of lists from the arguments   
-    these_basin_keys = parse_list_from_string(args.basin_keys)
-    this_rename_dict = parse_dict_from_string(args.rename_dict)
-    basin_stack_list = parse_list_of_list_from_string(args.basin_lists)
-    chi_offset_list = parse_list_from_string(args.chi_offsets)
-    fd_offset_list = parse_list_from_string(args.flow_distance_offsets)
-
-    # Set default offsets
-    if len(chi_offset_list) == 0:
-        chi_offset_list.append(5)
-    if len(fd_offset_list) == 0:
-        fd_offset_list.append(20000)
-    
-    print("I am matching the offest list lengths to the number of basin stacks")    
-    final_chi_offsets = pad_offset_lists(basin_stack_list,chi_offset_list)
-    final_fd_offsets = pad_offset_lists(basin_stack_list,fd_offset_list)
-
     # get the base directory
     if args.base_directory:
         this_dir = args.base_directory
@@ -194,7 +190,8 @@ def main(argv):
     else:
         this_dir = os.getcwd()
 
-       
+                  
+            
     # See if a basin info file exists and if so get the basin list
     print("Let me check if there is a basins info csv file.")
     BasinInfoPrefix = args.fname_prefix+"_AllBasinsInfo.csv"
@@ -208,8 +205,14 @@ def main(argv):
     else:
         print("I didn't find a basins info csv file. Check directory or filename.")
     
-    print("Let me get a list of the masked basins")
-       
+
+    # Parse any lists, dicts, or list of lists from the arguments   
+    these_basin_keys = parse_list_from_string(args.basin_keys)
+    this_rename_dict = parse_dict_from_string(args.rename_dict)
+    basin_stack_list = parse_list_of_list_from_string(args.basin_lists)
+    chi_offset_list = parse_list_from_string(args.chi_offsets)
+    fd_offset_list = parse_list_from_string(args.flow_distance_offsets)
+
     # If the basin keys are not supplited then assume all basins are used. 
     if these_basin_keys == []:
         these_basin_keys = existing_basin_keys
@@ -221,12 +224,35 @@ def main(argv):
     print("The basins to keep are:")
     print(these_basin_keys)
     print("The basins to mask are:")
-    print(Mask_basin_keys)
+    print(Mask_basin_keys)    
     
-    # get a value dict for a single colour basin
+    # Look to see if there is a basin stack list. If there is, organise it so that we have different values in the
+    # value dict
+    if len(basin_stack_list) == 0:
+        temp_stack = []
+        temp_stack.append(these_basin_keys)
+        this_value_dict = convert_basin_stack_to_value_dict(temp_stack)
+    else:
+        this_value_dict = convert_basin_stack_to_value_dict(basin_stack_list)
+        
+    # Now make sure all basins have a value dict value
     value_dict_single_basin = {}
     for basin in these_basin_keys:
         value_dict_single_basin[basin] = 1
+        if basin not in this_value_dict:
+            this_value_dict[basin] = 1
+
+    # Set default offsets
+    if len(chi_offset_list) == 0:
+        chi_offset_list.append(5)
+    if len(fd_offset_list) == 0:
+        fd_offset_list.append(20000)
+    
+    print("I am matching the offest list lengths to the number of basin stacks")    
+    final_chi_offsets = pad_offset_lists(basin_stack_list,chi_offset_list)
+    final_fd_offsets = pad_offset_lists(basin_stack_list,fd_offset_list)
+
+
 
     # some formatting for the figures
     if args.FigFormat == "manuscipt_svg":
@@ -240,8 +266,6 @@ def main(argv):
 
     ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
  
-
-
         
     # This bundles a number of different analyses    
     if args.all_stacked_plots:
@@ -265,13 +289,16 @@ def main(argv):
         
         # Now for raster plots
         # First the basins, labeled:
-        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", cbar_loc = "right", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
+        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
+        
+        # Basins colour coded
+        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict, Value_dict = this_value_dict, cmap = "gray", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_stack_basins")
         
         # Now the chi steepness
-        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "viridis", cbar_loc = "right", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = value_dict_single_basin, out_fname_prefix = raster_out_prefix+"ksn")
+        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "viridis", cbar_loc = "right", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = value_dict_single_basin, out_fname_prefix = raster_out_prefix+"_ksn")
         
         # Now plot the channels coloured by the source number
-        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "tab20b", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="source_key", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = value_dict_single_basin, out_fname_prefix = raster_out_prefix+"sources", discrete_colours = True, NColours = 20, colour_log = False)
+        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "tab20b", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="source_key", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"sources", discrete_colours = True, NColours = 20, colour_log = False)
         
     if args.all_stacked_plots:
  
@@ -285,22 +312,6 @@ def main(argv):
         
         raster_out_prefix = "/raster_plots/"+args.fname_prefix       
         
-
-
-        
-
-            
-
-
-        
-
-
-        
-
-            
-            
-        
-         
         print("I am going to plot some chi stacks for you.")
         cbl = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"  
         i = 0
@@ -309,11 +320,14 @@ def main(argv):
             i = i+1
             this_prefix = "chi_profile_plots/Stacked_"+str(i)+"_" 
             
-            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, cbar_loc = "bottom", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi")
+            # This prints the chi profiles coloured by k_sn
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, cbar_loc = "bottom", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi")
         
-            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_FD")    
+            # This prints channel profiles coloured by k_sn
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_FD")    
 
-            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 15, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources")        
+            # This prints the channel profiles coloured by source number
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources")        
 
 
 #=============================================================================
