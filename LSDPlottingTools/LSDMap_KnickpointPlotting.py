@@ -99,7 +99,7 @@ class KP_dev_v2(object):
 
 
 
-    def print_ksn_filters(self):
+    def DEBUG_print_ksn_filters(self):
         """
             This function is used to print one ksn profile per river to check the effect of the different filters on the dataset
             BG - 12/01/2018
@@ -133,7 +133,7 @@ class KP_dev_v2(object):
             plt.savefig(svdir + self.fprefix + "_ksn_SK_" +str(SK)+".png", dpi = 300)
             plt.clf()
 
-    def print_ksn_outliers(self):
+    def DEBUG_print_ksn_outliers(self):
         """
             This function is used to print one ksn profile per river to check the effect of the different filters on the dataset
             BG - 12/01/2018
@@ -172,7 +172,7 @@ class KP_dev_v2(object):
             plt.savefig(svdir + self.fprefix + "_outksn_SK_" +str(SK)+".png", dpi = 300)
             plt.clf()
 
-    def print_ksn_dksndchi(self):
+    def DEBUG_print_ksn_dksndchi(self):
         """
             This function is used to print one ksn profile per river to check the effect of the different filters on the dataset
             BG - 12/01/2018
@@ -230,7 +230,7 @@ class KP_dev_v2(object):
 
 
 
-    def print_KDE(self):
+    def DEBUG_print_KDE(self):
         """
             This function is used to print one ksn profile per river to check the effect of the different filters on the dataset
             BG - 12/01/2018
@@ -277,21 +277,24 @@ class KP_dev_v2(object):
             # Selecting the river
             df = self.df_river[self.df_river["source_key"] == SK]
 
+            df_kp = self.df_kp[self.df_kp["source_key"] == SK]
+            df_kp_raw = self.df_kp_raw[self.df_kp_raw["source_key"] == SK]
             fig = plt.figure(1, facecolor='white',figsize=(9,5))
 
             gs = plt.GridSpec(100,100,bottom=0.10,left=0.10,right=0.95,top=0.95)
             ax1 = fig.add_subplot(gs[0:100,0:100])
 
-            ax1.scatter(df["chi"], df["m_chi"], c = "r", s = 1, marker = "o", label = "ksn")
-            ax1.scatter(df["chi"], df["lumped_ksn"], c = "g", s = 1, marker = "s", label = "lumped ksn")
-            ax1.scatter(df["chi"], df["TVD_ksn"], c = "k", s = 1, marker = "+", label = "TVD ksn")
+            ax1.scatter(df["chi"], df["TVD_ksn"], c = "k", s = 2, marker = "o", label = "ksn")
+            ax1.scatter(df_kp_raw["chi"], df_kp_raw["delta_ksn"], c = "green" , marker = "x", label = "kp raw")
+            ax1.scatter(df_kp["chi"], df_kp["delta_ksn"], c = "red" , marker = "+", label = "kp final")
+            
 
             ax1.legend()
 
             ax1.set_xlabel(r'$ \chi$')
             ax1.set_ylabel(r'$ k_{sn}$')
 
-            plt.savefig(svdir + self.fprefix + "_ksn_SK_" +str(SK)+".png", dpi = 300)
+            plt.savefig(svdir + self.fprefix + "DEBUG_kp_SK_" +str(SK)+".png", dpi = 300)
             plt.clf()
 
 

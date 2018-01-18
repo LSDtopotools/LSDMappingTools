@@ -687,10 +687,10 @@ def ReadKnickpointCSV(DataDirectory, fname_prefix, ftype = "normal"):
     Author: BG
     """
     # get the csv filename
-    if(type == raw):
+    if(ftype == "raw"):
         suffix = '_ksnkp_raw.csv'
     else:
-        suffix = '_ksnkp_raw'
+        suffix = '_ksnkp.csv'
     fname = fname_prefix+suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
