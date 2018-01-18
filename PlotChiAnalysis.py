@@ -318,7 +318,7 @@ def main(argv):
         this_rename_dict = {}
         for little_list in basin_stack_list:
             i = i+1
-            this_prefix = "chi_profile_plots/Stacked_"+str(i)+"_" 
+            this_prefix = "chi_profile_plots/Stacked_"+str(i) 
             
             # This prints the chi profiles coloured by k_sn
             LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, cbar_loc = "bottom", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi")
