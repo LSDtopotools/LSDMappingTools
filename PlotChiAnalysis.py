@@ -148,12 +148,15 @@ def main(argv):
     parser.add_argument("-PCS", "--plot_chi_stack", type=bool, default=False, help="If this is true, I'll make a stack of chi plots.")
 
     parser.add_argument("-all", "--all_chi_plots", type=bool, default=False, help="If this is true, I'll make all the plots including raster and chi profile plots.")
+    parser.add_argument("-all_rasters", "--all_raster_plots", type=bool, default=False, help="If this is true, I'll make all the raster plots.")
+    parser.add_argument("-all_stacks", "--all_stacked_plots", type=bool, default=False, help="If this is true, I'll make all the stacked plots.")
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
     parser.add_argument("-parallel", "--parallel", type=bool, default=False, help="If this is true I'll assume you ran the code in parallel and append all your CSVs together before plotting.")
-
+    parser.add_argument("-dpi", "--dpi", type=int, default=250, help="The dots per inch of your figure.")
+    
     args = parser.parse_args()
 
     if not args.fname_prefix:
@@ -161,10 +164,12 @@ def main(argv):
             print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
             sys.exit()
 
+            
+    
     
     # Parse any lists, dicts, or list of lists from the arguments   
     these_basin_keys = parse_list_from_string(args.basin_keys)
-    this_rename_dic = parse_dict_from_string(args.rename_dict)
+    this_rename_dict = parse_dict_from_string(args.rename_dict)
     basin_stack_list = parse_list_of_list_from_string(args.basin_lists)
     chi_offset_list = parse_list_from_string(args.chi_offsets)
     fd_offset_list = parse_list_from_string(args.flow_distance_offsets)
@@ -234,57 +239,61 @@ def main(argv):
         simple_format = args.FigFormat
 
     ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
-        
-    # make the plots depending on your choices
-    if args.plot_rasters:
-        
-        #LSDMW.PrintChiChannels(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="source_key")
-        
-        
-        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = True, cmap = "viridis", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict)
+ 
 
-        
-        #MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, simple_format, parallel=args.parallel)
-        bil = ".bil"
-        
-    if args.plot_chi_stack:
-        #cbl = "funkmonkey"
-        cbl = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"
-        print("I am going to plot some chi stacks for you.")
-        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, cbar_loc = "top", first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_chi")
-        
-        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_FD")    
 
-        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = "ESURF", fig_format = "png", dpi = 250,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 15, first_basin = 16, last_basin = 19, Basin_select_list = these_basin_keys, Basin_rename_dict = this_rename_dict, out_fname_prefix = "Stacked_Sources")
         
     # This bundles a number of different analyses    
-    if args.all_chi_plots:
-        print("First let me check if the directories exist.")
+    if args.all_stacked_plots:
+        print("You have chosen to plot all raster and stacked plots.")
+        args.all_raster_plots = True
+        args.all_stacked_plots = True
+
+    # make the plots depending on your choices
+    if args.all_raster_plots:
+        print("I am goint to print some raster plots for you.")
         
         # check if a raster directory exists. If not then make it.
         raster_directory = this_dir+'raster_plots/'
         if not os.path.isdir(raster_directory):
             os.makedirs(raster_directory)
-            
-        # check if a chi profile directory exists. If not then make it.
-        chi_profile_directory = this_dir+'chi_profile_plots/'
-        if not os.path.isdir(chi_profile_directory):
-            os.makedirs(chi_profile_directory)   
-        
+          
         # Get the names of the relevant files
         ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
         
         raster_out_prefix = "/raster_plots/"+args.fname_prefix
         
-        # get the value dict for a single 
-        
         # Now for raster plots
         # First the basins, labeled:
-        #LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", cbar_loc = "right", size_format = "ESURF",fig_format = "png", dpi = 250, out_fname_prefix = raster_out_prefix)
+        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", cbar_loc = "right", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
         
         # Now the chi steepness
-        #LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "viridis", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = value_dict_single_basin, out_fname_prefix = raster_out_prefix)
+        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "viridis", cbar_loc = "right", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = value_dict_single_basin, out_fname_prefix = raster_out_prefix+"ksn")
         
+        # Now plot the channels coloured by the source number
+        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "tab20b", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="source_key", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = value_dict_single_basin, out_fname_prefix = raster_out_prefix+"sources", discrete_colours = True, NColours = 20, colour_log = False)
+        
+    if args.all_stacked_plots:
+ 
+        # check if a chi profile directory exists. If not then make it.
+        chi_profile_directory = this_dir+'chi_profile_plots/'
+        if not os.path.isdir(chi_profile_directory):
+            os.makedirs(chi_profile_directory)   
+
+         # Get the names of the relevant files
+        ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
+        
+        raster_out_prefix = "/raster_plots/"+args.fname_prefix       
+        
+
+
+        
+
+            
+
+
+        
+
 
         
 

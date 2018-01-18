@@ -1199,7 +1199,7 @@ class MapFigure(object):
                     print("Your colour_log_manual_scale should be something like [min,max], aborting")
                     quit()
             else:
-                sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
+                #sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
                 if discrete_colours:
                     # make a color map of fixed colors
                     NUM_COLORS = 15

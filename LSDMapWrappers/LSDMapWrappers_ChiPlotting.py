@@ -103,7 +103,7 @@ def PrintChiChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labe
 
 
 
-def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} , value_dict = {}, out_fname_prefix = ""):
+def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10, colour_log = True, colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} , value_dict = {}, out_fname_prefix = ""):
     """
     This function prints a channel map over a hillshade.
 
@@ -120,6 +120,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
         plotting_column (str): the name of the column to plot
         discrete_colours (bool): if true use a discrete colourmap
         NColours (int): the number of colours to cycle through when making the colourmap
+        colour_log (bool): If true the colours are in log scale
         Basin_remove_list (list): A lists containing either key or junction indices of basins you want to remove from plotting
         Basin_rename_dict (dict): A dict where the key is either basin key or junction index, and the value is a new name for the basin denoted by the key
         out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
@@ -185,12 +186,14 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False,
                       colourmap = "gray")    
     
-
+    if discrete_colours:
+        print("I am printing discrete colours.")
+        
     MF.add_point_data(thisPointData,column_for_plotting = plotting_column,
-                       scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = "bottom",
+                       scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = cbar_loc,
                        colorbarlabel = colorbarlabel, this_colourmap = cmap,
                        scaled_data_in_log = True,
-                       max_point_size = 5, min_point_size = 1,zorder=10, colour_log = True, discrete_colours = discrete_colours, NColours = NColours)
+                       max_point_size = 5, min_point_size = 1,zorder=10, colour_log = colour_log, discrete_colours = discrete_colours, NColours = NColours)
 
     # Save the image
     if len(out_fname_prefix) == 0:
