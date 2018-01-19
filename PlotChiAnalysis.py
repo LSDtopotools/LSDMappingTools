@@ -164,6 +164,7 @@ def main(argv):
     
     # What sort of analyses you want
     parser.add_argument("-PB", "--plot_basins", type=bool, default=False, help="If this is true, I'll make a simple basin plot.")    
+    parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.")  
     parser.add_argument("-all", "--all_chi_plots", type=bool, default=False, help="If this is true, I'll make all the plots including raster and chi profile plots.")
     parser.add_argument("-all_rasters", "--all_raster_plots", type=bool, default=False, help="If this is true, I'll make all the raster plots.")
     parser.add_argument("-all_stacks", "--all_stacked_plots", type=bool, default=False, help="If this is true, I'll make all the stacked plots.")
@@ -284,7 +285,22 @@ def main(argv):
         # Now for raster plots
         # First the basins, labeled:
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
+
+    # This just plots the basins. Useful for checking on basin selection
+    if args.plot_chi_coord:
+        print("I am only going to print basins.")
         
+        # check if a raster directory exists. If not then make it.
+        raster_directory = this_dir+'raster_plots/'
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+          
+        # Get the names of the relevant files
+        ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
+        
+        raster_out_prefix = "/raster_plots/"+args.fname_prefix      
+        # Now for raster plots
+        LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = True, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_chicoord"):    
         
     # This bundles a number of different analyses    
     if args.all_stacked_plots:
