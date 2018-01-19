@@ -262,7 +262,7 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
     #BackgroundRasterName = fname_prefix+raster_ext
     HillshadeName = fname_prefix+'_hs'+raster_ext
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
-    ChiCoordName = fname_prefix+'_hs'+raster_ext
+    ChiCoordName = fname_prefix+'_chi_coord'+raster_ext
     print (BasinsName)
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
 
