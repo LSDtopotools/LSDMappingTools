@@ -1503,7 +1503,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        discrete_colours = False, NColours = 15, X_offset = 5,
                        plotting_data_format = 'log',
                        label_sources = False, source_thinning_threshold = 0,
-                       size_format = "ESURF", aspect_ratio = 2, dpi = 500):
+                       size_format = "ESURF", aspect_ratio = 2, dpi = 500, 
+                       stack_patches = False):
     """This function plots the chi vs elevation or flow distance vs elevation.
 
     It stacks profiles (so the basins are spaced out).
@@ -1527,6 +1528,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         aspect_ratio (flt): the aspect ratio of the figure
         dpi (int): dots per inch of figure
+        stack_patches (bool): if true, places a rectangular patch element behind each profile. 
 
     Returns:
          Does not return anything but makes a plot.
@@ -1540,7 +1542,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
 
     label_size = 10
     
-    print("STARTING stacks. Cmap is: "+this_cmap)
+    print("STARTING stacks. Cmap is: "+this_cmap+ " and the offset is: " + str(X_offset))
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
@@ -1735,8 +1737,9 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         maskX = np.add(maskX,this_X_offset)
 
         # This adds a rectangualt coloured patch behind the stack. Helps to highlight which profiles are which. 
-        print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
-        ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))
+        if stack_patches:
+            print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
+            ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))
 
         # some logic for the basin rename. We use a dictionary for this
         if basin_rename_dict:

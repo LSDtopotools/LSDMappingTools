@@ -308,7 +308,7 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
     
     
     
-def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "bottom", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plot_data_name = "m_chi", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2):
+def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "bottom", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plot_data_name = "m_chi", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2, X_offset = 5):
     """
     This function prints a channel map over a hillshade.
 
@@ -367,14 +367,16 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
     else:
         ImageName = DataDirectory+out_fname_prefix+"_stacked_chi."+fig_format  
         
-    if axis_data_name == "flow_distance":
+    if axis_data_name == "flow_distance" and X_offset <= 10:
+        print("WARNING! You have a weird flow distance offset. I think it is the chi offset. Check your offset.")
         x_offset = 50000
     else:
-        x_offset = 5
+        x_offset = X_offset
         
-    print("The colourbar is located on the "+cbar_loc)
-
-    print("Cmap is: "+cmap)
+    # print("The colourbar is located on the "+cbar_loc)
+    # print("Cmap is: "+cmap)
+    
+    print("About to go into the stacks. My x_offset is: " +str(x_offset))
     LSDCP.StackedProfilesGradient(chi_csv_fname, FigFileName = ImageName,
                        FigFormat = 'png',elevation_threshold = 0,
                        first_basin = first_basin, last_basin = last_basin, basin_order_list = Basin_select_list,
