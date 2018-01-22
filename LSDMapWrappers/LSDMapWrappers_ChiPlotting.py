@@ -262,7 +262,7 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
     #BackgroundRasterName = fname_prefix+raster_ext
     HillshadeName = fname_prefix+'_hs'+raster_ext
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
-    ChiCoordName = fname_prefix+'_chi_coord'+raster_ext
+    ChiCoordName = fname_prefix+'_Maskedchi'+raster_ext
     print (BasinsName)
     Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
 
@@ -287,7 +287,9 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
 
     # This adds the basins
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False,
-                      colourmap = "gray")    
+                      colourmap = "gray", alpha = 0.8, outlines_only = True)    
+    
+    MF.add_drape_image(ChiCoordName,DataDirectory,colourmap = "cubehelix",alpha=1,zorder = 0.5)
     
     if discrete_colours:
         print("I am printing discrete colours.")

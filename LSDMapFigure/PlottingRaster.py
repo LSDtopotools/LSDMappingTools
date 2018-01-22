@@ -466,7 +466,7 @@ class MapFigure(object):
                         colour_min_max = [],
                         modify_raster_values=False,
                         old_values=[], new_values=[], cbar_type=float,
-                        NFF_opti = False, custom_min_max = []):
+                        NFF_opti = False, custom_min_max = [], zorder=1):
         """
         This function adds a drape over the base raster.
 
@@ -496,7 +496,7 @@ class MapFigure(object):
         self.ax_list = self._add_drape_image(self.ax_list,RasterName,Directory,colourmap,alpha,
                                              colorbarlabel,discrete_cmap,n_colours, norm,
                                              colour_min_max,modify_raster_values,old_values,
-                                             new_values,cbar_type, NFF_opti, custom_min_max)
+                                             new_values,cbar_type, NFF_opti, custom_min_max, zorder=zorder)
         #print("Getting axis limits in drape function: ")
         #print(self.ax_list[0].get_xlim())
 
@@ -509,7 +509,7 @@ class MapFigure(object):
                          colour_min_max = [],
                          modify_raster_values = False,
                          old_values=[], new_values = [], cbar_type=float,
-                         NFF_opti = False, custom_min_max = []):
+                         NFF_opti = False, custom_min_max = [],zorder=1):
         """
         This function adds a drape over the base raster. It does all the dirty work
         I can't quite remember why I did it in two steps but I vaguely recall trying it in one step and it didn't work.
@@ -562,16 +562,16 @@ class MapFigure(object):
             if len(colour_min_max)== 2:
                 print("I am setting customisable colourbar minimum and maximum values: %s ¦¦ %s" %(colour_min_max[0],colour_min_max[1]))
                 im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents,
-                                 interpolation="nearest",alpha = alpha, norm = mpl.colors.Normalize(vmin=colour_min_max[0], vmax=colour_min_max[1]))
+                                 interpolation="nearest",alpha = alpha, norm = mpl.colors.Normalize(vmin=colour_min_max[0], vmax=colour_min_max[1]),zorder=zorder)
             else:
                 print("I cannot customize your colour minimum and maximum because I don't understand your input. It should be [min,max] with min max as integers or floats")
         else:
             if(nroma != "None"):
                 im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents,
-                                 interpolation="nearest",alpha = alpha, norm = nroma)
+                                 interpolation="nearest",alpha = alpha, norm = nroma, zorder=zorder)
             else:
                 im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap,
-                                 extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha)
+                                 extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, zorder=zorder)
         # This affects all axes because we set share_all = True.
         #ax.set_xlim(self._xmin,self._xmax)
         #ax.set_ylim(self._ymin,self._ymax)
@@ -597,7 +597,8 @@ class MapFigure(object):
                          use_keys_not_junctions = True,
                          label_basins = True, adjust_text = False, rename_dict = {},
                          value_dict = {}, mask_list = [],
-                         edgecolour='black', linewidth=1, cbar_dict = {}, parallel=False):
+                         edgecolour='black', linewidth=1, cbar_dict = {}, parallel=False, 
+                         outlines_only = False):
         """
         This is a basin plotting routine. It plots basins as polygons which
         can be coloured and labelled in various ways.
@@ -625,6 +626,7 @@ class MapFigure(object):
             min and the max, and the values are what you want to set the colourbar to. Leave empty if you just want this
             to be the same as the value dict.
             parallel (bool): option flag for processing multiple basin raster files triggered by parallel chi mapping tool.
+            outlines_only (bool): If true, only plot the outlines.
 
         Author: SMM
         """
@@ -773,8 +775,9 @@ class MapFigure(object):
                 print(key, int(key))
                 colourkey = int(key) % n_colours
                 # We need two patches since we don't want the edges transparent
-                this_patch = PolygonPatch(poly, fc=new_colours.to_rgba(colourkey), ec="none", alpha=alpha)
-                self.ax_list[0].add_patch(this_patch)
+                if not outlines_only:
+                    this_patch = PolygonPatch(poly, fc=new_colours.to_rgba(colourkey), ec="none", alpha=alpha)
+                    self.ax_list[0].add_patch(this_patch)
                 this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1)
                 self.ax_list[0].add_patch(this_patch)
         else:
@@ -806,24 +809,25 @@ class MapFigure(object):
 
                 # If we are using keys, we need to check to see if the key referred to by
                 # this junction is in the value dict
-                if use_keys_not_junctions:
-                    print junc
-                    this_key = junction_to_key_dict[int(junc)]
-                    #print ("This key is: "+str(this_key)+", and this value is: "+str(value_dict[this_key]))
-                    if this_key in value_dict:
-                        this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[this_key] ), ec="none", alpha=alpha)
-                        self.ax_list[0].add_patch(this_patch)
+                if not outlines_only:
+                    if use_keys_not_junctions:
+                        print junc
+                        this_key = junction_to_key_dict[int(junc)]
+                        #print ("This key is: "+str(this_key)+", and this value is: "+str(value_dict[this_key]))
+                        if this_key in value_dict:
+                            this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[this_key] ), ec="none", alpha=alpha)
+                            self.ax_list[0].add_patch(this_patch)
+                        else:
+                            this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha)
+                            self.ax_list[0].add_patch(this_patch)
                     else:
-                        this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha)
-                        self.ax_list[0].add_patch(this_patch)
-                else:
-                    # We are using junction indices so these link directly in to the polygon keys
-                    if junc in value_dict:
-                        this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[junc] ), ec="none", alpha=alpha)
-                        self.ax_list[0].add_patch(this_patch)
-                    else:
-                        this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha)
-                        self.ax_list[0].add_patch(this_patch)
+                        # We are using junction indices so these link directly in to the polygon keys
+                        if junc in value_dict:
+                            this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[junc] ), ec="none", alpha=alpha)
+                            self.ax_list[0].add_patch(this_patch)
+                        else:
+                            this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha)
+                            self.ax_list[0].add_patch(this_patch)
 
                 # We need to add the outline seperately because we don't want it to be transparent
                 this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1)

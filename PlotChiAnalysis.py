@@ -284,8 +284,6 @@ def main(argv):
         simple_format = "png"
     else:
         simple_format = args.FigFormat
-
-    ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
  
 
     # This just plots the basins. Useful for checking on basin selection
@@ -296,9 +294,6 @@ def main(argv):
         raster_directory = this_dir+'raster_plots/'
         if not os.path.isdir(raster_directory):
             os.makedirs(raster_directory)
-          
-        # Get the names of the relevant files
-        ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
         
         raster_out_prefix = "/raster_plots/"+args.fname_prefix      
         # Now for raster plots
@@ -315,11 +310,15 @@ def main(argv):
             os.makedirs(raster_directory)
           
         # Get the names of the relevant files
-        ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
+        ChannelFname = args.fname_prefix+"_chi_data_map.csv"
         
         raster_out_prefix = "/raster_plots/"+args.fname_prefix      
         # Now for raster plots
-        LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = True, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_chicoord")    
+        # First the basins, labeled:
+        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
+        
+        # Then the chi plot
+        LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = False, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_chicoord")    
         
     # This bundles a number of different analyses    
     if args.all_chi_plots:
