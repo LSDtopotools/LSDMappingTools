@@ -1543,6 +1543,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     label_size = 10
     
     print("STARTING stacks. Cmap is: "+this_cmap+ " and the offset is: " + str(X_offset))
+    print("The rename dict is: ")
+    print(basin_rename_dict)
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'

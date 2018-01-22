@@ -376,11 +376,12 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
     # print("The colourbar is located on the "+cbar_loc)
     # print("Cmap is: "+cmap)
     
-    print("About to go into the stacks. My x_offset is: " +str(x_offset))
+    print("About to go into the stacks. My x_offset is: " +str(x_offset)+ ", and my rename dict is:" )
+    print(Basin_rename_dict)
     LSDCP.StackedProfilesGradient(chi_csv_fname, FigFileName = ImageName,
                        FigFormat = 'png',elevation_threshold = 0,
                        first_basin = first_basin, last_basin = last_basin, basin_order_list = Basin_select_list,
-                       basin_rename_dict = Basin_rename_dict ,
+                       basin_rename_dict = Basin_rename_dict,
                        this_cmap = cmap,axis_data_name = axis_data_name, colour_data_name = plot_data_name, 
                        discrete_colours = discrete_colours, NColours = NColours,
                        colorbarlabel = colorbarlabel, cbar_loc = cbar_loc, X_offset = x_offset,

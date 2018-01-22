@@ -709,11 +709,14 @@ class MapFigure(object):
                     # We are using keys. We need to replace the label dict with
                     # with the strings from the renamed basins
                     for key in rename_dict:
-                        print("I am renaming. The key is" +str(key))
+                        print("I am renaming. The key is: " +str(key))
                         # get the junction number of this key
-                        if key in key_to_junction_dict:
+                        if key in key_to_junction_dict:     
                             this_junc = key_to_junction_dict[key]
+                            print("The junction is: "+ str(this_junc))
                             new_label_dict[this_junc] = rename_dict[key]
+                        else:
+                            print("I am missing this key")
 
                     # Use this new label dict to rename the junctions
                     texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
@@ -806,7 +809,7 @@ class MapFigure(object):
                 if use_keys_not_junctions:
                     print junc
                     this_key = junction_to_key_dict[int(junc)]
-                    print ("This key is: "+str(this_key)+", and this value is: "+str(value_dict[this_key]))
+                    #print ("This key is: "+str(this_key)+", and this value is: "+str(value_dict[this_key]))
                     if this_key in value_dict:
                         this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[this_key] ), ec="none", alpha=alpha)
                         self.ax_list[0].add_patch(this_patch)

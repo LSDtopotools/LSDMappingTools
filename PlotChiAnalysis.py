@@ -243,6 +243,25 @@ def main(argv):
         value_dict_single_basin[basin] = 1
         if basin not in this_value_dict:
             this_value_dict[basin] = 1
+     
+    #print("The value dict is:")
+    #print(this_value_dict)
+    
+    # Now if there is a rename dict, replace the value dict values with the rename keys
+    if len(this_rename_dict) != 0:
+        #print("There is a rename dict. Let me adjust some values.")
+        rename_value_dict = {}
+        for key in this_value_dict:
+            #print("Key is: "+str(key))
+            if key in this_rename_dict:
+                #print("I found a rename key in the value dict, changing to :"+ str(this_rename_dict[key]))
+                rename_value_dict[this_rename_dict[key]] = this_value_dict[key]
+            else:
+                rename_value_dict[key] = this_value_dict[key]
+        this_value_dict = rename_value_dict
+    #print("The new value dict is: ")
+    print(this_value_dict)
+            
 
     # Set default offsets
     if len(chi_offset_list) == 0:
@@ -250,7 +269,7 @@ def main(argv):
     if len(fd_offset_list) == 0:
         fd_offset_list.append(20000)
     
-    print("I am matching the offest list lengths to the number of basin stacks")    
+    #print("I am matching the offest list lengths to the number of basin stacks")    
     final_chi_offsets = pad_offset_lists(basin_stack_list,chi_offset_list)
     final_fd_offsets = pad_offset_lists(basin_stack_list,fd_offset_list)
 
@@ -327,6 +346,8 @@ def main(argv):
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
         
         # Basins colour coded
+        print("The value dict is: ")
+        print(this_value_dict)
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict, Value_dict = this_value_dict, cmap = "gray", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_stack_basins")
         
         # Now the chi steepness
@@ -350,7 +371,6 @@ def main(argv):
         print("I am going to plot some chi stacks for you.")
         cbl = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"  
         i = 0
-        this_rename_dict = {}
         for little_list in basin_stack_list:
             i = i+1
             this_prefix = "chi_profile_plots/Stacked_"+str(i) 
@@ -364,10 +384,10 @@ def main(argv):
             LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, cbar_loc = "bottom", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi",X_offset = final_chi_offsets[i-1])
         
             # This prints channel profiles coloured by k_sn
-            #LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_FD", X_offset = final_fd_offsets[i-1])    
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_FD", X_offset = final_fd_offsets[i-1])    
 
             # This prints the channel profiles coloured by source number
-            #LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = final_fd_offsets[i-1])        
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = final_fd_offsets[i-1])        
 
 
 #=============================================================================
