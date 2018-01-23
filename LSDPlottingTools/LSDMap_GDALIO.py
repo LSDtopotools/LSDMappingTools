@@ -5,12 +5,15 @@
 ## SMM
 ## 26/07/2014
 ##=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-from __future__ import absolute_import, division, print_function, unicode_literals
+#from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 
 import osgeo.gdal as gdal
 import osgeo.gdal_array as gdal_array
 import numpy as np
 from osgeo import osr
+from osgeo import ogr
+import os
 from os.path import exists
 from osgeo.gdalconst import GA_ReadOnly
 
@@ -822,3 +825,89 @@ def PolygoniseRasterMerge(DataDirectory, RasterFile, OutputShapefile='polygons')
             PolygonDict[this_val] = this_shape
 
     return PolygonDict
+
+
+def CreateShapefileOfRasterFootprint(DataDirectory, RasterFile):
+    """
+    This function takes a raster and creates a shapefile that is the footprint
+    of the raster. Used for plotting the raster footprint on regional maps using
+    basemap.
+    Variously put together from:
+    http://osgeo-org.1560.x6.nabble.com/gdal-dev-Creating-a-simple-shapefile-with-ogr-td3749101.html
+    
+    
+    Args:
+        DataDirectory (str): the data directory with the basin raster
+        RasterFile (str): the name of the raster
+
+    Returns:
+        Shapefile of the raster footprint
+
+    Author: SMM
+    
+    Date: 23/01/2018
+    """
+
+    print("Trying to create a shapefile.")
+    print("The Data directory is: "+DataDirectory+ " and the raster is: "+ RasterFile)
+    driver_name = "ESRI shapefile"
+    driver = ogr.GetDriverByName(driver_name)
+
+    # get the filename of the outfile.
+    if not DataDirectory.endswith(os.sep):
+        print("You forgot the separator at the end of the directory, appending...")
+        DataDirectory = DataDirectory+os.sep
+        
+    # Get the raster prefix
+    SplitRasterfile = RasterFile.split(".")
+    RasterPrefix = SplitRasterfile[0]
+ 
+    # get the espg of the raster
+    FullFilename = DataDirectory+RasterFile
+    ESPG_this_raster = GetUTMEPSG(FullFilename)  
+    ESPG_this_raster = str(ESPG_this_raster)
+    print("The raster has coordinate of: "+ESPG_this_raster)
+    ESPG_this_raster_split = ESPG_this_raster.split(":")
+    print("Split is: ")
+    print(ESPG_this_raster_split)
+    ESPG_this_raster = ESPG_this_raster_split[-1] 
+    print ("This ESPG is: "+str(ESPG_this_raster))
+    
+    # Get extent of raster
+    [xmin,xmax,ymin,ymax] = GetRasterExtent(FullFilename)
+
+    # Create ring
+    ring = ogr.Geometry(ogr.wkbLinearRing)
+    ring.AddPoint(xmin, ymin)
+    ring.AddPoint(xmin, ymax)
+    ring.AddPoint(xmax, ymax)
+    ring.AddPoint(xmax, ymin)
+    ring.AddPoint(xmin, ymin)
+
+    # Create polygon
+    poly = ogr.Geometry(ogr.wkbPolygon)
+    poly.AddGeometry(ring)    
+    
+    # see what you got
+    print("The polygon is:")
+    print(poly.ExportToWkt()) 
+
+    # create the data source
+    OutFileName = DataDirectory+RasterPrefix+"_footrpint.shp" 
+    print("The output shapefile is: "+OutFileName)
+    datasource = driver.CreateDataSource(OutFileName)    
+    
+    # create the spatial reference, WGS84
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(int(ESPG_this_raster))
+
+    # create the layer
+    layer = datasource.CreateLayer(OutFileName, srs, ogr.wkbPolygon)
+    feature = ogr.Feature(layer.GetLayerDefn())   
+    feature.SetGeometry(poly)
+    layer.CreateFeature(feature)
+    
+    # Clean up
+    feature.Destroy()
+    datasource.Destroy()
+    

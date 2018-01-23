@@ -18,6 +18,10 @@ import os
 from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 import LSDMapWrappers as LSDMW
 from LSDMapFigure import PlottingHelpers as phelp
+import LSDPlottingTools as LSDP
+
+from osgeo import ogr
+
 
 
 #=============================================================================
@@ -168,6 +172,11 @@ def main(argv):
     parser.add_argument("-all", "--all_chi_plots", type=bool, default=False, help="If this is true, I'll make all the plots including raster and chi profile plots.")
     parser.add_argument("-all_rasters", "--all_raster_plots", type=bool, default=False, help="If this is true, I'll make all the raster plots.")
     parser.add_argument("-all_stacks", "--all_stacked_plots", type=bool, default=False, help="If this is true, I'll make all the stacked plots.")
+    
+    # Some simple geographic functions that can aid in plotting regional maps. They do things like create shapefile that
+    # can then be used with basemap. We don't include the basemap functions since that is not in the LSDTT toolchain (but
+    # might get included later)
+    parser.add_argument("-RF", "--create_raster_footprint_shapefile",type=bool, default=False, help="If true, create a shapefile from the raster. Can be used with basemap to make regional maps")
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
@@ -186,13 +195,27 @@ def main(argv):
     if args.base_directory:
         this_dir = args.base_directory
         # check if you remembered a / at the end of your path_name
-        if not this_dir.endswith("/"):
-            print("You forgot the '/' at the end of the directory, appending...")
-            this_dir = this_dir+"/"
+        if not this_dir.endswith(os.sep):
+            print("You forgot the separator at the end of the directory, appending...")
+            this_dir = this_dir+os.sep
     else:
         this_dir = os.getcwd()
 
-                  
+    # See if you should create a shapefile of the raster footprint             
+    if args.create_raster_footprint_shapefile:
+        print("Let me create a shapefile of the raster footprint")
+        
+        driver_name = "ESRI shapefile"
+        driver = ogr.GetDriverByName(driver_name)
+        
+        print("Driver is: ")
+        print(driver)
+        
+        print("Now I'll try it from LSDPlottingTools")
+              
+        RasterFile = args.fname_prefix+".bil"
+        LSDP.CreateShapefileOfRasterFootprint(this_dir, RasterFile)
+        
             
     # See if a basin info file exists and if so get the basin list
     print("Let me check if there is a basins info csv file.")
