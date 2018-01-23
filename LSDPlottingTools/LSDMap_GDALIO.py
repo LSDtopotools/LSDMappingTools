@@ -888,21 +888,30 @@ def CreateShapefileOfRasterFootprint(DataDirectory, RasterFile):
     poly = ogr.Geometry(ogr.wkbPolygon)
     poly.AddGeometry(ring)    
     
+    # Create a coordinate transformation
+    source = osr.SpatialReference()
+    source.ImportFromEPSG(int(ESPG_this_raster))
+    
+    target = osr.SpatialReference()
+    target.ImportFromEPSG(4326)
+    
+    transform = osr.CoordinateTransformation(source, target)
+    
+    # now transformt the polygon
+    poly.Transform(transform)
+    
     # see what you got
     print("The polygon is:")
     print(poly.ExportToWkt()) 
 
     # create the data source
-    OutFileName = DataDirectory+RasterPrefix+"_footrpint.shp" 
+    OutFileName = DataDirectory+RasterPrefix+"_footprint.shp" 
     print("The output shapefile is: "+OutFileName)
     datasource = driver.CreateDataSource(OutFileName)    
-    
-    # create the spatial reference, WGS84
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(int(ESPG_this_raster))
+
 
     # create the layer
-    layer = datasource.CreateLayer(OutFileName, srs, ogr.wkbPolygon)
+    layer = datasource.CreateLayer(OutFileName, target, ogr.wkbPolygon)
     feature = ogr.Feature(layer.GetLayerDefn())   
     feature.SetGeometry(poly)
     layer.CreateFeature(feature)
