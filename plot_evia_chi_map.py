@@ -114,7 +114,7 @@ def main(argv):
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
 
     # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='top')
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='none')
 
     # add the basins drape
     BasinsDict = dict(zip(basin_keys,basin_keys))
@@ -134,8 +134,9 @@ def main(argv):
     ChannelDF = ChannelDF[ChannelDF.chi != -9999]
     
     ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-    # add chi map
-    MF.add_point_data(ChannelPoints, column_for_plotting = "chi", column_for_scaling = "chi", show_colourbar="True", this_colourmap = cmap)
+    
+	# add chi map
+    MF.add_point_data(ChannelPoints, column_for_plotting = "chi", column_for_scaling = "chi", show_colourbar="True", this_colourmap = cmap, colourbar_location="top")
 	
     # add the faults
     if faults:
