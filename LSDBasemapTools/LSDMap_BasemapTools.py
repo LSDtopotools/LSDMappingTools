@@ -75,20 +75,20 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     # Now for the basemap 
     # setup Lambert Conformal basemap.
     m = Basemap(width=bm_width,height=bm_width,projection=projection,
-                resolution=resolution,lat_1=lat_1 ,lat_2=lat_2,lat_0=lat_0,lon_0=lon_0, satellite_height = satellite_height)    
+                resolution=resolution,lat_1=lat_1 ,lat_2=lat_2,lat_0=lat_0,lon_0=lon_0, satellite_height = satellite_height, area_thresh = 100000)    
  
     # create the shapefile
     LSDMGDAL.CreateShapefileOfRasterFootprint(DataDirectory, RasterFile)
     m.readshapefile(Shape_name, "footprint")
 
     # draw coastlines.
-    m.drawcoastlines()
+    m.drawcoastlines(linewidth = 0.5)
     # draw a boundary around the map, fill the background.
     # this background will end up being the ocean color, since
     # the continents will be drawn on top.
-    m.drawmapboundary(fill_color='whitesmoke')
+    m.drawmapboundary(fill_color='snow')
     # fill continents, set lake color same as ocean color.
-    m.fillcontinents(color='silver',lake_color='whitesmoke')
+    m.fillcontinents(color='lightgray',lake_color='snow')
     # draw parallels and meridians.
     # label parallels on right and top
     # meridians on bottom and left
@@ -108,7 +108,7 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     #df_poly = df_poly.merge(new_areas, on='area', how='left')
     #cmap = plt.get_cmap('Oranges')   
     pc = PatchCollection(df_poly.shapes, zorder=2, alpha = 0.5)
-    pc.set_facecolor("dimgrey")
+    pc.set_facecolor("crimson")
     ax.add_collection(pc)  
 
     plt.savefig(FigFileName,format=FigFormat,dpi=fig_dpi)    
