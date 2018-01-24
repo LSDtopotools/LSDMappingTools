@@ -11,8 +11,10 @@ import numpy as np
 import os
 from . import cubehelix
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 #from cycler import cycler
 from matplotlib import rcParams
+from matplotlib import colors
 import LSDPlottingTools.LSDMap_GDALIO as LSDMap_IO
 #import LSDMap_BasicManipulation as LSDMap_BM
 #import LSDMap_OSystemTools as LSDOst
@@ -1497,10 +1499,12 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                        FigFormat = 'png',elevation_threshold = 0,
                        first_basin = 0, last_basin = 0, basin_order_list = [],
                        basin_rename_dict = {},
-                       this_cmap = "viridis",axis_data_name = 'chi', colour_data_name = "m_chi", colorbarlabel = "Colourbar", X_offset = 5,
+                       this_cmap = "viridis",axis_data_name = 'chi', colour_data_name = "m_chi", colorbarlabel = "Colourbar", cbar_loc = "bottom",
+                       discrete_colours = False, NColours = 15, X_offset = 5,
                        plotting_data_format = 'log',
                        label_sources = False, source_thinning_threshold = 0,
-                       size_format = "ESURF", aspect_ratio = 2, dpi = 500):
+                       size_format = "ESURF", aspect_ratio = 2, dpi = 500, 
+                       stack_patches = False):
     """This function plots the chi vs elevation or flow distance vs elevation.
 
     It stacks profiles (so the basins are spaced out).
@@ -1524,6 +1528,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
         aspect_ratio (flt): the aspect ratio of the figure
         dpi (int): dots per inch of figure
+        stack_patches (bool): if true, places a rectangular patch element behind each profile. 
 
     Returns:
          Does not return anything but makes a plot.
@@ -1537,7 +1542,9 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
 
     label_size = 10
     
-    print("STARTING stacks. Cmap is: "+this_cmap)
+    print("STARTING stacks. Cmap is: "+this_cmap+ " and the offset is: " + str(X_offset))
+    print("The rename dict is: ")
+    print(basin_rename_dict)
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
@@ -1608,25 +1615,23 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     source = thisPointData.QueryData('source_key').values
     source = [int(x) for x in source]
     
-    colour_data = thisPointData.QueryData(colour_data_name).values
-    colour_data = [float(x) for x in colour_data]
+    # make a color map of fixed colors
+    if discrete_colours:
 
-    if (plotting_data_format == 'log'):
-        log_m_chi = []
-        log_colour_data = []
-        for value in m_chi:
-            if value < 0.1:
-                log_m_chi.append(0)
-            else:
-                log_m_chi.append(math.log10(value))
-        m_chi = log_m_chi
-        
-        for cvalue in colour_data:
-            if cvalue < 0.1:
-                log_colour_data.append(0)
-            else:
-                log_colour_data.append(math.log10(cvalue))
-        colour_data = log_colour_data
+        this_cmap = plt.cm.Set1
+        #cNorm  = colors.Normalize(vmin=0, vmax=NColours-1)
+        m_chi = [x % NColours for x in m_chi]
+    else:
+
+        if (plotting_data_format == 'log'):
+            log_m_chi = []
+            for value in m_chi:
+                if value < 0.1:
+                    log_m_chi.append(0)
+                else:
+                    log_m_chi.append(math.log10(value))
+            m_chi = log_m_chi
+
 
     # need to convert everything into arrays so we can mask different basins
     Xdata = np.asarray(x_data)
@@ -1634,13 +1639,13 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     M_chi = np.asarray(m_chi)
     Basin = np.asarray(basin)
     Source = np.asarray(source)
-    Colour_data = np.asarray(colour_data)
 
     max_basin = np.amax(Basin)
     max_X = np.amax(Xdata)
     max_Elevation = np.amax(Elevation)
     max_M_chi = np.amax(M_chi)
     min_Elevation = np.amin(Elevation)
+    min_M_chi = np.amin(M_chi)
 
     print(("Max M_chi is: "+str(max_M_chi)))
 
@@ -1648,6 +1653,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     z_axis_max = int(max_Elevation/10)*10+10
     X_axis_max = int(max_X/5)*5+5
     M_chi_axis_max = max_M_chi
+    M_chi_axis_min = min_M_chi
 
     elevation_range = z_axis_max-z_axis_min
     z_axis_min = z_axis_min - 0.075*elevation_range
@@ -1733,8 +1739,9 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         maskX = np.add(maskX,this_X_offset)
 
         # This adds a rectangualt coloured patch behind the stack. Helps to highlight which profiles are which. 
-        print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
-        ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))
+        if stack_patches:
+            print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
+            ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))
 
         # some logic for the basin rename. We use a dictionary for this
         if basin_rename_dict:
@@ -1797,7 +1804,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                         verticalalignment='bottom', horizontalalignment='left',fontsize=8,bbox=bbox_props))
         
         # Now plot the scatter for this stack. The colour limits are for all plots
-        sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskMChi,cmap=this_cmap,edgecolors='none',vmin = 0, vmax = M_chi_axis_max)
+        cnorm = colors.Normalize( M_chi_axis_min, M_chi_axis_max)
+        sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskMChi,cmap=this_cmap,edgecolors='none',norm = cnorm, vmin = M_chi_axis_min, vmax = M_chi_axis_max)
 
         # increment the offset
         this_X_offset = this_X_offset+X_offset
@@ -1805,17 +1813,39 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
 
     
     # This is the axis for the colorbar
-    ax2 = fig.add_axes([0.1,0.8,0.05,0.2])
-    cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)
-    #cbar.set_label(colorbarlabel, fontsize=10)
-    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+    if cbar_loc != "None":
+        
+        cbar_orient = "horizontal"
+        if cbar_loc == "right" or cbar_loc == "left":
+            cbar_orient = "vertical"
+        
+        ax2 = fig.add_axes([0.1,0.8,0.2,0.5])
+        cbar = mpl.colorbar.ColorbarBase(ax2, cmap=this_cmap,
+                                norm=cnorm,
+                                orientation=cbar_orient)
+
+        #Will's changes:
+        # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
+
+        if cbar_loc == 'top':
+            ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        elif cbar_loc == 'bottom':
+            ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        elif cbar_loc == 'left':
+            ax2.set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
+        elif cbar_loc == 'right':
+            ax2.set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)        
+        
+        #ax2 = fig.add_axes([0.1,0.8,0.05,0.2])
+        #cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='horizontal',cax=ax2)
+        #cbar.set_label(colorbarlabel, fontsize=10)
+        #ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+        
 
     ax.spines['top'].set_linewidth(1)
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
     ax.spines['bottom'].set_linewidth(1)
-
-
 
     ax.set_ylabel("Elevation (m)")
 
@@ -1848,8 +1878,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
 
         
     # Lets try to size the figure
-    cbar_L = "bottom"
-    [fig_size_inches,map_axes,cbar_axes] = Helper.MapFigureSizer(fig_size_inches,aspect_ratio, cbar_loc = cbar_L, title = "None")
+    #cbar_L = "bottom"
+    [fig_size_inches,map_axes,cbar_axes] = Helper.MapFigureSizer(fig_size_inches,aspect_ratio, cbar_loc = cbar_loc, title = "None")
     #print("Trying to use MapFigureSizer")
     #print(fig_size_inches)
     #print(map_axes)
@@ -1858,9 +1888,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     fig.set_size_inches(fig_size_inches[0], fig_size_inches[1])
     ax.set_position(map_axes)
 
-    if cbar_L == None:
-        del ax2
-    else:
+    if cbar_loc != "None":
         ax2.set_position(cbar_axes)
         
     print("The figure format is: " + FigFormat)
