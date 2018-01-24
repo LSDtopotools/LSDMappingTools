@@ -177,6 +177,7 @@ def main(argv):
     # can then be used with basemap. We don't include the basemap functions since that is not in the LSDTT toolchain (but
     # might get included later)
     parser.add_argument("-RF", "--create_raster_footprint_shapefile",type=bool, default=False, help="If true, create a shapefile from the raster. Can be used with basemap to make regional maps")
+    parser.add_argument("-BM", "--create_basemap_figure",type=bool, default=False, help="If true, create a basemap file")
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
@@ -215,6 +216,17 @@ def main(argv):
               
         RasterFile = args.fname_prefix+".bil"
         LSDP.CreateShapefileOfRasterFootprint(this_dir, RasterFile)
+        
+    # See if you should create a basemap
+    if args.create_basemap_figure:
+        import LSDBasemapTools as LSDM
+        
+        RasterFile = args.fname_prefix+".bil"
+        
+        lat_0 = 25.7
+        lon_0 = 91.5
+        LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = lat_0 , lon_0 = lon_0)
+        
         
             
     # See if a basin info file exists and if so get the basin list
