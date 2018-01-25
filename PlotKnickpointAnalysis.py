@@ -52,14 +52,14 @@ def main(argv):
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error.")
     # Basin and source selection
     # Basins selection
-    parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
+    parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = all basins")
     # Sources selection
-    parser.add_argument("-source_keys", "--source_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
+    parser.add_argument("-source_keys", "--source_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of sources you want for the plotting. Default = all sources")
+    parser.add_argument("-min_sl", "--min_source_length", type=float , default = 0, help = "This is a minimum length for the river to plot, if you want to only plot the river profile of the main rivers for example. Default = 0 (no restrictions)")
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
-
 
     # ALL
     parser.add_argument("-ALL", "--AllAnalysis", type=bool, default = False, help="Turn on to have fun")
@@ -70,7 +70,13 @@ def main(argv):
     parser.add_argument("-minmc", "--min_mchi_map", type=int, default = 0, help="mininum value for the scale of your m_chi maps, default 0")
     parser.add_argument("-maxmc", "--max_mchi_map", type=int, default = 0, help="maximum value for the scale of your m_chi maps, default auto")
 
-       args = parser.parse_args()
+    #knickpint related
+
+    parser.add_argument("-ksnPs", "--ksn_per_source", type=bool, default = False, help="Print one figure per source key selected, with ksn -> f(chi & flow_distance) in the folder .../river_plot/. it displays the ksn out of Mudd et al., 2014 method, and the TVD one out of the *insert algorithm name*")
+
+
+
+    args = parser.parse_args()
 
     # Processing the basin/source keys selection
     print("I am reading the basin/source key selection and checking your parameters...")
@@ -90,10 +96,27 @@ def main(argv):
         print("The sources I will plot are:")
         print(these_source_keys)
 
+    # Processing the size choice
+    try:
+        size = [int(item) for item in args.size_format.split(',')]
+    except ValueError:
+        size = args.size_format
+
     if not args.fname_prefix:
         print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
         sys.exit()
     print("Done")
+
+
+    print("Loading the dataset:")
+
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = [], source_key = [], min_length = 0)
+
+    # Plotting hte knickpoints
+    if(args.ksn_per_source):
+        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = False, title = "auto", label_size = 8, facecolor = 'white', size_of_ksn = 2, legend = True, size_of_TVD_ksn = 1)
+        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = False, title = "auto", label_size = 8, facecolor = 'white', size_of_ksn = 2, legend = True, size_of_TVD_ksn = 1)
+
     
     # Preparing the min_max color for mchi maps
     if(args.max_mchi_map <= args.min_mchi_map):
