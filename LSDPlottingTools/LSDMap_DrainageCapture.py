@@ -17,70 +17,60 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import matplotlib.ticker as ticker
 import pandas as pd
-import math
+import os
+
+from LSDMapFigure import PlottingHelpers as Helper
 
 #=============================================================================
-# ANALYSIS FUNCTIONS
+# PLOTTING FUNCTIONS
 #=============================================================================
-
-def ClockwiseAngleAndDistance(point):
+def PlotBasinPerimeter(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='png'):
     """
-    Function to calculate clockwise angle and distance
-    between two points.
-    From https://stackoverflow.com/questions/41855695/sorting-list-of-two-dimensional-coordinates-by-clockwise-angle-using-python
-
-    Author: FJC
-    """
-    # Vector between point and the origin: v = p - o
-    vector = [point[0]-origin[0], point[1]-origin[1]]
-    # Length of vector: ||v||
-    lenvector = math.hypot(vector[0], vector[1])
-    # If length is zero there is no angle
-    if lenvector == 0:
-        return -math.pi, 0
-    # Normalize vector: v/||v||
-    normalized = [vector[0]/lenvector, vector[1]/lenvector]
-    dotprod  = normalized[0]*refvec[0] + normalized[1]*refvec[1]     # x1*x2 + y1*y2
-    diffprod = refvec[1]*normalized[0] - refvec[0]*normalized[1]     # x1*y2 - y1*x2
-    angle = math.atan2(diffprod, dotprod)
-    # Negative angles represent counter-clockwise angles so we need to subtract them
-    # from 2*pi (360 degrees)
-    if angle < 0:
-        return 2*math.pi+angle, lenvector
-    # I return first the angle because that's the primary sorting criterium
-    # but if two vectors have the same angle then the shorter distance should come first.
-    return angle, lenvector
-
-def SortBasinPerimeter(PerimeterDF, OutletNode):
-    """
-    This function takes the dataframe of perimeter nodes
-    and sorts into a clockwise order based on the angle
-    and distance between each node and the outlet node.
+    Make a plot of the basin perimeter ordered by the outlet
 
     Args:
-        PerimeterDF: pandas dataframe of the perimeter nodes
-        OutletNode (int): specify what the outlet node is.
+        DataDirectory (str): the data directory
+        fname_prefix (str): filename of the DEM without extension
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
 
     Author: FJC
     """
-    df
-    #get x and y coords of the perimeter
-    perimeter_x = PerimeterDF.x
-    perimeter_y = PerimeterDF.y
+    # check if a directory exists for the perimeter plots. If not then make it.
+    this_dir = DataDirectory+'basin_perimeters/'
+    if not os.path.isdir(this_dir):
+        os.makedirs(this_dir)
 
-    df.assign(zip(perimeter_x, perimeter_y))
-    print df
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
 
-    OutletRow = df.loc[df['node'] == OutletNode]
-    origin = [OutletRow.x, OutletRow.y]
+    # make a figure
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
 
-    # get the coordinates of the outlet junction
-    refvec = [0, 1]
-    df.assign()
-    sorted_points = sorted(points, key=ClockwiseAngleAndDistance)
+    PerimeterDF = Helper.ReadPerimeterCSV(DataDirectory, fname_prefix)
 
-    sorted_points = zip(*sorted_points)
-    sorted_x = sorted_points[0]
-    sorted_y = sorted_points[1]
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.95,top=0.95)
+    ax = fig.add_subplot(gs[5:100,10:95])
 
-    # now sort the dataframe based on this
+    # plot the data
+    ax.plot(PerimeterDF['node_key'],PerimeterDF['elevation'])
+
+    # set the axis labels
+    ax.set_xlabel('Perimeter node ordered from outlet')
+    ax.set_ylabel('Node elevation')
+
+    newFilename = this_dir+fname_prefix+"_basin_perimeter."+FigFormat
+    plt.savefig(newFilename,format=FigFormat,dpi=300)
+    ax.cla()
+    plt.close(fig)

@@ -511,7 +511,7 @@ def ReadBasinStatsCSV(DataDirectory, fname_prefix):
     df = pd.read_csv(DataDirectory+fname)
 
     return df
-    
+
 def AppendBasinStatsCSVs(DataDirectory):
     """
     This function reads in the files with the prefic "basin"
@@ -526,16 +526,16 @@ def AppendBasinStatsCSVs(DataDirectory):
 
     Author: FJC, MDH
     """
-    
+
     # get the csv filename
     basin_stats_suffix = '_movernstats_basinstats.csv'
-    
+
     # decclare empty data frame
     MasterDF = pd.DataFrame()
-    
+
     # get the list of basins as a dict
     basin_dict = MapBasinsToKeys(DataDirectory)
-    
+
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
         print outlet_jn, basin_key
@@ -544,7 +544,7 @@ def AppendBasinStatsCSVs(DataDirectory):
         df = df[df['basin_key'] == 0]
         df['basin_key'] = basin_key
         MasterDF = MasterDF.append(df, ignore_index = True)
-        
+
     return MasterDF
 
 def ReadBasinStatsPointCSV(DataDirectory, fname_prefix):
@@ -633,7 +633,7 @@ def ReadMChiSegCSV(DataDirectory, fname_prefix, type = "Normal"):
     # get the csv filename depending of what you need
 
     # The "knickpoint" type is a special M_Chi file generated with the exact degmented elevation
-    if(type == "Normal"): 
+    if(type == "Normal"):
         suffix = '_MChiSegmented.csv'
     elif(type == "knickpoint"):
         suffix = "_ksnkp_mchi.csv"
@@ -775,7 +775,7 @@ def AppendRawSAData(DataDirectory):
 
     Args:
         DataDirectory: the data directory
-        
+
     Returns:
         pandas dataframe with the raw SA data
 
@@ -783,7 +783,7 @@ def AppendRawSAData(DataDirectory):
     """
     # get the csv filename
     csv_suffix = "_SAvertical.csv"
-    
+
     MasterDF = pd.DataFrame()
     basin_dict = MapBasinsToKeys(DataDirectory)
 
@@ -794,9 +794,9 @@ def AppendRawSAData(DataDirectory):
         df = df[df['basin_key'] == 0]
         df['basin_key'] = basin_key
         MasterDF = MasterDF.append(df, ignore_index = True)
-        
+
     return MasterDF
-    
+
 def ReadSegmentedSAData(DataDirectory, fname_prefix):
     """
     This function reads in the segmented SA data to a pandas dataframe
@@ -953,6 +953,26 @@ def ReadModelCSV(DataDirectory, Base_file):
     return df
 
 #-----------------------------------------------------------------------------#
+# Drainage capture metrics
+#-----------------------------------------------------------------------------#
+def ReadPerimeterCSV(DataDirectory, fname_prefix):
+    """
+    This function reads in the csv file with the perimeter info
+
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the base file prefix
+
+    Returns:
+        pandas dataframe with the csv file info
+
+    Author: FJC
+    """
+    csv_suffix = '_Perimeters.csv'
+    df = pd.read_csv(DataDirectory+fname_prefix+csv_suffix)
+    return df
+
+#-----------------------------------------------------------------------------#
 # Functions for appending csvs together for parallel basin running
 # FJC 19/10/17
 #-----------------------------------------------------------------------------#
@@ -1032,12 +1052,12 @@ def ReadMovernCSV(DataDirectory, fname_prefix):
 
     Author: MDH
     """
-    
+
     # get the csv filename
     csv_suffix = '_movern.csv'
-    
+
     df = pd.read_csv(DataDirectory+fname_prefix+csv_suffix)
-    
+
     return df
 
 def AppendMovernCSV(DataDirectory):
@@ -1165,7 +1185,7 @@ def AppendSABinnedCSVs(DataDirectory, fname_prefix):
 
     # write to a new csv
     MasterDF.to_csv(DataDirectory+fname_prefix+csv_suffix)
-    
+
     return MasterDF
 
 def AppendSASegmentedCSVs(DataDirectory, fname_prefix):
@@ -1199,7 +1219,7 @@ def AppendSASegmentedCSVs(DataDirectory, fname_prefix):
 
     # write to a new csv
     MasterDF.to_csv(DataDirectory+fname_prefix+csv_suffix)
-    
+
     return MasterDF
 
 def AppendSAVerticalCSVs(DataDirectory, fname_prefix):
@@ -1233,7 +1253,7 @@ def AppendSAVerticalCSVs(DataDirectory, fname_prefix):
 
     # write to a new csv
     MasterDF.to_csv(DataDirectory+fname_prefix+csv_suffix)
-    
+
     return MasterDF
 
 def AppendBasinPointCSVs(DataDirectory):
