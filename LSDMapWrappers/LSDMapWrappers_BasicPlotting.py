@@ -457,7 +457,7 @@ def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet
 def PrintBasins_Complex(DataDirectory,fname_prefix,
                    use_keys_not_junctions = True, show_colourbar = False,
                    Remove_Basins = [], Rename_Basins = {}, Value_dict= {},
-                   cmap = "jet", cbar_loc = "right", size_format = "ESURF",
+                   cmap = "jet", colorbarlabel = "colourbar", size_format = "ESURF",
                    fig_format = "png", dpi = 250, out_fname_prefix = ""):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
@@ -473,7 +473,7 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
         Value_dict (dict): A dict where the key is either basin key or junction index, and the value is a value of the basin that is used to colour the basins
         add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar.
         cmap (str or colourmap): The colourmap to use for the plot
-        cbar_lox (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
+        cbar_loc (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
@@ -524,8 +524,8 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Remove_Basins,
                       rename_dict = Rename_Basins, value_dict = Value_dict,
                       use_keys_not_junctions = use_keys_not_junctions, show_colourbar = show_colourbar,
-                      discrete_cmap=True, n_colours=15, colorbarlabel = "$m/n$",
-                      colourmap = plt.cm.jet, adjust_text = False)
+                      discrete_cmap=True, n_colours=15, colorbarlabel = colorbarlabel,
+                      colourmap = cmap, adjust_text = False)
 
     # Save the image
     if len(out_fname_prefix) == 0:

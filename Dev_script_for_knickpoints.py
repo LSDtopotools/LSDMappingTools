@@ -37,7 +37,9 @@ prefix = "puerto_rico"
 
 Jaguar = KP.KP_dev_v2(path,prefix, min_length = 20000)
 
-Jaguar.print_ksn_filters()
-Jaguar.print_KDE()
-Jaguar.print_ksn_outliers()
-Jaguar.print_ksn_dksndchi()
+# Jaguar.DEBUG_print_ksn_filters()
+# Jaguar.DEBUG_print_KDE()
+Jaguar.DEBUG_print_ksn_outliers()
+# Jaguar.DEBUG_print_ksn_dksndchi()
+
+Jaguar.DEBUG_print_ksn_comparison()
