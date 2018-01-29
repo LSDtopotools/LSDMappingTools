@@ -19,7 +19,6 @@ from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 import LSDMapWrappers as LSDMW
 from LSDMapFigure import PlottingHelpers as phelp
 import LSDPlottingTools as LSDP
-
 from osgeo import ogr
 
 
