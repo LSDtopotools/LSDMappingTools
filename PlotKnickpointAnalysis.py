@@ -72,7 +72,8 @@ def main(argv):
 
     #knickpint related
 
-    parser.add_argument("-ksnPs", "--ksn_per_source", type=bool, default = False, help="Print one figure per source key selected, with ksn -> f(chi & flow_distance) in the folder .../river_plot/. it displays the ksn out of Mudd et al., 2014 method, and the TVD one out of the *insert algorithm name*")
+    parser.add_argument("-ksnPs", "--ksn_per_source", type=bool, default = False, help="Print one figure per source key selected, with ksn -> f(chi & flow_distance) in the folder .../river_plots/. it displays the ksn out of Mudd et al., 2014 method, and the TVD one out of the *insert algorithm name*")
+    parser.add_argument("-rp", "--river_profile", type=bool, default = False, help="Print one figure per source key selected, with elevation -> f(chi & flow_distance) in the folder .../river_plots/. it displays river profiles in a chi and distance spaces")
 
 
 
@@ -93,7 +94,7 @@ def main(argv):
         these_source_keys = []
     else:
         these_source_keys = [int(item) for item in args.source_keys.split(',')]
-        print("The sources I will plot are:")
+        print("The sources preselected are:")
         print(these_source_keys)
 
     # Processing the size choice
@@ -110,7 +111,7 @@ def main(argv):
 
     print("Loading the dataset:")
 
-    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = [], source_key = [], min_length = 0)
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = [], source_key = [], min_length = args.min_source_length)
 
     # Plotting hte knickpoints
     if(args.ksn_per_source):
@@ -120,6 +121,11 @@ def main(argv):
         print("Printing a set of ksn values with the knickpoints and their magnitude in a Flow distance")
         KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
 
+    if(args.river_profile):
+        print("Printing river profiles in chi spaces")
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white')
+        print("Printing river profiles in flow distance")
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white')
     
     # Preparing the min_max color for mchi maps
     if(args.max_mchi_map <= args.min_mchi_map):
