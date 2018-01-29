@@ -20,6 +20,7 @@ from LSDMapFigure import PlottingHelpers as Helper
 from LSDPlottingTools import colours as lsdcolours
 from LSDPlottingTools import statsutilities as SUT
 from LSDPlottingTools import init_plotting_DV
+from matplotlib.patches import Rectangle
 import LSDPlottingTools as LSDP
 import sys
 import os
@@ -99,7 +100,7 @@ class KP_plotting(object):
 
 
     def print_ksn_profile(self,size = "big", format = "png", x_axis = "chi", knickpoint = True, title = "none", label_size = 8, facecolor = 'white',
-        size_of_ksn = 2, legend = True, size_of_TVD_ksn = 1):
+        size_of_ksn = 4, legend = True, size_of_TVD_ksn = 3):
 
         """
         print a plot for each source keys selected with ksn value function to Chi or Flow Distance.
@@ -115,7 +116,7 @@ class KP_plotting(object):
         """
 
         # check if a directory exists for the chi plots. If not then make it.
-        out_directory = self.fpath+'river_plot/'
+        out_directory = self.fpath+'river_plots/'
         if not os.path.isdir(out_directory):
             print("I am creating the river_plot/ directory to save your figures")
             os.makedirs(out_directory)
@@ -135,20 +136,21 @@ class KP_plotting(object):
             this_df_kp_raw = self.df_kp_raw[self.df_kp_raw["source_key"] == sources]
             this_df_river = self.df_river[self.df_river["source_key"] == sources]
 
-
+            
             # Create a figure with required dimensions
             n_axis = 1
             fig = self.get_fig_right_size(size = size, n_axis =1 , facecolor = facecolor)
 
             # create the axis using the gridspec method
-            gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
-            ax1 = fig.add_subplot(gs[0:100,0:100])
-            gs = plt.GridSpec(100,100,bottom=0.15,left=0.15,right=0.95,top=0.95)
+            gs = plt.GridSpec(100,100,bottom=0.15,left=0.10,right=0.90,top=0.95)
             ax2 = fig.add_subplot(gs[0:100,0:100], facecolor = "None")
+            gs = plt.GridSpec(100,100,bottom=0.15,left=0.10,right=0.90,top=0.95)
+            ax1 = fig.add_subplot(gs[0:100,0:100])
+
 
             # plotting the ksn
             ## not processed (in the back and quite transparent)
-            ax1.scatter(this_df_river[x_axis],this_df_river["m_chi"], s = size_of_ksn,c = "r", lw =0, alpha = 0.3, label = "ksn (before TVD)")
+            ax1.scatter(this_df_river[x_axis],this_df_river["m_chi"], s = size_of_ksn, c = "r", lw =0, alpha = 0.3, label = "ksn (before TVD)")
             ax1.scatter(this_df_river[x_axis],this_df_river["TVD_ksn"], s = size_of_TVD_ksn, c ="k", lw =0, alpha = 1, label = "ksn (TVD)")
 
             # Label
@@ -159,17 +161,29 @@ class KP_plotting(object):
             ax1.set_xlabel(xlab)
             ax1.set_ylabel(r"$k_{sn}$")
 
-            # Title
-            if(title.lower() == "auto"):
-                plt.title("Source: %s"%(sources), loc = "left")
-            elif(title.lower() != "none"):
-                plt.title(title, loc = "left")
-
             # Legend
             ax1.legend(loc = 1) # 1 = upper right
             ax2.xaxis.set_visible(False)
-            ax2.yaxis.set_visible(False)
+            if(knickpoint):
+                ax2.yaxis.set_ticks_position("right")
+                ax2.yaxis.set_label_position("right")
+                ax2.set_ylabel(r"$Knickpoint  \Delta k_{sn}$")
+            else:
+                ax2.yaxis.set_visible(False)
 
+            if(knickpoint):
+                this_df_kp_pos = this_df_kp[this_df_kp["delta_ksn"]>0]
+                this_df_kp_neg = this_df_kp[this_df_kp["delta_ksn"]<0]
+                ax2.scatter(this_df_kp_pos[x_axis], this_df_kp_pos["delta_ksn"], marker = "s", s = 5, color = "r")
+                ax2.scatter(this_df_kp_neg[x_axis], this_df_kp_neg["delta_ksn"], marker = "s", s = 5, color = "b")
+
+            # Title
+            if(title.lower() == "auto"):
+                this_title = "source %s" %(sources)
+            elif(title.lower() != "none"):
+                this_title = title
+            if(title.lower() != "none"):
+                extra = ax1.add_patch(Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0, label = this_title))
 
             # Saving the figure
             plt.savefig(out_directory + self.fprefix+"_ksn_source%s_%s.%s"%(sources,x_axis,format))
@@ -208,6 +222,7 @@ class KP_plotting(object):
                 fig = plt.figure(n_axis, facecolor = facecolor, dpi = 600) 
 
         return fig
+
 
         
 

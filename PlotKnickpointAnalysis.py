@@ -114,8 +114,8 @@ def main(argv):
 
     # Plotting hte knickpoints
     if(args.ksn_per_source):
-        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = False, title = "auto", label_size = 8, facecolor = 'white', size_of_ksn = 2, legend = True, size_of_TVD_ksn = 1)
-        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = False, title = "auto", label_size = 8, facecolor = 'white', size_of_ksn = 2, legend = True, size_of_TVD_ksn = 1)
+        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
+        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
 
     
     # Preparing the min_max color for mchi maps
