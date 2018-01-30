@@ -73,8 +73,8 @@ def main(argv):
     #knickpint related
 
     parser.add_argument("-ksnPs", "--ksn_per_source", type=bool, default = False, help="Print one figure per source key selected, with ksn -> f(chi & flow_distance) in the folder .../river_plots/. it displays the ksn out of Mudd et al., 2014 method, and the TVD one out of the *insert algorithm name*")
-    parser.add_argument("-rp", "--river_profile", type=bool, default = False, help="Print one figure per source key selected, with elevation -> f(chi & flow_distance) in the folder .../river_plots/. it displays river profiles in a chi and distance spaces")
-
+    parser.add_argument("-rivplot", "--river_profile", type=bool, default = False, help="Print one figure per source key selected, with elevation -> f(chi & flow_distance) in the folder .../river_plots/. it displays river profiles in a chi and distance spaces")
+    parser.add_argument("-rasplot", "--raster_plots", type = bool, default = False, help="Print raster plots with knickpointson top of ksn in the folder .../raster_plots/")
 
 
     args = parser.parse_args()
@@ -126,6 +126,10 @@ def main(argv):
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white')
         print("Printing river profiles in flow distance")
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white')
+
+    if(args.raster_plots):
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6)
     
     # Preparing the min_max color for mchi maps
     if(args.max_mchi_map <= args.min_mchi_map):

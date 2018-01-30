@@ -53,13 +53,16 @@ class KP_plotting(object):
         print("Loading the knickpoint-related files")
         
         try:
-            self.df_river = Helper.ReadMChiSegCSV(self.fpath, self.fprefix, type = "knickpoint")
-            self.df_kp_raw = Helper.ReadKnickpointCSV(self.fpath, self.fprefix, ftype = "raw")
-            self.df_kp = Helper.ReadKnickpointCSV(self.fpath, self.fprefix)
-            self.df_SK = Helper.readSKKPstats(self.fpath, self.fprefix)
+            self.df_river = Helper.ReadMChiSegCSV(self.fpath, self.fprefix, type = "knickpoint") # Contains the river info
+            self.df_rivraw = Helper.ReadMChiSegCSV(self.fpath, self.fprefix, type = "knickpoint") # Contains the river info (will not be thinned by your selection choices)
+            self.df_kp_raw = Helper.ReadKnickpointCSV(self.fpath, self.fprefix, ftype = "raw") # Contains the raw knickpint info (before TVD or else) -> Debugging purposes
+            self.df_kp = Helper.ReadKnickpointCSV(self.fpath, self.fprefix) # Contains the knickpoint location and informations
+            self.df_SK = Helper.readSKKPstats(self.fpath, self.fprefix) # Contains few metrics per river keys
         except IOError:
             print("I didnae find your knickpoint related files make sure that:")
+            print("- You ran the knickpoint analysis")
             print("- Your path is good and finishing by '/' e.g. /home/name/kazakhstan/ ")
+
             quit()
 
 
@@ -160,6 +163,35 @@ class KP_plotting(object):
                 fig = plt.figure(n_axis, facecolor = facecolor, dpi = 600) 
 
         return fig
+
+    def get_figwidth_right_size(self, size = "esurf"):
+        """
+        return a matplotlib fig object presized
+        param:
+            size = size code (esurf,geomorphology,big or tuple/array of size)
+            n_axis: number of axis
+        """
+
+        # Cheching the type of input
+
+        if (isinstance(size,str)):
+            if size.lower() == "geomorphology":
+                wsize = 6.25            
+            elif size.lower() == "big":
+                wsize = 16           
+            elif size.lower() == "esurf":
+                wsize = 4.92126
+            else:
+                print("I did not understood your format input (%s), I am defaulting to esurf." %(size))
+                wsize = 4.92126
+        if ((isinstance(size,tuple)) or (isinstance(size,list))):
+            if len(size) == 2:
+                wsize = size[0]
+            else:
+                print("I did not understood your format input (%s), I am defaulting to esurf." %(size))
+                wsize = 4.92126
+
+        return wsize
 
 
 
@@ -388,74 +420,59 @@ class KP_plotting(object):
 
 
 
-    def print_map_of_kp(self,size = "big", format = "png", x_axis = "chi", knickpoint = True, title = "none", label_size = 8, facecolor = 'white',
-        size_of_ksn = 4, legend = True, size_of_TVD_ksn = 3):
+    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8):
 
             # check if a directory exists for the chi plots. If not then make it.
-        raster_directory = DataDirectory+'raster_plots/'
+        raster_directory = self.fpath+'raster_plots/'
         if not os.path.isdir(raster_directory):
             os.makedirs(raster_directory)
 
         # Set up fonts for plots
-        basls = basin_list
-        label_size = 10
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans'] # Liberation Sans is a free alternative to Arial. Albeit being quite universal, Arial is propietary. #PRAISE_FREE_AND_OPENSOURCE
         rcParams['font.size'] = label_size
 
         # set figure sizes based on format
-        if size_format == "geomorphology":
-            fig_width_inches = 6.25
-        elif size_format == "big":
-            fig_width_inches = 16
-        else:
-            fig_width_inches = 4.92126
-
+        fig_width_inches = self.get_figwidth_right_size(size = size)
 
         # get the rasters
         raster_ext = '.bil'
-        BackgroundRasterName = fname_prefix+raster_ext
-        HillshadeName = fname_prefix+'_hs'+raster_ext
-        BasinsName = fname_prefix+'_AllBasins'+raster_ext
+        BackgroundRasterName = self.fprefix+raster_ext
+        HillshadeName = self.fprefix+'_hs'+raster_ext
+        BasinsName = self.fprefix+'_AllBasins'+raster_ext
 
         
         # create the map figure
-        MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", alpha = 0.7)
+        MF = MapFigure(HillshadeName, self.fpath, coord_type="UTM_km", alpha = 0.7)
+        if(black_bg):
+            MF.add_drape_image(HillshadeName,self.fpath,colourmap = "gray",alpha=1,colour_min_max = [10000,10001],modify_raster_values=False,old_values=[], new_values=[],NFF_opti = True)
+
         
         # plot the basin outlines
-        Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
-        MF.plot_polygon_outlines(Basins, linewidth=0.5)
+        Basins = LSDP.GetBasinOutlines(self.fpath, BasinsName)
+        MF.plot_polygon_outlines(Basins, linewidth = 0.5)
 
         # add the channel network without color
-        ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix, type = "knickpoint")
-        ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-        MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.5,min_point_size = 0.1,zorder=100)
+        rivnet = LSDP.LSDMap_PointData(self.df_river, data_type = "pandas", PANDEX = True)
+        rawriv = LSDP.LSDMap_PointData(self.df_rivraw, data_type = "pandas", PANDEX = True)
+        MF.add_point_data(rawriv, show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.4,min_point_size = 0.2,zorder=100)
+        MF.add_point_data(rivnet, column_for_plotting = "m_chi", show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 1.5,min_point_size = 0.4,zorder=100)
 
         # add the knickpoints plots
-        
-        Kdf = Helper.ReadKnickpointCSV(DataDirectory,fname_prefix)
-        # Selecting the basins in case you choose specific ones
-        if(len(basls)>0):
-            Kdf = Kdf[kdf["basin_key"].isin(basls)]
 
-        # Sorting data in case of manual cut_off
-        if(mancut>0):
-            print("I am manually cutting off the data. If you need a automated outliers detection, switch mancut option off")
-            Kdf = Kdf[Kdf["rad_diff"]> mancut]
-        elif(outlier_detection_method != "None"):
-            print("I will now select the outliers following the method " + outlier_detection_method)
-            Kdf = get_outliers_from_DF(Kdf, method = outlier_detection_method)
+        kp_pos = LSDP.LSDMap_PointData(self.df_kp[self.df_kp["sign"] == 1], data_type = "pandas", PANDEX = True)
+        kp_neg = LSDP.LSDMap_PointData(self.df_kp[self.df_kp["sign"] == -1], data_type = "pandas", PANDEX = True)
 
+        MF.add_point_data(kp_pos,this_colourmap = "RdBu_r",colour_manual_scale = [0,self.df_kp["delta_ksn"].max()], marker ="^", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar=True, colorbarlabel = r'$\Delta k_{sn}$', colourbar_location = "bottom", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = 20)
+        MF.add_point_data(kp_neg,this_colourmap = "RdBu_r",colour_manual_scale = [0,self.df_kp["delta_ksn"].max()], marker ="v", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar="False", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = 20)
 
-
-        KdfPoints = LSDP.LSDMap_PointData(Kdf, data_type = "pandas", PANDEX = True)
-        MF.add_point_data(KdfPoints,this_colourmap = "RdBu_r",column_for_plotting = "sign",show_colourbar="False", scale_points=True, scaled_data_in_log= False, column_for_scaling='rad_diff',alpha=1,max_point_size = 15,min_point_size = 1,zorder=200)
-
-        #Saving and stuffs
-        if(outlier_detection_method == "None"):
-            outlier_detection_method = "raw"  
-        ImageName = raster_directory+fname_prefix+"_knickpoint_"+ outlier_detection_method +"_map."+FigFormat
-        MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300) # Save the figure
+        if(black_bg):
+            suffix = "dark"
+        else:
+            suffix = "hs"
+        ImageName = raster_directory+self.fprefix+"_ksnkp_map_%s."%(suffix) + format
+        MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat = format, Fig_dpi = 500) # Save the figure
+        plt.clf()
 
 
 
