@@ -71,6 +71,19 @@ def parse_dict_from_string(a_string):
 # This parses a list of lists separated string. Each list is separated by a colon
 #=============================================================================    
 def parse_list_of_list_from_string(a_string):
+    """
+    This parses a list of lists separated string. Each list is separated by a colon
+    
+    Args:
+        a_string (str): This creates a list of lists. Each sub list is separated by colons and the sub list items are separated by commas. So `1,2,3:4,5` would produce [ [1,2,3],[4,5]]
+        
+    Returns:
+        list_of_list (list): A list of lists
+        
+    Author: SMM
+    
+    Date: 11/01/2018
+    """
     
     if len(a_string) == 0:
         print("No list of list found. I will return an empty list.")
@@ -94,6 +107,20 @@ def parse_list_of_list_from_string(a_string):
 # a constant value. Used for plotting. 
 #=============================================================================  
 def convert_basin_stack_to_value_dict(basin_stack_list):
+    """
+    This takes the basin stack list and then gives each basin in a stack layer a constant value. Used for plotting. So if there are several basin stacks each one gets a different value. 
+    
+    Args:
+        basin_stack_list (list of int lists): The basins that will be stacked. Each item in the list is a collection of basins that will be used in each indivdual stack plot. So, for example, if this is [ [1,2,3],[4,5]] then there will be two stacked plot, the first with basins 1,2,3 and the second with basins 4 and 5.
+        
+    Returns: 
+        this_value_dict (dict): A dictionary assigning a single value to each basin. Basins in the same stack will have the same value. 
+        
+    Author: SMM
+    
+    Date: 11/01/2017
+    
+    """
     
     N_stacks = len(basin_stack_list)
     print("The number of stacks are: "+ str(N_stacks))
@@ -112,6 +139,20 @@ def convert_basin_stack_to_value_dict(basin_stack_list):
 # This pads an offset list so it is the same size as the basin list
 #=============================================================================     
 def pad_offset_lists(basin_stack_list,offset_list):
+    """
+    This pads an offset list so it is the same size as the basin list. The offsets are the coordinate distances between the starting node of adjacent profile plots.
+    
+    Args:
+        basin_stack_list (list of int lists): The basins that will be stacked. Each item in the list is a collection of basins that will be used in each indivdual stack plot. So, for example, if this is [ [1,2,3],[4,5]] then there will be two stacked plot, the first with basins 1,2,3 and the second with basins 4 and 5. 
+        offset_list (float list): A list of of the offset spacings for each basin stack.
+        
+    Return: 
+        final_offsets (float list): The locations of the offsets.  
+        
+    Author: SMM
+    
+    Date: 09/01/2017
+    """
     
     # I need to check chi the offsets
     n_basin_stacks = len(basin_stack_list)
@@ -133,7 +174,36 @@ def pad_offset_lists(basin_stack_list,offset_list):
     
     return final_offsets
     
+def DoesBasinInfoExist(fname_prefix):
+    """
+    This function checks to see if there is an AllBasinsInfo file, which is produced by the LSDTopoTools basin extraction routines in the chi_mapping_tool.
     
+    Args: 
+        fname_prefix (str): The prefix of the raster file to be analysed
+        
+    Returns:
+        BasinInfoDF (pandas dataframe): The basin info in a pandas dataframe
+        exising_basin_keys (int list): a list of integers with the basin keys
+        
+    Author: SMM
+    
+    Date 30/01/2017
+    """
+    # See if a basin info file exists and if so get the basin list
+    print("Let me check if there is a basins info csv file.")
+    BasinInfoPrefix = args.fname_prefix+"_AllBasinsInfo.csv"
+    BasinInfoFileName = this_dir+BasinInfoPrefix
+    existing_basin_keys = []
+    if os.path.isfile(BasinInfoFileName): 
+        print("There is a basins info csv file")
+        BasinInfoDF = phelp.ReadBasinInfoCSV(this_dir, args.fname_prefix)
+        existing_basin_keys = list(BasinInfoDF['basin_key'])
+        existing_basin_keys = [int(x) for x in existing_basin_keys]
+    else:
+        print("I didn't find a basins info csv file. Check directory or filename.")
+        
+    return BasinInfoDF, existing_basin_keys
+        
     
 #=============================================================================
 # This is the main function that runs the whole thing
@@ -240,19 +310,7 @@ def main(argv):
         
         
             
-    # See if a basin info file exists and if so get the basin list
-    print("Let me check if there is a basins info csv file.")
-    BasinInfoPrefix = args.fname_prefix+"_AllBasinsInfo.csv"
-    BasinInfoFileName = this_dir+BasinInfoPrefix
-    existing_basin_keys = []
-    if os.path.isfile(BasinInfoFileName): 
-        print("There is a basins info csv file")
-        BasinInfoDF = phelp.ReadBasinInfoCSV(this_dir, args.fname_prefix)
-        existing_basin_keys = list(BasinInfoDF['basin_key'])
-        existing_basin_keys = [int(x) for x in existing_basin_keys]
-    else:
-        print("I didn't find a basins info csv file. Check directory or filename.")
-    
+
 
     # Parse any lists, dicts, or list of lists from the arguments   
     these_basin_keys = parse_list_from_string(args.basin_keys)
