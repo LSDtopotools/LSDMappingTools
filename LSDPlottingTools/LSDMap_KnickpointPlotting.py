@@ -427,7 +427,7 @@ class KP_plotting(object):
 
 
 
-    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8):
+    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20):
 
             # check if a directory exists for the chi plots. If not then make it.
         raster_directory = self.fpath+'raster_plots/'
@@ -460,18 +460,24 @@ class KP_plotting(object):
         MF.plot_polygon_outlines(Basins, linewidth = 0.5)
 
         # add the channel network without color
+        ## First calibration of the points: I calculated a ratio of niceness from different tests - Probably need more work to adapt it to different figure styles
+        min_corrected = size_kp*0.4/20
+        max_corrected = size_kp*1.5/20
+        raw_min_corrected = size_kp*0.1/20
+        raw_max_corrected = size_kp*0.4/20
+
         rivnet = LSDP.LSDMap_PointData(self.df_river, data_type = "pandas", PANDEX = True)
         rawriv = LSDP.LSDMap_PointData(self.df_rivraw, data_type = "pandas", PANDEX = True)
-        MF.add_point_data(rawriv, show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 0.4,min_point_size = 0.2,zorder=100)
-        MF.add_point_data(rivnet, column_for_plotting = "m_chi", show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = 1.5,min_point_size = 0.4,zorder=100)
+        MF.add_point_data(rawriv, show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = raw_max_corrected,min_point_size = raw_min_corrected,zorder=100)
+        MF.add_point_data(rivnet, column_for_plotting = "m_chi", show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = max_corrected,min_point_size = min_corrected,zorder=100)
 
         # add the knickpoints plots
 
         kp_pos = LSDP.LSDMap_PointData(self.df_kp[self.df_kp["sign"] == 1], data_type = "pandas", PANDEX = True)
         kp_neg = LSDP.LSDMap_PointData(self.df_kp[self.df_kp["sign"] == -1], data_type = "pandas", PANDEX = True)
 
-        MF.add_point_data(kp_pos,this_colourmap = "RdBu_r",colour_manual_scale = [0,self.df_kp["delta_ksn"].max()], marker ="^", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar=True, colorbarlabel = r'$\Delta k_{sn}$', colourbar_location = "bottom", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = 20)
-        MF.add_point_data(kp_neg,this_colourmap = "RdBu_r",colour_manual_scale = [0,self.df_kp["delta_ksn"].max()], marker ="v", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar="False", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = 20)
+        MF.add_point_data(kp_pos,this_colourmap = "RdBu_r",colour_manual_scale = [0,self.df_kp["delta_ksn"].max()], marker ="^", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar=True, colorbarlabel = r'$\Delta k_{sn}$', colourbar_location = "bottom", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
+        MF.add_point_data(kp_neg,this_colourmap = "RdBu_r",colour_manual_scale = [0,self.df_kp["delta_ksn"].max()], marker ="v", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar="False", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
 
         if(black_bg):
             suffix = "dark"
@@ -553,7 +559,7 @@ class KP_plotting(object):
         ax1 = fig.add_subplot(gs[0:100,0:100], facecolor = "white")
 
         if(grid):
-            ax1.grid(ls = 'dotted', lw = 0.1, c = "k", zorder = 5)
+            ax1.grid(ls = 'dotted', lw = 0.3, c = "k", zorder = 5)
 
 
         # aggregating the data
@@ -563,8 +569,8 @@ class KP_plotting(object):
 
         for bing in self.df_kp[binning].unique():
             data_to_plot.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing])
-            data_name.append(str(bing))
-            n_data.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0])
+            data_name.append(str(bing) + "\nn = "+str(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0]))
+            #n_data.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0])
 
 
 
