@@ -40,7 +40,7 @@ class KP_plotting(object):
     """
 
 
-    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0):
+    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0, cut_off_val = 0):
 
         print("Let me first preprocess and check your files")
 
@@ -67,6 +67,12 @@ class KP_plotting(object):
 
 
         print("Managing the data:")
+
+        if(cut_off_val > 0):
+            print("I am removing the knickpoints with a magnitude below %s" %(cut_off_val))
+            self.df_kp = self.df_kp[self.df_kp["delta_ksn"].abs() >= cut_off_val]
+
+
         if(basin_key == []):
             print("All the basins are selected:")
             print(self.df_SK["basin_key"].unique().tolist())
@@ -97,7 +103,8 @@ class KP_plotting(object):
             self.df_kp = self.df_kp[self.df_kp["source_key"].isin(source_key)]
             self.df_SK = self.df_SK[self.df_SK["source_key"].isin(source_key)]
 
-        # TODO Adding some sorting functions based on the source key
+        
+
 
         # dealing with no datas
 
@@ -473,6 +480,135 @@ class KP_plotting(object):
         ImageName = raster_directory+self.fprefix+"_ksnkp_map_%s."%(suffix) + format
         MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat = format, Fig_dpi = 500) # Save the figure
         plt.clf()
+
+
+
+
+
+    def print_histogram(self,size = "big", format = "png", label_size = 8, n_bin = 'auto', facecolor = "white", grid = True):
+        """
+        This figure print an histogram of the knickpoint repartition for the selected basins/sources
+
+        """
+
+
+        # check if a directory exists for the chi plots. If not then make it.
+        out_directory = self.fpath+'stat_plots/'
+        if not os.path.isdir(out_directory):
+            print("I am creating the river_plot/ directory to save your figures")
+            os.makedirs(out_directory)
+
+        
+        # Set up fonts for plots
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['Liberation Sans'] # Liberation Sans is a free alternative to Arial. Albeit being quite universal, Arial is propietary. #PRAISE_FREE_AND_OPENSOURCE
+        rcParams['font.size'] = label_size
+
+
+        # Create a figure with required dimensions
+        n_axis = 1
+        fig = self.get_fig_right_size(size = size, n_axis =1 , facecolor = facecolor)
+
+        gs = plt.GridSpec(100,100,bottom=0.15, left=0.10, right=0.95, top=0.95)
+        ax1 = fig.add_subplot(gs[0:100,0:100], facecolor = "white")
+
+        if(grid):
+             ax1.grid(ls = 'dotted', lw = 0.1, c = "k", zorder = 5)
+
+        ax1.hist(self.df_kp["delta_ksn"], bins = n_bin, fc = "#848484", lw = 0.5, edgecolor = "k", zorder = 10)
+
+
+        ax1.set_xlabel(r"$\Delta k_{sn}$")
+        ax1.set_ylabel("n knickpoints")
+
+        plt.savefig(out_directory + self.fprefix + "_kp_hist.%s"%(format), dpi = 500)
+        plt.clf()
+
+
+    def print_box_and_whisker(self,size = "big", format = "png", label_size = 8, binning = 'source_key', facecolor = "white", grid = True):
+        """
+        This figure print an histogram of the knickpoint repartition for the selected basins/sources
+
+        """
+
+
+        # check if a directory exists for the chi plots. If not then make it.
+        out_directory = self.fpath+'stat_plots/'
+        if not os.path.isdir(out_directory):
+            print("I am creating the river_plot/ directory to save your figures")
+            os.makedirs(out_directory)
+
+        
+        # Set up fonts for plots
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['Liberation Sans'] # Liberation Sans is a free alternative to Arial. Albeit being quite universal, Arial is propietary. #PRAISE_FREE_AND_OPENSOURCE
+        rcParams['font.size'] = label_size
+
+
+        # Create a figure with required dimensions
+        n_axis = 1
+        fig = self.get_fig_right_size(size = size, n_axis =1 , facecolor = facecolor)
+
+        gs = plt.GridSpec(100,100,bottom=0.15, left=0.10, right=0.95, top=0.95)
+        ax1 = fig.add_subplot(gs[0:100,0:100], facecolor = "white")
+
+        if(grid):
+            ax1.grid(ls = 'dotted', lw = 0.1, c = "k", zorder = 5)
+
+
+        # aggregating the data
+        data_to_plot = []
+        data_name = []
+        n_data = []
+
+        for bing in self.df_kp[binning].unique():
+            data_to_plot.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing])
+            data_name.append(str(bing))
+            n_data.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0])
+
+
+
+        bp = ax1.boxplot(data_to_plot, labels = data_name, patch_artist = True)
+
+        ## change outline color, fill color and linewidth of the boxes
+        for box in bp['boxes']:
+            # change outline color
+            box.set( color='k', linewidth=1.5)
+            # change fill color
+            box.set( facecolor = '#848484' )
+
+        ## change color and linewidth of the whiskers
+        for whisker in bp['whiskers']:
+            whisker.set(color='k', linewidth=1)
+
+        ## change color and linewidth of the caps
+        for cap in bp['caps']:
+            cap.set(color='#2C2C2C', linewidth=1)
+
+        ## change color and linewidth of the medians
+        for median in bp['medians']:
+            median.set(color='#E0E0E0', linewidth=1)
+
+        ## change the style of fliers and their fill
+        for flier in bp['fliers']:
+            flier.set(marker='+', color='#A0A0A0', alpha=0.5)
+
+        ax1.set_ylabel(r"$\Delta k_{sn}$")
+
+        if(binning == "source_key"):
+            xlabo = "Source keys"
+        elif(binning == "basin_key"):
+            xlabo = "Basin keys"
+        else:
+            xlabo = binning
+
+        ax1.set_xlabel(xlabo)
+
+
+        plt.savefig(out_directory + self.fprefix + "_kp_baw_%s.%s"%(binning,format), dpi = 500)
+        plt.clf()
+
+            
 
 
 

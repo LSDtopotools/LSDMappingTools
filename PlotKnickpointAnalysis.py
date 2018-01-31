@@ -74,8 +74,12 @@ def main(argv):
 
     parser.add_argument("-ksnPs", "--ksn_per_source", type=bool, default = False, help="Print one figure per source key selected, with ksn -> f(chi & flow_distance) in the folder .../river_plots/. it displays the ksn out of Mudd et al., 2014 method, and the TVD one out of the *insert algorithm name*")
     parser.add_argument("-rivplot", "--river_profile", type=bool, default = False, help="Print one figure per source key selected, with elevation -> f(chi & flow_distance) in the folder .../river_plots/. it displays river profiles in a chi and distance spaces")
-    parser.add_argument("-rasplot", "--raster_plots", type = bool, default = False, help="Print raster plots with knickpointson top of ksn in the folder .../raster_plots/")
+    parser.add_argument("-rasplot", "--raster_plots", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
+    parser.add_argument("-statplot", "--statistical_plots", type = bool, default = False, help="Print a bunch of statistics about the knickpoints in the folder .../raster_plots/")
 
+    # Others
+    parser.add_argument("-nbh", "--n_bin_hist", type = int, default = 0, help = "Customization of the number of bin you want for the general histogram. Default is an automatic in-built selection from numpy")
+    parser.add_argument("-cov", "--cut_off_val", type = float, default = 0., help = "Cutoff value for the knickpoint magnitude (the drop/increase of ksn). Default is 0 (no cut)")
 
     args = parser.parse_args()
 
@@ -111,9 +115,20 @@ def main(argv):
 
     print("Loading the dataset:")
 
-    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = [], source_key = [], min_length = args.min_source_length)
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = [], source_key = [], min_length = args.min_source_length, cut_off_val = args.cut_off_val)
 
     # Plotting hte knickpoints
+    if(args.statistical_plots):
+        
+        if(int(args.n_bin_hist) == 0):
+            n_b = "auto"
+        else:
+            n_b = int(args.n_bin_hist)
+
+        KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b)
+        KI.print_box_and_whisker(size = size, format = args.FigFormat, label_size = 8, binning = 'source_key', facecolor = "white", grid = True)
+        KI.print_box_and_whisker(size = size, format = args.FigFormat, label_size = 8, binning = 'basin_key', facecolor = "white", grid = True)
+
     if(args.ksn_per_source):
         print("Printing a set of ksn values with the knickpoints and their magnitude in a Chi distance")
         KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
@@ -130,7 +145,7 @@ def main(argv):
     if(args.raster_plots):
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6)
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6)
-    
+
     # Preparing the min_max color for mchi maps
     if(args.max_mchi_map <= args.min_mchi_map):
         colo = []
