@@ -126,8 +126,8 @@ def main(argv):
             # HS.PlotLHDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
     if args.plot_mean_basin_data:
-        #HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
-        HS.PlotHillslopeDataWithBasinsFromCSV(this_dir, args.fname_prefix)
+        HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
+        # HS.PlotHillslopeDataWithBasinsFromCSV(this_dir, args.fname_prefix)
 
 
 #=============================================================================
