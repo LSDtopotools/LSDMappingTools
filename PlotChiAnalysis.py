@@ -41,6 +41,19 @@ def print_welcome():
 # This parses a comma separated string
 #=============================================================================    
 def parse_list_from_string(a_string):
+    """
+    This just parses a comma separated string and returns an INTEGER list
+    
+    Args: 
+        a_string (str): The string to be parsed
+        
+    Returns:
+        A list of integers
+        
+    Author: SMM
+    
+    Date: 10/01/2018
+    """
     if len(a_string) == 0:
         print("No items found, I am returning and empty list.")
         return_list = []
@@ -55,6 +68,19 @@ def parse_list_from_string(a_string):
 # This parses a dict separated string
 #=============================================================================    
 def parse_dict_from_string(a_string):
+    """
+    This takes a string that is formatted to create a dict. The format is that each key/value pair is separated by a "," and each key and value are separated with a ":"
+    
+    Args:
+        a_string (int): The input string
+        
+    Returns: 
+        A dictionary with the functions
+        
+    Author: SMM
+        
+    Date: 10/01/2018
+    """    
     if len(a_string) == 0:
         print("No rename dictionary found. I will return and empty dict.")
         this_rename_dict = {}

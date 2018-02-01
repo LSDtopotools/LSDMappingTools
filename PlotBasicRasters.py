@@ -14,6 +14,7 @@ matplotlib.use('Agg')
 #from __future__ import print_function
 import sys
 import os
+import pandas as pd
 from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 import LSDMapWrappers as LSDMW
 from LSDMapFigure import PlottingHelpers as phelp
@@ -37,6 +38,19 @@ def print_welcome():
 # This parses a comma separated string
 #=============================================================================    
 def parse_list_from_string(a_string):
+    """
+    This just parses a comma separated string and returns an INTEGER list
+    
+    Args: 
+        a_string (str): The string to be parsed
+        
+    Returns:
+        A list of integers
+        
+    Author: SMM
+    
+    Date: 10/01/2018
+    """
     if len(a_string) == 0:
         print("No items found, I am returning and empty list.")
         return_list = []
@@ -51,6 +65,19 @@ def parse_list_from_string(a_string):
 # This parses a dict separated string
 #=============================================================================    
 def parse_dict_from_string(a_string):
+    """
+    This takes a string that is formatted to create a dict. The format is that each key/value pair is separated by a "," and each key and value are separated with a ":"
+    
+    Args:
+        a_string (int): The input string
+        
+    Returns: 
+        A dictionary with the functions
+        
+    Author: SMM
+        
+    Date: 10/01/2018
+    """
     if len(a_string) == 0:
         print("No rename dictionary found. I will return and empty dict.")
         this_rename_dict = {}
@@ -174,11 +201,12 @@ def pad_offset_lists(basin_stack_list,offset_list):
     
     return final_offsets
     
-def DoesBasinInfoExist(fname_prefix):
+def DoesBasinInfoExist(DataDir,fname_prefix):
     """
     This function checks to see if there is an AllBasinsInfo file, which is produced by the LSDTopoTools basin extraction routines in the chi_mapping_tool.
     
     Args: 
+        DataDir (str): The name of the data directory
         fname_prefix (str): The prefix of the raster file to be analysed
         
     Returns:
@@ -191,18 +219,21 @@ def DoesBasinInfoExist(fname_prefix):
     """
     # See if a basin info file exists and if so get the basin list
     print("Let me check if there is a basins info csv file.")
-    BasinInfoPrefix = args.fname_prefix+"_AllBasinsInfo.csv"
-    BasinInfoFileName = this_dir+BasinInfoPrefix
+    BasinInfoPrefix = fname_prefix+"_AllBasinsInfo.csv"
+    BasinInfoFileName = DataDir+BasinInfoPrefix
     existing_basin_keys = []
+    DF = pd.DataFrame()
+    
     if os.path.isfile(BasinInfoFileName): 
         print("There is a basins info csv file")
-        BasinInfoDF = phelp.ReadBasinInfoCSV(this_dir, args.fname_prefix)
+        BasinInfoDF = phelp.ReadBasinInfoCSV(DataDir, fname_prefix)
         existing_basin_keys = list(BasinInfoDF['basin_key'])
         existing_basin_keys = [int(x) for x in existing_basin_keys]
+        DF=BasinInfoDF 
     else:
         print("I didn't find a basins info csv file. Check directory or filename.")
         
-    return BasinInfoDF, existing_basin_keys
+    return DF, existing_basin_keys
         
     
 #=============================================================================
@@ -245,7 +276,7 @@ def main(argv):
     #===============================================================================    
     # What sort of analyses you want--these are rather simple versions
     parser.add_argument("-PB", "--plot_basins", type=bool, default=False, help="If this is true, I'll make a simple basin plot.")
-    parser.add_argiment("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that pust a colour scale on a drape of your choice.")
+    parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that pust a colour scale on a drape of your choice.")
     parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.")  
     
     #===============================================================================    
@@ -319,6 +350,12 @@ def main(argv):
     chi_offset_list = parse_list_from_string(args.chi_offsets)
     fd_offset_list = parse_list_from_string(args.flow_distance_offsets)
 
+    # Find the basin keys, if they exist
+    BasinInfoDF,existing_basin_keys = DoesBasinInfoExist(this_dir, args.fname_prefix)
+    if len(existing_basin_keys) > 0:
+        print("I've got some basin keys, they are: ")
+        print(existing_basin_keys)
+    
     # If the basin keys are not supplited then assume all basins are used. 
     if these_basin_keys == []:
         these_basin_keys = existing_basin_keys
