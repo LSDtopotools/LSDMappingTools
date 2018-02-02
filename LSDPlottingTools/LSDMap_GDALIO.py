@@ -991,9 +991,43 @@ def GetCentreAndExtentOfRaster(DataDirectory, RasterFile):
     
     # now transformt the polygon
     poly.Transform(transform)
+    ring.Transform(transform)
     
     # see what you got
     print("The polygon is:")
-    print(poly.ExportToWkt()) 
-
+    print(poly.ExportToWkt())
+    poly_str = poly.ExportToWkt()
+    split_ps = poly_str.split("((")
+    print(split_ps)
+    split2 = split_ps[-1]
+    split3 = split2.split("))")
+    print(split3)
+    split3 = split3[0]
+    split4 = split3.split(",")
+    print(split4)
+    coords = []
+    for coord in split4:
+        this_split = coord.split(" ")
+        this_list = this_split[0:2]
+        final_list = []
+        for item in this_list:
+            final_list.append(float(item))
+        coords.append(final_list)
+        
+    print("The coords are:")
+    print(coords)
+    
+    # Now try with the geometry tools
+    print("Trying polygon")
+    for i in range(0, poly.GetPointCount()):
+        pt = poly.GetPoint(i)
+        print("The point is: ")
+        print(str(pt[0])+" "+str(pt[1]))
+    
+    # Now try with the geometry tools
+    print("Trying ring")
+    for i in range(0, ring.GetPointCount()):
+        pt = ring.GetPoint(i)
+        print("The point is: ")
+        print(str(pt[0])+" "+str(pt[1]))
     
