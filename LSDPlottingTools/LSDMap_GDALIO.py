@@ -920,3 +920,114 @@ def CreateShapefileOfRasterFootprint(DataDirectory, RasterFile):
     feature.Destroy()
     datasource.Destroy()
     
+    
+def GetCentreAndExtentOfRaster(DataDirectory, RasterFile):
+    """
+    This function takes a raster and returns the centrepoint and the extent in both degrees and metres. 
+    
+    Args:
+        DataDirectory (str): the data directory with the basin raster
+        RasterFile (str): the name of the raster
+
+    Returns:
+        The lat-long of the centrepoint, the x-y- extent in both degrees and metres 
+
+    Author: SMM
+    
+    Date: 01/02/2018
+    """
+
+    print("Trying to create a shapefile.")
+    print("The Data directory is: "+DataDirectory+ " and the raster is: "+ RasterFile)
+    driver_name = "ESRI shapefile"
+    driver = ogr.GetDriverByName(driver_name)
+
+    # get the filename of the outfile.
+    if not DataDirectory.endswith(os.sep):
+        print("You forgot the separator at the end of the directory, appending...")
+        DataDirectory = DataDirectory+os.sep
+        
+    # Get the raster prefix
+    SplitRasterfile = RasterFile.split(".")
+    RasterPrefix = SplitRasterfile[0]
+ 
+    # get the espg of the raster
+    FullFilename = DataDirectory+RasterFile
+    ESPG_this_raster = GetUTMEPSG(FullFilename)  
+    ESPG_this_raster = str(ESPG_this_raster)
+    print("The raster has coordinate of: "+ESPG_this_raster)
+    ESPG_this_raster_split = ESPG_this_raster.split(":")
+    print("Split is: ")
+    print(ESPG_this_raster_split)
+    ESPG_this_raster = ESPG_this_raster_split[-1] 
+    print ("This ESPG is: "+str(ESPG_this_raster))
+    
+    # Get extent of raster
+    [xmin,xmax,ymin,ymax] = GetRasterExtent(FullFilename)
+
+    xproj_extent = xmax-xmin
+    yproj_extent = ymax-ymin
+    
+    
+    # Create ring
+    ring = ogr.Geometry(ogr.wkbLinearRing)
+    ring.AddPoint(xmin, ymin)
+    ring.AddPoint(xmin, ymax)
+    ring.AddPoint(xmax, ymax)
+    ring.AddPoint(xmax, ymin)
+
+    # Create polygon
+    poly = ogr.Geometry(ogr.wkbPolygon)
+    poly.AddGeometry(ring)    
+    
+    # Create a coordinate transformation
+    source = osr.SpatialReference()
+    source.ImportFromEPSG(int(ESPG_this_raster))
+    
+    target = osr.SpatialReference()
+    target.ImportFromEPSG(4326)
+    
+    transform = osr.CoordinateTransformation(source, target)
+    
+    # now transformt the polygon
+    poly.Transform(transform)
+    ring.Transform(transform)
+    
+    # see what you got
+    print("The polygon is:")
+    print(poly.ExportToWkt())
+    poly_str = poly.ExportToWkt()
+    split_ps = poly_str.split("((")
+    print(split_ps)
+    split2 = split_ps[-1]
+    split3 = split2.split("))")
+    print(split3)
+    split3 = split3[0]
+    split4 = split3.split(",")
+    print(split4)
+    coords = []
+    for coord in split4:
+        this_split = coord.split(" ")
+        this_list = this_split[0:2]
+        final_list = []
+        for item in this_list:
+            final_list.append(float(item))
+        coords.append(final_list)
+        
+    print("The coords are:")
+    print(coords)
+    
+    # Now try with the geometry tools
+    print("Trying polygon")
+    for i in range(0, poly.GetPointCount()):
+        pt = poly.GetPoint(i)
+        print("The point is: ")
+        print(str(pt[0])+" "+str(pt[1]))
+    
+    # Now try with the geometry tools
+    print("Trying ring")
+    for i in range(0, ring.GetPointCount()):
+        pt = ring.GetPoint(i)
+        print("The point is: ")
+        print(str(pt[0])+" "+str(pt[1]))
+    

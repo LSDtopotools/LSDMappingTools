@@ -303,6 +303,13 @@ def main(argv):
         if not args.parallel:
             print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
             sys.exit()
+            
+    if not args.out_fname_prefix:
+        print("You did not give me an out name prefix. I am using the raster prefix.")
+        out_fname_prefix = args.fname_prefix
+    else:
+        print("I am going to use an fname prefix for the outfiles")
+        out_fname_prefix = args.out_fname_prefix
 
     # get the base directory
     if args.base_directory:
@@ -320,29 +327,25 @@ def main(argv):
         
         driver_name = "ESRI shapefile"
         driver = ogr.GetDriverByName(driver_name)
-        
-        print("Driver is: ")
-        print(driver)
-        
-        print("Now I'll try it from LSDPlottingTools")
-              
+        #print("Driver is: ")
+        #print(driver)
+        #print("Now I'll try it from LSDPlottingTools")     
         RasterFile = args.fname_prefix+".bil"
         LSDP.CreateShapefileOfRasterFootprint(this_dir, RasterFile)
         
     # See if you should create a basemap
     if args.create_basemap_figure:
-        import LSDBasemapTools as LSDM
+        #import LSDBasemapTools as LSDM
         
         RasterFile = args.fname_prefix+".bil"
         
-        lat_0 = 25.7
-        lon_0 = 91.5
-        LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = lat_0 , lon_0 = lon_0)
+        #lat_0 = 25.7
+        #lon_0 = 91.5
+        #LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = lat_0 , lon_0 = lon_0)
+        LSDP.GetCentreAndExtentOfRaster(this_dir, RasterFile)
+        #LSDM.GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500)
         
-        
-            
-
-
+          
     # Parse any lists, dicts, or list of lists from the arguments   
     these_basin_keys = parse_list_from_string(args.basin_keys)
     this_rename_dict = parse_dict_from_string(args.rename_dict)
@@ -433,10 +436,12 @@ def main(argv):
         
         # check if a raster directory exists. If not then make it.
         raster_directory = this_dir+'raster_plots/'
+        print("I am printing to a raster directory:")
+        print(raster_directory)
         if not os.path.isdir(raster_directory):
             os.makedirs(raster_directory)
         
-        raster_out_prefix = "/raster_plots/"+args.fname_prefix      
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix      
         # Now for raster plots
         # First the basins, labeled:
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
@@ -453,7 +458,7 @@ def main(argv):
         # Get the names of the relevant files
         ChannelFname = args.fname_prefix+"_chi_data_map.csv"
         
-        raster_out_prefix = "/raster_plots/"+args.fname_prefix      
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix      
         # Now for raster plots
         # First the basins, labeled:
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
@@ -481,7 +486,7 @@ def main(argv):
         # Get the names of the relevant files
         ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
         
-        raster_out_prefix = "/raster_plots/"+args.fname_prefix
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix
         
         # Now for raster plots
         # First the basins, labeled:
