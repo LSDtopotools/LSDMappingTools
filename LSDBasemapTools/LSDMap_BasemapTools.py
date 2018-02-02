@@ -48,6 +48,23 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     """
     This makes the basemap image. 
     
+    Args:
+        DataDirectory (str): The directory of the raster file
+        RasterFile (str): the name of the raster file (include extension)
+        FigWidthInches (flt): How wide you want the basemap
+        FigHeightInches (float): How high you want your basemap
+        bm_width (float): The width in metres of your basemap
+        bm_height (float): The height in metres covered by your basemap
+        projection (str): The projection of your basemap. See basemap docs for details
+        resolution (str): Resolution. See basmap documentation. Really you should just use `h` for high.
+        lat_0 (flt): Latitude of centre of your map
+        lon_0 (flt): Longitude of centre of your map
+        lat_1 (flt): See basemap documentation 
+        lon_1 (flt): See basemap documentation
+        satellite_height (flt): The satellite height in metres for geostationary projections
+        FigFormat (str): Figure format, can be `png`, `svg`, `pdf`, etc.
+        fig_dpi (int): Dots per inch of your figure 
+    
     
     Author: SMM
     
@@ -114,4 +131,81 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     plt.savefig(FigFileName,format=FigFormat,dpi=fig_dpi)    
     
     
+def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500):
+    """
+    This makes the basemap image. Uses data from the raster to size the figure and locate the centrepoint 
+    
+    Args:
+        DataDirectory (str): The directory of the raster file
+        RasterFile (str): the name of the raster file (include extension)
+        FigWidthInches (flt): How wide you want the basemap
+        FigHeightInches (float): How high you want your basemap
+        FigFormat (str): Figure format, can be `png`, `svg`, `pdf`, etc.
+        fig_dpi (int): Dots per inch of your figure 
+    
+    
+    Author: SMM
+    
+    Date: 01/02/2018
+    """
+    
+    # Make sure data directory is in correct format
+    if not DataDirectory.endswith(os.sep):
+        print("You forgot the separator at the end of the directory, appending...")
+        DataDirectory = DataDirectory+os.sep
+    
+    # Set up the figure. This is needed to both size the figure and get the axis handle for plotting polygons
+    fig, ax = plt.subplots(figsize=(FigWidthInches, FigHeightInches))
+    
+    # get some filenames
+    RasterSplit = RasterFile.split(".")
+    Raster_prefix = RasterSplit[0]
+    Shape_name = DataDirectory+Raster_prefix+"_footprint"
+    SName = "Shape"
+    
+    FigFileName = DataDirectory+Raster_prefix+"_basemap."+FigFormat
+    
+    # Now we get the extents from the raster
+    lat_0,lat_1,xproj_ext,yproj_ext,latext,longext = SDMGDAL.GetCentreAndExtentOfRaster(DataDirectory, RasterFile)
+    
+    # Now for the basemap 
+    # setup Lambert Conformal basemap.
+    m = Basemap(width=bm_width,height=bm_width,projection=projection,
+                resolution=resolution,lat_1=45 ,lat_2=55,lat_0=lat_0,lon_0=lon_0, satellite_height = 100000, area_thresh = 100000)    
+ 
+    # create the shapefile
+    LSDMGDAL.CreateShapefileOfRasterFootprint(DataDirectory, RasterFile)
+    m.readshapefile(Shape_name, "footprint")
 
+    # draw coastlines.
+    m.drawcoastlines(linewidth = 0.5)
+    # draw a boundary around the map, fill the background.
+    # this background will end up being the ocean color, since
+    # the continents will be drawn on top.
+    m.drawmapboundary(fill_color='snow')
+    # fill continents, set lake color same as ocean color.
+    m.fillcontinents(color='lightgray',lake_color='snow')
+    # draw parallels and meridians.
+    # label parallels on right and top
+    # meridians on bottom and left
+    parallels = np.arange(0.,90,5.)
+    # labels = [left,right,top,bottom]
+    m.drawparallels(parallels,labels=[False,True,True,False])
+    meridians = np.arange(10.,351.,5.)
+    m.drawmeridians(meridians,labels=[True,False,False,True])
+    m.drawcountries()
+
+    # Make a patch from the shapefile
+    # All this stuff from:
+    # http://www.datadependence.com/2016/06/creating-map-visualisations-in-python/
+    df_poly = pd.DataFrame({
+            'shapes': [Polygon(np.array(shape), True) for shape in m.footprint]})    
+    
+    #df_poly = df_poly.merge(new_areas, on='area', how='left')
+    #cmap = plt.get_cmap('Oranges')   
+    pc = PatchCollection(df_poly.shapes, zorder=2, alpha = 0.5)
+    pc.set_facecolor("crimson")
+    ax.add_collection(pc)  
+
+    plt.savefig(FigFileName,format=FigFormat,dpi=fig_dpi)    
+    
