@@ -86,6 +86,7 @@ def main(argv):
 
     # Processing the basin/source keys selection
     print("I am reading the basin/source key selection and checking your parameters...")
+    
     if len(args.basin_keys) == 0:
         print("No basins found, I will plot all of them")
         these_basin_keys = []
@@ -116,7 +117,7 @@ def main(argv):
 
     print("Loading the dataset:")
 
-    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = [], source_key = [], min_length = args.min_source_length, cut_off_val = args.cut_off_val)
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = args.cut_off_val)
 
     # Plotting hte knickpoints
     if(args.statistical_plots):
