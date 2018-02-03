@@ -25,6 +25,27 @@ import os
 
 
 
+def BasemapExtentSizer(FigWidthInches, FigHeightInches):
+    """
+    The returns the aspect ratio that you need for the main figure given the dimensions of the figure.
+    Basically this just calculates the padding needed for the axis labels
+    
+    Args:
+        FigWidthInches (float): How wide you want the basemap
+        FigHeightInches (float): How high you want your basemap
+        
+    Returns: The aspect ratio (a float) of the basemap extent.
+    Author: SMM
+    
+    Date 03/02/2018
+    """
+    
+    x_width = FigWidthInches - 0.3  # The 0.3 inches is the text)
+    y_width = FigHeightInches - 0.2
+    
+    aspect_ratio = x_width/y_width
+    return aspect_ratio
+
 def GenerateExtentShapefile(DataDirectory, RasterFile):
     """
     This just wraps a LSDMap_GDALIO script
@@ -44,19 +65,19 @@ def GenerateExtentShapefile(DataDirectory, RasterFile):
     LSDMGDAL.CreateShapefileOfRasterFootprint(DataDirectory, RasterFile)
     
     
-def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, bm_width = 2000000, bm_height = 2000000, projection = 'lcc',resolution = 'h', lat_0 = 0, lon_0 = 0, lat_1 = 45,lat_2 = 55, satellite_height = 10000000, FigFormat = "png", fig_dpi = 500):
+def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, bm_width = 2000000, bm_height = 2000000, projection = 'lcc',resolution = 'l', lat_0 = 0, lon_0 = 0, lat_1 = 45,lat_2 = 55, satellite_height = 10000000, FigFormat = "png", fig_dpi = 500):
     """
     This makes the basemap image. 
     
     Args:
         DataDirectory (str): The directory of the raster file
         RasterFile (str): the name of the raster file (include extension)
-        FigWidthInches (flt): How wide you want the basemap
+        FigWidthInches (float): How wide you want the basemap
         FigHeightInches (float): How high you want your basemap
         bm_width (float): The width in metres of your basemap
         bm_height (float): The height in metres covered by your basemap
         projection (str): The projection of your basemap. See basemap docs for details
-        resolution (str): Resolution. See basmap documentation. Really you should just use `h` for high.
+        resolution (str): Resolution. See basmap documentation. Default is "l" (for low) since higher resolution ("high" or "full") must be installed separately with basemap (and is very large)
         lat_0 (flt): Latitude of centre of your map
         lon_0 (flt): Longitude of centre of your map
         lat_1 (flt): See basemap documentation 
@@ -131,7 +152,7 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     plt.savefig(FigFileName,format=FigFormat,dpi=fig_dpi)    
     
     
-def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500):
+def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500, regional_extent_multiplier = 5):
     """
     This makes the basemap image. Uses data from the raster to size the figure and locate the centrepoint 
     
@@ -142,6 +163,7 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
         FigHeightInches (float): How high you want your basemap
         FigFormat (str): Figure format, can be `png`, `svg`, `pdf`, etc.
         fig_dpi (int): Dots per inch of your figure 
+        regional_extent_multiplier (float): How much bigger you want the extent vs the size of the raster 
     
     
     Author: SMM
@@ -166,12 +188,34 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     FigFileName = DataDirectory+Raster_prefix+"_basemap."+FigFormat
     
     # Now we get the extents from the raster
-    lat_0,lat_1,xproj_ext,yproj_ext,latext,longext = SDMGDAL.GetCentreAndExtentOfRaster(DataDirectory, RasterFile)
+    centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDMGDAL.GetCentreAndExtentOfRaster(DataDirectory, RasterFile)
+    
+    # Calculate the aspect ratio
+    aspect_ratio = BasemapExtentSizer(FigWidthInches,  FigHeightInches)
+    
+    # Figure out the longest dimension
+    long_dimension = xproj_extent
+    if yproj_extent > long_dimension:
+        long_dimension = yproj_extent
+    
+    # Get the full extent by mulitplying the longest extent by the multiplier
+    full_dimension = long_dimension*regional_extent_multiplier
+         
+        
+    # now get the two dimensions
+    if aspect_ratio > 1:
+        # This is when the figure is wider than tall
+        x_ext = full_dimension*aspect_ratio
+        y_ext = full_dimension
+    else:
+        x_ext = full_dimension
+        y_ext = full_dimension*aspect_ratio
+        
     
     # Now for the basemap 
     # setup Lambert Conformal basemap.
-    m = Basemap(width=bm_width,height=bm_width,projection=projection,
-                resolution=resolution,lat_1=45 ,lat_2=55,lat_0=lat_0,lon_0=lon_0, satellite_height = 100000, area_thresh = 100000)    
+    m = Basemap(width=x_ext,height=y_ext,projection="lcc",
+                resolution="l",lat_1=45 ,lat_2=55,lat_0=centre_lat,lon_0=centre_long, satellite_height = 100000, area_thresh = 100000)    
  
     # create the shapefile
     LSDMGDAL.CreateShapefileOfRasterFootprint(DataDirectory, RasterFile)

@@ -868,8 +868,6 @@ def CreateShapefileOfRasterFootprint(DataDirectory, RasterFile):
     ESPG_this_raster = str(ESPG_this_raster)
     print("The raster has coordinate of: "+ESPG_this_raster)
     ESPG_this_raster_split = ESPG_this_raster.split(":")
-    print("Split is: ")
-    print(ESPG_this_raster_split)
     ESPG_this_raster = ESPG_this_raster_split[-1] 
     print ("This ESPG is: "+str(ESPG_this_raster))
     
@@ -901,8 +899,8 @@ def CreateShapefileOfRasterFootprint(DataDirectory, RasterFile):
     poly.Transform(transform)
     
     # see what you got
-    print("The polygon is:")
-    print(poly.ExportToWkt()) 
+    #print("The polygon is:")
+    #print(poly.ExportToWkt()) 
 
     # create the data source
     OutFileName = DataDirectory+RasterPrefix+"_footprint.shp" 

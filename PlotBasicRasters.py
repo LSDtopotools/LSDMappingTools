@@ -345,8 +345,8 @@ def main(argv):
         centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDP.GetCentreAndExtentOfRaster(this_dir, RasterFile)
         
         print("The basemap centrpot is: "+str(centre_lat)+"," +str(centre_long))
-        LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = centre_lat , lon_0 = centre_long, resolution = 'l')
-        #LSDM.GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500)
+        #LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = centre_lat , lon_0 = centre_long, resolution = 'l')
+        LSDM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = 10)
         
           
     # Parse any lists, dicts, or list of lists from the arguments   
