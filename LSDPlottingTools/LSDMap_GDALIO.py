@@ -957,28 +957,20 @@ def GetCentreAndExtentOfRaster(DataDirectory, RasterFile):
     ESPG_this_raster = str(ESPG_this_raster)
     print("The raster has coordinate of: "+ESPG_this_raster)
     ESPG_this_raster_split = ESPG_this_raster.split(":")
-    print("Split is: ")
-    print(ESPG_this_raster_split)
     ESPG_this_raster = ESPG_this_raster_split[-1] 
     print ("This ESPG is: "+str(ESPG_this_raster))
     
     # Get extent of raster
     [xmin,xmax,ymin,ymax] = GetRasterExtent(FullFilename)
-
     xproj_extent = xmax-xmin
     yproj_extent = ymax-ymin
-    
-    
+        
     # Create ring
     ring = ogr.Geometry(ogr.wkbLinearRing)
     ring.AddPoint(xmin, ymin)
     ring.AddPoint(xmin, ymax)
     ring.AddPoint(xmax, ymax)
     ring.AddPoint(xmax, ymin)
-
-    # Create polygon
-    poly = ogr.Geometry(ogr.wkbPolygon)
-    poly.AddGeometry(ring)    
     
     # Create a coordinate transformation
     source = osr.SpatialReference()
@@ -989,45 +981,33 @@ def GetCentreAndExtentOfRaster(DataDirectory, RasterFile):
     
     transform = osr.CoordinateTransformation(source, target)
     
-    # now transformt the polygon
-    poly.Transform(transform)
+    # now transform the ring so you can get coordinates in lat-long
     ring.Transform(transform)
     
-    # see what you got
-    print("The polygon is:")
-    print(poly.ExportToWkt())
-    poly_str = poly.ExportToWkt()
-    split_ps = poly_str.split("((")
-    print(split_ps)
-    split2 = split_ps[-1]
-    split3 = split2.split("))")
-    print(split3)
-    split3 = split3[0]
-    split4 = split3.split(",")
-    print(split4)
-    coords = []
-    for coord in split4:
-        this_split = coord.split(" ")
-        this_list = this_split[0:2]
-        final_list = []
-        for item in this_list:
-            final_list.append(float(item))
-        coords.append(final_list)
-        
-    print("The coords are:")
-    print(coords)
+    # now get the xmin,ymin, and xmax, ymax coords in lat-long
+    pt1 = ring.GetPoint(0)
+    min_long = pt1[0]
+    min_lat = pt1[1]
     
-    # Now try with the geometry tools
-    print("Trying polygon")
-    for i in range(0, poly.GetPointCount()):
-        pt = poly.GetPoint(i)
-        print("The point is: ")
-        print(str(pt[0])+" "+str(pt[1]))
+    pt2 = ring.GetPoint(2)
+    max_long = pt2[0]
+    max_lat = pt2[1]
     
+    extent_long = max_long-min_long
+    extent_lat = max_lat-min_lat
+    
+    centre_long = min_long+extent_long*0.5
+    centre_lat = min_lat+extent_lat*0.5
+    
+    return centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent
+    
+    
+    
+    # Leaving this here to show how to loop through points
     # Now try with the geometry tools
-    print("Trying ring")
-    for i in range(0, ring.GetPointCount()):
-        pt = ring.GetPoint(i)
-        print("The point is: ")
-        print(str(pt[0])+" "+str(pt[1]))
+    #print("Trying ring")
+    #for i in range(0, ring.GetPointCount()):
+    #    pt = ring.GetPoint(i)
+    #    print("The point is: ")
+    #    print(str(pt[0])+" "+str(pt[1]))
     

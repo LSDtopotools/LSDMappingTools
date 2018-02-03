@@ -335,14 +335,17 @@ def main(argv):
         
     # See if you should create a basemap
     if args.create_basemap_figure:
-        #import LSDBasemapTools as LSDM
+        import LSDBasemapTools as LSDM
         
         RasterFile = args.fname_prefix+".bil"
         
         #lat_0 = 25.7
         #lon_0 = 91.5
         #LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = lat_0 , lon_0 = lon_0)
-        LSDP.GetCentreAndExtentOfRaster(this_dir, RasterFile)
+        centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDP.GetCentreAndExtentOfRaster(this_dir, RasterFile)
+        
+        print("The basemap centrpot is: "+str(centre_lat)+"," +str(centre_long))
+        LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = centre_lat , lon_0 = centre_long, resolution = 'l')
         #LSDM.GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500)
         
           
