@@ -152,7 +152,7 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     plt.savefig(FigFileName,format=FigFormat,dpi=fig_dpi)    
     
     
-def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500, regional_extent_multiplier = 5):
+def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500, regional_extent_multiplier = 5, label_spacing_multiplier = 0.5):
     """
     This makes the basemap image. Uses data from the raster to size the figure and locate the centrepoint 
     
@@ -164,6 +164,7 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
         FigFormat (str): Figure format, can be `png`, `svg`, `pdf`, etc.
         fig_dpi (int): Dots per inch of your figure 
         regional_extent_multiplier (float): How much bigger you want the extent vs the size of the raster 
+        label_spacing_multiplier (float): If the meridians and parallels are too close, increase this number. Default of 0.5
     
     
     Author: SMM
@@ -190,6 +191,9 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     # Now we get the extents from the raster
     centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDMGDAL.GetCentreAndExtentOfRaster(DataDirectory, RasterFile)
     
+
+    
+    
     # Calculate the aspect ratio
     aspect_ratio = BasemapExtentSizer(FigWidthInches,  FigHeightInches)
     
@@ -202,7 +206,7 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     full_dimension = long_dimension*regional_extent_multiplier
          
         
-    # now get the two dimensions
+    # now get the two dimensions for the extent of the figure
     if aspect_ratio > 1:
         # This is when the figure is wider than tall
         x_ext = full_dimension*aspect_ratio
@@ -210,8 +214,7 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     else:
         x_ext = full_dimension
         y_ext = full_dimension*aspect_ratio
-        
-    
+       
     # Now for the basemap 
     # setup Lambert Conformal basemap.
     m = Basemap(width=x_ext,height=y_ext,projection="lcc",
@@ -229,15 +232,33 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     m.drawmapboundary(fill_color='snow')
     # fill continents, set lake color same as ocean color.
     m.fillcontinents(color='lightgray',lake_color='snow')
-    # draw parallels and meridians.
+    m.drawcountries()
+    
+    #==========================================
+    # draw parallels and meridians.    
+    # Calculate the spacing of the meridians and parallels
+    max_latlong_ext = extent_lat
+    if extent_long < max_latlong_ext:
+        max_latlong_ext = extent_long
+    max_latlong_ext = max_latlong_ext*regional_extent_multiplier
+    print("The maximum extent is:"+str(max_latlong_ext))
+    
+    latlong_label_spacing = int(label_spacing_multiplier*max_latlong_ext+0.5)
+    print("And the label spacing is: "+str(latlong_label_spacing))
+    start_lat = int(centre_lat - max_latlong_ext*2 - 0.5)
+    end_lat = int(centre_lat + max_latlong_ext*2+0.5)
+    start_long = int(centre_long - max_latlong_ext*2 -0.5)
+    end_long = int(centre_long + max_latlong_ext*2+0.5)
+          
     # label parallels on right and top
-    # meridians on bottom and left
-    parallels = np.arange(0.,90,5.)
+    # meridians on bottom and left   
+    parallels = np.arange(start_lat,end_lat,latlong_label_spacing)
     # labels = [left,right,top,bottom]
     m.drawparallels(parallels,labels=[False,True,True,False])
-    meridians = np.arange(10.,351.,5.)
+    meridians = np.arange(start_long,end_long,latlong_label_spacing)
     m.drawmeridians(meridians,labels=[True,False,False,True])
-    m.drawcountries()
+    #==========================================
+    
 
     # Make a patch from the shapefile
     # All this stuff from:

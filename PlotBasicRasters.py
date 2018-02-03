@@ -296,6 +296,10 @@ def main(argv):
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
     parser.add_argument("-parallel", "--parallel", type=bool, default=False, help="If this is true I'll assume you ran the code in parallel and append all your CSVs together before plotting.")
     parser.add_argument("-dpi", "--dpi", type=int, default=250, help="The dots per inch of your figure.")
+    parser.add_argument("-bmpsm", "--basemap_parallel_spacing_multiplier", type=float, default=0.5, help="Basemap parallel spacing multiplier. Increase if parallels are too close on your basemap.")
+    
+    
+
     
     args = parser.parse_args()
 
@@ -344,9 +348,9 @@ def main(argv):
         #LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = lat_0 , lon_0 = lon_0)
         centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDP.GetCentreAndExtentOfRaster(this_dir, RasterFile)
         
-        print("The basemap centrpot is: "+str(centre_lat)+"," +str(centre_long))
+        print("The basemap centrepoint is: "+str(centre_lat)+"," +str(centre_long))
         #LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = centre_lat , lon_0 = centre_long, resolution = 'l')
-        LSDM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = 10)
+        LSDM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = 10, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier)
         
           
     # Parse any lists, dicts, or list of lists from the arguments   
