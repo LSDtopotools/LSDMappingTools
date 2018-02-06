@@ -868,8 +868,6 @@ def CreateShapefileOfRasterFootprint(DataDirectory, RasterFile):
     ESPG_this_raster = str(ESPG_this_raster)
     print("The raster has coordinate of: "+ESPG_this_raster)
     ESPG_this_raster_split = ESPG_this_raster.split(":")
-    print("Split is: ")
-    print(ESPG_this_raster_split)
     ESPG_this_raster = ESPG_this_raster_split[-1] 
     print ("This ESPG is: "+str(ESPG_this_raster))
     
@@ -901,8 +899,8 @@ def CreateShapefileOfRasterFootprint(DataDirectory, RasterFile):
     poly.Transform(transform)
     
     # see what you got
-    print("The polygon is:")
-    print(poly.ExportToWkt()) 
+    #print("The polygon is:")
+    #print(poly.ExportToWkt()) 
 
     # create the data source
     OutFileName = DataDirectory+RasterPrefix+"_footprint.shp" 
@@ -919,4 +917,95 @@ def CreateShapefileOfRasterFootprint(DataDirectory, RasterFile):
     # Clean up
     feature.Destroy()
     datasource.Destroy()
+    
+    
+def GetCentreAndExtentOfRaster(DataDirectory, RasterFile):
+    """
+    This function takes a raster and returns the centrepoint and the extent in both degrees and metres. 
+    
+    Args:
+        DataDirectory (str): the data directory with the basin raster
+        RasterFile (str): the name of the raster
+
+    Returns:
+        The lat-long of the centrepoint, the x-y- extent in both degrees and metres 
+
+    Author: SMM
+    
+    Date: 01/02/2018
+    """
+
+    print("Trying to create a shapefile.")
+    print("The Data directory is: "+DataDirectory+ " and the raster is: "+ RasterFile)
+    driver_name = "ESRI shapefile"
+    driver = ogr.GetDriverByName(driver_name)
+
+    # get the filename of the outfile.
+    if not DataDirectory.endswith(os.sep):
+        print("You forgot the separator at the end of the directory, appending...")
+        DataDirectory = DataDirectory+os.sep
+        
+    # Get the raster prefix
+    SplitRasterfile = RasterFile.split(".")
+    RasterPrefix = SplitRasterfile[0]
+ 
+    # get the espg of the raster
+    FullFilename = DataDirectory+RasterFile
+    ESPG_this_raster = GetUTMEPSG(FullFilename)  
+    ESPG_this_raster = str(ESPG_this_raster)
+    print("The raster has coordinate of: "+ESPG_this_raster)
+    ESPG_this_raster_split = ESPG_this_raster.split(":")
+    ESPG_this_raster = ESPG_this_raster_split[-1] 
+    print ("This ESPG is: "+str(ESPG_this_raster))
+    
+    # Get extent of raster
+    [xmin,xmax,ymin,ymax] = GetRasterExtent(FullFilename)
+    xproj_extent = xmax-xmin
+    yproj_extent = ymax-ymin
+        
+    # Create ring
+    ring = ogr.Geometry(ogr.wkbLinearRing)
+    ring.AddPoint(xmin, ymin)
+    ring.AddPoint(xmin, ymax)
+    ring.AddPoint(xmax, ymax)
+    ring.AddPoint(xmax, ymin)
+    
+    # Create a coordinate transformation
+    source = osr.SpatialReference()
+    source.ImportFromEPSG(int(ESPG_this_raster))
+    
+    target = osr.SpatialReference()
+    target.ImportFromEPSG(4326)
+    
+    transform = osr.CoordinateTransformation(source, target)
+    
+    # now transform the ring so you can get coordinates in lat-long
+    ring.Transform(transform)
+    
+    # now get the xmin,ymin, and xmax, ymax coords in lat-long
+    pt1 = ring.GetPoint(0)
+    min_long = pt1[0]
+    min_lat = pt1[1]
+    
+    pt2 = ring.GetPoint(2)
+    max_long = pt2[0]
+    max_lat = pt2[1]
+    
+    extent_long = max_long-min_long
+    extent_lat = max_lat-min_lat
+    
+    centre_long = min_long+extent_long*0.5
+    centre_lat = min_lat+extent_lat*0.5
+    
+    return centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent
+    
+    
+    
+    # Leaving this here to show how to loop through points
+    # Now try with the geometry tools
+    #print("Trying ring")
+    #for i in range(0, ring.GetPointCount()):
+    #    pt = ring.GetPoint(i)
+    #    print("The point is: ")
+    #    print(str(pt[0])+" "+str(pt[1]))
     

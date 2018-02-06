@@ -1073,7 +1073,7 @@ class MapFigure(object):
                        max_point_size = 5, min_point_size = 0.5,
                        colour_log = False, colour_manual_scale = [],
                        manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10, label_field = "None",
-                       font_size = 6, offset = 100, zorder=1, marker = "o", discrete_colours = False, NColours = 10):
+                       font_size = 6, offset = 100, zorder=1, marker = "o", discrete_colours = False, NColours = 10,scale_in_absolute = False, color_abs =False):
 
         """
         This add point data to the map.
@@ -1102,6 +1102,9 @@ class MapFigure(object):
             marker (str): the marker used in the plots
             discrete_colours (bool): If true, the colourmap will be discrete
             NColours (int) The number of colours n the colourmap
+            scale_in_absolute (bool): scale the data using absolute values
+            abs (bool): color the data using absolute values
+
 
         Author: SMM, BG
         """
@@ -1129,6 +1132,9 @@ class MapFigure(object):
             this_data = thisPointData.QueryData(column_for_plotting)
 
         print("I got the data column you wanted")
+        if(color_abs):
+            print("I will color your data using its absolute value")
+            this_data = np.abs(this_data)
         # Log the color if required
         if(colour_log):
             this_data = np.log10(this_data)
@@ -1138,6 +1144,8 @@ class MapFigure(object):
         scale_data = thisPointData.QueryData(column_for_scaling)
         print("I also got the data for scaling, which is in column "+column_for_scaling)
         scale_data = np.asarray(scale_data)
+        if(scale_in_absolute):
+            scale_data = np.abs(scale_data)
         #scale_data = scale_data.flatten()
         print("The size of the array is: ")
         print(scale_data.shape)

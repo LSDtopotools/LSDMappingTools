@@ -19,7 +19,6 @@ from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 import LSDMapWrappers as LSDMW
 from LSDMapFigure import PlottingHelpers as phelp
 import LSDPlottingTools as LSDP
-
 from osgeo import ogr
 
 
@@ -42,6 +41,19 @@ def print_welcome():
 # This parses a comma separated string
 #=============================================================================    
 def parse_list_from_string(a_string):
+    """
+    This just parses a comma separated string and returns an INTEGER list
+    
+    Args: 
+        a_string (str): The string to be parsed
+        
+    Returns:
+        A list of integers
+        
+    Author: SMM
+    
+    Date: 10/01/2018
+    """
     if len(a_string) == 0:
         print("No items found, I am returning and empty list.")
         return_list = []
@@ -56,6 +68,19 @@ def parse_list_from_string(a_string):
 # This parses a dict separated string
 #=============================================================================    
 def parse_dict_from_string(a_string):
+    """
+    This takes a string that is formatted to create a dict. The format is that each key/value pair is separated by a "," and each key and value are separated with a ":"
+    
+    Args:
+        a_string (int): The input string
+        
+    Returns: 
+        A dictionary with the functions
+        
+    Author: SMM
+        
+    Date: 10/01/2018
+    """    
     if len(a_string) == 0:
         print("No rename dictionary found. I will return and empty dict.")
         this_rename_dict = {}
@@ -76,7 +101,19 @@ def parse_dict_from_string(a_string):
 # This parses a list of lists separated string. Each list is separated by a colon
 #=============================================================================    
 def parse_list_of_list_from_string(a_string):
+    """
+    This parses a list of lists separated string. Each list is separated by a colon
     
+    Args:
+        a_string (str): This creates a list of lists. Each sub list is separated by colons and the sub list items are separated by commas. So `1,2,3:4,5` would produce [ [1,2,3],[4,5]]
+        
+    Returns:
+        list_of_list (list): A list of lists
+        
+    Author: SMM
+    
+    Date: 11/01/2018
+    """    
     if len(a_string) == 0:
         print("No list of list found. I will return an empty list.")
         list_of_list = []
@@ -99,6 +136,20 @@ def parse_list_of_list_from_string(a_string):
 # a constant value. Used for plotting. 
 #=============================================================================  
 def convert_basin_stack_to_value_dict(basin_stack_list):
+    """
+    This takes the basin stack list and then gives each basin in a stack layer a constant value. Used for plotting. So if there are several basin stacks each one gets a different value. 
+    
+    Args:
+        basin_stack_list (list of int lists): The basins that will be stacked. Each item in the list is a collection of basins that will be used in each indivdual stack plot. So, for example, if this is [ [1,2,3],[4,5]] then there will be two stacked plot, the first with basins 1,2,3 and the second with basins 4 and 5.
+        
+    Returns: 
+        this_value_dict (dict): A dictionary assigning a single value to each basin. Basins in the same stack will have the same value. 
+        
+    Author: SMM
+    
+    Date: 11/01/2018
+    
+    """
     
     N_stacks = len(basin_stack_list)
     print("The number of stacks are: "+ str(N_stacks))
@@ -117,7 +168,20 @@ def convert_basin_stack_to_value_dict(basin_stack_list):
 # This pads an offset list so it is the same size as the basin list
 #=============================================================================     
 def pad_offset_lists(basin_stack_list,offset_list):
+    """
+    This pads an offset list so it is the same size as the basin list. The offsets are the coordinate distances between the starting node of adjacent profile plots.
     
+    Args:
+        basin_stack_list (list of int lists): The basins that will be stacked. Each item in the list is a collection of basins that will be used in each indivdual stack plot. So, for example, if this is [ [1,2,3],[4,5]] then there will be two stacked plot, the first with basins 1,2,3 and the second with basins 4 and 5. 
+        offset_list (float list): A list of of the offset spacings for each basin stack.
+        
+    Return: 
+        final_offsets (float list): The locations of the offsets.  
+        
+    Author: SMM
+    
+    Date: 09/01/2018
+    """    
     # I need to check chi the offsets
     n_basin_stacks = len(basin_stack_list)
     if len(offset_list) == 0:
