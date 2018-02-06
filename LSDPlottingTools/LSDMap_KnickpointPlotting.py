@@ -427,7 +427,7 @@ class KP_plotting(object):
 
 
 
-    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20):
+    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20, return_fig = False):
 
             # check if a directory exists for the chi plots. If not then make it.
         raster_directory = self.fpath+'raster_plots/'
@@ -484,8 +484,14 @@ class KP_plotting(object):
         else:
             suffix = "hs"
         ImageName = raster_directory+self.fprefix+"_ksnkp_map_%s."%(suffix) + format
-        MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat = format, Fig_dpi = 500) # Save the figure
-        plt.clf()
+        
+
+        if(return_fig):
+            return plt.gcf()
+
+        else:
+            MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat = format, Fig_dpi = 500) # Save the figure
+            plt.clf()
 
 
 
