@@ -458,7 +458,7 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
                    use_keys_not_junctions = True, show_colourbar = False,
                    Remove_Basins = [], Rename_Basins = {}, Value_dict= {},
                    cmap = "jet", colorbarlabel = "colourbar", size_format = "ESURF",
-                   fig_format = "png", dpi = 250, out_fname_prefix = "", include_channels = False):
+                   fig_format = "png", dpi = 250, out_fname_prefix = "", include_channels = False, label_basins = True):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
@@ -525,7 +525,7 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
                       rename_dict = Rename_Basins, value_dict = Value_dict,
                       use_keys_not_junctions = use_keys_not_junctions, show_colourbar = show_colourbar,
                       discrete_cmap=True, n_colours=15, colorbarlabel = colorbarlabel,
-                      colourmap = cmap, adjust_text = False)
+                      colourmap = cmap, adjust_text = False, label_basins = label_basins)
 
     # See if you need the channels
     if include_channels:

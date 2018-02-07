@@ -467,7 +467,7 @@ def main(argv):
         
         raster_out_prefix = "/raster_plots/"+out_fname_prefix      
         # First the basins, with blue channels scaled by drainage area
-        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basinschannels",include_channels = True)      
+        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basinschannels",include_channels = True, label_basins = False)      
         
     # This just plots the basins. Useful for checking on basin selection
     if args.plot_chi_coord:
