@@ -1217,7 +1217,7 @@ class MapFigure(object):
                 #sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
                 if discrete_colours:
                     # make a color map of fixed colors
-                    NUM_COLORS = 15
+                    NUM_COLORS = NColours
 
                     this_cmap = this_colourmap
                     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)

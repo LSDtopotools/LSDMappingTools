@@ -458,7 +458,7 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
                    use_keys_not_junctions = True, show_colourbar = False,
                    Remove_Basins = [], Rename_Basins = {}, Value_dict= {},
                    cmap = "jet", colorbarlabel = "colourbar", size_format = "ESURF",
-                   fig_format = "png", dpi = 250, out_fname_prefix = ""):
+                   fig_format = "png", dpi = 250, out_fname_prefix = "", include_channels = False):
     """
     This function makes a shaded relief plot of the DEM with the basins coloured
     by the basin ID.
@@ -527,6 +527,20 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
                       discrete_cmap=True, n_colours=15, colorbarlabel = colorbarlabel,
                       colourmap = cmap, adjust_text = False)
 
+    # See if you need the channels
+    if include_channels:
+        print("I am going to add some channels for you")
+        ChannelFileName = fname_prefix+"_chi_data_map.csv"
+        chi_csv_fname = DataDirectory+ChannelFileName
+
+        thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
+        
+        MF.add_point_data(thisPointData,column_for_plotting = "basin_key",
+                       scale_points = True,column_for_scaling = "drainage_area",
+                       this_colourmap = "Blues_r", scaled_data_in_log = True,
+                       max_point_size = 3, min_point_size = 1, discrete_colours = True, NColours = 1, zorder = 5)
+    
+    
     # Save the image
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_selected_basins."+fig_format
@@ -534,3 +548,8 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
         ImageName = DataDirectory+out_fname_prefix+"_selected_basins."+fig_format  
         
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi) # Save the figure
+
+    
+    
+    
+    
