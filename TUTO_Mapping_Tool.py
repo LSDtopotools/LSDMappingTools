@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import time as clock
 from matplotlib import rcParams
 import matplotlib.cm as cm
-
 import LSDPlottingTools as LSDP
 from LSDPlottingTools import colours as lsdcolours
 from LSDPlottingTools import init_plotting_DV
