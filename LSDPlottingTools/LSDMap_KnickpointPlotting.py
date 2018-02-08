@@ -497,7 +497,7 @@ class KP_plotting(object):
 
 
 
-    def print_histogram(self,size = "big", format = "png", label_size = 8, n_bin = 'auto', facecolor = "white", grid = True):
+    def print_histogram(self,size = "big", format = "png", label_size = 8, n_bin = 'auto', facecolor = "white", grid = True, data = "delta_ksn"):
         """
         This figure print an histogram of the knickpoint repartition for the selected basins/sources
 
@@ -527,13 +527,17 @@ class KP_plotting(object):
         if(grid):
              ax1.grid(ls = 'dotted', lw = 0.1, c = "k", zorder = 5)
 
-        ax1.hist(self.df_kp["delta_ksn"], bins = n_bin, fc = "#848484", lw = 0.5, edgecolor = "k", zorder = 10)
+        ax1.hist(self.df_kp[data], bins = n_bin, fc = "#848484", lw = 0.5, edgecolor = "k", zorder = 10)
 
+        if(data == "delta_ksn"):
+            xlab = r"$\Delta k_{sn}$"
+        elif (data == "delta_segelev"):
+            xlab = r"$\Delta$ seg. elevation"
 
-        ax1.set_xlabel(r"$\Delta k_{sn}$")
+        ax1.set_xlabel(xlab)
         ax1.set_ylabel("n knickpoints")
 
-        plt.savefig(out_directory + self.fprefix + "_kp_hist.%s"%(format), dpi = 500)
+        plt.savefig(out_directory + self.fprefix + "_kp_hist%s.%s"%(data,format), dpi = 500)
         plt.clf()
 
 

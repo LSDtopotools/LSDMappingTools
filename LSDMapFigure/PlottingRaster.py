@@ -1073,7 +1073,7 @@ class MapFigure(object):
                        max_point_size = 5, min_point_size = 0.5,
                        colour_log = False, colour_manual_scale = [],
                        manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10, label_field = "None",
-                       font_size = 6, offset = 100, zorder=1, marker = "o", discrete_colours = False, NColours = 10,scale_in_absolute = False, color_abs =False):
+                       font_size = 6, offset = 100, zorder=1, marker = "o", discrete_colours = False, NColours = 10,scale_in_absolute = False, color_abs =False, unicolor = "blue"):
 
         """
         This add point data to the map.
@@ -1195,7 +1195,7 @@ class MapFigure(object):
         print("I will plot the points now.")
         if len(this_data) == 0 or len(this_data) != len(easting):
             print("I am only plotting the points.")
-            unicolor = "blue"
+            unicolor = unicolor
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c= unicolor,cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
         else:
             print("I will colour by the points")
