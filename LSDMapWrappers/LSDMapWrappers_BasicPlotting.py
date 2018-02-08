@@ -87,6 +87,59 @@ def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", s
     
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
+    
+def SimpleDrape(DataDirectory,Base_file, Drape_prefix, cmap = "jet", cbar_loc = "right", cbar_label = "drape colourbar", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):
+    """
+    This function makes a shaded relief plot of the DEM with the basins coloured
+    by the basin ID.
+
+    Args:
+        DataDirectory (str): the data directory with the rasters
+        Base_file (str): The prefix for the rasters
+        cmap (str or colourmap): The colourmap to use for the plot
+        cbar_loc (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
+                        If you want only a hillshade set to none and the cmap to "gray"
+        size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
+        fig_format (str): An image format. png, pdf, eps, svg all valid
+        dpi (int): The dots per inch of the figure
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
+
+    Returns:
+        Shaded relief plot. The elevation is also included in the plot.
+
+    Author: FJC, SMM
+    """
+    # specify the figure size and format
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_size_inches = 6.25
+    elif size_format == "big":
+        fig_size_inches = 16
+    else:
+        fig_size_inches = 4.92126
+    ax_style = "Normal"
+
+    # Get the filenames you want
+    BackgroundRasterName = Base_file+"_hs.bil"
+    ElevationName = Base_file+".bil"
+
+    # clear the plot
+    plt.clf()
+
+    # set up the base image and the map
+    MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
+    MF.add_drape_image(ElevationName,DataDirectory,colourmap = "grey", alpha = 0.6, colorbarlabel = None)
+    MF.add_drape_image(ElevationName,Drape_prefix,colourmap = "grey", alpha = 0.6, colorbarlabel = cbar_label)    
+
+    # Save the image
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+Base_file+"_hillshade."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_hillshade."+fig_format
+    
+    MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)    
+    
+    
 def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", 
                                 size_format = "ESURF", fig_format = "png", 
                                 dpi = 250, imgnumber = 0, full_basefile = [], 
@@ -479,6 +532,8 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
         out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
+        include_channels (bool): If true, adds a channel plot. It uses the chi_data_maps file
+        label_basins (bool): If true, the basins get labels
 
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin. This allows more complex plotting with renamed and excluded basins. 

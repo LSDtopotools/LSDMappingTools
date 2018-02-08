@@ -467,11 +467,25 @@ def main(argv):
         
         raster_out_prefix = "/raster_plots/"+out_fname_prefix      
         # First the basins, with blue channels scaled by drainage area
-        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basinschannels",include_channels = True, label_basins = False)      
+        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basinschannels",include_channels = True, label_basins = False)  
         
-    # This just plots the basins. Useful for checking on basin selection
+    # This prints a draped plot. All you need is a drape layer
+    if args.plot_basins_channels:
+        print("I am going to print basins and channels.")
+        
+        # check if a raster directory exists. If not then make it.
+        raster_directory = this_dir+'raster_plots/'
+        print("I am printing to a raster directory:")
+        print(raster_directory)
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)  
+        
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix    
+            
+        
+    # This plots the chi coordinates. You need to have chi rasters for this
     if args.plot_chi_coord:
-        print("I am only going to print basins.")
+        print("I am going to plot the chi coordinate.")
         
         # check if a raster directory exists. If not then make it.
         raster_directory = this_dir+'raster_plots/'
