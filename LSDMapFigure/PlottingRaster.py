@@ -1073,7 +1073,8 @@ class MapFigure(object):
                        max_point_size = 5, min_point_size = 0.5,
                        colour_log = False, colour_manual_scale = [],
                        manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10, label_field = "None",
-                       font_size = 6, offset = 100, zorder=1, marker = "o", discrete_colours = False, NColours = 10,scale_in_absolute = False, color_abs =False, unicolor = "blue"):
+                       font_size = 6, offset = 100, zorder=1, marker = "o", discrete_colours = False, NColours = 10,scale_in_absolute = False, color_abs =False, unicolor = "blue",
+                       recast_scale_min_max = [], scale_in_abs_after_recasting = False):
 
         """
         This add point data to the map.
@@ -1104,6 +1105,11 @@ class MapFigure(object):
             NColours (int) The number of colours n the colourmap
             scale_in_absolute (bool): scale the data using absolute values
             abs (bool): color the data using absolute values
+            unicolor (str): set a unique color in case of no plotting column - Default: blue
+            color_abs: get the absolute data for scale
+            recast_scale_min_max: recast the min and max of the array before scaling
+            scale_in_abs_after_recasting: give the abolute value of scaling after recasting the data
+
 
 
         Author: SMM, BG
@@ -1171,6 +1177,16 @@ class MapFigure(object):
                 print("There doesn't seem to be any scaling data. Reverting to manual size.")
                 point_scale = manual_size
             else:
+
+                if(scale_in_abs_after_recasting):
+                    scale_data = np.abs(scale_data)
+
+                if(len(recast_scale_min_max) == 2):
+                    scale_data[scale_data < recast_scale_min_max[0]] = recast_scale_min_max[0]
+                    scale_data[scale_data > recast_scale_min_max[1]] = recast_scale_min_max[1]
+
+
+
                 max_sd = np.nanmax(scale_data)
                 min_sd = np.nanmin(scale_data)
 
