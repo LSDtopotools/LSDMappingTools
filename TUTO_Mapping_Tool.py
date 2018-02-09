@@ -4,9 +4,9 @@ Created.
 
 @author: Boris
 """
-#import matplotlib
-#matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt
 import time as clock
 from matplotlib import rcParams
 import matplotlib.cm as cm
