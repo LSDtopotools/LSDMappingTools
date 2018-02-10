@@ -128,6 +128,8 @@ def main(argv):
             n_b = int(args.n_bin_hist)
 
         KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b)
+        KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b, data = "delta_segelev")
+
         KI.print_box_and_whisker(size = size, format = args.FigFormat, label_size = 8, binning = 'source_key', facecolor = "white", grid = True)
         KI.print_box_and_whisker(size = size, format = args.FigFormat, label_size = 8, binning = 'basin_key', facecolor = "white", grid = True)
 

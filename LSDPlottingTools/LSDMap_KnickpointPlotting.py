@@ -427,7 +427,7 @@ class KP_plotting(object):
 
 
 
-    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20):
+    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20, return_fig = False):
 
             # check if a directory exists for the chi plots. If not then make it.
         raster_directory = self.fpath+'raster_plots/'
@@ -484,14 +484,20 @@ class KP_plotting(object):
         else:
             suffix = "hs"
         ImageName = raster_directory+self.fprefix+"_ksnkp_map_%s."%(suffix) + format
-        MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat = format, Fig_dpi = 500) # Save the figure
-        plt.clf()
+        
+
+        if(return_fig):
+            return plt.gcf()
+
+        else:
+            MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat = format, Fig_dpi = 500) # Save the figure
+            plt.clf()
 
 
 
 
 
-    def print_histogram(self,size = "big", format = "png", label_size = 8, n_bin = 'auto', facecolor = "white", grid = True):
+    def print_histogram(self,size = "big", format = "png", label_size = 8, n_bin = 'auto', facecolor = "white", grid = True, data = "delta_ksn"):
         """
         This figure print an histogram of the knickpoint repartition for the selected basins/sources
 
@@ -521,13 +527,17 @@ class KP_plotting(object):
         if(grid):
              ax1.grid(ls = 'dotted', lw = 0.1, c = "k", zorder = 5)
 
-        ax1.hist(self.df_kp["delta_ksn"], bins = n_bin, fc = "#848484", lw = 0.5, edgecolor = "k", zorder = 10)
+        ax1.hist(self.df_kp[data], bins = n_bin, fc = "#848484", lw = 0.5, edgecolor = "k", zorder = 10)
 
+        if(data == "delta_ksn"):
+            xlab = r"$\Delta k_{sn}$"
+        elif (data == "delta_segelev"):
+            xlab = r"$\Delta$ seg. elevation"
 
-        ax1.set_xlabel(r"$\Delta k_{sn}$")
+        ax1.set_xlabel(xlab)
         ax1.set_ylabel("n knickpoints")
 
-        plt.savefig(out_directory + self.fprefix + "_kp_hist.%s"%(format), dpi = 500)
+        plt.savefig(out_directory + self.fprefix + "_kp_hist%s.%s"%(data,format), dpi = 500)
         plt.clf()
 
 

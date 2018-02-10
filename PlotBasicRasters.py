@@ -276,6 +276,7 @@ def main(argv):
     #===============================================================================    
     # What sort of analyses you want--these are rather simple versions
     parser.add_argument("-PB", "--plot_basins", type=bool, default=False, help="If this is true, I'll make a simple basin plot.")
+    parser.add_argument("-PBC", "--plot_basins_channels", type=bool, default=False, help="If this is true, I'll make a simple basin plot with channels.")
     parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that pust a colour scale on a drape of your choice.")
     parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.")  
     
@@ -297,7 +298,7 @@ def main(argv):
     parser.add_argument("-parallel", "--parallel", type=bool, default=False, help="If this is true I'll assume you ran the code in parallel and append all your CSVs together before plotting.")
     parser.add_argument("-dpi", "--dpi", type=int, default=250, help="The dots per inch of your figure.")
     parser.add_argument("-bmpsm", "--basemap_parallel_spacing_multiplier", type=float, default=0.5, help="Basemap parallel spacing multiplier. Increase if parallels are too close on your basemap.")
-    
+    parser.add_argument("-bmrem", "--basemap_regional_extent_multiplier", type=float, default=10, help="Basemap regional extent multiplier. Increase if you want a larger basemap regional extent.")    
     
 
     
@@ -350,7 +351,7 @@ def main(argv):
         
         print("The basemap centrepoint is: "+str(centre_lat)+"," +str(centre_long))
         #LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = centre_lat , lon_0 = centre_long, resolution = 'l')
-        LSDM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = 10, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier)
+        LSDM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = args.basemap_regional_extent_multiplier, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier)
         
           
     # Parse any lists, dicts, or list of lists from the arguments   
@@ -452,10 +453,39 @@ def main(argv):
         # Now for raster plots
         # First the basins, labeled:
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
-
+      
     # This just plots the basins. Useful for checking on basin selection
+    if args.plot_basins_channels:
+        print("I am going to print basins and channels.")
+        
+        # check if a raster directory exists. If not then make it.
+        raster_directory = this_dir+'raster_plots/'
+        print("I am printing to a raster directory:")
+        print(raster_directory)
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+        
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix      
+        # First the basins, with blue channels scaled by drainage area
+        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basinschannels",include_channels = True, label_basins = False)  
+        
+    # This prints a draped plot. All you need is a drape layer
+    if args.plot_basins_channels:
+        print("I am going to print basins and channels.")
+        
+        # check if a raster directory exists. If not then make it.
+        raster_directory = this_dir+'raster_plots/'
+        print("I am printing to a raster directory:")
+        print(raster_directory)
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)  
+        
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix    
+            
+        
+    # This plots the chi coordinates. You need to have chi rasters for this
     if args.plot_chi_coord:
-        print("I am only going to print basins.")
+        print("I am going to plot the chi coordinate.")
         
         # check if a raster directory exists. If not then make it.
         raster_directory = this_dir+'raster_plots/'
