@@ -21,6 +21,7 @@ from LSDPlottingTools import colours as lsdcolours
 from LSDPlottingTools import statsutilities as SUT
 from LSDPlottingTools import init_plotting_DV
 from matplotlib.patches import Rectangle
+from matplotlib.ticker import MaxNLocator
 import LSDPlottingTools as LSDP
 import sys
 import os
@@ -85,8 +86,8 @@ class KP_plotting(object):
         if(cut_off_val != [0,0,0,0]):
             print("I am selecting your knickpoints")
             # This selection process is a bit messy, but really efficient with pandas!
-            self.df_kp = self.df_kp[((self.df_kp["delta_ksn"] <= cut_off_val[0]) & (self.df_kp["delta_ksn"] >= cut_off_val[1])) | ((self.df_kp["delta_segelev"] <= cut_off_val[3]) & (self.df_kp["delta_segelev"] >= cut_off_val[4]))]
-
+            print(cut_off_val)
+            self.df_kp = self.df_kp[((self.df_kp["delta_ksn"] <= cut_off_val[0]) | (self.df_kp["delta_ksn"] >= cut_off_val[1])) | ((self.df_kp["delta_segelev"] <= cut_off_val[2]) | (self.df_kp["delta_segelev"] >= cut_off_val[3]))]
 
         # Selection of Basins and sources
         if(basin_key == []):
@@ -363,7 +364,7 @@ class KP_plotting(object):
         # End of this function
 
     def print_river_profile(self,size = "big", format = "png", x_axis = "chi", knickpoint = True, title = "none", label_size = 8, facecolor = 'white',
-        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 50, kalib = False):
+        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 50, kalib = False, binning = "source_key"):
 
         """
         """
@@ -381,11 +382,11 @@ class KP_plotting(object):
         rcParams['font.size'] = label_size
 
 
-        for sources in self.df_SK["source_key"].unique():
+        for sources in self.df_SK[binning].unique():
 
             # Select the data
-            this_df_SK = self.df_SK[self.df_SK["source_key"] == sources]
-            this_df_kp = self.df_kp[self.df_kp["source_key"] == sources]
+            this_df_SK = self.df_SK[self.df_SK[binning] == sources]
+            this_df_kp = self.df_kp[self.df_kp[binning] == sources]
             # this_df_kp = this_df_kp[this_df_kp["out"] == 1]
             this_df_dksn_pos = this_df_kp[this_df_kp["sign"] == 1]
             this_df_dksn_neg = this_df_kp[this_df_kp["sign"] == -1]
@@ -395,8 +396,8 @@ class KP_plotting(object):
             this_df_dsegelev_neg = this_df_kp[this_df_kp["delta_segelev"]< 0]
 
 
-            this_df_kp_raw = self.df_kp_raw[self.df_kp_raw["source_key"] == sources]
-            this_df_river = self.df_river[self.df_river["source_key"] == sources]
+            this_df_kp_raw = self.df_kp_raw[self.df_kp_raw[binning] == sources]
+            this_df_river = self.df_river[self.df_river[binning] == sources]
 
             
             # Create a figure with required dimensions
@@ -435,7 +436,7 @@ class KP_plotting(object):
             if(kalib):
 
                 kal = pd.read_csv("/home/s1675537/PhD/LSDTopoData/knickpoint/test_location_paper/Smugglers_SC/field_kp/calib_jointed.csv")
-                kal = kal[kal["source_key"] == sources]
+                kal = kal[kal[binning] == sources]
                 colaray = kal["type"].values
                 colaray[colaray == "bases"] = "#A002D3"
                 colaray[colaray == "lips"] = "#57B300"
@@ -461,7 +462,7 @@ class KP_plotting(object):
                 ax1.legend([extra],[this_title], loc = 0) # 1 = upper right 0 - best choice
 
             # Saving the figure
-            plt.savefig(out_directory + self.fprefix + "_source%s_%s.%s"%(sources,x_axis,format), dpi = 500)
+            plt.savefig(out_directory + self.fprefix + "_%s_%s_%s.%s"%(binning,sources,x_axis,format), dpi = 500)
             plt.clf()
             # switching to the next figure
 
@@ -547,7 +548,7 @@ class KP_plotting(object):
 
         """
 
-
+        print("I am plotting an histogram for the " + data)
         # check if a directory exists for the chi plots. If not then make it.
         out_directory = self.fpath+'stat_plots/'
         if not os.path.isdir(out_directory):
@@ -580,6 +581,8 @@ class KP_plotting(object):
 
         ax1.set_xlabel(xlab)
         ax1.set_ylabel("n knickpoints")
+
+        ax1.xaxis.set_major_locator(MaxNLocator(15))
 
         plt.savefig(out_directory + self.fprefix + "_kp_hist%s.%s"%(data,format), dpi = 500)
         plt.clf()
@@ -622,9 +625,10 @@ class KP_plotting(object):
         n_data = []
 
         for bing in self.df_kp[binning].unique():
-            data_to_plot.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing])
-            data_name.append(str(bing) + "\nn = "+str(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0]))
-            #n_data.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0])
+            if(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0]>0):
+                data_to_plot.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing])
+                data_name.append(str(bing) + "\nn = "+str(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0]))
+                #n_data.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0])
 
 
 

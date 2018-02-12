@@ -81,6 +81,8 @@ def main(argv):
     # Others
     parser.add_argument("-nbh", "--n_bin_hist", type = int, default = 0, help = "Customization of the number of bin you want for the general histogram. Default is an automatic in-built selection from numpy")
     parser.add_argument("-cov", "--cut_off_val", type = str, default = "0,0,0,0", help = "Cutoff value for the knickpoint magnitude (the drop/increase of ksn). Default is 0 (no cut)")
+    parser.add_argument("-kal", "--kalib", type = bool, default = False, help = "Don't use that.")
+
 
     args = parser.parse_args()
 
@@ -106,7 +108,7 @@ def main(argv):
 
     print("Getting your cut off values...")
     try:
-        covfefe = [float(item) for item in args.cut_off_val.split(',')]
+        covfefe = [float(item) for item in args.cut_off_val.replace(" ", "").split(',')]
         print("ok.")
     except ValueError:
         print("Something went wrong - I am defaulting the values")
@@ -152,9 +154,14 @@ def main(argv):
 
     if(args.river_profile):
         print("Printing river profiles in chi spaces")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white')
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib)
         print("Printing river profiles in flow distance")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white')
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib)
+        print("Printing river profiles for the entire basins")
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", kalib = args.kalib)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", kalib = args.kalib)
+
+
 
     if(args.raster_plots):
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6)
