@@ -363,7 +363,7 @@ class KP_plotting(object):
         # End of this function
 
     def print_river_profile(self,size = "big", format = "png", x_axis = "chi", knickpoint = True, title = "none", label_size = 8, facecolor = 'white',
-        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 50):
+        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 50, kalib = False):
 
         """
         """
@@ -430,7 +430,16 @@ class KP_plotting(object):
             ax1.scatter(this_df_dsegelev_neg[x_axis], this_df_dsegelev_neg["elevation"] - up_set, s = size_neg, lw = 1, marker = "|", c = "b", alpha = 0.95, zorder = 5)
 
             #Plot vertical bars in beetween
-            ax1.vlines(this_df_kp["chi"], this_df_kp["elevation"] - up_set, this_df_kp["elevation"] + up_set, zorder = 1, lw = 0.15 )           
+            ax1.vlines(this_df_kp[x_axis], this_df_kp["elevation"] - up_set, this_df_kp["elevation"] + up_set, zorder = 1, lw = 0.15 )
+
+            if(kalib):
+
+                kal = pd.read_csv("/home/s1675537/PhD/LSDTopoData/knickpoint/test_location_paper/Smugglers_SC/field_kp/calib_jointed.csv")
+                kal = kal[kal["source_key"] == sources]
+                colaray = kal["type"].values
+                colaray[colaray == "bases"] = "#A002D3"
+                colaray[colaray == "lips"] = "#57B300"
+                ax1.scatter(kal[x_axis],kal["elevation"], marker = "x", s = 20, lw = 0.8, zorder = 15, c = colaray)    
 
 
             if(x_axis == "chi"):
