@@ -80,7 +80,7 @@ def main(argv):
 
     # Others
     parser.add_argument("-nbh", "--n_bin_hist", type = int, default = 0, help = "Customization of the number of bin you want for the general histogram. Default is an automatic in-built selection from numpy")
-    parser.add_argument("-cov", "--cut_off_val", type = float, default = 0., help = "Cutoff value for the knickpoint magnitude (the drop/increase of ksn). Default is 0 (no cut)")
+    parser.add_argument("-cov", "--cut_off_val", type = str, default = "0,0,0,0", help = "Cutoff value for the knickpoint magnitude (the drop/increase of ksn). Default is 0 (no cut)")
 
     args = parser.parse_args()
 
@@ -103,6 +103,16 @@ def main(argv):
         print("The sources preselected are:")
         print(these_source_keys)
 
+
+    print("Getting your cut off values...")
+    try:
+        covfefe = [float(item) for item in args.cut_off_val.split(',')]
+        print("ok.")
+    except ValueError:
+        print("Something went wrong - I am defaulting the values")
+        covfefe = [0,0,0,0]
+    print("cut off values:")
+    print(covfefe)
     # Processing the size choice
     try:
         size = [int(item) for item in args.size_format.split(',')]
@@ -117,7 +127,7 @@ def main(argv):
 
     print("Loading the dataset:")
 
-    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = args.cut_off_val)
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe)
 
     # Plotting hte knickpoints
     if(args.statistical_plots):
