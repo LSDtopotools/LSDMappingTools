@@ -120,10 +120,7 @@ class KP_plotting(object):
             self.df_kp = self.df_kp[self.df_kp["source_key"].isin(source_key)]
             self.df_SK = self.df_SK[self.df_SK["source_key"].isin(source_key)]
 
-        
 
-
-        # dealing with no datas: For some rare exceptions, LSDTT generates no-data, which are removed here (usually few nodes for large datasets).
 
         self.df_river["m_chi"][self.df_river["m_chi"] == -9999] = 0
 
@@ -364,7 +361,7 @@ class KP_plotting(object):
         # End of this function
 
     def print_river_profile(self,size = "big", format = "png", x_axis = "chi", knickpoint = True, title = "none", label_size = 8, facecolor = 'white',
-        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 50, kalib = False, binning = "source_key"):
+        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 50, kalib = False, binning = "source_key", print_seg_elev = False):
 
         """
         """
@@ -408,8 +405,11 @@ class KP_plotting(object):
             ax1 = fig.add_subplot(gs[0:100,0:100], facecolor = "None")
 
             #plot the long/Chi profile
-            cb1 = ax1.scatter(this_df_river[x_axis], this_df_river["elevation"], lw =0 , s = size_of_river, c = "blue", zorder = 3)
-            cb1 = ax1.scatter(this_df_river[x_axis], this_df_river["segmented_elevation"], lw =0 , s = size_of_river/2, c = "k", alpha = 0.5, zorder = 3)
+            ax1.scatter(this_df_river[x_axis], this_df_river["elevation"], lw =0 , s = size_of_river, c = "#00DBE5" , zorder = 3)
+            ax1.scatter(this_df_river[x_axis][this_df_river["ksnkp"]!=0], this_df_river["elevation"][this_df_river["ksnkp"]!=0], lw =0 , s = size_of_river, c = this_df_river["ksnkp"][this_df_river["ksnkp"]!=0], cmap = "RdBu_r" , zorder = 4)
+
+            if (print_seg_elev):    
+                cb1 = ax1.scatter(this_df_river[x_axis], this_df_river["segmented_elevation"], lw =0 , s = size_of_river/2, c = "k", alpha = 0.5, zorder = 3)
 
             # Plot the dksn knickpionts
             ## First normalized the size
