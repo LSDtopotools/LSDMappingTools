@@ -428,7 +428,7 @@ class KP_plotting(object):
             size_neg = this_df_dsegelev_neg["delta_segelev"].abs()/this_df_kp["delta_segelev"].max()*coeff_size
             ##plt the bars
             ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, s = size_pos, lw = 1, marker = "|", c = "r", alpha = 0.95, zorder = 5)
-            ax1.scatter(this_df_dsegelev_neg[x_axis], this_df_dsegelev_neg["elevation"] - up_set, s = size_neg, lw = 1, marker = "|", c = "b", alpha = 0.95, zorder = 5)
+            ax1.scatter(this_df_dsegelev_neg[x_axis], this_df_dsegelev_neg["elevation"] - up_set, s = size_neg, lw = 1, marker = "|", c = "b", zorder = 5, alpha = 0) # WE ACTUALLY DONT WANT THAT
 
             #Plot vertical bars in beetween
             ax1.vlines(this_df_kp[x_axis], this_df_kp["elevation"] - up_set, this_df_kp["elevation"] + up_set, zorder = 1, lw = 0.15 )
