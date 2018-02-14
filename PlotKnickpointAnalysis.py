@@ -62,7 +62,9 @@ def main(argv):
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
 
     # ALL
-    parser.add_argument("-ALL", "--AllAnalysis", type=bool, default = False, help="Turn on to have fun")
+    parser.add_argument("-all", "--AllAnalysis", type=bool, default = False, help="Turn on to have fun")
+    parser.add_argument("-allD", "--AllAnalysisDebug", type=bool, default = False, help="Turn on to have even more fun")
+
 
     # Mchi_related
     parser.add_argument("-mcstd", "--mchi_map_std", type=bool, default = False, help="Turn to True to plot a standart M_chi map on an HS. Small reminder, Mchi = Ksn if calculated with A0 = 1.")
@@ -131,6 +133,18 @@ def main(argv):
     print("Loading the dataset:")
 
     KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe)
+    
+    if(args.AllAnalysisDebug):
+        args.AllAnalysis = True
+        args.ksn_per_source = True
+
+
+    if(args.AllAnalysis):
+        args.statistical_plots = True
+        args.river_profile = True
+        args.raster_plots = True
+        args.raster_plots_large_dataset = True
+
 
     # Plotting hte knickpoints
     if(args.statistical_plots):
