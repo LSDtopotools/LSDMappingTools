@@ -598,7 +598,7 @@ class MapFigure(object):
                          label_basins = True, adjust_text = False, rename_dict = {},
                          value_dict = {}, mask_list = [],
                          edgecolour='black', linewidth=1, cbar_dict = {}, parallel=False, 
-                         outlines_only = False):
+                         outlines_only = False,zorder = 1):
         """
         This is a basin plotting routine. It plots basins as polygons which
         can be coloured and labelled in various ways.
@@ -695,9 +695,9 @@ class MapFigure(object):
             # Now check if there is a renaming dictionary
             if len(rename_dict) == 0:
                 if use_keys_not_junctions:
-                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=junction_to_key_dict)
+                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=junction_to_key_dict,zorder = zorder +1)
                 else:
-                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k')
+                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k',zorder = zorder +1)
             else:
                 # Okay so the way tyhis is going to work is that we ware going to
                 # look for renamed basins but basins that haven't been renamed are
@@ -721,7 +721,7 @@ class MapFigure(object):
                             print("I am missing this key")
 
                     # Use this new label dict to rename the junctions
-                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
+                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict,zorder = zorder +1)
 
                 else:
                     # Now we need a new junction dict for this
@@ -735,7 +735,7 @@ class MapFigure(object):
                             new_label_dict[key] = rename_dict[key]
 
                     # Use this new label dict to rename the junctions
-                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict)
+                    texts = self.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=new_label_dict,zorder = zorder +1)
 
             if adjust_text == True:
                 print("I am adjusting the text for you. Warning: this takes a long time!")
@@ -776,9 +776,9 @@ class MapFigure(object):
                 colourkey = int(key) % n_colours
                 # We need two patches since we don't want the edges transparent
                 if not outlines_only:
-                    this_patch = PolygonPatch(poly, fc=new_colours.to_rgba(colourkey), ec="none", alpha=alpha)
+                    this_patch = PolygonPatch(poly, fc=new_colours.to_rgba(colourkey), ec="none", alpha=alpha,zorder = zorder)
                     self.ax_list[0].add_patch(this_patch)
-                this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1)
+                this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1,zorder = zorder)
                 self.ax_list[0].add_patch(this_patch)
         else:
             if discrete_cmap:
@@ -815,22 +815,22 @@ class MapFigure(object):
                         this_key = junction_to_key_dict[int(junc)]
                         #print ("This key is: "+str(this_key)+", and this value is: "+str(value_dict[this_key]))
                         if this_key in value_dict:
-                            this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[this_key] ), ec="none", alpha=alpha)
+                            this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[this_key] ), ec="none", alpha=alpha, zorder = zorder)
                             self.ax_list[0].add_patch(this_patch)
                         else:
-                            this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha)
+                            this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha, zorder = zorder)
                             self.ax_list[0].add_patch(this_patch)
                     else:
                         # We are using junction indices so these link directly in to the polygon keys
                         if junc in value_dict:
-                            this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[junc] ), ec="none", alpha=alpha)
+                            this_patch = PolygonPatch(poly, fc=new_colours.to_rgba( value_dict[junc] ), ec="none", alpha=alpha, zorder = zorder)
                             self.ax_list[0].add_patch(this_patch)
                         else:
-                            this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha)
+                            this_patch = PolygonPatch(poly, fc=gray_colour, ec="none", alpha=alpha, zorder = zorder)
                             self.ax_list[0].add_patch(this_patch)
 
                 # We need to add the outline seperately because we don't want it to be transparent
-                this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1)
+                this_patch = PolygonPatch(poly, fc="none", ec=edgecolour, alpha=1, zorder = zorder)
                 self.ax_list[0].add_patch(this_patch)
 
 

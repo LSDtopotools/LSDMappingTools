@@ -85,6 +85,8 @@ def main(argv):
     parser.add_argument("-cov", "--cut_off_val", type = str, default = "0,0,0,0", help = "Cutoff value for the knickpoint magnitude (the drop/increase of ksn). Default is 0 (no cut)")
     parser.add_argument("-kal", "--kalib", type = bool, default = False, help = "Don't use that.")
     parser.add_argument("-segelev", "--print_segmented_elevation", type = bool, default = False, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+    parser.add_argument("-extent_rast_cmap", "--manual_extent_colormap_knickpoint_raster", type = str, default = "", help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+    parser.add_argument("-size_kp_map", "--size_kp_map", type = int, default = 5, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
 
 
     args = parser.parse_args()
@@ -107,6 +109,14 @@ def main(argv):
         these_source_keys = [int(item) for item in args.source_keys.split(',')]
         print("The sources preselected are:")
         print(these_source_keys)
+
+    if len(args.manual_extent_colormap_knickpoint_raster) > 0:
+        manual_cmap_extent_raster_plot = [int(item) for item in args.manual_extent_colormap_knickpoint_raster.split(',')]
+        print("You choose a manual colorbar for plotting:")
+        print(manual_cmap_extent_raster_plot)
+    else:
+        manual_cmap_extent_raster_plot = []
+        
 
 
     print("Getting your cut off values...")
@@ -179,12 +189,12 @@ def main(argv):
 
 
     if(args.raster_plots):
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6)
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
     if(args.raster_plots_large_dataset):
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = 5)
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = 5)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
     # Preparing the min_max color for mchi maps
     if(args.max_mchi_map <= args.min_mchi_map):

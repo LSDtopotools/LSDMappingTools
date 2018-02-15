@@ -472,7 +472,7 @@ class KP_plotting(object):
 
 
 
-    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20, return_fig = False):
+    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20, return_fig = False, extent_cmap = [], kalib = False):
 
             # check if a directory exists for the chi plots. If not then make it.
         raster_directory = self.fpath+'raster_plots/'
@@ -521,8 +521,25 @@ class KP_plotting(object):
         kp_pos = LSDP.LSDMap_PointData(self.df_kp[self.df_kp["sign"] == 1], data_type = "pandas", PANDEX = True)
         kp_neg = LSDP.LSDMap_PointData(self.df_kp[self.df_kp["sign"] == -1], data_type = "pandas", PANDEX = True)
 
-        MF.add_point_data(kp_pos,this_colourmap = "RdBu_r",colour_manual_scale = [0,self.df_kp["delta_ksn"].max()], marker ="^", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar=True, colorbarlabel = r'$\Delta k_{sn}$', colourbar_location = "bottom", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
-        MF.add_point_data(kp_neg,this_colourmap = "RdBu_r",colour_manual_scale = [0,self.df_kp["delta_ksn"].max()], marker ="v", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar="False", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
+        # Dealing with the legend that you can manually change
+        if(len(extent_cmap) != 2):
+            extent_cmap = [0,self.df_kp["delta_ksn"].abs().max()]
+
+
+        if(kalib):
+
+            kal = pd.read_csv("/home/s1675537/PhD/LSDTopoData/knickpoint/test_location_paper/Smugglers_SC/field_kp/calib_jointed.csv")
+            colaray = kal["type"].values
+            colaray[colaray == "bases"] = "#A002D3"
+            colaray[colaray == "lips"] = "#57B300"
+            kal["van_gogh"] = pd.Series(data = colaray, index = kal.index )
+            kalpoint = LSDP.LSDMap_PointData(kal, data_type = "pandas", PANDEX = True)
+            MF.add_point_data(kalpoint, marker ="*", column_for_plotting = "van_gogh", alpha=1, manual_size = 20, zorder = 199, unicolor = kal["van_gogh"].values )
+
+
+
+        MF.add_point_data(kp_pos,this_colourmap = "autumn",colour_manual_scale = [extent_cmap[0],extent_cmap[1]], marker ="^", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar=True, colorbarlabel = r'$\Delta k_{sn}$', colourbar_location = "bottom", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
+        MF.add_point_data(kp_neg,this_colourmap = "autumn",colour_manual_scale = [extent_cmap[0],extent_cmap[1]], marker ="v", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar="False", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
 
         if(black_bg):
             suffix = "dark"
@@ -572,7 +589,14 @@ class KP_plotting(object):
         if(grid):
              ax1.grid(ls = 'dotted', lw = 0.1, c = "k", zorder = 5)
 
-        ax1.hist(self.df_kp[data], bins = n_bin, fc = "#848484", lw = 0.5, edgecolor = "k", zorder = 10)
+        if (data == "delta_segelev"):
+            tdf = self.df_kp.copy()
+            tdf[tdf[data]<0] = 0
+        else:
+            tdf = self.df_kp.copy()
+
+
+        ax1.hist(tdf[data], bins = n_bin, fc = "#848484", lw = 0.5, edgecolor = "k", zorder = 10)
 
         if(data == "delta_ksn"):
             xlab = r"$\Delta k_{sn}$"
