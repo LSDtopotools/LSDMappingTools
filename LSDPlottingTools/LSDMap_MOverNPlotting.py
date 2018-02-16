@@ -331,7 +331,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
         FullChiBasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
     else:
         FullChiBasinDF = Helper.AppendBasinCSVs(DataDirectory)
-        
+
     # Let's get the list of basins
     if basin_list == []:
         print("You didn't supply a list of basins, so I'm going to analyse all of them.")
@@ -830,7 +830,7 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
         pd_DF = Helper.ReadBasinStatsCSV(DataDirectory, fname_prefix)
     else:
         pd_DF = Helper.AppendBasinStatsCSVs(DataDirectory)
-        
+
     shp = pd_DF.shape
     max_MLEs = []
     max_MLEs_index = []
@@ -2060,7 +2060,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         #l_pad = -35
 
     print("SHOW LEGEND", show_legend)
-    
+
     if show_legend:
         gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
     else:
@@ -2610,7 +2610,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
       Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     else:
       Basins = LSDP.GetMultipleBasinOutlines(DataDirectory)
-      
+
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the channel network
@@ -2623,12 +2623,12 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # add the basin labelling
     label_dict = dict(zip(basin_junctions,basin_keys))
-    
+
     if not parallel:
       Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
     else:
       Points = LSDP.GetPointsWithinMultipleBasins(DataDirectory, BasinsName)
-      
+
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict, zorder=200)
 
     # Save the figure
@@ -2698,6 +2698,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, parallel=parallel)
         #MOverNDict = SimpleMaxMLECheck(BasinDF)
         m_over_ns = [round(i[0],2) for i in best_fit_movern_dict.values()]
+        print ("You tested these m_over_ns")
         #print m_over_ns
         MOverNDict = dict(zip(basin_keys,m_over_ns))
         label_list = [str(i)+": "+str(j) for i,j in zip(basin_keys,m_over_ns)]
@@ -2781,13 +2782,13 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
                           use_keys_not_junctions = True, show_colourbar = False,
                           discrete_cmap=True, n_colours=n_colours, colorbarlabel = "$m/n$",
                           colourmap = mn_cmap, adjust_text = False, cbar_dict=cbar_dict, parallel=parallel)
-                      
+
     # add the basin outlines
     if not parallel:
       Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     else:
       Basins = LSDP.GetMultipleBasinOutlines(DataDirectory)
-      
+
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the channel network
@@ -3014,7 +3015,7 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
         basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
     else:
         basin_df = Helper.AppendBasinInfoCSVs(DataDirectory)
-        
+
     basin_keys = basin_df['basin_key']
 
     if basin_list == []:
