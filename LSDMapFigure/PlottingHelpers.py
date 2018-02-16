@@ -455,7 +455,7 @@ def ReadFullStatsCSV(DataDirectory, fname_prefix, m_over_n):
     Author: FJC
     """
     # get the csv filename
-    fullstats_suffix = '_movernstats_%s_fullstats.csv' %str(m_over_n)
+    fullstats_suffix = '_movernstats_%s_fullstats.csv' %m_over_n
     fname = fname_prefix+fullstats_suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)

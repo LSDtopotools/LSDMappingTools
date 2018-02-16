@@ -449,13 +449,20 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     # Get a vector of the m over n values
     end_movern = start_movern+d_movern*(n_movern-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
+    movern_strs = []
+    for movern in m_over_n_values:
+	movern_str = '%.2f'%movern
+	if movern_str.endswith('0'):
+	    movern_str = movern_str[:-1]
+        movern_strs.append(movern_str)
+    print (movern_strs)	
 
     # we open the first file just so that we can get a counter list
     print "PARALLEL = ", parallel
     if not parallel:
-        FirstDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,m_over_n_values[0])
+        FirstDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,movern_strs[0])
     else:
-        FirstDF = Helper.AppendFullStatsCSVs(DataDirectory,m_over_n_values[0])
+        FirstDF = Helper.AppendFullStatsCSVs(DataDirectory,movern_strs[0])
 
     # get the number of basins
     basin_keys = list(FirstDF['basin_key'])
@@ -483,7 +490,9 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         Outlier_counter[basin] = this_counter
 
     # Now we loop through all the files, calculating the outliers
-    for m_over_n in m_over_n_values:
+    for m_over_n in movern_strs:
+
+        print("This_m_over_n is: "+m_over_n)
 
         #load the file
         if not parallel:
@@ -491,7 +500,6 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         else:
             FullStatsDF = Helper.AppendFullStatsCSVs(DataDirectory,m_over_n)
 
-        print("This_m_over_n is: "+str(m_over_n))
 
         # loop through the basins
         for basin in basin_list:
@@ -589,7 +597,7 @@ def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, Dat
     # get the outlier counter for this basin
     thisBasinOutlierCounter = Outlier_counter[basin_number]
 
-    print("I am going to recalcualte MLE for basin: "+str(basin_number))
+    print("I am going to recalculate MLE for basin: "+str(basin_number))
     #print("The counter list is:")
     #print(thisBasinOutlierCounter)
 
@@ -702,10 +710,15 @@ def Calculate_movern_after_iteratively_removing_outliers(movern_list, DataDirect
     # the outlying data
     All_MLE = []
     for m_over_n in movern_list:
-        MLE_vals = RecalculateTotalMLEWithRemoveList(DataDirectory, fname_prefix,
-                                                     m_over_n,basin_number, remove_list_index, parallel)
-        All_MLE.append(MLE_vals)
+        movern_str = '%.2f'%m_over_n     # need to convert to a string here so files are read correctly. FJC 16/02/18
+        if movern_str.endswith('0'):
+            movern_str = movern_str[:-1]
+    #    print movern_str
 
+        MLE_vals = RecalculateTotalMLEWithRemoveList(DataDirectory, fname_prefix,
+                                                     movern_str,basin_number, remove_list_index, parallel)
+        All_MLE.append(MLE_vals)
+	
 
     MLEs = np.asarray(All_MLE)
     index_of_maximums = np.argmax(MLEs,0)
@@ -2691,21 +2704,23 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
 
     print ('Basin keys are: ')
     print basin_keys
-
+   
     labeldict = {}
     # get the best fit m/n for each basin
     if movern_method == "Chi_full":
+	print ('Making a plot for the full chi method')
         Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, parallel=parallel)
         #MOverNDict = SimpleMaxMLECheck(BasinDF)
         m_over_ns = [round(i[0],2) for i in best_fit_movern_dict.values()]
-        print ("You tested these m_over_ns")
-        #print m_over_ns
+        print ('You tested these m_over_ns')
+        print m_over_ns
         MOverNDict = dict(zip(basin_keys,m_over_ns))
         label_list = [str(i)+": "+str(j) for i,j in zip(basin_keys,m_over_ns)]
         labeldict = dict(zip(basin_junctions,label_list))
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_full.'+FigFormat
         title = "Chi analysis (all data)"
     elif movern_method == "Chi_points":
+	print ('Making a plot for the chi points method')
         if not parallel:
             PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
         else:

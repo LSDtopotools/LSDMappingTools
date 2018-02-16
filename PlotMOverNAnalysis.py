@@ -14,6 +14,7 @@ matplotlib.use('Agg')
 #from __future__ import print_function
 import sys
 import os
+from decimal import Decimal
 from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 from LSDPlottingTools import LSDMap_SAPlotting as SA
 from LSDMapFigure import PlottingHelpers as Helper
@@ -140,7 +141,10 @@ def main(argv):
     moverns = [float(x.split("=")[-1]) for x in columns]
     start_movern = moverns[0]
     n_movern = len(moverns)
-    d_movern = (moverns[-1] - moverns[0])/(n_movern-1)
+    x = Decimal((moverns[-1] - moverns[0])/(n_movern-1))
+    d_movern = round(x,2)
+    print ('Start movern, n_movern, d_movern: ')
+    print (start_movern, n_movern, d_movern)
 
     # some formatting for the figures
     if args.FigFormat == "manuscipt_svg":
