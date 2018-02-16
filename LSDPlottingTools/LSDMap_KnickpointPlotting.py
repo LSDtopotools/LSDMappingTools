@@ -252,7 +252,7 @@ class KP_plotting(object):
                     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 
-    def print_ksn_profile(self,size = "big", format = "png", x_axis = "chi", knickpoint = True, title = "none", label_size = 8, facecolor = 'white',
+    def print_ksn_profile(self,size = "big", format = "png", x_axis = "chi", y_axis = "m_chi" , knickpoint = True, title = "none", label_size = 8, facecolor = 'white',
         size_of_ksn = 4, legend = True, size_of_TVD_ksn = 3):
 
         """
@@ -274,6 +274,19 @@ class KP_plotting(object):
             print("I am creating the river_plot/ directory to save your figures")
             os.makedirs(out_directory)
 
+
+        # Adjust the corrected y_axis
+        if(y_axis == "m_chi"):
+            corrected_y_axis = "TVD_ksn"
+            y_kp = "delta_ksn"
+            ylab = r"$k_{sn}$"
+        elif(y_axis == "b_chi"):
+            corrected_y_axis = "TVD_b_chi"
+            y_kp = "delta_segelev"
+            ylab = r"$b_{\chi}$"
+        else:
+            print("Non valid y-axis it has to be b_chi or m_chi (= ksn)")
+            quit()
         
         # Set up fonts for plots
         rcParams['font.family'] = 'sans-serif'
@@ -304,8 +317,8 @@ class KP_plotting(object):
 
             # plotting the ksn
             ## not processed (in the back and quite transparent)
-            ax1.scatter(this_df_river[x_axis],this_df_river["m_chi"], s = size_of_ksn, c = "r", lw =0, alpha = 0.3, label = "ksn (before TVD)")
-            ax1.scatter(this_df_river[x_axis],this_df_river["TVD_ksn"], s = size_of_TVD_ksn, c ="k", lw =0, alpha = 1, label = "ksn (TVD)")
+            ax1.scatter(this_df_river[x_axis],this_df_river[y_axis], s = size_of_ksn, c = "r", lw =0, alpha = 0.3, label = "ksn (before TVD)")
+            ax1.scatter(this_df_river[x_axis],this_df_river[corrected_y_axis], s = size_of_TVD_ksn, c ="k", lw =0, alpha = 1, label = "ksn (TVD)")
             ## Getting the extents of this first plot to apply it to the knickpoint one
             this_xlim = ax1.get_xlim()
 
@@ -315,15 +328,15 @@ class KP_plotting(object):
             elif(x_axis == "flow_distance"):
                 xlab = "Distance from the outlet (m)"
             ax1.set_xlabel(xlab)
-            ax1.set_ylabel(r"$k_{sn}$")
+            ax1.set_ylabel(ylab)
 
 
 
             if(knickpoint):
-                this_df_kp_pos = this_df_kp[this_df_kp["delta_ksn"]>0]
-                this_df_kp_neg = this_df_kp[this_df_kp["delta_ksn"]<0]
-                ax2.scatter(this_df_kp_pos[x_axis], this_df_kp_pos["delta_ksn"], marker = "s", s = 5, c = "#E79A00")
-                ax2.scatter(this_df_kp_neg[x_axis], this_df_kp_neg["delta_ksn"], marker = "s", s = 5, c = "#2939FF")
+                this_df_kp_pos = this_df_kp[this_df_kp["delta_segelev"]>0]
+                this_df_kp_neg = this_df_kp[this_df_kp["delta_segelev"]<0]
+                ax2.scatter(this_df_kp_pos[x_axis], this_df_kp_pos["delta_segelev"], marker = "s", s = 5, c = "#E79A00")
+                ax2.scatter(this_df_kp_neg[x_axis], this_df_kp_neg["delta_segelev"], marker = "s", s = 5, c = "#2939FF")
 
             # Adapting hte extents 
             ax2.set_xlim(this_xlim)
@@ -350,7 +363,7 @@ class KP_plotting(object):
                 ax2.yaxis.set_visible(False)
 
             # Saving the figure
-            plt.savefig(out_directory + self.fprefix+"_ksn_source%s_%s.%s"%(sources,x_axis,format), dpi = 500)
+            plt.savefig(out_directory + self.fprefix+"_ksn_source_%s_%s.%s"%(sources,y_axis,format), dpi = 500)
             plt.clf()
             # switching to the next figure
 

@@ -173,9 +173,11 @@ def main(argv):
     if(args.ksn_per_source):
         print("Printing a set of ksn values with the knickpoints and their magnitude in a Chi distance")
         KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
+        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi",y_axis = "b_chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
 
-        print("Printing a set of ksn values with the knickpoints and their magnitude in a Flow distance")
-        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
+
+        # print("Printing a set of ksn values with the knickpoints and their magnitude in a Flow distance")
+        # KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
 
     if(args.river_profile):
         print("Printing river profiles in chi spaces")
