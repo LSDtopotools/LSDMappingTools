@@ -76,6 +76,7 @@ def main(argv):
 
     parser.add_argument("-ksnPs", "--ksn_per_source", type=bool, default = False, help="Print one figure per source key selected, with ksn -> f(chi & flow_distance) in the folder .../river_plots/. it displays the ksn out of Mudd et al., 2014 method, and the TVD one out of the *insert algorithm name*")
     parser.add_argument("-rivplot", "--river_profile", type=bool, default = False, help="Print one figure per source key selected, with elevation -> f(chi & flow_distance) in the folder .../river_plots/. it displays river profiles in a chi and distance spaces")
+    parser.add_argument("-basplot", "--basin_plot", type=bool, default = False, help="Print one figure per basins key selected, with elevation -> f(chi & flow_distance) in the folder .../river_plots/. it displays river profiles in a chi and distance spaces")
     parser.add_argument("-rasplot", "--raster_plots", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
     parser.add_argument("-rasplot_ld", "--raster_plots_large_dataset", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
     parser.add_argument("-statplot", "--statistical_plots", type = bool, default = False, help="Print a bunch of statistics about the knickpoints in the folder .../raster_plots/")
@@ -173,7 +174,7 @@ def main(argv):
     if(args.ksn_per_source):
         print("Printing a set of ksn values with the knickpoints and their magnitude in a Chi distance")
         KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
-        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi",y_axis = "b_chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
+        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi",y_axis = "segmented_elevation", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
 
 
         # print("Printing a set of ksn values with the knickpoints and their magnitude in a Flow distance")
@@ -185,12 +186,15 @@ def main(argv):
         print("Printing river profiles in flow distance")
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
         print("Printing river profiles for the entire basins")
+
+    if (args.basin_plot):
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
 
 
 
     if(args.raster_plots):
+        KI.print_map_topo(size = size, format = args.FigFormat,label_size = 8, return_fig = False, extent_cmap = [], kalib = False)
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
