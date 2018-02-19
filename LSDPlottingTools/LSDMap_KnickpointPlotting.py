@@ -73,6 +73,9 @@ class KP_plotting(object):
             self.df_kp_raw = Helper.ReadKnickpointCSV(self.fpath, self.fprefix, ftype = "raw") # Contains the raw knickpint info (before TVD or else) -> Debugging purposes
             self.df_kp = Helper.ReadKnickpointCSV(self.fpath, self.fprefix) # Contains the knickpoint location and informations
             self.df_SK = Helper.readSKKPstats(self.fpath, self.fprefix) # Contains few metrics per river keys
+            self.df_kp_ksn = self.df_kp.copy()
+            self.df_kp_stepped = self.df_kp.copy()
+
         except IOError:
             print("I didnae find your knickpoint related files make sure that:")
             print("- You ran the knickpoint analysis")
@@ -467,7 +470,7 @@ class KP_plotting(object):
                 colaray = kal["type"].values
                 colaray[colaray == "bases"] = "#A002D3"
                 colaray[colaray == "lips"] = "#57B300"
-                ax1.scatter(kal[x_axis],kal["elevation"]-20, marker = "x", s = 10, lw = 0.8, zorder = 2, c = colaray)    
+                ax1.scatter(kal[x_axis],kal["elevation"], marker = "x", s = 7, lw = 0.4, zorder = 2, c = colaray)    
 
 
             if(x_axis == "chi"):
