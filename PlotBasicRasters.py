@@ -278,7 +278,12 @@ def main(argv):
     parser.add_argument("-PB", "--plot_basins", type=bool, default=False, help="If this is true, I'll make a simple basin plot.")
     parser.add_argument("-PBC", "--plot_basins_channels", type=bool, default=False, help="If this is true, I'll make a simple basin plot with channels.")
     parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that pust a colour scale on a drape of your choice.")
-    parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.")  
+    parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.") 
+    
+    #===============================================================================    
+    # What sort of analyses you want--these are rather simple versions   
+    parser.add_argument("-PS","--plot_swath", type=bool, default=False, help="If this is true, I'll plot a swath.")
+    parser.add_argument("-swath_prefix","--swath_prefix", type=str, default="swath", help="This is the prefix to the swath filename.")
     
     #===============================================================================    
     # What sort of analyses you want--these lump different analyses
@@ -302,7 +307,7 @@ def main(argv):
 
     
 
-    
+   
     args = parser.parse_args()
 
     if not args.fname_prefix:
@@ -327,6 +332,27 @@ def main(argv):
     else:
         this_dir = os.getcwd()
 
+    # some formatting for the figures
+    if args.FigFormat == "manuscipt_svg":
+        print("You chose the manuscript svg option. This only works with the -ALL flag. For other flags it will default to simple svg")
+        simple_format = "svg"
+    elif args.FigFormat == "manuscript_png":
+        print("You chose the manuscript png option. This only works with the -ALL flag. For other flags it will default to simple png")
+        simple_format = "png"
+    else:
+        simple_format = args.FigFormat
+         
+        
+        
+    
+    # This is for swath plotting
+    if args.plot_swath:
+        print("Let me print a swath profile.")
+        swath_csv = this_dir+args.swath_prefix+".csv"
+        fig_fname = this_dir+"test_swath.png"
+        print("The swath file is: "+swath_csv)
+        LSDP.PlotSwath(swath_csv, FigFileName = fig_fname,size_format = args.size_format, fig_format = simple_format)
+        
     # See if you should create a shapefile of the raster footprint             
     if args.create_raster_footprint_shapefile:
         print("Let me create a shapefile of the raster footprint")
@@ -426,18 +452,6 @@ def main(argv):
     final_chi_offsets = pad_offset_lists(basin_stack_list,chi_offset_list)
     final_fd_offsets = pad_offset_lists(basin_stack_list,fd_offset_list)
 
-
-
-    # some formatting for the figures
-    if args.FigFormat == "manuscipt_svg":
-        print("You chose the manuscript svg option. This only works with the -ALL flag. For other flags it will default to simple svg")
-        simple_format = "svg"
-    elif args.FigFormat == "manuscript_png":
-        print("You chose the manuscript png option. This only works with the -ALL flag. For other flags it will default to simple png")
-        simple_format = "png"
-    else:
-        simple_format = args.FigFormat
- 
 
     # This just plots the basins. Useful for checking on basin selection
     if args.plot_basins:

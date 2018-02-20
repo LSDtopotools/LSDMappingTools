@@ -1738,7 +1738,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         # Now add the offset to the data
         maskX = np.add(maskX,this_X_offset)
 
-        # This adds a rectangualt coloured patch behind the stack. Helps to highlight which profiles are which. 
+        # This adds a rectangular coloured patch behind the stack. Helps to highlight which profiles are which. 
+        # Usually turned off since it looks a bit weird when they overlap
         if stack_patches:
             print("Min: "+str(this_min_x)+" Max: "+str(this_max_x))
             ax.add_patch(patches.Rectangle((this_min_x,z_axis_min), width_box, z_axis_max-z_axis_min,alpha = 0.01,facecolor='r',zorder=-10))
