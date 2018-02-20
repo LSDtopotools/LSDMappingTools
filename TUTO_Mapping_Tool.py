@@ -4,8 +4,9 @@ Created.
 
 @author: Boris
 """
-import matplotlib
-matplotlib.use('Agg')
+# WARNING, if you have $DISLPLAY$ error messages, or if the script run but does not plot anything, uncomment the following lines:
+# import matplotlib
+# matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import time as clock
 from matplotlib import rcParams
