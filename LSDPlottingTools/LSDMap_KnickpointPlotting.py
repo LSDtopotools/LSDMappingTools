@@ -298,7 +298,7 @@ class KP_plotting(object):
             y_kp = "delta_segelev"
             ylab = r"$b_{\chi}$"
         elif(y_axis == "segmented_elevation"):
-            y_axis = "TVD_elevation"
+            y_axis = "segdrop"
             corrected_y_axis = "TVD_elevation"
             y_kp = "delta_segelev"
             ylab = r"$elevation$"
