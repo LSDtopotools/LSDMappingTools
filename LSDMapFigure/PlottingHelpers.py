@@ -226,7 +226,7 @@ def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", title = 
 
 
     print("The figure size is: ")
-    print fig_size_inches
+    print(fig_size_inches)
     print("Map axes are:")
     print(map_axes)
     print("cbar_axes are:")
@@ -538,7 +538,7 @@ def AppendBasinStatsCSVs(DataDirectory):
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
-        print outlet_jn, basin_key
+        print ((outlet_jn, basin_key))
         this_fname = "basin"+str(outlet_jn)+basin_stats_suffix
         df = pd.read_csv(DataDirectory+this_fname)
         df = df[df['basin_key'] == 0]
