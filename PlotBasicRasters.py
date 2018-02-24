@@ -34,6 +34,18 @@ def print_welcome():
     print("   python PlotChiAnalysis.py -h\n")
     print("=======================================================================\n\n ")
 
+    
+#=============================================================================
+# Some functions for managing directories
+#=============================================================================     
+def MakeRasterDirectory(this_dir):
+    # check if a raster directory exists. If not then make it.
+    raster_directory = this_dir+'raster_plots/'
+    print("I am printing to a raster directory:")
+    print(raster_directory)
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)    
+    
 #=============================================================================
 # This parses a comma separated string
 #=============================================================================    
@@ -277,7 +289,7 @@ def main(argv):
     # What sort of analyses you want--these are rather simple versions
     parser.add_argument("-PB", "--plot_basins", type=bool, default=False, help="If this is true, I'll make a simple basin plot.")
     parser.add_argument("-PBC", "--plot_basins_channels", type=bool, default=False, help="If this is true, I'll make a simple basin plot with channels.")
-    parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that pust a colour scale on a drape of your choice.")
+    parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that puts a colour scale on a drape of your choice.")
     parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.") 
     
     #===============================================================================    
@@ -452,6 +464,15 @@ def main(argv):
     final_chi_offsets = pad_offset_lists(basin_stack_list,chi_offset_list)
     final_fd_offsets = pad_offset_lists(basin_stack_list,fd_offset_list)
 
+    
+    # This is the most basic draped plot. 
+    if args.plot_drape:
+        print("Let me print a drape plot for you.")
+        MakeRasterDirectory(this_dir)
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix
+        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_drape")
+        
+        
 
     # This just plots the basins. Useful for checking on basin selection
     if args.plot_basins:
