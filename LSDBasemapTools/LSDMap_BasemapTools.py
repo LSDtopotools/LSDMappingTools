@@ -65,7 +65,7 @@ def GenerateExtentShapefile(DataDirectory, RasterFile):
     LSDMGDAL.CreateShapefileOfRasterFootprint(DataDirectory, RasterFile)
     
     
-def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, bm_width = 2000000, bm_height = 2000000, projection = 'lcc',resolution = 'l', lat_0 = 0, lon_0 = 0, lat_1 = 45,lat_2 = 55, satellite_height = 10000000, FigFormat = "png", fig_dpi = 500):
+def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, bm_width = 2000000, bm_height = 2000000, projection = 'lcc',resolution = 'l', lat_0 = 0, lon_0 = 0, lat_1 = 45,lat_2 = 55, satellite_height = 10000000, FigFormat = "png", fig_dpi = 500, out_fname_prefix = ""):
     """
     This makes the basemap image. 
     
@@ -85,6 +85,7 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
         satellite_height (flt): The satellite height in metres for geostationary projections
         FigFormat (str): Figure format, can be `png`, `svg`, `pdf`, etc.
         fig_dpi (int): Dots per inch of your figure 
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
     
     
     Author: SMM
@@ -105,10 +106,13 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     Raster_prefix = RasterSplit[0]
     Shape_name = DataDirectory+Raster_prefix+"_footprint"
     SName = "Shape"
-    
-    FigFileName = DataDirectory+Raster_prefix+"_basemap."+FigFormat
-    
-    
+
+    # Get the name of the image
+    if len(out_fname_prefix) == 0:
+        FigFileName = DataDirectory+Base_file+"_basemap."+fig_format
+    else:
+        FigFileName = DataDirectory+out_fname_prefix+"_basemap."+fig_format    
+
     
     # Now for the basemap 
     # setup Lambert Conformal basemap.
@@ -152,7 +156,7 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     plt.savefig(FigFileName,format=FigFormat,dpi=fig_dpi)    
     
     
-def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500, regional_extent_multiplier = 5, label_spacing_multiplier = 0.5):
+def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500, regional_extent_multiplier = 5, label_spacing_multiplier = 0.5, out_fname_prefix = ""):
     """
     This makes the basemap image. Uses data from the raster to size the figure and locate the centrepoint 
     
@@ -165,6 +169,7 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
         fig_dpi (int): Dots per inch of your figure 
         regional_extent_multiplier (float): How much bigger you want the extent vs the size of the raster 
         label_spacing_multiplier (float): If the meridians and parallels are too close, increase this number. Default of 0.5
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
     
     
     Author: SMM
@@ -186,7 +191,11 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     Shape_name = DataDirectory+Raster_prefix+"_footprint"
     SName = "Shape"
     
-    FigFileName = DataDirectory+Raster_prefix+"_basemap."+FigFormat
+    # Get the name of the image
+    if len(out_fname_prefix) == 0:
+        FigFileName = DataDirectory+Base_file+"_basemap."+FigFormat
+    else:
+        FigFileName = DataDirectory+out_fname_prefix+"_basemap."+FigFormat   
     
     # Now we get the extents from the raster
     centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDMGDAL.GetCentreAndExtentOfRaster(DataDirectory, RasterFile)

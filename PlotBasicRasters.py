@@ -44,7 +44,18 @@ def MakeRasterDirectory(this_dir):
     print("I am printing to a raster directory:")
     print(raster_directory)
     if not os.path.isdir(raster_directory):
-        os.makedirs(raster_directory)    
+        os.makedirs(raster_directory)  
+        
+#=============================================================================
+# Some functions for managing directories
+#=============================================================================     
+def MakeBasemapDirectory(this_dir):
+    # check if a raster directory exists. If not then make it.
+    basemap_directory = this_dir+'basemap_plots/'
+    print("I am printing to a raster directory:")
+    print(basemap_directory)
+    if not os.path.isdir(basemap_directory):
+        os.makedirs(basemap_directory)    
     
 #=============================================================================
 # This parses a comma separated string
@@ -275,7 +286,7 @@ def main(argv):
     parser.add_argument("-drape_fname", "--drape_fname_prefix", type=str, help="The prefix of a raster that is used in a drape plot WITHOUT EXTENSION!!! If not supplied this will just use the hillshade.")
     parser.add_argument("-drape_cbar_loc", "--drape_cbar_loc", type=str, default = "right", help="This is the location of the colourbar for the drape plot. Options are None, left, right, top and bottom.")
     parser.add_argument("-drape_cbar_label", "--drape_cbar_label", type=str, default = "colourbar_label", help="This is the label on the colourbar.")
-    
+    parser.add_argument("-drape_cmap", "--drape_cmap", type=str, default = "jet", help="This is colourmap. See matplotlib docs for options.")    
     #===============================================================================
     # Some formatting flags
     
@@ -321,9 +332,7 @@ def main(argv):
     parser.add_argument("-parallel", "--parallel", type=bool, default=False, help="If this is true I'll assume you ran the code in parallel and append all your CSVs together before plotting.")
     parser.add_argument("-dpi", "--dpi", type=int, default=250, help="The dots per inch of your figure.")
     parser.add_argument("-bmpsm", "--basemap_parallel_spacing_multiplier", type=float, default=0.5, help="Basemap parallel spacing multiplier. Increase if parallels are too close on your basemap.")
-
-    
-
+    parser.add_argument("-bmrem", "--basemap_regional_extent_multiplier", type=float, default=3, help="Basemap regional extent multiplier. The multiple of the size of the raster to make the basemap extent")
    
     args = parser.parse_args()
 
@@ -384,18 +393,17 @@ def main(argv):
         
     # See if you should create a basemap
     if args.create_basemap_figure:
-        import LSDBasemapTools as LSDM
+        import LSDBasemapTools as LSDBM
         
+        MakeBasemapDirectory(this_dir)
         RasterFile = args.fname_prefix+".bil"
+        basemap_out_prefix = "/basemap_plots/"+out_fname_prefix
         
-        #lat_0 = 25.7
-        #lon_0 = 91.5
-        #LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = lat_0 , lon_0 = lon_0)
+        # This gets the positioning
         centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDP.GetCentreAndExtentOfRaster(this_dir, RasterFile)
         
         print("The basemap centrepoint is: "+str(centre_lat)+"," +str(centre_long))
-        #LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = centre_lat , lon_0 = centre_long, resolution = 'l')
-        LSDM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = args.basemap_regional_extent_multiplier, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier)
+        LSDBM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = args.basemap_regional_extent_multiplier, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier, out_fname_prefix = basemap_out_prefix, fig_dpi = args.dpi)
         
           
     # Parse any lists, dicts, or list of lists from the arguments   
@@ -475,7 +483,7 @@ def main(argv):
         print("Let me print a drape plot for you.")
         MakeRasterDirectory(this_dir)
         raster_out_prefix = "/raster_plots/"+out_fname_prefix
-        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_drape", cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label)
+        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label)
         
         
 
