@@ -124,7 +124,7 @@ def main(argv):
     try:
         covfefe = [float(item) for item in args.cut_off_val.replace(" ", "").split(',')]
         print("ok.")
-        covfefe_t = [-covfefe[0],covfefe[1],-10000,covfefe[3]]
+        covfefe_t = [-covfefe[0],covfefe[1],-10000,covfefe[2]]
     except ValueError:
         print("Something went wrong - I am defaulting the values")
         covfefe = [0,0,-10000,0]
