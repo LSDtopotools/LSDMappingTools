@@ -157,6 +157,7 @@ def main(argv):
         args.river_profile = True
         args.raster_plots = True
         args.raster_plots_large_dataset = True
+        args.basin_plot = True
 
 
     # Plotting hte knickpoints
