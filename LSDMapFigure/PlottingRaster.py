@@ -1129,12 +1129,14 @@ class MapFigure(object):
             [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
         except:
             # check to see if easting and northing data already exists
-            easting = thisPointData.QueryData("easting")
-            northing = thisPointData.QueryData("northing")
+            easting = thisPointData.QueryData("easting").as_matrix().astype(float)
+            northing = thisPointData.QueryData("northing").as_matrix().astype(float)
         
         print("I got the easting and northing")
 
         print("EASTING AND NORTHING CHECK")
+        print(easting)
+        print(northing)
         print(easting[0],northing[0])
 
         # check if the column for plotting exists

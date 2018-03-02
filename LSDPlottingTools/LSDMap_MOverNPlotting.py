@@ -2587,6 +2587,8 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     else:
         BasinInfoDF = Helper.AppendBasinInfoCSVs(DataDirectory)
 
+    print BasinInfoDF
+    
     basin_keys = list(BasinInfoDF['basin_key'])
     basin_keys = [int(x) for x in basin_keys]
 

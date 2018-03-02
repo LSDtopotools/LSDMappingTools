@@ -136,15 +136,15 @@ def main(argv):
         #args.fname_prefix = split_fname # commented out for now since base fname given, basins will always have basinX fname_prefix
 
 
-    # we need the column headers
-    columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
-    moverns = [float(x.split("=")[-1]) for x in columns]
-    start_movern = moverns[0]
-    n_movern = len(moverns)
-    x = Decimal((moverns[-1] - moverns[0])/(n_movern-1))
-    d_movern = round(x,2)
-    print ('Start movern, n_movern, d_movern: ')
-    print (start_movern, n_movern, d_movern)
+#    # we need the column headers
+#    columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
+#    moverns = [float(x.split("=")[-1]) for x in columns]
+#    start_movern = moverns[0]
+#    n_movern = len(moverns)
+#    x = Decimal((moverns[-1] - moverns[0])/(n_movern-1))
+#    d_movern = round(x,2)
+#    print ('Start movern, n_movern, d_movern: ')
+#    print (start_movern, n_movern, d_movern)
 
     # some formatting for the figures
     if args.FigFormat == "manuscipt_svg":
@@ -160,9 +160,9 @@ def main(argv):
     # make the plots depending on your choices
     if args.plot_rasters:
         MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, simple_format, parallel=args.parallel)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, size_format=args.size_format, FigFormat=simple_format, parallel=args.parallel)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format, FigFormat=simple_format,parallel=args.parallel)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="SA", size_format=args.size_format, FigFormat=simple_format,parallel=args.parallel)
+#        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, size_format=args.size_format, FigFormat=simple_format, parallel=args.parallel)
+#        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format, FigFormat=simple_format,parallel=args.parallel)
+#        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="SA", size_format=args.size_format, FigFormat=simple_format,parallel=args.parallel)
     if args.plot_basic_chi:
         MN.MakePlotsWithMLEStats(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern,parallel=args.parallel)
     if args.plot_chi_profiles:
