@@ -39,8 +39,7 @@ import LSDMapFigure.PlottingHelpers as PlotHelp
 
 def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):
     """
-    This function makes a shaded relief plot of the DEM with the basins coloured
-    by the basin ID.
+    This function makes a shaded relief plot of the DEM.
 
     Args:
         DataDirectory (str): the data directory with the rasters
@@ -90,8 +89,7 @@ def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", s
     
 def SimpleDrape(DataDirectory,Base_file, Drape_prefix, cmap = "jet", cbar_loc = "right", cbar_label = "drape colourbar", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):
     """
-    This function makes a shaded relief plot of the DEM with the basins coloured
-    by the basin ID.
+    This function makes a simple drape plot. You can choose the colourbar in this one. Similar to the PlotHillshade routine but a bit more flexible. 
 
     Args:
         DataDirectory (str): the data directory with the rasters
@@ -122,20 +120,21 @@ def SimpleDrape(DataDirectory,Base_file, Drape_prefix, cmap = "jet", cbar_loc = 
     # Get the filenames you want
     BackgroundRasterName = Base_file+"_hs.bil"
     ElevationName = Base_file+".bil"
+    DrapeName = Drape_prefix+".bil"
 
     # clear the plot
     plt.clf()
 
     # set up the base image and the map
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
-    MF.add_drape_image(ElevationName,DataDirectory,colourmap = "grey", alpha = 0.6, colorbarlabel = None)
-    MF.add_drape_image(ElevationName,Drape_prefix,colourmap = "grey", alpha = 0.6, colorbarlabel = cbar_label)    
+    #MF.add_drape_image(ElevationName,DataDirectory,colourmap = "gray", alpha = 0.6, colorbarlabel = None)
+    MF.add_drape_image(DrapeName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = cbar_label)    
 
     # Save the image
     if len(out_fname_prefix) == 0:
-        ImageName = DataDirectory+Base_file+"_hillshade."+fig_format
+        ImageName = DataDirectory+Base_file+"_drape."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_hillshade."+fig_format
+        ImageName = DataDirectory+out_fname_prefix+"_drape."+fig_format
     
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)    
     

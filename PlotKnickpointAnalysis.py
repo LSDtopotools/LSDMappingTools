@@ -124,9 +124,11 @@ def main(argv):
     try:
         covfefe = [float(item) for item in args.cut_off_val.replace(" ", "").split(',')]
         print("ok.")
+        covfefe_t = [-covfefe[0],covfefe[1],-10000,covfefe[2]]
+        covfefe = covfefe_t
     except ValueError:
         print("Something went wrong - I am defaulting the values")
-        covfefe = [0,0,0,0]
+        covfefe = [0,0,-10000,0]
     print("cut off values:")
     print(covfefe)
     # Processing the size choice
@@ -155,6 +157,7 @@ def main(argv):
         args.river_profile = True
         args.raster_plots = True
         args.raster_plots_large_dataset = True
+        args.basin_plot = True
 
 
     # Plotting hte knickpoints
@@ -174,7 +177,7 @@ def main(argv):
     if(args.ksn_per_source):
         print("Printing a set of ksn values with the knickpoints and their magnitude in a Chi distance")
         KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
-        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi",y_axis = "segmented_elevation", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
+        # KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi",y_axis = "segmented_elevation", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
 
 
         # print("Printing a set of ksn values with the knickpoints and their magnitude in a Flow distance")

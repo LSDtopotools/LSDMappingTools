@@ -34,6 +34,29 @@ def print_welcome():
     print("   python PlotChiAnalysis.py -h\n")
     print("=======================================================================\n\n ")
 
+    
+#=============================================================================
+# Some functions for managing directories
+#=============================================================================     
+def MakeRasterDirectory(this_dir):
+    # check if a raster directory exists. If not then make it.
+    raster_directory = this_dir+'raster_plots/'
+    print("I am printing to a raster directory:")
+    print(raster_directory)
+    if not os.path.isdir(raster_directory):
+        os.makedirs(raster_directory)  
+        
+#=============================================================================
+# Some functions for managing directories
+#=============================================================================     
+def MakeBasemapDirectory(this_dir):
+    # check if a raster directory exists. If not then make it.
+    basemap_directory = this_dir+'basemap_plots/'
+    print("I am printing to a raster directory:")
+    print(basemap_directory)
+    if not os.path.isdir(basemap_directory):
+        os.makedirs(basemap_directory)    
+    
 #=============================================================================
 # This parses a comma separated string
 #=============================================================================    
@@ -255,10 +278,15 @@ def main(argv):
     parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the m/n analysis. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error (unless you're running the parallel plotting).")
     parser.add_argument("-out_fname", "--out_fname_prefix", type=str, help="The prefix of the figures WITHOUT EXTENSION!!! If not supplied the fname prefix will be used.")
+    
+    
+    
     #===============================================================================
     # These are some arguments for potting rasters other than the defaults
     parser.add_argument("-drape_fname", "--drape_fname_prefix", type=str, help="The prefix of a raster that is used in a drape plot WITHOUT EXTENSION!!! If not supplied this will just use the hillshade.")
-    
+    parser.add_argument("-drape_cbar_loc", "--drape_cbar_loc", type=str, default = "right", help="This is the location of the colourbar for the drape plot. Options are None, left, right, top and bottom.")
+    parser.add_argument("-drape_cbar_label", "--drape_cbar_label", type=str, default = "colourbar_label", help="This is the label on the colourbar.")
+    parser.add_argument("-drape_cmap", "--drape_cmap", type=str, default = "jet", help="This is colourmap. See matplotlib docs for options.")    
     #===============================================================================
     # Some formatting flags
     
@@ -277,8 +305,13 @@ def main(argv):
     # What sort of analyses you want--these are rather simple versions
     parser.add_argument("-PB", "--plot_basins", type=bool, default=False, help="If this is true, I'll make a simple basin plot.")
     parser.add_argument("-PBC", "--plot_basins_channels", type=bool, default=False, help="If this is true, I'll make a simple basin plot with channels.")
-    parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that pust a colour scale on a drape of your choice.")
-    parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.")  
+    parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that puts a colour scale on a drape of your choice.")
+    parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.") 
+    
+    #===============================================================================    
+    # What sort of analyses you want--these are rather simple versions   
+    parser.add_argument("-PS","--plot_swath", type=bool, default=False, help="If this is true, I'll plot a swath.")
+    parser.add_argument("-swath_prefix","--swath_prefix", type=str, default="swath", help="This is the prefix to the swath filename.")
     
     #===============================================================================    
     # What sort of analyses you want--these lump different analyses
@@ -299,10 +332,8 @@ def main(argv):
     parser.add_argument("-parallel", "--parallel", type=bool, default=False, help="If this is true I'll assume you ran the code in parallel and append all your CSVs together before plotting.")
     parser.add_argument("-dpi", "--dpi", type=int, default=250, help="The dots per inch of your figure.")
     parser.add_argument("-bmpsm", "--basemap_parallel_spacing_multiplier", type=float, default=0.5, help="Basemap parallel spacing multiplier. Increase if parallels are too close on your basemap.")
-
-    
-
-    
+    parser.add_argument("-bmrem", "--basemap_regional_extent_multiplier", type=float, default=3, help="Basemap regional extent multiplier. The multiple of the size of the raster to make the basemap extent")
+   
     args = parser.parse_args()
 
     if not args.fname_prefix:
@@ -327,6 +358,27 @@ def main(argv):
     else:
         this_dir = os.getcwd()
 
+    # some formatting for the figures
+    if args.FigFormat == "manuscipt_svg":
+        print("You chose the manuscript svg option. This only works with the -ALL flag. For other flags it will default to simple svg")
+        simple_format = "svg"
+    elif args.FigFormat == "manuscript_png":
+        print("You chose the manuscript png option. This only works with the -ALL flag. For other flags it will default to simple png")
+        simple_format = "png"
+    else:
+        simple_format = args.FigFormat
+         
+        
+        
+    
+    # This is for swath plotting
+    if args.plot_swath:
+        print("Let me print a swath profile.")
+        swath_csv = this_dir+args.swath_prefix+".csv"
+        fig_fname = this_dir+"test_swath.png"
+        print("The swath file is: "+swath_csv)
+        LSDP.PlotSwath(swath_csv, FigFileName = fig_fname,size_format = args.size_format, fig_format = simple_format)
+        
     # See if you should create a shapefile of the raster footprint             
     if args.create_raster_footprint_shapefile:
         print("Let me create a shapefile of the raster footprint")
@@ -341,18 +393,17 @@ def main(argv):
         
     # See if you should create a basemap
     if args.create_basemap_figure:
-        import LSDBasemapTools as LSDM
+        import LSDBasemapTools as LSDBM
         
+        MakeBasemapDirectory(this_dir)
         RasterFile = args.fname_prefix+".bil"
+        basemap_out_prefix = "/basemap_plots/"+out_fname_prefix
         
-        #lat_0 = 25.7
-        #lon_0 = 91.5
-        #LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = lat_0 , lon_0 = lon_0)
+        # This gets the positioning
         centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDP.GetCentreAndExtentOfRaster(this_dir, RasterFile)
         
         print("The basemap centrepoint is: "+str(centre_lat)+"," +str(centre_long))
-        #LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = centre_lat , lon_0 = centre_long, resolution = 'l')
-        LSDM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = args.basemap_regional_extent_multiplier, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier)
+        LSDBM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = args.basemap_regional_extent_multiplier, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier, out_fname_prefix = basemap_out_prefix, fig_dpi = args.dpi)
         
           
     # Parse any lists, dicts, or list of lists from the arguments   
@@ -426,18 +477,15 @@ def main(argv):
     final_chi_offsets = pad_offset_lists(basin_stack_list,chi_offset_list)
     final_fd_offsets = pad_offset_lists(basin_stack_list,fd_offset_list)
 
-
-
-    # some formatting for the figures
-    if args.FigFormat == "manuscipt_svg":
-        print("You chose the manuscript svg option. This only works with the -ALL flag. For other flags it will default to simple svg")
-        simple_format = "svg"
-    elif args.FigFormat == "manuscript_png":
-        print("You chose the manuscript png option. This only works with the -ALL flag. For other flags it will default to simple png")
-        simple_format = "png"
-    else:
-        simple_format = args.FigFormat
- 
+    
+    # This is the most basic draped plot. 
+    if args.plot_drape:
+        print("Let me print a drape plot for you.")
+        MakeRasterDirectory(this_dir)
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix
+        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label)
+        
+        
 
     # This just plots the basins. Useful for checking on basin selection
     if args.plot_basins:
