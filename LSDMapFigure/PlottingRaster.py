@@ -1123,8 +1123,15 @@ class MapFigure(object):
         EPSG_string = self._RasterList[0]._EPSGString
         print("I am going to plot some points for you. The EPSG string is:"+EPSG_string)
 
-        # convert to easting and northing
-        [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+        
+        # convert to easting and northing or pull easting northing from file
+        try:
+            [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
+        except:
+            # check to see if easting and northing data already exists
+            easting = thisPointData.QueryData("easting")
+            northing = thisPointData.QueryData("northing")
+        
         print("I got the easting and northing")
 
         print("EASTING AND NORTHING CHECK")
