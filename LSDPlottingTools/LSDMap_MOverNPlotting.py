@@ -2252,7 +2252,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
             points_min_err = median_movern-points_min_err
             errors = np.array(zip(points_min_err, points_max_err)).T
 
-            points_chi_keys = df['basin_key'].as_matrix()-0.1
+            points_chi_keys = df['basin_key'].as_matrix() # -0.1 I removed that to fix the movern plots - Boris
             ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
             ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
 
@@ -2287,7 +2287,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
 
         # change tick spacing
         ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
-        ax.set_xlim(0,)
+        ax.set_xlim(-0.5,df['basin_key'].max()+0.5)
 
         newFilename = summary_directory+fname_prefix+"_movern_"+movern_method+"."+FigFormat
         plt.savefig(newFilename,format=FigFormat,dpi=300)
