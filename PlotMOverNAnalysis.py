@@ -137,14 +137,14 @@ def main(argv):
 
 
 #    # we need the column headers
-#    columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
-#    moverns = [float(x.split("=")[-1]) for x in columns]
-#    start_movern = moverns[0]
-#    n_movern = len(moverns)
-#    x = Decimal((moverns[-1] - moverns[0])/(n_movern-1))
-#    d_movern = round(x,2)
-#    print ('Start movern, n_movern, d_movern: ')
-#    print (start_movern, n_movern, d_movern)
+    columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
+    moverns = [float(x.split("=")[-1]) for x in columns]
+    start_movern = moverns[0]
+    n_movern = len(moverns)
+    x = Decimal((moverns[-1] - moverns[0])/(n_movern-1))
+    d_movern = round(x,2)
+    print ('Start movern, n_movern, d_movern: ')
+    print (start_movern, n_movern, d_movern)
 
     # some formatting for the figures
     if args.FigFormat == "manuscipt_svg":
