@@ -67,6 +67,7 @@ def main(argv):
     parser.add_argument("-in_basin", "--plot_data_within_basin", type=bool, default=False, help="If this is true, I'll make plots of the hillslope data vs distance upstream for each basin")
     parser.add_argument("-means", "--plot_mean_basin_data", type=bool, default=False, help="If this is true I'll make plots of the mean hillslope data vs basin ID")
     parser.add_argument("-traces", "--plot_hillslope_traces",type=bool, default=False, help="if this is true I'll plot a hillshade with hillslope traces overlain")
+    parser.add_argument("-extent", "--custom_plot_extent", type=float, nargs=4, default=None, help="four values required to define the [xmin, xmax, ymin, ymax] extent to plot map data")
     args = parser.parse_args()
 
     if not args.fname_prefix:
@@ -140,6 +141,9 @@ def main(argv):
         # HS.PlotHillslopeDataWithBasinsFromCSV(this_dir, args.fname_prefix)
 
     if args.plot_hillslope_traces:
+      if args.custom_plot_extent:
+        HS.PlotHillslopeTraces(this_dir, args.fname_prefix, PlotDirectory, args.custom_plot_extent)
+      else:
         HS.PlotHillslopeTraces(this_dir, args.fname_prefix, PlotDirectory)
 
 #=============================================================================
