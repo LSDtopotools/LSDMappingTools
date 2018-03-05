@@ -315,7 +315,31 @@ class MapFigure(object):
         # A title if needed
         self.title = plot_title
 
-
+    def SetCustomExtent(self,xmin,xmax,ymin,ymax):
+        """
+        This function sets the plot extent in map coordinates and remakes the axis ticks
+        
+        Args:
+          xmin: the minimum extent in easting
+          xmax: the maximum extent in easting
+          ymin: the minimum extent in northing
+          ymax: the maximum extent in northing
+        
+        Author: MDH   
+        """
+        # Get the tick properties
+        self._xmin = xmin
+        self._ymin = ymin
+        self._xmax = xmax
+        self._ymax = ymax
+        self.make_ticks()
+        
+        # Annoying but the scatter plot resets the extents so you need to reassert them
+        self.ax_list[0].set_xlim(self._xmin,self._xmax)
+        self.ax_list[0].set_ylim(self._ymin,self._ymax)
+        self.ax_list = self.make_base_image(self.ax_list)
+        
+        
     def make_ticks(self):
         """
         This function makes the tick marks and the tick labels.
@@ -326,10 +350,10 @@ class MapFigure(object):
 
         if self._coord_type == "UTM":
             self.tick_xlocs,self.tick_ylocs,self.tick_x_labels,self.tick_y_labels = LSDP.GetTicksForUTMNoInversion(self._BaseRasterFullName,self._xmax,self._xmin,
-                             self._ymax,self._ymin,self._n_target_ticks)
+                             self._ymax,self._ymin,self._n_target_ticks,self.min_tick_spacing)
         elif self._coord_type == "UTM_km":
             self.tick_xlocs,self.tick_ylocs,self.tick_x_labels,self.tick_y_labels = LSDP.GetTicksForUTMNoInversion(self._BaseRasterFullName,self._xmax,self._xmin,
-                             self._ymax,self._ymin,self._n_target_ticks)
+                             self._ymax,self._ymin,self._n_target_ticks,minimum_tick_spacing=1000)
             n_hacked_digits = 3
             self.tick_x_labels = LSDP.TickLabelShortenizer(self.tick_x_labels,n_hacked_digits)
             self.tick_y_labels = LSDP.TickLabelShortenizer(self.tick_y_labels,n_hacked_digits)
@@ -1110,8 +1134,6 @@ class MapFigure(object):
             recast_scale_min_max: recast the min and max of the array before scaling
             scale_in_abs_after_recasting: give the abolute value of scaling after recasting the data
 
-
-
         Author: SMM, BG
         """
 
@@ -1125,6 +1147,8 @@ class MapFigure(object):
 
         
         # convert to easting and northing or pull easting northing from file
+        # I had an old file that didnt report lat/long so pull directly if lat/lon not found
+        # MDH 1/3/18
         try:
             [easting,northing] = thisPointData.GetUTMEastingNorthing(EPSG_string)
         except:
@@ -1133,11 +1157,6 @@ class MapFigure(object):
             northing = thisPointData.QueryData("northing").as_matrix().astype(float)
         
         print("I got the easting and northing")
-
-        print("EASTING AND NORTHING CHECK")
-        print(easting)
-        print(northing)
-        print(easting[0],northing[0])
 
         # check if the column for plotting exists
         # BG - 16/01/2018 - Adding some exception management. Sometimes, a list can be returned by QueryData and crash here
@@ -1281,15 +1300,18 @@ class MapFigure(object):
                 print("Let me add a colourbar for your point data")
                 self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
-    def add_line_data(self, ThisLineFile, Dashed = False, LineWidth = 1, Colour = "k", ZOrder = 1):
+    def add_line_data(self, ThisLineFile, linestyle = '-', edgecolour = "k", linewidth=0.5, zorder = 1, alpha=0):
         """
         This adds line data from a named shapefile to the map.
 
         Args:
             ThisLineFile (object): a shapefile for plotting lines.
-            Dashed: bool describing if lines should be dashed or solid
-            Colour: matplotlib color indicator
-
+            linestyle: matplotlib line style
+            edgecolour (string): colour of the lines around the basins.
+            linewidth(float): width of the line around the basins.
+            zorder (int): priority for plotting
+            alpha (float): transparency (between 0 and 1).
+            
         Author: MDH
         """
 
@@ -1304,16 +1326,12 @@ class MapFigure(object):
         EPSG_string = self._RasterList[0]._EPSGString
         print("I am going to plot some lines for you. The EPSG string is:"+EPSG_string)
 
-        # dashed line?
-        LineStyle="-"
-        if Dashed:
-            LineStyle="--"
         # load the data
         with fiona.open(ThisLineFile) as input:
             for feature in input:
                 geom = shape(feature['geometry'])
                 x, y = geom.xy
-                self.ax_list[0].plot(x,y,LineStyle,color=Colour,lw=LineWidth,zorder=ZOrder)
+                self.ax_list[0].plot(x,y,linestyle,color=edgecolour,lw=linewidth, zorder=zorder, alpha=alpha)
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
@@ -1780,8 +1798,9 @@ class MapFigure(object):
 
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(self._xmin,self._xmax)
-        self.ax_list[0].set_ylim(self._ymax,self._ymin)
-
+        #self.ax_list[0].set_ylim(self._ymax,self._ymin)
+        self.ax_list[0].set_ylim(self._ymin,self._ymax)
+        
         # add the title
         if self.title != "None":
             self.ax_list[0].set_title(self.title)
