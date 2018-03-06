@@ -1036,7 +1036,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
         mchi_std.append(BasinChannelData.m_chi.std())
 
     # set up the figure
-    fig, ax = plt.subplots(nrows = 5, ncols=1, sharex=True, figsize=(6,10))
+    fig, ax = plt.subplots(nrows = 6, ncols=1, sharex=True, figsize=(6,10))
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
@@ -1060,13 +1060,18 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     # read in the csv
     uplift_df = pd.read_csv(DataDirectory+'m_over_n.csv')
 
+    # get the drainage density
+    drainage_density = uplift_df['drainage_density']
+    ax[4].scatter(basin_keys, drainage_density, c='coral', s=5)
+    ax[4].set_ylabel('Drainage density (m/m$^2$)')
+
     # get the data
     uplift_rate = uplift_df['Uplift_rate']
-    ax[4].plot(basin_keys, uplift_rate, c='k', ls='--')
-    ax[4].set_ylabel('Uplift rate (mm/yr)')
+    ax[5].plot(basin_keys, uplift_rate, c='k', ls='--')
+    ax[5].set_ylabel('Uplift rate (mm/yr)')
 
     # set the axes labels
-    ax[4].set_xlabel('Basin ID')
+    ax[5].set_xlabel('Basin ID')
     plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1))
     plt.tight_layout()
 
