@@ -156,7 +156,7 @@ def main(argv):
         args.statistical_plots = True
         args.river_profile = True
         args.raster_plots = True
-        args.raster_plots_large_dataset = True
+        # args.raster_plots_large_dataset = True
         args.basin_plot = True
 
 

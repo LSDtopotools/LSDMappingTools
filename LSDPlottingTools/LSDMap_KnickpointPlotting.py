@@ -571,7 +571,7 @@ class KP_plotting(object):
 
         MF.add_point_data(kp_pos,this_colourmap = "autumn",colour_manual_scale = [extent_cmap[0],extent_cmap[1]], marker ="^", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar=True, colorbarlabel = r'$\Delta k_{sn}$', colourbar_location = "bottom", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
         MF.add_point_data(kp_neg,this_colourmap = "autumn",colour_manual_scale = [extent_cmap[0],extent_cmap[1]], marker ="v", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar="False", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
-        MF.add_point_data(kp_neg,unicolor = "#00FF42",marker ="|", column_for_plotting = "none", alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp*0.5)
+        MF.add_point_data(kp_step,unicolor = "#00FF42",marker ="s", column_for_plotting = "none", alpha=1,zorder=200,manual_size = size_kp*0.2)
 
         if(black_bg):
             suffix = "dark"
