@@ -682,7 +682,7 @@ class KP_plotting(object):
 
         for bing in self.df_kp[binning].unique():
             if(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0]>0):
-                data_to_plot.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing])
+                data_to_plot.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].values)
                 data_name.append(str(bing) + "\nn = "+str(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0]))
                 #n_data.append(self.df_kp["delta_ksn"][self.df_kp[binning] == bing].shape[0])
 
