@@ -199,7 +199,7 @@ def joyplot(data, column=None, by=None, grid=False,
         converted = [[_remove_na(data[col])] for col in data.columns if _is_numeric(data[col])]
         labels = [col for col in data.columns if _is_numeric(data[col])]
         print ("PRINTING THE LABELS")
-        print labels
+        print (labels)
         sublabels = None
     elif isinstance(data, dict):
         if column is not None:
@@ -443,7 +443,7 @@ def _joyplot(data,
                     linecolor = element_color
 
                 print ("LABEL STRINGS ARE")
-                print label_strings
+                print (label_strings)
 
                 if len(label_strings) == 0:
                     plot_density(a, x_range, subgroup,

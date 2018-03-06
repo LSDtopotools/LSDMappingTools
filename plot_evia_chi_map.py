@@ -102,7 +102,7 @@ def main(argv):
     basin_junctions = [int(x) for x in basin_junctions]
 
     # get a discrete colormap
-    cmap = plt.cm.Blues
+    cmap = plt.cm.viridis
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -114,16 +114,30 @@ def main(argv):
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
 
     # create the map figure
-    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='top')
+    MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='none')
 
     # add the basins drape
     BasinsDict = dict(zip(basin_keys,basin_keys))
-    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, label_basins=False,
-                      use_keys_not_junctions = True, show_colourbar = True, 
-                      value_dict = BasinsDict, discrete_cmap=True, n_colours=len(basin_keys),
-                      colorbarlabel = "Basin ID", cbar_type=int, tickspacefactor=2,
-                      colourmap = cmap, edgecolour='none', adjust_text = True, parallel=parallel)
+#    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, label_basins=False,
+#                      use_keys_not_junctions = True, show_colourbar = False, 
+#                      value_dict = BasinsDict, discrete_cmap=True, n_colours=len(basin_keys),
+#                      colorbarlabel = "Basin ID", cbar_type=int, tickspacefactor=2,
+#                      colourmap = cmap, edgecolour='none', adjust_text = True, parallel=parallel)
 
+    # add the channel network
+    if not parallel:
+        ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
+    else:
+        ChannelDF = Helper.AppendChiDataMapCSVs(DataDirectory)
+    
+    # remove chi no data values
+    ChannelDF = ChannelDF[ChannelDF.chi != -9999]
+    
+    ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+    
+	# add chi map
+    MF.add_point_data(ChannelPoints, column_for_plotting = "chi", column_for_scaling = "chi", show_colourbar="True", this_colourmap = cmap, colourbar_location="top")
+	
     # add the faults
     if faults:
         LineFileName = DataDirectory + fname_prefix + "_faults.shp"
@@ -137,16 +151,11 @@ def main(argv):
       
     MF.plot_polygon_outlines(Basins, colour='k', linewidth=0.5, alpha = 1)
 
-    # add the channel network
-    if not parallel:
-        ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
-    else:
-        ChannelDF = Helper.AppendChiDataMapCSVs(DataDirectory)
-    ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-    MF.add_point_data(ChannelPoints,show_colourbar="False", manual_size=0.5, alpha=0.1,zorder=100)
-
+    
+    
+        #MF.add_point_data(ChannelPoints, column_for_plotting = "chi", show_colourbar="True", this_colourmap = "cubehelix", manual_size=0.5, alpha=0.1, zorder=100)
     # Save the figure
-    ImageName = raster_directory+fname_prefix+'_basin_keys.'+FigFormat
+    ImageName = raster_directory+fname_prefix+'_chi_map.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
 
     # Make m/n summary plots

@@ -11,11 +11,13 @@
 #=============================================================================
 # IMPORT MODULES
 #=============================================================================
+import geopandas as gpd
 from geopandas import GeoDataFrame
 import pandas as pd
 import numpy as np
 from shapely.geometry import LineString, shape, Point, MultiPolygon, Polygon
 import numpy.ma as ma
+import os.path, sys
 
 # import the basemap library
 from mpl_toolkits.basemap import Basemap
@@ -34,27 +36,17 @@ import matplotlib.colors as colors
 from descartes import PolygonPatch
 
 # plotting tools for using LSDMapFigure
+import LSDPlottingTools as LSDP
+from LSDMapFigure import PlottingHelpers as Helper
+from LSDMapFigure.PlottingRaster import MapFigure
+from LSDMapFigure.PlottingRaster import BaseRaster
 
 #=============================================================================
 # PRELIMINARY FUNCTIONS
 #=============================================================================
 
-def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
-    """
-    This function creates a default matplotlib figure object
-
-    Args:
-        FigSizeFormat: the figure size format according to journal for which the figure is intended
-            values are geomorphology,ESURF, ESPL, EPSL, JGR, big
-            default is ESURF
-
-        AspectRatio: The shape of the figure determined by the aspect ratio, default is 16./9.
-
-    Returns:
-        matplotlib figure object
-
-    Author: MDH
-    """
+def Get_FigWidth_Inches(FigSizeFormat="default"):
+    
     # set figure sizes (in inches) based on format
     if FigSizeFormat == "geomorphology":
         FigWidth_Inches = 6.25
@@ -72,12 +64,32 @@ def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
     else:
         FigWidth_Inches = 4.92126
 
+    return FigWidth_Inches
+    
+def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
+    """
+    This function creates a default matplotlib figure object
+
+    Args:
+        FigSizeFormat: the figure size format according to journal for which the figure is intended
+            values are geomorphology,ESURF, ESPL, EPSL, JGR, big
+            default is ESURF
+
+        AspectRatio: The shape of the figure determined by the aspect ratio, default is 16./9.
+
+    Returns:
+        matplotlib figure object
+
+    Author: MDH
+    """
+    
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
-    rcParams['font.size'] = 10
-    #rcParams['text.usetex'] = True
+    rcParams['font.size'] = 8
+    rcParams['text.usetex'] = True
 
+    FigWidth_Inches = Get_FigWidth_Inches(FigSizeFormat)
     Fig = plt.figure(figsize=(FigWidth_Inches,FigWidth_Inches/AspectRatio))
 
     return Fig
@@ -114,7 +126,7 @@ def ReadHillslopeData(DataDirectory, FilenamePrefix):
 def ReadChannelData(DataDirectory, FilenamePrefix):
     """
     This function reads in the file with the suffix '_MChiSegmented.csv'
-    to a pandas dataframe
+    or _MChiSegmented.geojson to a pandas dataframe
 
     Args:
         DataDirectory: the data directory
@@ -125,13 +137,21 @@ def ReadChannelData(DataDirectory, FilenamePrefix):
 
     Author: MDH
     """
-    # get the csv filename
-    Suffix = '_MChiSegmented.csv'
+    # get the filename and open either csv or geojson
+    Suffix = '_MChiSegmented'
     Filename = FilenamePrefix+Suffix
-
-    # read in the dataframe using pandas
-    ChannelData = pd.read_csv(DataDirectory+Filename)
-
+    
+    if os.path.isfile(DataDirectory+Filename+".csv"): 
+        # read in the dataframe using pandas
+        ChannelData = pd.read_csv(DataDirectory+Filename+".csv")
+    
+    elif os.path.isfile(DataDirectory+Filename+".geojson"):
+        # read in the dataframe using pandas
+        ChannelData = gpd.read_file(DataDirectory+Filename+".geojson")
+    else:
+        print("No file named "+DataDirectory+Filename+".* found")
+        sys.exit()
+        
     # If there is no chi values due to threshold then chi will be -9999
     # throw out these segments
     Segments2Remove = ChannelData[ChannelData.chi == -9999].segment_number.unique()
@@ -140,7 +160,7 @@ def ReadChannelData(DataDirectory, FilenamePrefix):
     #return the hillslope data
     return ChannelData
 
-def ReadHillslopeTraces(DataDirectory, FilenamePrefix):
+def ReadHillslopeTraces(DataDirectory, FilenamePrefix,ThinningFactor=1,CustomExtent=[-9999]):
     """
     This function reads in the file with the suffix '_hillslope_traces.csv'
     and creates a geopandas GeoDataFrame
@@ -148,6 +168,8 @@ def ReadHillslopeTraces(DataDirectory, FilenamePrefix):
     Args:
         DataDirectory: the data directory
         FilenamePrefix: the file name prefix
+        ThinningFactor: An integer to skip every X traces for speed and clarity
+        CustomExtent: A list containing [xmin, xmax, ymin, ymax] so as only to consider the traces in the plotting area, default is plot all traces
 
     Returns:
         geopandas GeoDataFrame with data from the csv file spatially organised
@@ -162,7 +184,23 @@ def ReadHillslopeTraces(DataDirectory, FilenamePrefix):
 
     # read in the dataframe using pandas and convert to geopandas geodataframe
     df = pd.read_csv(ReadFilename)
-    geometry = [Point(xy) for xy in zip(df.Longitude, df.Latitude)]
+    
+    # thin the data
+    df = df.iloc[::ThinningFactor,:]
+    
+    # clip to custom extent_raster
+    if len(CustomExtent) == 4:
+      df.drop(df[df.Easting < CustomExtent[0]].index, inplace=True)
+      df.drop(df[df.Easting > CustomExtent[1]].index, inplace=True)
+      df.drop(df[df.Northing < CustomExtent[2]].index, inplace=True)
+      df.drop(df[df.Northing > CustomExtent[3]].index, inplace=True)
+    
+    # check for and delete any traces tat are only 1 point long since these wont plot
+    df['is_unique'] = ~df['HilltopID'].duplicated(keep=False)
+    temp = ~df['HilltopID'].duplicated(keep=False)
+    df.drop(df[df.is_unique == True].index, inplace=True)
+    
+    geometry = [Point(xy) for xy in zip(df.Easting, df.Northing)]
     df = df.drop(['Easting','Northing','Longitude', 'Latitude'], axis=1)
     crs = {'init': 'epsg:4326'}
     geo_df = GeoDataFrame(df, crs=crs, geometry=geometry)
@@ -243,19 +281,20 @@ def MapBasinKeysToJunctions(DataDirectory,FilenamePrefix):
     print basin_dict
     return basin_dict
 
-def WriteHillslopeTracesShp(DataDirectory,FilenamePrefix):
+def WriteHillslopeTracesShp(DataDirectory,FilenamePrefix,ThinningFactor=1, CustomExtent=[-9999]):
     """
     This function writes a shapefile of hillslope traces
 
     Args:
         DataDirectory: the data directory
         FilenamePrefix: the file name prefix
-
+        
+        
     Author: MDH
     """
 
     #read the raw data to geodataframe
-    geo_df = ReadHillslopeTraces(DataDirectory,FilenamePrefix)
+    geo_df = ReadHillslopeTraces(DataDirectory,FilenamePrefix,ThinningFactor, CustomExtent)
     Suffix = '_hillslope_traces'
     WriteFilename = DataDirectory+FilenamePrefix+Suffix+'.shp'
 
@@ -1098,3 +1137,58 @@ def PlotHillslopeDataWithBasinsFromCSV(DataDirectory, FilenamePrefix):
     #save output
     plt.savefig(DataDirectory+FilenamePrefix +"_mean_hillslope_data.png", dpi=300)
     plt.clf()
+    
+def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExtent=[-9999],FigSizeFormat="epsl"):
+    """
+    Function to plot a hillshade image with hilltops, hillslope traces and the channel network superimposed.
+    
+    
+    MDH
+    """
+    
+    
+    # Save the figure
+    ImageName = PlotDirectory+"bolinas_traces.png"
+    print(ImageName)
+    FigWidth_Inches = Get_FigWidth_Inches(FigSizeFormat)
+    
+    HillshadeName = FilenamePrefix+"_hs.bil"
+    
+    # create the map figure
+    MF = MapFigure(HillshadeName, DataDirectory, coord_type="UTM_km", colourbar_location='None')
+    
+    #customise the extent of the plot if required
+    if len(CustomExtent) == 4:
+      xmin = CustomExtent[0]
+      xmax = CustomExtent[1]
+      ymin = CustomExtent[2]
+      ymax = CustomExtent[3]
+      MF.SetCustomExtent(xmin,xmax,ymin,ymax)
+    
+    # add hilltops
+    HilltopPointsDF = ReadHillslopeData(DataDirectory, FilenamePrefix)
+    HilltopPoints = LSDP.LSDMap_PointData(HilltopPointsDF, data_type = "pandas", PANDEX = True)
+    MF.add_point_data(HilltopPoints,alpha=1,zorder=100,unicolor=[0.8,0,0],manual_size=1)
+
+    # add channel heads
+    ChannelHeadsDF = pd.read_csv(DataDirectory+FilenamePrefix+"_CH_wiener_nodeindices_for_Arc.csv")
+    ChannelHeadPoints = LSDP.LSDMap_PointData(ChannelHeadsDF, data_type = "pandas", PANDEX = True)
+    MF.add_point_data(ChannelHeadPoints,alpha=0.5,zorder=100,unicolor="blue",manual_size=5)
+   
+    # add channels
+    ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,FilenamePrefix)
+    ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+    MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, max_point_size = 2.5, min_point_size = 0.5, column_for_scaling='drainage_area',alpha=0.5,zorder=90)
+
+    # add hillslope traces
+    ThinningFactor=1
+    HillslopeTracesShp = DataDirectory+FilenamePrefix+"_hillslope_traces.shp"
+    if os.path.exists(HillslopeTracesShp) == False:
+      WriteHillslopeTracesShp(DataDirectory,FilenamePrefix,ThinningFactor,CustomExtent)
+      
+    MF.add_line_data(DataDirectory+FilenamePrefix+"_hillslope_traces.shp",zorder=80,alpha=0.5,linewidth=0.2)
+    
+    #finalise and save figure
+    MF.SetRCParams(label_size=8)
+    MF.save_fig(fig_width_inches = FigWidth_Inches, FigFileName = ImageName, FigFormat="png", Fig_dpi = 300)
+

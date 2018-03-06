@@ -136,14 +136,14 @@ def ReadChannelData(DataDirectory, FilenamePrefix):
 def ReadHillslopeTraces(DataDirectory, FilenamePrefix):
     """
     This function reads in the file with the suffix '_hillslope_traces.csv'
-    and creates a geopandas GeoDataFrame
+    and creates a pandas DataFrame
 
     Args:
         DataDirectory: the data directory
         FilenamePrefix: the file name prefix
 
     Returns:
-        geopandas GeoDataFrame with data from the csv file spatially organised
+        pandas dataframe with data from the csv file spatially organised
 
     Author: MDH
     """
@@ -155,6 +155,24 @@ def ReadHillslopeTraces(DataDirectory, FilenamePrefix):
 
     # read in the dataframe using pandas and convert to geopandas geodataframe
     df = pd.read_csv(ReadFilename)
+    
+    return df
+
+def ReadHillslopeTraces2GDF(DataDirectory, FilenamePrefix):
+    """
+    This function reads in the file with the suffix '_hillslope_traces.csv'
+    and creates a geopandas GeoDataFrame
+
+    Args:
+        DataDirectory: the data directory
+        FilenamePrefix: the file name prefix
+
+    Returns:
+        pandas dataframe with data from the csv file spatially organised
+
+    Author: MDH
+    """
+    df = ReadHillslopeTraces(DataDirectory, FilenamePrefix)
     geometry = [Point(xy) for xy in zip(df.Longitude, df.Latitude)]
     df = df.drop(['Easting','Northing','Longitude', 'Latitude'], axis=1)
     crs = {'init': 'epsg:4326'}

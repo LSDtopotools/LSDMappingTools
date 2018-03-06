@@ -4,18 +4,20 @@ Created.
 
 @author: Boris
 """
-#import matplotlib
-#matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+# WARNING, if you have $DISLPLAY$ error messages, or if the script run but does not plot anything, uncomment the following lines:
+# import matplotlib
+# matplotlib.use('Agg')
+from matplotlib import pyplot as plt
 import time as clock
 from matplotlib import rcParams
 import matplotlib.cm as cm
+import LSDPlottingTools as LSDP
+from LSDPlottingTools import colours as lsdcolours
+from LSDPlottingTools import init_plotting_DV
 from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
 
-from LSDPlottingTools import colours as lsdcolours
-from LSDPlottingTools import init_plotting_DV
-import LSDPlottingTools as LSDP
+
 import pandas as bamboo_bears
 import sys
 

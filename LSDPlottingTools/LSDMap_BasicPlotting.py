@@ -342,7 +342,7 @@ def GetTicksForUTM(FileName,x_max,x_min,y_max,y_min,n_target_tics):
 # x_max, x_min, y_max, y_min are the extent of the plotting area (NOT the DEM)
 # n_target ticks are the number of ticks for plotting
 #------------------------------------------------------------------------------
-def GetTicksForUTMNoInversion(FileName,x_max,x_min,y_max,y_min,n_target_tics):
+def GetTicksForUTMNoInversion(FileName,x_max,x_min,y_max,y_min,n_target_tics,minimum_tick_spacing=0):
     """This fuction is used to set tick locations for UTM maps. It tries to optimise the spacing of these ticks.
 
     Args:
@@ -351,6 +351,7 @@ def GetTicksForUTMNoInversion(FileName,x_max,x_min,y_max,y_min,n_target_tics):
         y_min (float): The minimum value on the y axis (in metres).
         y_max (float): The maximum value on the y axis (in metres).
         n_target_ticks (int): The number of ticks you want on the axis (this is optimised so you may not get exactly this number)
+        minimum_tick_spacing (int): The minimum spacing between ticks to impose (e.g. 1000 to get ticks every km)
 
     Returns:
         new_xlocs (float list): List of locations of the ticks in metres.
@@ -363,7 +364,15 @@ def GetTicksForUTMNoInversion(FileName,x_max,x_min,y_max,y_min,n_target_tics):
 
     CellSize,XMin,XMax,YMin,YMax = LSDMap_IO.GetUTMMaxMin(FileName)
     NDV, xsize, ysize, GeoT, Projection, DataType = LSDMap_IO.GetGeoInfo(FileName)
-
+    
+    # take min and max specified as input arguments (MDH addition, these arguments were not otherwise used).
+    Extents = [x_min,x_max,y_min,y_max]
+    if None not in Extents:
+      XMin = x_min
+      XMax = x_max
+      YMin = y_min
+      YMax = y_max
+      
     #print("Getting ticks. YMin: "+str(YMin)+" and YMax: "+str(YMax))
 
     xmax_UTM = XMax

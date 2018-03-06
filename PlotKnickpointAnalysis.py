@@ -62,7 +62,9 @@ def main(argv):
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
 
     # ALL
-    parser.add_argument("-ALL", "--AllAnalysis", type=bool, default = False, help="Turn on to have fun")
+    parser.add_argument("-all", "--AllAnalysis", type=bool, default = False, help="Turn on to have fun")
+    parser.add_argument("-allD", "--AllAnalysisDebug", type=bool, default = False, help="Turn on to have even more fun")
+
 
     # Mchi_related
     parser.add_argument("-mcstd", "--mchi_map_std", type=bool, default = False, help="Turn to True to plot a standart M_chi map on an HS. Small reminder, Mchi = Ksn if calculated with A0 = 1.")
@@ -74,13 +76,19 @@ def main(argv):
 
     parser.add_argument("-ksnPs", "--ksn_per_source", type=bool, default = False, help="Print one figure per source key selected, with ksn -> f(chi & flow_distance) in the folder .../river_plots/. it displays the ksn out of Mudd et al., 2014 method, and the TVD one out of the *insert algorithm name*")
     parser.add_argument("-rivplot", "--river_profile", type=bool, default = False, help="Print one figure per source key selected, with elevation -> f(chi & flow_distance) in the folder .../river_plots/. it displays river profiles in a chi and distance spaces")
+    parser.add_argument("-basplot", "--basin_plot", type=bool, default = False, help="Print one figure per basins key selected, with elevation -> f(chi & flow_distance) in the folder .../river_plots/. it displays river profiles in a chi and distance spaces")
     parser.add_argument("-rasplot", "--raster_plots", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
     parser.add_argument("-rasplot_ld", "--raster_plots_large_dataset", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
     parser.add_argument("-statplot", "--statistical_plots", type = bool, default = False, help="Print a bunch of statistics about the knickpoints in the folder .../raster_plots/")
 
     # Others
     parser.add_argument("-nbh", "--n_bin_hist", type = int, default = 0, help = "Customization of the number of bin you want for the general histogram. Default is an automatic in-built selection from numpy")
-    parser.add_argument("-cov", "--cut_off_val", type = float, default = 0., help = "Cutoff value for the knickpoint magnitude (the drop/increase of ksn). Default is 0 (no cut)")
+    parser.add_argument("-cov", "--cut_off_val", type = str, default = "0,0,0,0", help = "Cutoff value for the knickpoint magnitude (the drop/increase of ksn). Default is 0 (no cut)")
+    parser.add_argument("-kal", "--kalib", type = bool, default = False, help = "Don't use that.")
+    parser.add_argument("-segelev", "--print_segmented_elevation", type = bool, default = False, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+    parser.add_argument("-extent_rast_cmap", "--manual_extent_colormap_knickpoint_raster", type = str, default = "", help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+    parser.add_argument("-size_kp_map", "--size_kp_map", type = int, default = 5, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+
 
     args = parser.parse_args()
 
@@ -103,6 +111,26 @@ def main(argv):
         print("The sources preselected are:")
         print(these_source_keys)
 
+    if len(args.manual_extent_colormap_knickpoint_raster) > 0:
+        manual_cmap_extent_raster_plot = [int(item) for item in args.manual_extent_colormap_knickpoint_raster.split(',')]
+        print("You choose a manual colorbar for plotting:")
+        print(manual_cmap_extent_raster_plot)
+    else:
+        manual_cmap_extent_raster_plot = []
+        
+
+
+    print("Getting your cut off values...")
+    try:
+        covfefe = [float(item) for item in args.cut_off_val.replace(" ", "").split(',')]
+        print("ok.")
+        covfefe_t = [-covfefe[0],covfefe[1],-10000,covfefe[2]]
+        covfefe = covfefe_t
+    except ValueError:
+        print("Something went wrong - I am defaulting the values")
+        covfefe = [0,0,-10000,0]
+    print("cut off values:")
+    print(covfefe)
     # Processing the size choice
     try:
         size = [int(item) for item in args.size_format.split(',')]
@@ -117,7 +145,20 @@ def main(argv):
 
     print("Loading the dataset:")
 
-    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = args.cut_off_val)
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe)
+    
+    if(args.AllAnalysisDebug):
+        args.AllAnalysis = True
+        args.ksn_per_source = True
+
+
+    if(args.AllAnalysis):
+        args.statistical_plots = True
+        args.river_profile = True
+        args.raster_plots = True
+        args.raster_plots_large_dataset = True
+        args.basin_plot = True
+
 
     # Plotting hte knickpoints
     if(args.statistical_plots):
@@ -128,29 +169,41 @@ def main(argv):
             n_b = int(args.n_bin_hist)
 
         KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b)
+        KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b, data = "delta_segelev")
+
         KI.print_box_and_whisker(size = size, format = args.FigFormat, label_size = 8, binning = 'source_key', facecolor = "white", grid = True)
         KI.print_box_and_whisker(size = size, format = args.FigFormat, label_size = 8, binning = 'basin_key', facecolor = "white", grid = True)
 
     if(args.ksn_per_source):
         print("Printing a set of ksn values with the knickpoints and their magnitude in a Chi distance")
         KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
+        # KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi",y_axis = "segmented_elevation", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
 
-        print("Printing a set of ksn values with the knickpoints and their magnitude in a Flow distance")
-        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
+
+        # print("Printing a set of ksn values with the knickpoints and their magnitude in a Flow distance")
+        # KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
 
     if(args.river_profile):
         print("Printing river profiles in chi spaces")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white')
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
         print("Printing river profiles in flow distance")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white')
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        print("Printing river profiles for the entire basins")
+
+    if (args.basin_plot):
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+
+
 
     if(args.raster_plots):
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6)
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6)
+        KI.print_map_topo(size = size, format = args.FigFormat,label_size = 8, return_fig = False, extent_cmap = [], kalib = False)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
     if(args.raster_plots_large_dataset):
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = 5)
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = 5)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
     # Preparing the min_max color for mchi maps
     if(args.max_mchi_map <= args.min_mchi_map):

@@ -56,7 +56,7 @@ def main(argv):
     # The location of the data files
     parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the m/n analysis. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error (unless you're running the parallel plotting).")
-
+    parser.add_argument("-plotdir","--plot_directory",type=str, help="The directory to place output plots in. If it isn't defined I'll create a new folder inside --base-directory called \"plots\" and put them there.")
     # The basins you want to plot
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
 
@@ -66,7 +66,8 @@ def main(argv):
     parser.add_argument("-segments", "--plot_segments", type=bool, default=False, help="If this is true, I'll make some long profile plots of the channel segments.")
     parser.add_argument("-in_basin", "--plot_data_within_basin", type=bool, default=False, help="If this is true, I'll make plots of the hillslope data vs distance upstream for each basin")
     parser.add_argument("-means", "--plot_mean_basin_data", type=bool, default=False, help="If this is true I'll make plots of the mean hillslope data vs basin ID")
-
+    parser.add_argument("-traces", "--plot_hillslope_traces",type=bool, default=False, help="if this is true I'll plot a hillshade with hillslope traces overlain")
+    parser.add_argument("-extent", "--custom_plot_extent", type=float, nargs=4, default=None, help="four values required to define the [xmin, xmax, ymin, ymax] extent to plot map data")
     args = parser.parse_args()
 
     if not args.fname_prefix:
@@ -82,6 +83,7 @@ def main(argv):
             this_dir = this_dir+"/"
     else:
         this_dir = os.getcwd()
+
 
     # check the basins
     print("You told me that the basin keys are: ")
@@ -103,7 +105,16 @@ def main(argv):
     #HS.SaveChannelDataByBasin(this_dir, args.fname_prefix)
 
     # make the directory for saving the plots
-    PlotDirectory = this_dir+'hillslope_plots/'
+    if args.plot_directory:
+        PlotDirectory = args.plot_directory
+        # check if you remembered a / at the end of your path_name
+        if not this_dir.endswith("/"):
+            print("You forgot the '/' at the end of the plot directory, appending...")
+            this_dir = this_dir+"/"
+    
+    else:
+        PlotDirectory = this_dir+'hillslope_plots/'
+
     if not os.path.isdir(PlotDirectory):
         os.makedirs(PlotDirectory)
 
@@ -129,6 +140,11 @@ def main(argv):
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
         # HS.PlotHillslopeDataWithBasinsFromCSV(this_dir, args.fname_prefix)
 
+    if args.plot_hillslope_traces:
+      if args.custom_plot_extent:
+        HS.PlotHillslopeTraces(this_dir, args.fname_prefix, PlotDirectory, args.custom_plot_extent)
+      else:
+        HS.PlotHillslopeTraces(this_dir, args.fname_prefix, PlotDirectory)
 
 #=============================================================================
 if __name__ == "__main__":

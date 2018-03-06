@@ -742,13 +742,46 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
 
 
 
-    # transform results into shapely geometries and write to shapefile using fiona
+    # This is necessary to filter the basin results
     geoms = list(results)
+    #print("Geom size is: "+str(len(geoms)))
+    
+    filtered_geoms = {}
+    area_dict = {}
+    for f in geoms:
+        this_shape = Polygon(shape(f['geometry']))
+        this_val = float(f['properties']['raster_val'])
+        #print("ID is: "+str(this_val))
+        this_area = this_shape.area
+        if this_val in filtered_geoms.keys():
+            print("Whoops. Found a repeated ID. Getting rid of the smaller one.")
+            if area_dict[this_val] < this_area:
+                filtered_geoms[this_val] = f
+                area_dict[this_val] = this_area               
+                print("Found a repeated ID. Keeping the one with area of "+str(this_area))
+            else:
+                print("Keeping the initial ID.")
+        else:
+            filtered_geoms[this_val] = f
+            area_dict[this_val] = this_area
+    
+    new_geoms = []
+    for key,item in filtered_geoms.items():
+        this_shape = Polygon(shape(item['geometry']))
+        this_val = float(item['properties']['raster_val'])
+        #print("ID is: "+str(this_val)) 
+        this_area = this_shape.area
+        #print("Area is: "+str(this_area))
+        new_geoms.append(item)
+    #print("Geom size is: "+str(len(new_geoms)))
+            
+    # transform results into shapely geometries and write to shapefile using fiona
     PolygonDict = {}
     with fiona.open(DataDirectory+OutputShapefile, 'w', crs=crs, driver='ESRI Shapefile', schema=schema) as output:
-        for f in geoms:
+        for f in new_geoms:
             this_shape = Polygon(shape(f['geometry']))
             this_val = float(f['properties']['raster_val'])
+            print("ID is: "+str(this_val))
             if this_val != NDV: # remove no data values
                 output.write({'geometry': mapping(this_shape), 'properties':{'ID': this_val}})
             PolygonDict[this_val] = this_shape
