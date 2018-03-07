@@ -19,6 +19,7 @@ from shapely.geometry import LineString, shape, Point, MultiPolygon, Polygon
 import numpy.ma as ma
 from scipy import stats
 import os.path, sys
+import math
 
 # import the basemap library
 from mpl_toolkits.basemap import Basemap
@@ -1023,6 +1024,10 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     Rstar_lower_err = []
     Rstar_upper_err = []
 
+    median_Estar = []
+    Estar_lower_err = []
+    Estar_upper_err = []
+
     median_mchi = []
     mchi_lower_err = []
     mchi_upper_err = []
@@ -1053,6 +1058,13 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
         Rstar_lower_err.append(this_median-Rstar_lowerP)
         Rstar_upper_err.append(Rstar_upperP-this_median)
 
+        this_median = BasinHillslopeData.E_Star.median()
+        median_Estar.append(this_median)
+        Estar_lowerP = np.percentile(BasinHillslopeData.E_Star, 16)
+        Estar_upperP = np.percentile(BasinHillslopeData.E_Star, 84)
+        Estar_lower_err.append(this_median-Estar_lowerP)
+        Estar_upper_err.append(Estar_upperP-this_median)
+
 
         # get the channel data
         this_median = BasinChannelData.m_chi.median()
@@ -1063,7 +1075,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
         mchi_upper_err.append(mchi_upperP-this_median)
 
     # set up the figure
-    fig, ax = plt.subplots(nrows = 6, ncols=1, sharex=True, figsize=(6,10), facecolor='white')
+    fig, ax = plt.subplots(nrows = 7, ncols=1, sharex=True, figsize=(6,12), facecolor='white')
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
@@ -1093,13 +1105,16 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     ax[4].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
     ax[4].set_ylabel('Drainage density (m/m$^2$)')
 
+    ax[5].scatter(basin_keys, uplift_df['junction_angle_mean'])
+    ax[5].set_ylabel('Junction angle (deg)')
+
     # get the data
     uplift_rate = uplift_df['Uplift_rate']
-    ax[5].plot(basin_keys, uplift_rate, c='k', ls='--')
-    ax[5].set_ylabel('Uplift rate (mm/yr)')
+    ax[6].plot(basin_keys, uplift_rate, c='k', ls='--')
+    ax[6].set_ylabel('Uplift rate (mm/yr)')
 
     # set the axes labels
-    ax[5].set_xlabel('Basin ID')
+    ax[6].set_xlabel('Basin ID')
     plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1))
     plt.tight_layout()
 
@@ -1118,6 +1133,9 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
                    ('Rstar_median', median_Rstar),
                    ('Rstar_lower_err', Rstar_lower_err),
                    ('Rstar_upper_err', Rstar_upper_err),
+                   ('Estar_median', median_Estar),
+                   ('Estar_lower_err', Estar_lower_err),
+                   ('Estar_upper_err', Estar_upper_err),
                    ('mchi_median', median_mchi),
                    ('mchi_lower_err', mchi_lower_err),
                    ('mchi_upper_err', mchi_upper_err),
@@ -1172,7 +1190,7 @@ def PlotHillslopeDataWithBasinsFromCSV(DataDirectory, FilenamePrefix):
     plt.savefig(DataDirectory+FilenamePrefix +"_mean_hillslope_data.png", dpi=300)
     plt.clf()
 
-def PlotMeanDataFxnUpliftRate(DataDirectory, FilenamePrefix, PlotDirectory):
+def PlotBasinDataAgainstUplift(DataDirectory, FilenamePrefix, PlotDirectory):
     """
     Function to plot mean basin data as a function of uplift rate
     using the hillslope means csv file
@@ -1185,7 +1203,7 @@ def PlotMeanDataFxnUpliftRate(DataDirectory, FilenamePrefix, PlotDirectory):
     Author: FJC
     """
 
-    input_csv = PlotDirectory+FilenamePrefix+'_hillslope_means.csv'
+    input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
     df = pd.read_csv(input_csv)
     print df['uplift_rate']
 
@@ -1193,26 +1211,28 @@ def PlotMeanDataFxnUpliftRate(DataDirectory, FilenamePrefix, PlotDirectory):
     fig, ax = plt.subplots(nrows=3, ncols=2, sharex=True, figsize=(10,10))
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
+    ax = ax.ravel()
+    print ax[0]
 
     # plot the hillslope length
-    ax[0].errorbar(df['uplift_rate'],df['Lh_mean'],yerr=df['Lh_std'],fmt='o', ecolor='0.5',markersize=5,mec='k')
+    ax[0].errorbar(df['uplift_rate'],df['Lh_median'],yerr=[df['Lh_lower_err'], df['Lh_upper_err']],fmt='o', ecolor='0.5',markersize=5,mec='k', mfc='blue')
     ax[0].set_ylabel('Hillslope length ($L_h$)')
 
     #plot the cht
-    ax[1].errorbar(df['uplift_rate'],df['Cht_mean'],yerr=df['Cht_std'],fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
+    ax[1].errorbar(df['uplift_rate'],df['cht_median'],yerr=[df['cht_lower_err'], df['cht_upper_err']],fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
     ax[1].set_ylabel('Hilltop curvature ($C_{HT}$)')
 
     #plot the R*
-    ax[2].errorbar(df['uplift_rate'],df['R_star_mean'],yerr=df['R_star_std'],fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
+    ax[2].errorbar(df['uplift_rate'],df['Rstar_median'],yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
     ax[2].set_ylabel('Relief ($R*$)')
 
     #plot the Mchi
-    ax[3].errorbar(df['uplift_rate'],df['M_chi_mean'],yerr=df['M_chi_std'],fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+    ax[3].errorbar(df['uplift_rate'],df['mchi_median'],yerr=[df['mchi_lower_err'], df['mchi_upper_err']],fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
     ax[3].set_ylabel('Channel steepness ($k_{sn}$)')
 
     ax[4].scatter(df['uplift_rate'], df['drainage_density'], c='k')
     ax[4].set_ylabel('Drainage densiy (m/m$^2$)')
-    ax[4].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
+    ax[4].set_ylim(np.min(df['drainage_density'])-0.001, np.max(df['drainage_density'])+0.001)
 
     # set the axes labels
     ax[4].set_xlabel('Uplift rate (mm/yr)')
@@ -1225,7 +1245,7 @@ def PlotMeanDataFxnUpliftRate(DataDirectory, FilenamePrefix, PlotDirectory):
 
 def PlotKsnAgainstRStar(DataDirectory, FilenamePrefix, PlotDirectory):
     """
-    Function to plot Ksn against R*
+    Function to plot median Ksn against R* for a series of basins
 
     Author: FJC
     """
@@ -1263,7 +1283,47 @@ def PlotKsnAgainstRStar(DataDirectory, FilenamePrefix, PlotDirectory):
     plt.savefig(PlotDirectory+FilenamePrefix +"_ksn_vs_rstar.png", dpi=300)
     plt.clf()
 
+def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory):
+    """
+    Function to make an E*R* plot for a series of drainage basins
+    Author: FJC
+    """
+    input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
+    df = pd.read_csv(input_csv)
 
+    # steady state model
+    x = np.linspace(0,50,1000)
+    predicted_Rstar = ((1. / x) * (np.sqrt(1. + (x * x)) -
+            np.log(0.5 * (1. + np.sqrt(1. + (x * x)))) - 1.))
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, figsize=(5,5))
+
+    ax.scatter(df['Estar_median'], df['Rstar_median'], c=df['basin_keys'], s=25, edgecolors='k', zorder=100, cmap=cm.viridis, label=None)
+    ax.errorbar(df['Estar_median'], df['Rstar_median'], xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']], fmt='o', ecolor='0.5',markersize=1,mfc='white',mec='k',label=None)
+    #ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
+    ax.plot(x, predicted_Rstar, c='0.5', ls='--', label='Steady state model')
+    ax.set_xlim(0,50)
+
+    ax.set_xlabel('$E*$')
+    ax.set_ylabel('$R*$')
+
+    ax.legend(loc='lower right')
+
+    # ax.set_xscale('log')
+    # ax.set_yscale('log')
+
+    plt.subplots_adjust(left=0.15,right=0.85, bottom=0.1, top=0.95)
+    CAx = fig.add_axes([0.87,0.1,0.02,0.85])
+    m = cm.ScalarMappable(cmap=cm.viridis)
+    m.set_array(df['basin_keys'])
+    plt.colorbar(m, cax=CAx,orientation='vertical', label='Basin key')
+
+    #plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_estar_vs_rstar.png", dpi=300)
+    plt.clf()
 
 
 def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExtent=[-9999],FigSizeFormat="epsl"):

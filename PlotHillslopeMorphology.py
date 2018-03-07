@@ -139,10 +139,11 @@ def main(argv):
             HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
     if args.plot_mean_basin_data:
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
+        HS.PlotEStarRStarBasins(this_dir, args.fname_prefix, PlotDirectory)
         HS.PlotKsnAgainstRStar(this_dir, args.fname_prefix, PlotDirectory)
         # HS.PlotHillslopeDataWithBasinsFromCSV(this_dir, args.fname_prefix)
     if args.plot_means_with_uplift:
-        HS.PlotMeanDataFxnUpliftRate(this_dir, args.fname_prefix, PlotDirectory)
+        HS.PlotBasinDataAgainstUplift(this_dir, args.fname_prefix, PlotDirectory)
 
     if args.plot_hillslope_traces:
       if args.custom_plot_extent:
