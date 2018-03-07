@@ -66,6 +66,7 @@ def main(argv):
     parser.add_argument("-segments", "--plot_segments", type=bool, default=False, help="If this is true, I'll make some long profile plots of the channel segments.")
     parser.add_argument("-in_basin", "--plot_data_within_basin", type=bool, default=False, help="If this is true, I'll make plots of the hillslope data vs distance upstream for each basin")
     parser.add_argument("-means", "--plot_mean_basin_data", type=bool, default=False, help="If this is true I'll make plots of the mean hillslope data vs basin ID")
+    parser.add_argument("-means_uplift", "--plot_means_with_uplift", type=bool, default=False, help="If this is true I'l make plots of the mean hillslope data vs uplift rate")
     parser.add_argument("-traces", "--plot_hillslope_traces",type=bool, default=False, help="if this is true I'll plot a hillshade with hillslope traces overlain")
     parser.add_argument("-extent", "--custom_plot_extent", type=float, nargs=4, default=None, help="four values required to define the [xmin, xmax, ymin, ymax] extent to plot map data")
     args = parser.parse_args()
@@ -111,7 +112,7 @@ def main(argv):
         if not this_dir.endswith("/"):
             print("You forgot the '/' at the end of the plot directory, appending...")
             this_dir = this_dir+"/"
-    
+
     else:
         PlotDirectory = this_dir+'hillslope_plots/'
 
@@ -138,7 +139,10 @@ def main(argv):
             HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
     if args.plot_mean_basin_data:
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
+        HS.PlotKsnAgainstRStar(this_dir, args.fname_prefix, PlotDirectory)
         # HS.PlotHillslopeDataWithBasinsFromCSV(this_dir, args.fname_prefix)
+    if args.plot_means_with_uplift:
+        HS.PlotMeanDataFxnUpliftRate(this_dir, args.fname_prefix, PlotDirectory)
 
     if args.plot_hillslope_traces:
       if args.custom_plot_extent:

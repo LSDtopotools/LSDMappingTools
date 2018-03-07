@@ -17,6 +17,7 @@ import pandas as pd
 import numpy as np
 from shapely.geometry import LineString, shape, Point, MultiPolygon, Polygon
 import numpy.ma as ma
+from scipy import stats
 import os.path, sys
 
 # import the basemap library
@@ -46,7 +47,7 @@ from LSDMapFigure.PlottingRaster import BaseRaster
 #=============================================================================
 
 def Get_FigWidth_Inches(FigSizeFormat="default"):
-    
+
     # set figure sizes (in inches) based on format
     if FigSizeFormat == "geomorphology":
         FigWidth_Inches = 6.25
@@ -65,7 +66,7 @@ def Get_FigWidth_Inches(FigSizeFormat="default"):
         FigWidth_Inches = 4.92126
 
     return FigWidth_Inches
-    
+
 def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
     """
     This function creates a default matplotlib figure object
@@ -82,7 +83,7 @@ def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
 
     Author: MDH
     """
-    
+
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
@@ -140,18 +141,18 @@ def ReadChannelData(DataDirectory, FilenamePrefix):
     # get the filename and open either csv or geojson
     Suffix = '_MChiSegmented'
     Filename = FilenamePrefix+Suffix
-    
-    if os.path.isfile(DataDirectory+Filename+".csv"): 
+
+    if os.path.isfile(DataDirectory+Filename+".csv"):
         # read in the dataframe using pandas
         ChannelData = pd.read_csv(DataDirectory+Filename+".csv")
-    
+
     elif os.path.isfile(DataDirectory+Filename+".geojson"):
         # read in the dataframe using pandas
         ChannelData = gpd.read_file(DataDirectory+Filename+".geojson")
     else:
         print("No file named "+DataDirectory+Filename+".* found")
         sys.exit()
-        
+
     # If there is no chi values due to threshold then chi will be -9999
     # throw out these segments
     Segments2Remove = ChannelData[ChannelData.chi == -9999].segment_number.unique()
@@ -184,22 +185,22 @@ def ReadHillslopeTraces(DataDirectory, FilenamePrefix,ThinningFactor=1,CustomExt
 
     # read in the dataframe using pandas and convert to geopandas geodataframe
     df = pd.read_csv(ReadFilename)
-    
+
     # thin the data
     df = df.iloc[::ThinningFactor,:]
-    
+
     # clip to custom extent_raster
     if len(CustomExtent) == 4:
       df.drop(df[df.Easting < CustomExtent[0]].index, inplace=True)
       df.drop(df[df.Easting > CustomExtent[1]].index, inplace=True)
       df.drop(df[df.Northing < CustomExtent[2]].index, inplace=True)
       df.drop(df[df.Northing > CustomExtent[3]].index, inplace=True)
-    
+
     # check for and delete any traces tat are only 1 point long since these wont plot
     df['is_unique'] = ~df['HilltopID'].duplicated(keep=False)
     temp = ~df['HilltopID'].duplicated(keep=False)
     df.drop(df[df.is_unique == True].index, inplace=True)
-    
+
     geometry = [Point(xy) for xy in zip(df.Easting, df.Northing)]
     df = df.drop(['Easting','Northing','Longitude', 'Latitude'], axis=1)
     crs = {'init': 'epsg:4326'}
@@ -288,8 +289,8 @@ def WriteHillslopeTracesShp(DataDirectory,FilenamePrefix,ThinningFactor=1, Custo
     Args:
         DataDirectory: the data directory
         FilenamePrefix: the file name prefix
-        
-        
+
+
     Author: MDH
     """
 
@@ -1010,50 +1011,76 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     basin_dict = MapBasinKeysToJunctions(DataDirectory,FilenamePrefix)
     basin_keys = basin_dict.keys()
 
-    mean_cht = []
-    cht_std = []
-    mean_Lh = []
-    Lh_std = []
-    mean_Rstar = []
-    R_star_std = []
-    mean_mchi = []
-    mchi_std = []
+    median_cht = []
+    cht_lower_err = []
+    cht_upper_err = []
+
+    median_Lh = []
+    Lh_lower_err = []
+    Lh_upper_err = []
+
+    median_Rstar = []
+    Rstar_lower_err = []
+    Rstar_upper_err = []
+
+    median_mchi = []
+    mchi_lower_err = []
+    mchi_upper_err = []
 
     for key, jn in basin_dict.iteritems():
         BasinHillslopeData = HillslopeData[HillslopeData.BasinID == jn]
         BasinChannelData = ChannelData[ChannelData.basin_key == key]
 
         # now get all the hillslope data for this basin
-        mean_cht.append(BasinHillslopeData.Cht.mean())
-        cht_std.append(BasinHillslopeData.Cht.std())
-        mean_Lh.append(BasinHillslopeData.Lh.mean())
-        Lh_std.append(BasinHillslopeData.Lh.std())
-        mean_Rstar.append(BasinHillslopeData.R_Star.mean())
-        R_star_std.append(BasinHillslopeData.R_Star.std())
+        this_median = abs(BasinHillslopeData.Cht.median())
+        median_cht.append(this_median)
+        cht_lowerP = np.percentile(BasinHillslopeData.Cht, 16)
+        cht_upperP = np.percentile(BasinHillslopeData.Cht, 84)
+        cht_lower_err.append(this_median-abs(cht_upperP)) # these are the opposite way round because
+        cht_upper_err.append(abs(cht_lowerP)-this_median) # I am inverting the axis to show positive Chts
+
+        this_median = BasinHillslopeData.Lh.median()
+        median_Lh.append(this_median)
+        Lh_lowerP = np.percentile(BasinHillslopeData.Lh, 16)
+        Lh_upperP = np.percentile(BasinHillslopeData.Lh, 84)
+        Lh_lower_err.append(this_median-Lh_lowerP)
+        Lh_upper_err.append(Lh_upperP-this_median)
+
+        this_median = BasinHillslopeData.R_Star.median()
+        median_Rstar.append(this_median)
+        Rstar_lowerP = np.percentile(BasinHillslopeData.R_Star, 16)
+        Rstar_upperP = np.percentile(BasinHillslopeData.R_Star, 84)
+        Rstar_lower_err.append(this_median-Rstar_lowerP)
+        Rstar_upper_err.append(Rstar_upperP-this_median)
+
 
         # get the channel data
-        mean_mchi.append(BasinChannelData.m_chi.mean())
-        mchi_std.append(BasinChannelData.m_chi.std())
+        this_median = BasinChannelData.m_chi.median()
+        median_mchi.append(this_median)
+        mchi_lowerP = np.percentile(BasinChannelData.m_chi, 16)
+        mchi_upperP = np.percentile(BasinChannelData.m_chi, 84)
+        mchi_lower_err.append(this_median-mchi_lowerP)
+        mchi_upper_err.append(mchi_upperP-this_median)
 
     # set up the figure
-    fig, ax = plt.subplots(nrows = 6, ncols=1, sharex=True, figsize=(6,10))
+    fig, ax = plt.subplots(nrows = 6, ncols=1, sharex=True, figsize=(6,10), facecolor='white')
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
     # plot the hillslope length
-    ax[0].errorbar(basin_keys,mean_Lh,yerr=Lh_std,fmt='o', ecolor='0.5',markersize=5,mec='k')
+    ax[0].errorbar(basin_keys,median_Lh,yerr=[Lh_lower_err, Lh_upper_err],fmt='o', ecolor='0.5',markersize=5,mec='k')
     ax[0].set_ylabel('$L_h$')
 
     #plot the cht
-    ax[1].errorbar(basin_keys,mean_cht,yerr=cht_std,fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
+    ax[1].errorbar(basin_keys,median_cht,yerr=[cht_lower_err, cht_upper_err],fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
     ax[1].set_ylabel('$C_{HT}$')
 
     #plot the R*
-    ax[2].errorbar(basin_keys,mean_Rstar,yerr=R_star_std,fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
+    ax[2].errorbar(basin_keys,median_Rstar,yerr=[Rstar_lower_err, Rstar_upper_err],fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
     ax[2].set_ylabel('$R*$')
 
     #plot the Mchi
-    ax[3].errorbar(basin_keys,mean_mchi,yerr=mchi_std,fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+    ax[3].errorbar(basin_keys,median_mchi,yerr=[mchi_lower_err, mchi_upper_err],fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
     ax[3].set_ylabel('$k_{sn}$')
 
     # read the uplift data in
@@ -1062,7 +1089,8 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     # get the drainage density
     drainage_density = uplift_df['drainage_density']
-    ax[4].scatter(basin_keys, drainage_density, c='coral', s=5)
+    ax[4].scatter(basin_keys, drainage_density, c='k', edgecolors='k', s=20)
+    ax[4].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
     ax[4].set_ylabel('Drainage density (m/m$^2$)')
 
     # get the data
@@ -1076,22 +1104,28 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     plt.tight_layout()
 
     #save output
-    plt.savefig(PlotDirectory+FilenamePrefix +"_mean_hillslope_data.png", dpi=300)
+    plt.savefig(PlotDirectory+FilenamePrefix +"_basin_hillslope_data.png", dpi=300)
     plt.clf()
 
     output_list = [('basin_keys', basin_keys),
-                   ('Lh_mean', mean_Lh),
-                   ('Lh_std', Lh_std),
-                   ('Cht_mean', mean_cht),
-                   ('Cht_std', cht_std),
-                   ('R_star_mean', mean_Rstar),
-                   ('R_star_std', R_star_std),
-                   ('M_chi_mean', mean_mchi),
-                   ('M_chi_std', mchi_std)]
+                   ('uplift_rate', uplift_rate),
+                   ('Lh_median', median_Lh),
+                   ('Lh_lower_err', Lh_lower_err),
+                   ('Lh_upper_err', Lh_upper_err),
+                   ('cht_median', median_cht),
+                   ('cht_lower_err', cht_lower_err),
+                   ('cht_upper_err', cht_upper_err),
+                   ('Rstar_median', median_Rstar),
+                   ('Rstar_lower_err', Rstar_lower_err),
+                   ('Rstar_upper_err', Rstar_upper_err),
+                   ('mchi_median', median_mchi),
+                   ('mchi_lower_err', mchi_lower_err),
+                   ('mchi_upper_err', mchi_upper_err),
+                   ('drainage_density', drainage_density)]
 
     # write output to csv
     OutDF = pd.DataFrame.from_items(output_list)
-    csv_outname = PlotDirectory+FilenamePrefix+'_hillslope_means.csv'
+    csv_outname = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
     OutDF.to_csv(csv_outname,index=False)
 
 def PlotHillslopeDataWithBasinsFromCSV(DataDirectory, FilenamePrefix):
@@ -1137,26 +1171,120 @@ def PlotHillslopeDataWithBasinsFromCSV(DataDirectory, FilenamePrefix):
     #save output
     plt.savefig(DataDirectory+FilenamePrefix +"_mean_hillslope_data.png", dpi=300)
     plt.clf()
-    
+
+def PlotMeanDataFxnUpliftRate(DataDirectory, FilenamePrefix, PlotDirectory):
+    """
+    Function to plot mean basin data as a function of uplift rate
+    using the hillslope means csv file
+
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): directory to save the plots
+
+    Author: FJC
+    """
+
+    input_csv = PlotDirectory+FilenamePrefix+'_hillslope_means.csv'
+    df = pd.read_csv(input_csv)
+    print df['uplift_rate']
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows=3, ncols=2, sharex=True, figsize=(10,10))
+    # Remove horizontal space between axes
+    fig.subplots_adjust(hspace=0)
+
+    # plot the hillslope length
+    ax[0].errorbar(df['uplift_rate'],df['Lh_mean'],yerr=df['Lh_std'],fmt='o', ecolor='0.5',markersize=5,mec='k')
+    ax[0].set_ylabel('Hillslope length ($L_h$)')
+
+    #plot the cht
+    ax[1].errorbar(df['uplift_rate'],df['Cht_mean'],yerr=df['Cht_std'],fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
+    ax[1].set_ylabel('Hilltop curvature ($C_{HT}$)')
+
+    #plot the R*
+    ax[2].errorbar(df['uplift_rate'],df['R_star_mean'],yerr=df['R_star_std'],fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
+    ax[2].set_ylabel('Relief ($R*$)')
+
+    #plot the Mchi
+    ax[3].errorbar(df['uplift_rate'],df['M_chi_mean'],yerr=df['M_chi_std'],fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+    ax[3].set_ylabel('Channel steepness ($k_{sn}$)')
+
+    ax[4].scatter(df['uplift_rate'], df['drainage_density'], c='k')
+    ax[4].set_ylabel('Drainage densiy (m/m$^2$)')
+    ax[4].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
+
+    # set the axes labels
+    ax[4].set_xlabel('Uplift rate (mm/yr)')
+    #plt.xticks(np.arange(min(df['basin_keys']), max(df['basin_keys'])+1, 1))
+    plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_mean_data_fxn_U.png", dpi=300)
+    plt.clf()
+
+def PlotKsnAgainstRStar(DataDirectory, FilenamePrefix, PlotDirectory):
+    """
+    Function to plot Ksn against R*
+
+    Author: FJC
+    """
+
+    input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
+    df = pd.read_csv(input_csv)
+
+    # linregress
+    slope, intercept, r_value, p_value, std_err = stats.linregress(df['mchi_median'],df['Rstar_median'])
+    print (slope, intercept, r_value, p_value)
+    x = np.linspace(0, 200, 100)
+    new_y = slope*x + intercept
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, figsize=(5,5))
+
+    ax.scatter(df['mchi_median'], df['Rstar_median'], c=df['basin_keys'], s=25, edgecolors='k', zorder=100, cmap=cm.viridis)
+    ax.errorbar(df['mchi_median'], df['Rstar_median'], xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']], fmt='o', ecolor='0.5',markersize=1,mfc='white',mec='k')
+    ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
+    ax.plot(x, new_y, c='0.5', ls='--')
+    ax.set_xlim(0,200)
+
+    ax.set_xlabel('$k_{sn}$')
+    ax.set_ylabel('$R*$')
+
+    plt.subplots_adjust(left=0.15,right=0.85, bottom=0.1, top=0.95)
+    CAx = fig.add_axes([0.87,0.1,0.02,0.85])
+    m = cm.ScalarMappable(cmap=cm.viridis)
+    m.set_array(df['basin_keys'])
+    plt.colorbar(m, cax=CAx,orientation='vertical', label='Basin key')
+
+    #plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_ksn_vs_rstar.png", dpi=300)
+    plt.clf()
+
+
+
+
 def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExtent=[-9999],FigSizeFormat="epsl"):
     """
     Function to plot a hillshade image with hilltops, hillslope traces and the channel network superimposed.
-    
-    
+
+
     MDH
     """
-    
-    
+
+
     # Save the figure
     ImageName = PlotDirectory+"bolinas_traces.png"
     print(ImageName)
     FigWidth_Inches = Get_FigWidth_Inches(FigSizeFormat)
-    
+
     HillshadeName = FilenamePrefix+"_hs.bil"
-    
+
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory, coord_type="UTM_km", colourbar_location='None')
-    
+
     #customise the extent of the plot if required
     if len(CustomExtent) == 4:
       xmin = CustomExtent[0]
@@ -1164,7 +1292,7 @@ def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExte
       ymin = CustomExtent[2]
       ymax = CustomExtent[3]
       MF.SetCustomExtent(xmin,xmax,ymin,ymax)
-    
+
     # add hilltops
     HilltopPointsDF = ReadHillslopeData(DataDirectory, FilenamePrefix)
     HilltopPoints = LSDP.LSDMap_PointData(HilltopPointsDF, data_type = "pandas", PANDEX = True)
@@ -1174,7 +1302,7 @@ def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExte
     ChannelHeadsDF = pd.read_csv(DataDirectory+FilenamePrefix+"_CH_wiener_nodeindices_for_Arc.csv")
     ChannelHeadPoints = LSDP.LSDMap_PointData(ChannelHeadsDF, data_type = "pandas", PANDEX = True)
     MF.add_point_data(ChannelHeadPoints,alpha=0.5,zorder=100,unicolor="blue",manual_size=5)
-   
+
     # add channels
     ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,FilenamePrefix)
     ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
@@ -1185,10 +1313,9 @@ def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExte
     HillslopeTracesShp = DataDirectory+FilenamePrefix+"_hillslope_traces.shp"
     if os.path.exists(HillslopeTracesShp) == False:
       WriteHillslopeTracesShp(DataDirectory,FilenamePrefix,ThinningFactor,CustomExtent)
-      
+
     MF.add_line_data(DataDirectory+FilenamePrefix+"_hillslope_traces.shp",zorder=80,alpha=0.5,linewidth=0.2)
-    
+
     #finalise and save figure
     MF.SetRCParams(label_size=8)
     MF.save_fig(fig_width_inches = FigWidth_Inches, FigFileName = ImageName, FigFormat="png", Fig_dpi = 300)
-
