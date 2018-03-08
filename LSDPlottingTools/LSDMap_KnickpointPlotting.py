@@ -645,7 +645,7 @@ class KP_plotting(object):
         if len(x_extents) ==2:
             ax1.set_xlim(x_extents[0],x_extents[1])
 
-
+        ax1.text(0.1,0.9,r"Mean: %s \nMedian: %s \n 1$^{st}$/3$^{rd}$ quartiles: %s/%s" %(tdf[data].mean(),tdf[data].median(),tdf[data].quantile(0.25),tdf[data].quantile(0.75)))
 
         if(data == "delta_ksn"):
             xlab = r"$\Delta k_{sn}$"
