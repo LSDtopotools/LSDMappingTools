@@ -88,6 +88,7 @@ def main(argv):
     parser.add_argument("-segelev", "--print_segmented_elevation", type = bool, default = False, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-extent_rast_cmap", "--manual_extent_colormap_knickpoint_raster", type = str, default = "", help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-size_kp_map", "--size_kp_map", type = int, default = 5, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+    parser.add_argument("-max_hist", "--maximum_extent_for_histogram", type = int, default = 0, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
 
 
     args = parser.parse_args()
@@ -118,6 +119,12 @@ def main(argv):
     else:
         manual_cmap_extent_raster_plot = []
         
+    if(args.maximum_extent_for_histogram>0):
+        ext_dseg_hist = [0,args.maximum_extent_for_histogram]
+        ext_dksn_hist = [-args.maximum_extent_for_histogram,args.maximum_extent_for_histogram]
+    else:
+        ext_dseg_hist = []
+        ext_dksn_hist = []
 
 
     print("Getting your cut off values...")
@@ -168,8 +175,8 @@ def main(argv):
         else:
             n_b = int(args.n_bin_hist)
 
-        KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b)
-        KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b, data = "delta_segelev")
+        KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b,x_extents = ext_dksn_hist)
+        KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b, data = "delta_segelev",x_extents = ext_dseg_hist)
 
         KI.print_box_and_whisker(size = size, format = args.FigFormat, label_size = 8, binning = 'source_key', facecolor = "white", grid = True)
         KI.print_box_and_whisker(size = size, format = args.FigFormat, label_size = 8, binning = 'basin_key', facecolor = "white", grid = True)

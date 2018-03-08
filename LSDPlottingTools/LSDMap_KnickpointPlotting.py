@@ -591,7 +591,7 @@ class KP_plotting(object):
 
 
 
-    def print_histogram(self,size = "big", format = "png", label_size = 8, n_bin = 'auto', facecolor = "white", grid = True, data = "delta_ksn"):
+    def print_histogram(self,size = "big", format = "png", label_size = 8, n_bin = 'auto', facecolor = "white", grid = True, data = "delta_ksn", x_extents = []):
         """
         This figure print an histogram of the knickpoint repartition for the selected basins/sources
 
@@ -627,8 +627,25 @@ class KP_plotting(object):
         else:
             tdf = self.df_kp.copy()
 
+        # I am thinning the data by removing all the 0 values
+        tdf = tdf[tdf[data]!=0]
 
         ax1.hist(tdf[data], bins = n_bin, fc = "#848484", lw = 0.5, edgecolor = "k", zorder = 10)
+        
+        ## saving the y limits
+        limites_y = ax1.get_ylim() 
+
+        ax1.vlines(tdf[data].quantile(0.25),0,1000000000, lw = 0.7, linestyles = 'dashed', zorder = 11)
+        ax1.vlines(tdf[data].quantile(0.75),0,1000000000, lw = 0.7, linestyles = 'dashed', zorder = 11)
+
+        ## resetting the y limits - this is a trick to get full vertical lines
+        ax1.set_ylim(limites_y)
+
+        # delaing with x extents
+        if len(x_extents) ==2:
+            ax1.set_xlim(x_extents[0],x_extents[1])
+
+
 
         if(data == "delta_ksn"):
             xlab = r"$\Delta k_{sn}$"
