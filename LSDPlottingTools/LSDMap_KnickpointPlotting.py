@@ -632,11 +632,13 @@ class KP_plotting(object):
 
         ax1.hist(tdf[data], bins = n_bin, fc = "#848484", lw = 0.5, edgecolor = "k", zorder = 10)
         
+        print("I printed the histogram")
         ## saving the y limits
         limites_y = ax1.get_ylim() 
+        print("printing the vlines")
 
-        ax1.vlines(tdf[data].quantile(0.25),0,1000000000, lw = 0.7, linestyles = 'dashed', zorder = 11)
-        ax1.vlines(tdf[data].quantile(0.75),0,1000000000, lw = 0.7, linestyles = 'dashed', zorder = 11)
+        ax1.vlines(tdf[data].quantile(0.25), 0 , 1 , transform = ax1.get_xaxis_transform(), lw = 0.7, linestyles = 'dashed', zorder = 11)
+        ax1.vlines(tdf[data].quantile(0.75), 0 , 1 , transform = ax1.get_xaxis_transform(), lw = 0.7, linestyles = 'dashed', zorder = 11)
 
         ## resetting the y limits - this is a trick to get full vertical lines
         ax1.set_ylim(limites_y)
@@ -644,6 +646,8 @@ class KP_plotting(object):
         # delaing with x extents
         if len(x_extents) ==2:
             ax1.set_xlim(x_extents[0],x_extents[1])
+
+        print("setting the text")
 
         ax1.text(0.1,0.9,r"Mean: %s \nMedian: %s \n 1$^{st}$/3$^{rd}$ quartiles: %s/%s" %(tdf[data].mean(),tdf[data].median(),tdf[data].quantile(0.25),tdf[data].quantile(0.75)))
 
@@ -656,6 +660,8 @@ class KP_plotting(object):
         ax1.set_ylabel("n knickpoints")
 
         ax1.xaxis.set_major_locator(MaxNLocator(15))
+
+        print("saving the figure")
 
         plt.savefig(out_directory + self.fprefix + "_kp_hist%s.%s"%(data,format), dpi = 500)
         plt.clf()
