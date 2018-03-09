@@ -649,7 +649,7 @@ class KP_plotting(object):
 
         print("setting the text")
 
-        ax1.text(0.1,0.9,r"Mean: %s \nMedian: %s \n 1$^{st}$/3$^{rd}$ quartiles: %s/%s" %(tdf[data].mean(),tdf[data].median(),tdf[data].quantile(0.25),tdf[data].quantile(0.75)))
+        ax1.text(0.65,0.85,"Mean: %.3f " %(tdf[data].mean())+"\n"+ r"Median: %.3f " %(tdf[data].median())+"\n"+ r"1$^{st}$/3$^{rd}$ quartiles: %.3f/%.3f" %(tdf[data].quantile(0.25),tdf[data].quantile(0.75)),zorder = 50, transform=ax1.transAxes)
 
         if(data == "delta_ksn"):
             xlab = r"$\Delta k_{sn}$"
