@@ -1099,14 +1099,17 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     # read in the csv
     uplift_df = pd.read_csv(DataDirectory+'m_over_n.csv')
 
+    # plot the junction angle
+    ax[4].errorbar(basin_keys, uplift_df['junction_angle_median'], yerr=[uplift_df['junction_angle_median']-uplift_df['junction_angle_25thP'], uplift_df['junction_angle_75thP']-uplift_df['junction_angle_median']], fmt='o',ecolor='0.5',markersize=5,mfc='green',mec='k')
+    ax[4].set_ylabel('Junction angle (deg)')
+
     # get the drainage density
     drainage_density = uplift_df['drainage_density']
-    ax[4].scatter(basin_keys, drainage_density, c='k', edgecolors='k', s=20)
-    ax[4].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
-    ax[4].set_ylabel('Drainage density (m/m$^2$)')
+    ax[5].scatter(basin_keys, drainage_density, c='k', edgecolors='k', s=20)
+    ax[5].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
+    ax[5].set_ylabel('Drainage density (m/m$^2$)')
 
-    ax[5].scatter(basin_keys, uplift_df['junction_angle_mean'])
-    ax[5].set_ylabel('Junction angle (deg)')
+
 
     # get the data
     uplift_rate = uplift_df['Uplift_rate']
@@ -1323,6 +1326,57 @@ def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory):
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix +"_estar_vs_rstar.png", dpi=300)
+    plt.clf()
+
+def PlotJunctionAnglesAgainstBasinID(DataDirectory, FilenamePrefix, PlotDirectory):
+    """
+    Function to make plot of the junction angles vs. stream order for different
+    basins.
+    May move this to a different plotting script eventually.
+
+    FJC 08/03/18
+    """
+    df = pd.read_csv(DataDirectory+FilenamePrefix+'_junc_angles.csv')
+    basin_dict = MapBasinKeysToJunctions(DataDirectory, FilenamePrefix)
+    print basin_dict
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, figsize=(12,5))
+
+    # separate the series by stream order
+    stream_orders = df['StreamOrder'].unique()
+
+    # CHANGE THIS LATER - Fiona
+    basin_jns = df['BasinJunction'].unique()
+    n_jns = len(basin_jns)
+    basin_keys = np.arange(0, n_jns, 1)
+    basin_dict = dict(zip(basin_keys,basin_jns))
+    temp_df = pd.DataFrame(list(basin_dict.iteritems()), columns=['BasinKey','BasinJunction'])
+    df = df.merge(temp_df, left_on="BasinJunction", right_on = "BasinJunction")
+
+    for SO in stream_orders:
+        # mask to this SO
+        this_df = df[df['StreamOrder'] == SO]
+
+        # get da basin keys - this way SHOULD work when new m/n is finished
+        # FIONA - REMEMBER TO CHANGE THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # temp_df = pd.DataFrame(list(basin_dict.iteritems()), columns=['BasinKey','BasinJunction'])
+        # this_df = this_df.merge(temp_df, left_on="BasinJunction", right_on = "BasinJunction")
+
+        # these_juncs = this_df['BasinJunction']
+        # these_keys =
+
+        ax.errorbar(this_df['BasinKey'], this_df['Median'], yerr=[this_df['Median']-this_df['25th_percentile'], this_df['75th_percentile']-this_df['Median']], fmt='o', label='Stream order = '+str(SO))
+
+    ax.set_xlabel('Basin key')
+    ax.set_ylabel('Junction angle (deg)')
+
+    ax.legend(loc='upper right', bbox_to_anchor=(1.25,0.8))
+    plt.subplots_adjust(left=0.1,right=0.8)
+    plt.xticks(np.arange(min(df['BasinKey']), max(df['BasinKey'])+1, 1))
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_junction_angles.png", dpi=300)
     plt.clf()
 
 

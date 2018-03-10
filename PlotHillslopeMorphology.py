@@ -68,6 +68,7 @@ def main(argv):
     parser.add_argument("-means", "--plot_mean_basin_data", type=bool, default=False, help="If this is true I'll make plots of the mean hillslope data vs basin ID")
     parser.add_argument("-means_uplift", "--plot_means_with_uplift", type=bool, default=False, help="If this is true I'l make plots of the mean hillslope data vs uplift rate")
     parser.add_argument("-traces", "--plot_hillslope_traces",type=bool, default=False, help="if this is true I'll plot a hillshade with hillslope traces overlain")
+    parser.add_argument("-angles", "--plot_junction_angles", type=bool, default=False, help="If this is true I'll make plots of the basin junction angles vs basin ID")
     parser.add_argument("-extent", "--custom_plot_extent", type=float, nargs=4, default=None, help="four values required to define the [xmin, xmax, ymin, ymax] extent to plot map data")
     args = parser.parse_args()
 
@@ -150,6 +151,9 @@ def main(argv):
         HS.PlotHillslopeTraces(this_dir, args.fname_prefix, PlotDirectory, args.custom_plot_extent)
       else:
         HS.PlotHillslopeTraces(this_dir, args.fname_prefix, PlotDirectory)
+
+    if args.plot_junction_angles:
+        HS.PlotJunctionAnglesAgainstBasinID(this_dir, args.fname_prefix, PlotDirectory)
 
 #=============================================================================
 if __name__ == "__main__":
