@@ -502,7 +502,7 @@ class KP_plotting(object):
 
 
 
-    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20, return_fig = False, extent_cmap = [], kalib = False):
+    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20, return_fig = False, extent_cmap = [], kalib = False,lith_raster = False,cml = None):
 
             # check if a directory exists for the chi plots. If not then make it.
         raster_directory = self.fpath+'raster_plots/'
@@ -529,6 +529,20 @@ class KP_plotting(object):
         if(black_bg):
             MF.add_drape_image(HillshadeName,self.fpath,colourmap = "gray",alpha=1,colour_min_max = [10000,10001],modify_raster_values=False,old_values=[], new_values=[],NFF_opti = True)
 
+        if(lith_raster and cml != None):
+            color_map_litho  = cml
+            df_litho_size = pd.read_csv(self.fpath+self.fprefix+"_lithokey.csv")
+            LithoMap = self.fprefix+"_LITHRAST.bil"
+
+            MF.add_drape_image(LithoMap,self.fpath,colourmap = color_map_litho,
+                                alpha=0.4,
+                                show_colourbar = False,
+                                colorbarlabel = "Colourbar", discrete_cmap=False, 
+                                norm = "None",
+                                colour_min_max = [0,df_litho_size["rocktype"].max()-1],
+                                modify_raster_values=False,
+                                old_values=[], new_values=[], cbar_type=int,
+                                NFF_opti = True, custom_min_max = [])
         
         # plot the basin outlines
         Basins = LSDP.GetBasinOutlines(self.fpath, BasinsName)
@@ -575,6 +589,8 @@ class KP_plotting(object):
 
         if(black_bg):
             suffix = "dark"
+        elif (lith_raster == True and cml != None):
+            suffix = "lith"
         else:
             suffix = "hs"
         ImageName = raster_directory+self.fprefix+"_ksnkp_map_%s."%(suffix) + format

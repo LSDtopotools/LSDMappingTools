@@ -18,6 +18,8 @@ from LSDPlottingTools import LSDMap_BasicMaps as BP
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
 from LSDPlottingTools import LSDMap_ChiPlotting as CP
+from LSDPlottingTools import LSDMap_LithoPlotting as LP
+
 
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.
@@ -89,7 +91,7 @@ def main(argv):
     parser.add_argument("-extent_rast_cmap", "--manual_extent_colormap_knickpoint_raster", type = str, default = "", help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-size_kp_map", "--size_kp_map", type = int, default = 5, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-max_hist", "--maximum_extent_for_histogram", type = int, default = 0, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
-
+    parser.add_argument("-lith_rast","--lithologic_raster", type = bool, default = False, help = "switch on if you have a _LITHRAST raster, it will plot a hillshade colored by lithologic unit")
 
     args = parser.parse_args()
 
@@ -211,6 +213,16 @@ def main(argv):
     if(args.raster_plots_large_dataset):
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+
+    
+    if(args.lithologic_raster):
+        dict_file = LP.litho_pre_check(args.base_directory,"", fname = args.fname_prefix)
+        LP.MakeRasterLithoBasinMap(args.base_directory, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat='png')
+        cml = LP.getLithoColorMap(args.fname_prefix, args.base_directory)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, cml = cml, lith_raster = True)
+
+
+
 
     # Preparing the min_max color for mchi maps
     if(args.max_mchi_map <= args.min_mchi_map):
