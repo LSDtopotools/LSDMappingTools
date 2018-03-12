@@ -478,7 +478,7 @@ class KP_plotting(object):
             else:
                 ax1.set_xlabel("Distance from the outlet (m)")
 
-            ax1.set_ylabel("z")
+            ax1.set_ylabel("z (m)")
 
             # Title
             if(title.lower() == "auto"):
