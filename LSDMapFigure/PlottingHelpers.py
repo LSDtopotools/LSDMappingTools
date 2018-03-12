@@ -1354,12 +1354,13 @@ def MapBasinsToKeys(DataDirectory):
 
     # loop through the directory and get each basin stats file
     for fname in os.listdir(DataDirectory):
-        if fname.endswith(csv_suffix):
-            # get this basin junction and map to a key
-            fname = fname.split("/")[-1]
-            fname = fname.split("_")[0]
-            fname = fname.split("n")[-1] #stupid way of getting just the basin junction number
-            basin_dict[fname] = key
-            key+=1
+        if fname.startswith("basin"):
+            if fname.endswith(csv_suffix):
+                # get this basin junction and map to a key
+                fname = fname.split("/")[-1]
+                fname = fname.split("_")[0]
+                fname = fname.split("n")[-1] #stupid way of getting just the basin junction number
+                basin_dict[fname] = key
+                key+=1
 
     return basin_dict
