@@ -665,7 +665,7 @@ class KP_plotting(object):
 
         print("setting the text")
 
-        ax1.text(0.65,0.85,"Mean: %.3f " %(tdf[data].mean())+"\n"+ r"Median: %.3f " %(tdf[data].median())+"\n"+ r"1$^{st}$/3$^{rd}$ quartiles: %.3f/%.3f" %(tdf[data].quantile(0.25),tdf[data].quantile(0.75)),zorder = 50, transform=ax1.transAxes)
+        ax1.text(0.65,0.8,"Mean: %.3f " %(tdf[data].mean())+"\n"+ r"Median: %.3f " %(tdf[data].median())+"\n"+ r"1$^{st}$/3$^{rd}$ quartiles: %.3f/%.3f" %(tdf[data].quantile(0.25),tdf[data].quantile(0.75)) +"\n" + "# knickpoints: %s" %(tdf[data][tdf[data] != 0].shape[0]),zorder = 50, transform=ax1.transAxes)
 
         if(data == "delta_ksn"):
             xlab = r"$\Delta k_{sn}$"
@@ -821,6 +821,17 @@ class KP_plotting(object):
         else:
             MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat = format, Fig_dpi = 500) # Save the figure
             plt.clf()
+
+
+    def save_output_csv(self):
+        """
+        If selected, will save the selected knickpoints into a csv file
+        """
+
+        print("I am saving the selected knickpoints in a new csv file")
+        self.df_kp_ksn.to_csv(self.fpath+self.fprefix+"_output_ksn.csv", index = False)
+        self.df_kp_stepped.to_csv(self.fpath+self.fprefix+"_output_stepped.csv", index = False)
+
 
             
 

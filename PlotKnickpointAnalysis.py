@@ -92,6 +92,7 @@ def main(argv):
     parser.add_argument("-size_kp_map", "--size_kp_map", type = int, default = 5, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-max_hist", "--maximum_extent_for_histogram", type = int, default = 0, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-lith_rast","--lithologic_raster", type = bool, default = False, help = "switch on if you have a _LITHRAST raster, it will plot a hillshade colored by lithologic unit")
+    parser.add_argument("-save","--save_output", type = bool, default = False, help = "switch on if you have the willingness to save your selected knickpoints in a new csv file named prefix_output.csv")
 
     args = parser.parse_args()
 
@@ -222,7 +223,8 @@ def main(argv):
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, cml = cml, lith_raster = True)
 
 
-
+    if(args.save_output):
+        KI.save_output_csv()
 
     # Preparing the min_max color for mchi maps
     if(args.max_mchi_map <= args.min_mchi_map):
