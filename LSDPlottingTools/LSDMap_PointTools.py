@@ -107,6 +107,7 @@ class LSDMap_PointData(object):
             print("The object file prefix is: " + self.FilePrefix)
 
         self.PANDEX = PANDEX
+        
 
         ######################### THIS PART OF THE CODE IS ONLY USING PANDAS #########################
         if(self.PANDEX == True):
@@ -393,17 +394,24 @@ class LSDMap_PointData(object):
         # The lat long are in epsg 4326 which is WGS84
         inProj = Proj(init='epsg:4326')
         outProj = Proj(init=EPSG_string)
-        this_Lat = self.Latitude[0]
-        this_Lon = self.Longitude[0]
+        #this_Lat = self.Latitude[0]
+        #this_Lon = self.Longitude[0]
 
-        print("Lat-long: ")
-        print(this_Lat)
-        print(this_Lon)
+        #print("The latitude is: ")
+        #print(self.Latitude)
+        
+        #print("Now the lat is")
+        #print(self.Latitude.values)
+        #print(this_Lon)
 
         easting =[]
         northing = []
         if(self.PANDEX == True):
-            easting,northing = transform(inProj,outProj,self.Longitude,self.Latitude)
+            # Adding exception management, depending on your version of the different packages you may have to add the .values or not
+            try:
+                easting,northing = transform(inProj,outProj,self.Longitude.values,self.Latitude.values)
+            except AttributeError:
+                easting,northing = transform(inProj,outProj,self.Longitude,self.Latitude)
         else:
             for idx, Lon in enumerate(self.Longitude):
                 Lat = self.Latitude[idx]

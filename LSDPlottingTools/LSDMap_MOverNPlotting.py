@@ -65,7 +65,7 @@ def SimpleMaxMLECheck(BasinDF):
     MOverNs = list(BasinDF.idxmax(axis=1))
     MOverNs = [float(x.split()[-1]) for x in MOverNs]
     print ("MAX MOVERNS")
-    print MOverNs
+    print (MOverNs)
 
     # zip into a dictionary
     MOverNDict = dict(zip(basin_keys, MOverNs))
@@ -126,7 +126,7 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
 
     # add the threshold first Q MLEs to the dataframe
     ThirdQDF['threshold'] = pd.Series(FirstQF_MLEs, index=ThirdQDF.index)
-    print ThirdQDF
+    print (ThirdQDF)
     # change DF to a boolean where values are greater than the threshold
     TempDF = ThirdQDF.drop('threshold', 1).gt(ThirdQDF['threshold'], 0)
     # get the column names where the values are greater than the threshold for each basin
@@ -331,7 +331,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
         FullChiBasinDF = Helper.ReadBasinStatsCSV(DataDirectory,fname_prefix)
     else:
         FullChiBasinDF = Helper.AppendBasinCSVs(DataDirectory)
-        
+
     # Let's get the list of basins
     if basin_list == []:
         print("You didn't supply a list of basins, so I'm going to analyse all of them.")
@@ -358,7 +358,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['Chi_MLE_points_min'] = UncertaintyDF['Min_MOverNs']
     OutDF['Chi_MLE_points_max'] = UncertaintyDF['Max_MOverNs']
 
-    print "Now getting the m/n from the chi residuals"
+    print ("Now getting the m/n from the chi residuals")
 
     # get the best fit m/n from the chi residuals method
     ResidualsDF = GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list, parallel=parallel)
@@ -366,7 +366,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['Chi_residuals_min'] = ResidualsDF['FirstQ_MOverNs']
     OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
 
-    print "Getting the m/n from the SA data"
+    print ("Getting the m/n from the SA data")
 
     # get the best fit m/n from the raw SA data
     RawSADF = SA.LinearRegressionRawData(DataDirectory,fname_prefix,basin_list)
@@ -449,13 +449,19 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     # Get a vector of the m over n values
     end_movern = start_movern+d_movern*(n_movern-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
+    movern_strs = []
+    for movern in m_over_n_values:
+        movern_str = '%.2f'%movern
+        if movern_str.endswith('0'):
+            movern_str = movern_str[:-1]
+            movern_strs.append(movern_str)
 
     # we open the first file just so that we can get a counter list
-    print "PARALLEL = ", parallel
+    print ("PARALLEL = ", parallel)
     if not parallel:
-        FirstDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,m_over_n_values[0])
+        FirstDF = Helper.ReadFullStatsCSV(DataDirectory,fname_prefix,movern_strs[0])
     else:
-        FirstDF = Helper.AppendFullStatsCSVs(DataDirectory,m_over_n_values[0])
+        FirstDF = Helper.AppendFullStatsCSVs(DataDirectory,movern_strs[0])
 
     # get the number of basins
     basin_keys = list(FirstDF['basin_key'])
@@ -483,7 +489,9 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         Outlier_counter[basin] = this_counter
 
     # Now we loop through all the files, calculating the outliers
-    for m_over_n in m_over_n_values:
+    for m_over_n in movern_strs:
+
+        print("This_m_over_n is: "+m_over_n)
 
         #load the file
         if not parallel:
@@ -491,7 +499,6 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
         else:
             FullStatsDF = Helper.AppendFullStatsCSVs(DataDirectory,m_over_n)
 
-        print("This_m_over_n is: "+str(m_over_n))
 
         # loop through the basins
         for basin in basin_list:
@@ -589,7 +596,7 @@ def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, Dat
     # get the outlier counter for this basin
     thisBasinOutlierCounter = Outlier_counter[basin_number]
 
-    print("I am going to recalcualte MLE for basin: "+str(basin_number))
+    print("I am going to recalculate MLE for basin: "+str(basin_number))
     #print("The counter list is:")
     #print(thisBasinOutlierCounter)
 
@@ -702,8 +709,13 @@ def Calculate_movern_after_iteratively_removing_outliers(movern_list, DataDirect
     # the outlying data
     All_MLE = []
     for m_over_n in movern_list:
+        movern_str = '%.2f'%m_over_n     # need to convert to a string here so files are read correctly. FJC 16/02/18
+        if movern_str.endswith('0'):
+            movern_str = movern_str[:-1]
+    #    print movern_str
+
         MLE_vals = RecalculateTotalMLEWithRemoveList(DataDirectory, fname_prefix,
-                                                     m_over_n,basin_number, remove_list_index, parallel)
+                                                     movern_str,basin_number, remove_list_index, parallel)
         All_MLE.append(MLE_vals)
 
 
@@ -830,7 +842,7 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
         pd_DF = Helper.ReadBasinStatsCSV(DataDirectory, fname_prefix)
     else:
         pd_DF = Helper.AppendBasinStatsCSVs(DataDirectory)
-        
+
     shp = pd_DF.shape
     max_MLEs = []
     max_MLEs_index = []
@@ -1190,7 +1202,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
     if animate:
         # animate the pngs using ffmpeg
         system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+MLE_directory+"MLE_profiles*.png' -y -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+MLE_directory+"MLE_profiles.mp4"
-        print system_call
+        print (system_call)
         subprocess.call(system_call, shell=True)
         # delete the pngs if you want
         if not keep_pngs:
@@ -1341,8 +1353,8 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
 
             # the best fit m/n
             best_fit_movern = best_fit_moverns[basin_key]
-            print "BEST FIT M/N IS: "+ str(best_fit_movern)
-            print "THIS M/N IS: "+str(m_over_n)
+            print ("BEST FIT M/N IS: "+ str(best_fit_movern))
+            print ("THIS M/N IS: "+str(m_over_n))
 
             # label with the basin and m/n
             title_string = "Basin "+str(basin_key)+", $m/n$ = "+str(m_over_n)
@@ -1392,7 +1404,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
     if animate:
         # animate the pngs using ffmpeg
         system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+K_directory+"Chi_profiles_by_K*.png' -y -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+K_directory+"Chi_profiles_by_K.mp4"
-        print system_call
+        print (system_call)
         subprocess.call(system_call, shell=True)
         # delete the pngs if you want
         if not keep_pngs:
@@ -1547,8 +1559,8 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
 
             # the best fit m/n
             best_fit_movern = best_fit_moverns[basin_key]
-            print "BEST FIT M/N IS: "+ str(best_fit_movern)
-            print "THIS M/N IS: "+str(m_over_n)
+            print ("BEST FIT M/N IS: "+ str(best_fit_movern))
+            print ("THIS M/N IS: "+str(m_over_n))
 
             # label with the basin and m/n
             title_string = "Basin "+str(basin_key)+", $m/n$ = "+str(m_over_n)
@@ -1598,7 +1610,7 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
     if animate:
         # animate the pngs using ffmpeg
         system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+K_directory+"Chi_profiles_by_Lith*.png' -y -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+K_directory+"Chi_profiles_by_Lith.mp4"
-        print system_call
+        print (system_call)
         subprocess.call(system_call, shell=True)
         # delete the pngs if you want
         if not keep_pngs:
@@ -1925,7 +1937,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
 
         # get the best fit m over ns for this basin
         best_fit_moverns = best_fit_movern_dict[basin_number]
-        print best_fit_moverns
+        print (best_fit_moverns)
 
         # colours for each iteration
         #colours = np.linspace(0.9,0.2,len(n_removed_sources)+1)
@@ -1938,7 +1950,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             best_fit_movern = best_fit_moverns[i]
             # get the index in the MLE list
             idx = int(round((best_fit_movern - start_movern)/d_movern,0))
-            print idx
+            print (idx)
             best_fit_MLE = basin_MLEs[idx][i]
             print ("The best fit MLE is: "+str(best_fit_MLE)+", where m/n = " +str(best_fit_movern))
 
@@ -2014,7 +2026,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         ax.cla()
     plt.close(fig)
 
-def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True):
+def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True,parallel=False):
     """
     This function makes a summary plot of the best fit m/n from the different
     methods.
@@ -2059,23 +2071,25 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
         #l_pad = -35
 
+    print("SHOW LEGEND", show_legend)
+
     if show_legend:
         gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
     else:
-        gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.95,top=0.95)
 
     ax = fig.add_subplot(gs[5:100,10:95])
 
     # read in the summary csv
     df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
-    print df
+    print (df)
 
     if basin_list != []:
         basin_keys = basin_list
     else:
         # get the basin keys
         basin_keys = df['basin_key'].tolist()
-        print basin_keys
+        print (basin_keys)
 
     df = df[df['basin_key'].isin(basin_keys)]
 
@@ -2131,7 +2145,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     ax.set_ylabel('Best fit $m/n$')
 
     if show_legend:
-        print "ADDING THE LEGEND"
+        print ("ADDING THE LEGEND")
         # sort both labels and handles by labels
         handles, labels = ax.get_legend_handles_labels()
         labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
@@ -2144,8 +2158,8 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         tick.set_pad(2)
 
     # change tick spacing
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
-    ax.set_xlim(0,)
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=2))
+    ax.set_xlim(-1,)
     #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
 
     #set y axis lims
@@ -2213,14 +2227,14 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
 
         # read in the summary csv
         df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
-        print df
+        print (df)
 
         if basin_list != []:
             basin_keys = basin_list
         else:
             # get the basin keys
             basin_keys = df['basin_key'].tolist()
-            print basin_keys
+            print (basin_keys)
 
         df = df[df['basin_key'].isin(basin_keys)]
 
@@ -2238,7 +2252,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
             points_min_err = median_movern-points_min_err
             errors = np.array(zip(points_min_err, points_max_err)).T
 
-            points_chi_keys = df['basin_key'].as_matrix()-0.1
+            points_chi_keys = df['basin_key'].as_matrix() # -0.1 I removed that to fix the movern plots - Boris
             ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
             ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
 
@@ -2273,7 +2287,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
 
         # change tick spacing
         ax.xaxis.set_major_locator(ticker.MultipleLocator(base=1))
-        ax.set_xlim(0,)
+        ax.set_xlim(-0.5,df['basin_key'].max()+0.5)
 
         newFilename = summary_directory+fname_prefix+"_movern_"+movern_method+"."+FigFormat
         plt.savefig(newFilename,format=FigFormat,dpi=300)
@@ -2338,12 +2352,12 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     if not parallel:
       df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
     else:
-      print "MakeMOverNSummaryHistogram not parallelised yet"
+      print ("MakeMOverNSummaryHistogram not parallelised yet")
       return
 
     # get the basin keys
     basin_keys = df['basin_key'].tolist()
-    print basin_keys
+    print (basin_keys)
     columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
     these_labels = ['Chi all data', 'Chi Monte Carlo', 'S-A all data', 'Segmented S-A']
     colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
@@ -2422,7 +2436,7 @@ def PlotMOverNByBasin(DataDirectory, fname_prefix, basin_list = [], size_format=
     # check if the user wants to colour the points by a specific columns
     if colour_points:
         if not column_header.isin(columns):
-            print "The column header name does not exist! Please check your dataframe"
+            print ("The column header name does not exist! Please check your dataframe")
         else:
             values_to_colour = df[column_header].tolist()
             this_cmap = plt.cm.Set2
@@ -2573,6 +2587,8 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     else:
         BasinInfoDF = Helper.AppendBasinInfoCSVs(DataDirectory)
 
+    print BasinInfoDF
+    
     basin_keys = list(BasinInfoDF['basin_key'])
     basin_keys = [int(x) for x in basin_keys]
 
@@ -2580,7 +2596,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     basin_junctions = [int(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
-    print basin_keys
+    print (basin_keys)
 
     # get a discrete colormap
     cmap = plt.cm.jet
@@ -2608,7 +2624,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
       Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     else:
       Basins = LSDP.GetMultipleBasinOutlines(DataDirectory)
-      
+
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the channel network
@@ -2621,12 +2637,12 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
 
     # add the basin labelling
     label_dict = dict(zip(basin_junctions,basin_keys))
-    
+
     if not parallel:
       Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
     else:
       Points = LSDP.GetPointsWithinMultipleBasins(DataDirectory, BasinsName)
-      
+
     MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict, zorder=200)
 
     # Save the figure
@@ -2688,21 +2704,24 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     basin_junctions = [int(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
-    print basin_keys
+    print (basin_keys)
 
     labeldict = {}
     # get the best fit m/n for each basin
     if movern_method == "Chi_full":
+        print ('Making a plot for the full chi method')
         Outlier_counter, removed_sources_dict, best_fit_movern_dict, MLEs_dict = CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, parallel=parallel)
         #MOverNDict = SimpleMaxMLECheck(BasinDF)
         m_over_ns = [round(i[0],2) for i in best_fit_movern_dict.values()]
-        #print m_over_ns
+        print ('You tested these m_over_ns')
+        print (m_over_ns)
         MOverNDict = dict(zip(basin_keys,m_over_ns))
         label_list = [str(i)+": "+str(j) for i,j in zip(basin_keys,m_over_ns)]
         labeldict = dict(zip(basin_junctions,label_list))
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_full.'+FigFormat
         title = "Chi analysis (all data)"
     elif movern_method == "Chi_points":
+        print ('Making a plot for the chi points method')
         if not parallel:
             PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
         else:
@@ -2728,21 +2747,21 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         ImageName = raster_directory+fname_prefix+'_basins_movern_SA.'+FigFormat
         title = "Slope-area analysis"
     else:
-        print "You didn't select an appropriate movern method. Please choose either 'Chi_full', 'Chi_points, or 'SA'."
+        print ("You didn't select an appropriate movern method. Please choose either 'Chi_full', 'Chi_points, or 'SA'.")
         sys.exit()
 
     # get moverns for cbar plotting. We always want a spacing of 0.1.
     min_max_str = ['min', 'max']
     end_movern = start_movern+d_movern*(n_movern-1)
     all_moverns = np.linspace(start_movern,end_movern,n_movern)
-    print "END MOVERN:"
-    print end_movern
+    print ("END MOVERN:")
+    print (end_movern)
     min_max_moverns = [start_movern, end_movern]
     cbar_dict = dict(zip(min_max_str,min_max_moverns))
 
     # work out how many colours we need for the colormap
     n_colours = len(all_moverns)
-    print "N colours is: "+str(n_colours)
+    print ("N colours is: "+str(n_colours))
 
     # get a discrete colormap
     mn_cmap = plt.cm.Reds
@@ -2756,7 +2775,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     HillshadeName = fname_prefix+'_hs'+raster_ext
     BasinsName = fname_prefix+'_AllBasins'+raster_ext
 
-    print "THE TITLE IS:"+title
+    print ("THE TITLE IS:"+title)
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", plot_title=title)
     # add the basins drape
@@ -2779,13 +2798,13 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
                           use_keys_not_junctions = True, show_colourbar = False,
                           discrete_cmap=True, n_colours=n_colours, colorbarlabel = "$m/n$",
                           colourmap = mn_cmap, adjust_text = False, cbar_dict=cbar_dict, parallel=parallel)
-                      
+
     # add the basin outlines
     if not parallel:
       Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     else:
       Basins = LSDP.GetMultipleBasinOutlines(DataDirectory)
-      
+
     MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
     # add the channel network
@@ -2802,7 +2821,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     else:
       Points = LSDP.GetPointsWithinMultipleBasins(DataDirectory, BasinsName)
 
-    print "Adding labels, the label dict is:", labeldict
+    print ("Adding labels, the label dict is:", labeldict)
     MF.add_text_annotation_from_shapely_points_v2(Points, text_colour='k', label_dict=labeldict, zorder=200)
 
     if(lith):
@@ -2950,7 +2969,7 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     MOverNDict = SimpleMaxMLECheck(basin_stats_df)
 
     if basin_list == []:
-        print "You didn't give me a basin list so I'm going to plot all of them!"
+        print ("You didn't give me a basin list so I'm going to plot all of them!")
         basin_list = basin_keys
 
     for basin in basin_list:
@@ -2958,7 +2977,7 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
         chain_df = Helper.ReadChainCSV(DataDirectory,fname_prefix,int(basin))
 
         best_fit_movern = MOverNDict[int(basin)]
-        print "The best fit m/n is:", best_fit_movern
+        print (("The best fit m/n is:", best_fit_movern))
         n_iterations = len(chain_df['i'])
         #print n_iterations
         best_fit_line = [best_fit_movern] * len(chain_df['i'])
@@ -3012,11 +3031,11 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
         basin_df = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
     else:
         basin_df = Helper.AppendBasinInfoCSVs(DataDirectory)
-        
+
     basin_keys = basin_df['basin_key']
 
     if basin_list == []:
-        print "You didn't give me a basin list so I'm going to plot all of them!"
+        print ("You didn't give me a basin list so I'm going to plot all of them!")
         basin_list = basin_keys
 
     # get the uncertainty df
@@ -3071,7 +3090,7 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
 
         # now get the threshold value
         ThisUncertaintyDF = UncertaintyDF[UncertaintyDF['basin_key'] == basin_key]
-        print ThisUncertaintyDF
+        print (ThisUncertaintyDF)
 
         #plot the median and quartiles
         ax.plot(all_moverns,Medians,c="k",lw=1,zorder=2)
@@ -3157,7 +3176,7 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
         for dir in dirs:
             if MLE_str in dir:
                 this_dir = DataDirectory+"/"+dir+'/'
-                print this_dir
+                print (this_dir)
 
                 this_df = pd.DataFrame(columns=columns)
 

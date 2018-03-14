@@ -1,8 +1,9 @@
 #=============================================================================
-# Script to plot some basic rasters
+# Script to plot chi analysis. 
 #
 # Authors:
-#     Simon Mudd, Boris Gailleton, Fiona J. Clubb
+#   Simon M. Mudd  
+#   Fiona J. Clubb
 #=============================================================================
 #=============================================================================
 # IMPORT MODULES
@@ -14,19 +15,21 @@ matplotlib.use('Agg')
 #from __future__ import print_function
 import sys
 import os
-import pandas as pd
 from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 import LSDMapWrappers as LSDMW
 from LSDMapFigure import PlottingHelpers as phelp
 import LSDPlottingTools as LSDP
 from osgeo import ogr
+
+
+
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.
 #=============================================================================
 def print_welcome():
 
     print("\n\n=======================================================================")
-    print("Hello! I'm going to plot some basic plots.")
+    print("Hello! I'm going to plot chi analysis results for you.")
     print("You will need to tell me which directory to look in.")
     print("Use the -dir flag to define the working directory.")
     print("If you don't do this I will assume the data is in the same directory as this script.")
@@ -34,29 +37,6 @@ def print_welcome():
     print("   python PlotChiAnalysis.py -h\n")
     print("=======================================================================\n\n ")
 
-    
-#=============================================================================
-# Some functions for managing directories
-#=============================================================================     
-def MakeRasterDirectory(this_dir):
-    # check if a raster directory exists. If not then make it.
-    raster_directory = this_dir+'raster_plots/'
-    print("I am printing to a raster directory:")
-    print(raster_directory)
-    if not os.path.isdir(raster_directory):
-        os.makedirs(raster_directory)  
-        
-#=============================================================================
-# Some functions for managing directories
-#=============================================================================     
-def MakeBasemapDirectory(this_dir):
-    # check if a raster directory exists. If not then make it.
-    basemap_directory = this_dir+'basemap_plots/'
-    print("I am printing to a raster directory:")
-    print(basemap_directory)
-    if not os.path.isdir(basemap_directory):
-        os.makedirs(basemap_directory)    
-    
 #=============================================================================
 # This parses a comma separated string
 #=============================================================================    
@@ -100,7 +80,7 @@ def parse_dict_from_string(a_string):
     Author: SMM
         
     Date: 10/01/2018
-    """
+    """    
     if len(a_string) == 0:
         print("No rename dictionary found. I will return and empty dict.")
         this_rename_dict = {}
@@ -133,8 +113,7 @@ def parse_list_of_list_from_string(a_string):
     Author: SMM
     
     Date: 11/01/2018
-    """
-    
+    """    
     if len(a_string) == 0:
         print("No list of list found. I will return an empty list.")
         list_of_list = []
@@ -168,7 +147,7 @@ def convert_basin_stack_to_value_dict(basin_stack_list):
         
     Author: SMM
     
-    Date: 11/01/2017
+    Date: 11/01/2018
     
     """
     
@@ -201,9 +180,8 @@ def pad_offset_lists(basin_stack_list,offset_list):
         
     Author: SMM
     
-    Date: 09/01/2017
-    """
-    
+    Date: 09/01/2018
+    """    
     # I need to check chi the offsets
     n_basin_stacks = len(basin_stack_list)
     if len(offset_list) == 0:
@@ -224,40 +202,7 @@ def pad_offset_lists(basin_stack_list,offset_list):
     
     return final_offsets
     
-def DoesBasinInfoExist(DataDir,fname_prefix):
-    """
-    This function checks to see if there is an AllBasinsInfo file, which is produced by the LSDTopoTools basin extraction routines in the chi_mapping_tool.
     
-    Args: 
-        DataDir (str): The name of the data directory
-        fname_prefix (str): The prefix of the raster file to be analysed
-        
-    Returns:
-        BasinInfoDF (pandas dataframe): The basin info in a pandas dataframe
-        exising_basin_keys (int list): a list of integers with the basin keys
-        
-    Author: SMM
-    
-    Date 30/01/2017
-    """
-    # See if a basin info file exists and if so get the basin list
-    print("Let me check if there is a basins info csv file.")
-    BasinInfoPrefix = fname_prefix+"_AllBasinsInfo.csv"
-    BasinInfoFileName = DataDir+BasinInfoPrefix
-    existing_basin_keys = []
-    DF = pd.DataFrame()
-    
-    if os.path.isfile(BasinInfoFileName): 
-        print("There is a basins info csv file")
-        BasinInfoDF = phelp.ReadBasinInfoCSV(DataDir, fname_prefix)
-        existing_basin_keys = list(BasinInfoDF['basin_key'])
-        existing_basin_keys = [int(x) for x in existing_basin_keys]
-        DF=BasinInfoDF 
-    else:
-        print("I didn't find a basins info csv file. Check directory or filename.")
-        
-    return DF, existing_basin_keys
-        
     
 #=============================================================================
 # This is the main function that runs the whole thing
@@ -272,28 +217,11 @@ def main(argv):
     # Get the arguments
     import argparse
     parser = argparse.ArgumentParser()
-    
-    #==========================================================================
     # The location of the data files
     parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the m/n analysis. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error (unless you're running the parallel plotting).")
     parser.add_argument("-out_fname", "--out_fname_prefix", type=str, help="The prefix of the figures WITHOUT EXTENSION!!! If not supplied the fname prefix will be used.")
-    
-    
-    
-    #===============================================================================
-    # These are some arguments for potting rasters other than the defaults
-    parser.add_argument("-drape_fname", "--drape_fname_prefix", type=str, help="The prefix of a raster that is used in a drape plot WITHOUT EXTENSION!!! If not supplied this will just use the hillshade.")
-    parser.add_argument("-drape_cbar_loc", "--drape_cbar_loc", type=str, default = "right", help="This is the location of the colourbar for the drape plot. Options are None, left, right, top and bottom.")
-    parser.add_argument("-drape_cbar_label", "--drape_cbar_label", type=str, default = "colourbar_label", help="This is the label on the colourbar.")
-    parser.add_argument("-drape_cmap", "--drape_cmap", type=str, default = "jet", help="This is colourmap. See matplotlib docs for options.")    
-    #===============================================================================
-    # Some formatting flags
-    
-    
-    
-    
-    #===============================================================================
+
     # Selecting and renaming basins
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")  
     parser.add_argument("-rename_dict", "--rename_dict",type=str,default = "", help = "This is a string that initiates a dictionary for renaming basins. The different dict entries should be comma separated, and key and value should be separated by a colon. Default = no dict")   
@@ -301,20 +229,10 @@ def main(argv):
     parser.add_argument("-chi_offsets", "--chi_offsets",type=str,default = "", help = "This is a string that initiates a list of chi offsets for each of the basin lists. Default = no list")
     parser.add_argument("-fd_offsets", "--flow_distance_offsets",type=str,default = "", help = "This is a string that initiates a list of flow distance offsets for each of the basin lists. Default = no list")
     
-    #===============================================================================    
-    # What sort of analyses you want--these are rather simple versions
-    parser.add_argument("-PB", "--plot_basins", type=bool, default=False, help="If this is true, I'll make a simple basin plot.")
-    parser.add_argument("-PBC", "--plot_basins_channels", type=bool, default=False, help="If this is true, I'll make a simple basin plot with channels.")
-    parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that puts a colour scale on a drape of your choice.")
-    parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.") 
     
-    #===============================================================================    
-    # What sort of analyses you want--these are rather simple versions   
-    parser.add_argument("-PS","--plot_swath", type=bool, default=False, help="If this is true, I'll plot a swath.")
-    parser.add_argument("-swath_prefix","--swath_prefix", type=str, default="swath", help="This is the prefix to the swath filename.")
-    
-    #===============================================================================    
-    # What sort of analyses you want--these lump different analyses
+    # What sort of analyses you want
+    parser.add_argument("-PB", "--plot_basins", type=bool, default=False, help="If this is true, I'll make a simple basin plot.")    
+    parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.")  
     parser.add_argument("-all", "--all_chi_plots", type=bool, default=False, help="If this is true, I'll make all the plots including raster and chi profile plots.")
     parser.add_argument("-all_rasters", "--all_raster_plots", type=bool, default=False, help="If this is true, I'll make all the raster plots.")
     parser.add_argument("-all_stacks", "--all_stacked_plots", type=bool, default=False, help="If this is true, I'll make all the stacked plots.")
@@ -328,25 +246,16 @@ def main(argv):
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
-    parser.add_argument("-ar", "--figure_aspect_ratio", type=float, default=2, help="The aspect ratio of profile plots. Doesn't affect maps, whose aspect ratio is set by the size of the DEM.")
+    parser.add_argument("-ar", "--figure_aspect_ratio", type=float, default=2, help="The aspect ratio of profile plots. Doesn't affect maps, whose aspect ratio is set by the size of the DEM.")     
     parser.add_argument("-parallel", "--parallel", type=bool, default=False, help="If this is true I'll assume you ran the code in parallel and append all your CSVs together before plotting.")
     parser.add_argument("-dpi", "--dpi", type=int, default=250, help="The dots per inch of your figure.")
-    parser.add_argument("-bmpsm", "--basemap_parallel_spacing_multiplier", type=float, default=0.5, help="Basemap parallel spacing multiplier. Increase if parallels are too close on your basemap.")
-    parser.add_argument("-bmrem", "--basemap_regional_extent_multiplier", type=float, default=3, help="Basemap regional extent multiplier. The multiple of the size of the raster to make the basemap extent")
-   
+    
     args = parser.parse_args()
 
     if not args.fname_prefix:
         if not args.parallel:
             print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
             sys.exit()
-            
-    if not args.out_fname_prefix:
-        print("You did not give me an out name prefix. I am using the raster prefix.")
-        out_fname_prefix = args.fname_prefix
-    else:
-        print("I am going to use an fname prefix for the outfiles")
-        out_fname_prefix = args.out_fname_prefix
 
     # get the base directory
     if args.base_directory:
@@ -358,54 +267,47 @@ def main(argv):
     else:
         this_dir = os.getcwd()
 
-    # some formatting for the figures
-    if args.FigFormat == "manuscipt_svg":
-        print("You chose the manuscript svg option. This only works with the -ALL flag. For other flags it will default to simple svg")
-        simple_format = "svg"
-    elif args.FigFormat == "manuscript_png":
-        print("You chose the manuscript png option. This only works with the -ALL flag. For other flags it will default to simple png")
-        simple_format = "png"
-    else:
-        simple_format = args.FigFormat
-         
-        
-        
-    
-    # This is for swath plotting
-    if args.plot_swath:
-        print("Let me print a swath profile.")
-        swath_csv = this_dir+args.swath_prefix+".csv"
-        fig_fname = this_dir+"test_swath.png"
-        print("The swath file is: "+swath_csv)
-        LSDP.PlotSwath(swath_csv, FigFileName = fig_fname,size_format = args.size_format, fig_format = simple_format)
-        
     # See if you should create a shapefile of the raster footprint             
     if args.create_raster_footprint_shapefile:
         print("Let me create a shapefile of the raster footprint")
         
         driver_name = "ESRI shapefile"
         driver = ogr.GetDriverByName(driver_name)
-        #print("Driver is: ")
-        #print(driver)
-        #print("Now I'll try it from LSDPlottingTools")     
+        
+        print("Driver is: ")
+        print(driver)
+        
+        print("Now I'll try it from LSDPlottingTools")
+              
         RasterFile = args.fname_prefix+".bil"
         LSDP.CreateShapefileOfRasterFootprint(this_dir, RasterFile)
         
     # See if you should create a basemap
     if args.create_basemap_figure:
-        import LSDBasemapTools as LSDBM
+        import LSDBasemapTools as LSDM
         
-        MakeBasemapDirectory(this_dir)
         RasterFile = args.fname_prefix+".bil"
-        basemap_out_prefix = "/basemap_plots/"+out_fname_prefix
         
-        # This gets the positioning
-        centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDP.GetCentreAndExtentOfRaster(this_dir, RasterFile)
+        lat_0 = 25.7
+        lon_0 = 91.5
+        LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = lat_0 , lon_0 = lon_0)
         
-        print("The basemap centrepoint is: "+str(centre_lat)+"," +str(centre_long))
-        LSDBM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = args.basemap_regional_extent_multiplier, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier, out_fname_prefix = basemap_out_prefix, fig_dpi = args.dpi)
         
-          
+            
+    # See if a basin info file exists and if so get the basin list
+    print("Let me check if there is a basins info csv file.")
+    BasinInfoPrefix = args.fname_prefix+"_AllBasinsInfo.csv"
+    BasinInfoFileName = this_dir+BasinInfoPrefix
+    existing_basin_keys = []
+    if os.path.isfile(BasinInfoFileName): 
+        print("There is a basins info csv file")
+        BasinInfoDF = phelp.ReadBasinInfoCSV(this_dir, args.fname_prefix)
+        existing_basin_keys = list(BasinInfoDF['basin_key'])
+        existing_basin_keys = [int(x) for x in existing_basin_keys]
+    else:
+        print("I didn't find a basins info csv file. Check directory or filename.")
+    
+
     # Parse any lists, dicts, or list of lists from the arguments   
     these_basin_keys = parse_list_from_string(args.basin_keys)
     this_rename_dict = parse_dict_from_string(args.rename_dict)
@@ -413,12 +315,6 @@ def main(argv):
     chi_offset_list = parse_list_from_string(args.chi_offsets)
     fd_offset_list = parse_list_from_string(args.flow_distance_offsets)
 
-    # Find the basin keys, if they exist
-    BasinInfoDF,existing_basin_keys = DoesBasinInfoExist(this_dir, args.fname_prefix)
-    if len(existing_basin_keys) > 0:
-        print("I've got some basin keys, they are: ")
-        print(existing_basin_keys)
-    
     # If the basin keys are not supplited then assume all basins are used. 
     if these_basin_keys == []:
         these_basin_keys = existing_basin_keys
@@ -477,15 +373,18 @@ def main(argv):
     final_chi_offsets = pad_offset_lists(basin_stack_list,chi_offset_list)
     final_fd_offsets = pad_offset_lists(basin_stack_list,fd_offset_list)
 
-    
-    # This is the most basic draped plot. 
-    if args.plot_drape:
-        print("Let me print a drape plot for you.")
-        MakeRasterDirectory(this_dir)
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix
-        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label)
-        
-        
+
+
+    # some formatting for the figures
+    if args.FigFormat == "manuscipt_svg":
+        print("You chose the manuscript svg option. This only works with the -ALL flag. For other flags it will default to simple svg")
+        simple_format = "svg"
+    elif args.FigFormat == "manuscript_png":
+        print("You chose the manuscript png option. This only works with the -ALL flag. For other flags it will default to simple png")
+        simple_format = "png"
+    else:
+        simple_format = args.FigFormat
+ 
 
     # This just plots the basins. Useful for checking on basin selection
     if args.plot_basins:
@@ -493,48 +392,17 @@ def main(argv):
         
         # check if a raster directory exists. If not then make it.
         raster_directory = this_dir+'raster_plots/'
-        print("I am printing to a raster directory:")
-        print(raster_directory)
         if not os.path.isdir(raster_directory):
             os.makedirs(raster_directory)
         
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix      
+        raster_out_prefix = "/raster_plots/"+args.fname_prefix      
         # Now for raster plots
         # First the basins, labeled:
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
-      
+
     # This just plots the basins. Useful for checking on basin selection
-    if args.plot_basins_channels:
-        print("I am going to print basins and channels.")
-        
-        # check if a raster directory exists. If not then make it.
-        raster_directory = this_dir+'raster_plots/'
-        print("I am printing to a raster directory:")
-        print(raster_directory)
-        if not os.path.isdir(raster_directory):
-            os.makedirs(raster_directory)
-        
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix      
-        # First the basins, with blue channels scaled by drainage area
-        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basinschannels",include_channels = True, label_basins = False)  
-        
-    # This prints a draped plot. All you need is a drape layer
-    if args.plot_basins_channels:
-        print("I am going to print basins and channels.")
-        
-        # check if a raster directory exists. If not then make it.
-        raster_directory = this_dir+'raster_plots/'
-        print("I am printing to a raster directory:")
-        print(raster_directory)
-        if not os.path.isdir(raster_directory):
-            os.makedirs(raster_directory)  
-        
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix    
-            
-        
-    # This plots the chi coordinates. You need to have chi rasters for this
     if args.plot_chi_coord:
-        print("I am going to plot the chi coordinate.")
+        print("I am only going to print basins.")
         
         # check if a raster directory exists. If not then make it.
         raster_directory = this_dir+'raster_plots/'
@@ -544,7 +412,7 @@ def main(argv):
         # Get the names of the relevant files
         ChannelFname = args.fname_prefix+"_chi_data_map.csv"
         
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix      
+        raster_out_prefix = "/raster_plots/"+args.fname_prefix      
         # Now for raster plots
         # First the basins, labeled:
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
@@ -572,7 +440,7 @@ def main(argv):
         # Get the names of the relevant files
         ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
         
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix
+        raster_out_prefix = "/raster_plots/"+args.fname_prefix
         
         # Now for raster plots
         # First the basins, labeled:
@@ -620,10 +488,9 @@ def main(argv):
             LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "m_chi", plotting_data_format = 'log', colorbarlabel = cbl, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_FD", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)    
 
             # This prints the channel profiles coloured by source number
-            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)    
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)        
 
 
 #=============================================================================
 if __name__ == "__main__":
     main(sys.argv[1:])
-

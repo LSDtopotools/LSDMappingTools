@@ -18,6 +18,8 @@ from LSDPlottingTools import LSDMap_BasicMaps as BP
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
 from LSDPlottingTools import LSDMap_ChiPlotting as CP
+from LSDPlottingTools import LSDMap_LithoPlotting as LP
+
 
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.
@@ -50,41 +52,21 @@ def main(argv):
     # The location of the data files
     parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the m/n analysis. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error.")
+    # Basin and source selection
+    # Basins selection
+    parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = all basins")
+    # Sources selection
+    parser.add_argument("-source_keys", "--source_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of sources you want for the plotting. Default = all sources")
+    parser.add_argument("-min_sl", "--min_source_length", type=float , default = 0, help = "This is a minimum length for the river to plot, if you want to only plot the river profile of the main rivers for example. Default = 0 (no restrictions)")
 
-    # What sort of analyses you want
-    ###### OLD METHOD I KEEP IT AT THE MOMENT BUT ILL PROBABLY ERASE EVERYTHING SOON ######
-    parser.add_argument("-mb", "--map_basic", type=bool, default = False, help="Turn to True to plot a basic knickpoint map on the top of the hillshade of the field")
-    parser.add_argument("-bh", "--basic_hist", type=bool, default = False, help="Turn to True to plot a basic histogram of the knickpoint spreading")
-    parser.add_argument("-mor", "--map_outliers_rivers", type=bool, default = False, help="Turn to True to plot outilers knickpoint map on the top of the hillshade of the field detected with a MAD binned by rivers")
-    parser.add_argument("-mob", "--map_outliers_basins", type=bool, default = False, help="Turn to True to plot outilers knickpoint map on the top of the hillshade of the field detected with a MAD binned by basins")
-    parser.add_argument("-mog", "--map_outliers_gen", type=bool, default = False, help="Turn to True to plot outilers knickpoint map on the top of the hillshade of the field detected with a MAD")
-    parser.add_argument("-cg", "--chi_gen", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each selected basins, MAD method")
-    parser.add_argument("-cba", "--chi_basin", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each selected basins, MAD method binned by basins")
-    parser.add_argument("-cb", "--chi_basic", type=bool, default = False, help="Turn to True to plot raw knickpoints on the top of a chi profiel for each selected basins")
-    parser.add_argument("-cr", "--chi_river", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each selected basins, MAD method binned by rivers")
-    parser.add_argument("-cRKr", "--chi_RKEY_river", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each river, MAD method binned by rivers")
-    parser.add_argument("-cRKb", "--chi_RKEY_basin", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each river, MAD method binned by basin")
-    parser.add_argument("-cRKraw", "--chi_RKEY_raw", type=bool, default = False, help="Turn to True to plot outliers on the top of a chi profiel for each river, raw data")
-    parser.add_argument("-kzp", "--knickzone_profile", type=bool, default = False, help="Turn to True to plot knickzones profiles for each rivers")
-    parser.add_argument("-mancut", "--manual_cutoff", type=float, default = 0, help="Set a manual cutoff value for plotting the basic maps without automatic stat")
-    ####### END OF OLD
-
-    # knickpoint options
-    parser.add_argument("-METH", "--method", type=str, default = 'ksn', help="Which knickinfo do you need: ksn, rksn or rad")
-    parser.add_argument("-BIN", "--binning", type=str, default = 'general', help="Do you want to bin your data for outliers detection: source_key, basin_key, general")
-    parser.add_argument("-OUT", "--outlier", type=bool, default = False, help="Turn to True to only display outliers detected on some method")
-    parser.add_argument("-KzW", "--knizone_weighted", type=bool, default = True, help="Knickzones are weighted by lenghth for the outlier detection. You can turn that off to have true raw data")
-
-    parser.add_argument("-Ras", "--raster", type=bool, default = False, help="Turn to True to plot a complete set of figures")
-    parser.add_argument("-Riv", "--river", type=bool, default = False, help="Turn to True to plot a complete set of figures")
-
+    # These control the format of your figures
+    parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
+    parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
 
     # ALL
-    parser.add_argument("-ALL", "--AllAnalysis", type=bool, default = False, help="Turn on to have fun")
+    parser.add_argument("-all", "--AllAnalysis", type=bool, default = False, help="Turn on to have fun")
+    parser.add_argument("-allD", "--AllAnalysisDebug", type=bool, default = False, help="Turn on to have even more fun")
 
-
-    # Data sorting option
-    
 
     # Mchi_related
     parser.add_argument("-mcstd", "--mchi_map_std", type=bool, default = False, help="Turn to True to plot a standart M_chi map on an HS. Small reminder, Mchi = Ksn if calculated with A0 = 1.")
@@ -92,25 +74,31 @@ def main(argv):
     parser.add_argument("-minmc", "--min_mchi_map", type=int, default = 0, help="mininum value for the scale of your m_chi maps, default 0")
     parser.add_argument("-maxmc", "--max_mchi_map", type=int, default = 0, help="maximum value for the scale of your m_chi maps, default auto")
 
-    # Basin
-    # Basin selection stuffs
-    parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
-    
-    
+    #knickpint related
 
-    # These control the format of your figures
-    parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
-    parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
+    parser.add_argument("-ksnPs", "--ksn_per_source", type=bool, default = False, help="Print one figure per source key selected, with ksn -> f(chi & flow_distance) in the folder .../river_plots/. it displays the ksn out of Mudd et al., 2014 method, and the TVD one out of the *insert algorithm name*")
+    parser.add_argument("-rivplot", "--river_profile", type=bool, default = False, help="Print one figure per source key selected, with elevation -> f(chi & flow_distance) in the folder .../river_plots/. it displays river profiles in a chi and distance spaces")
+    parser.add_argument("-basplot", "--basin_plot", type=bool, default = False, help="Print one figure per basins key selected, with elevation -> f(chi & flow_distance) in the folder .../river_plots/. it displays river profiles in a chi and distance spaces")
+    parser.add_argument("-rasplot", "--raster_plots", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
+    parser.add_argument("-rasplot_ld", "--raster_plots_large_dataset", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
+    parser.add_argument("-statplot", "--statistical_plots", type = bool, default = False, help="Print a bunch of statistics about the knickpoints in the folder .../raster_plots/")
+
+    # Others
+    parser.add_argument("-nbh", "--n_bin_hist", type = int, default = 0, help = "Customization of the number of bin you want for the general histogram. Default is an automatic in-built selection from numpy")
+    parser.add_argument("-cov", "--cut_off_val", type = str, default = "0,0,0,0", help = "Cutoff value for the knickpoint magnitude (the drop/increase of ksn). Default is 0 (no cut)")
+    parser.add_argument("-kal", "--kalib", type = bool, default = False, help = "Don't use that.")
+    parser.add_argument("-segelev", "--print_segmented_elevation", type = bool, default = False, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+    parser.add_argument("-extent_rast_cmap", "--manual_extent_colormap_knickpoint_raster", type = str, default = "", help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+    parser.add_argument("-size_kp_map", "--size_kp_map", type = int, default = 5, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+    parser.add_argument("-max_hist", "--maximum_extent_for_histogram", type = int, default = 0, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+    parser.add_argument("-lith_rast","--lithologic_raster", type = bool, default = False, help = "switch on if you have a _LITHRAST raster, it will plot a hillshade colored by lithologic unit")
+    parser.add_argument("-save","--save_output", type = bool, default = False, help = "switch on if you have the willingness to save your selected knickpoints in a new csv file named prefix_output.csv")
+
     args = parser.parse_args()
 
-
-    if (args.method not in ['ksn', 'rksn', 'rad']):
-        print("You need to give me a relevant method: ksn, rksn or rad")
-        quit()
-    if (args.binning not in ['general', 'basin_key', 'source_key']):
-        print("You need to give me a relevant method: ksn, rksn or rad")
-        quit()
-
+    # Processing the basin/source keys selection
+    print("I am reading the basin/source key selection and checking your parameters...")
+    
     if len(args.basin_keys) == 0:
         print("No basins found, I will plot all of them")
         these_basin_keys = []
@@ -119,107 +107,138 @@ def main(argv):
         print("The basins I will plot are:")
         print(these_basin_keys)
 
+    if len(args.source_keys) == 0:
+        print("No sources found, I will plot all of them")
+        these_source_keys = []
+    else:
+        these_source_keys = [int(item) for item in args.source_keys.split(',')]
+        print("The sources preselected are:")
+        print(these_source_keys)
+
+    if len(args.manual_extent_colormap_knickpoint_raster) > 0:
+        manual_cmap_extent_raster_plot = [int(item) for item in args.manual_extent_colormap_knickpoint_raster.split(',')]
+        print("You choose a manual colorbar for plotting:")
+        print(manual_cmap_extent_raster_plot)
+    else:
+        manual_cmap_extent_raster_plot = []
+        
+    if(args.maximum_extent_for_histogram>0):
+        ext_dseg_hist = [0,args.maximum_extent_for_histogram]
+        ext_dksn_hist = [-args.maximum_extent_for_histogram,args.maximum_extent_for_histogram]
+    else:
+        ext_dseg_hist = []
+        ext_dksn_hist = []
+
+
+    print("Getting your cut off values...")
+    try:
+        covfefe = [float(item) for item in args.cut_off_val.replace(" ", "").split(',')]
+        print("ok.")
+        covfefe_t = [-covfefe[0],covfefe[1],-10000,covfefe[2]]
+        covfefe = covfefe_t
+    except ValueError:
+        print("Something went wrong - I am defaulting the values")
+        covfefe = [0,0,-10000,0]
+    print("cut off values:")
+    print(covfefe)
+    # Processing the size choice
+    try:
+        size = [int(item) for item in args.size_format.split(',')]
+    except ValueError:
+        size = args.size_format
+
     if not args.fname_prefix:
         print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
         sys.exit()
+    print("Done")
+
+
+    print("Loading the dataset:")
+
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe)
     
+    if(args.AllAnalysisDebug):
+        args.AllAnalysis = True
+        args.ksn_per_source = True
+
+
+    if(args.AllAnalysis):
+        args.statistical_plots = True
+        args.river_profile = True
+        args.raster_plots = True
+        # args.raster_plots_large_dataset = True
+        args.basin_plot = True
+
+
+    # Plotting hte knickpoints
+    if(args.statistical_plots):
+        
+        if(int(args.n_bin_hist) == 0):
+            n_b = "auto"
+        else:
+            n_b = int(args.n_bin_hist)
+
+        KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b,x_extents = ext_dksn_hist)
+        KI.print_histogram(size = size, format = args.FigFormat, n_bin = n_b, data = "delta_segelev",x_extents = ext_dseg_hist)
+
+        KI.print_box_and_whisker(size = size, format = args.FigFormat, label_size = 8, binning = 'source_key', facecolor = "white", grid = True)
+        KI.print_box_and_whisker(size = size, format = args.FigFormat, label_size = 8, binning = 'basin_key', facecolor = "white", grid = True)
+
+    if(args.ksn_per_source):
+        print("Printing a set of ksn values with the knickpoints and their magnitude in a Chi distance")
+        KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
+        # KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "chi",y_axis = "segmented_elevation", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
+
+
+        # print("Printing a set of ksn values with the knickpoints and their magnitude in a Flow distance")
+        # KI.print_ksn_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', legend = True)
+
+    if(args.river_profile):
+        print("Printing river profiles in chi spaces")
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        print("Printing river profiles in flow distance")
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        print("Printing river profiles for the entire basins")
+
+    if (args.basin_plot):
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+
+
+
+    if(args.raster_plots):
+        KI.print_map_topo(size = size, format = args.FigFormat,label_size = 8, return_fig = False, extent_cmap = [], kalib = False)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+
+    if(args.raster_plots_large_dataset):
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+
+    
+    if(args.lithologic_raster):
+        dict_file = LP.litho_pre_check(args.base_directory,"", fname = args.fname_prefix)
+        LP.MakeRasterLithoBasinMap(args.base_directory, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat='png')
+        cml = LP.getLithoColorMap(args.fname_prefix, args.base_directory)
+        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, cml = cml, lith_raster = True)
+
+
+    if(args.save_output):
+        KI.save_output_csv()
+
     # Preparing the min_max color for mchi maps
     if(args.max_mchi_map <= args.min_mchi_map):
         colo = []
     else:
         colo = [args.min_mchi_map,args.max_mchi_map]
 
-
-
-    KI = KP.KnickInfo(args.base_directory,args.fname_prefix, method = args.method,binning = args.binning, outlier_detection = args.outlier, basin_list = these_basin_keys, weighting = True)
-
-##################### Plotting Facilities
-    if(args.raster):
-        KI.raster_plot_knickpoint(size_format=args.size_format, FigFormat=args.FigFormat)
-        KI.raster_plot_knickzone(size_format=args.size_format, FigFormat=args.FigFormat)
-
-    if(args.river):
-        KI.chi_profiles_knickzones(size_format=args.size_format, FigFormat=args.FigFormat)
-
-    if args.AllAnalysis:
-        for m in ["ksn","rksn","rad"]:
-            KI = KP.KnickInfo(args.base_directory,args.fname_prefix, method =m ,binning = 'general', outlier_detection =False , basin_list = these_basin_keys, weighting = True)
-            KI.raster_plot_knickpoint(size_format=args.size_format, FigFormat=args.FigFormat)
-            KI.raster_plot_knickzone(size_format=args.size_format, FigFormat=args.FigFormat)
-            for b in ["general", "source_key", "basin_key"]:
-                KI = KP.KnickInfo(args.base_directory,args.fname_prefix, method =m ,binning = b, outlier_detection =True , basin_list = these_basin_keys, weighting = True)
-                KI.raster_plot_knickpoint(size_format=args.size_format, FigFormat=args.FigFormat)
-                KI.raster_plot_knickzone(size_format=args.size_format, FigFormat=args.FigFormat)
-
-
-
-##################### OLD Plotting facilities
-
-    if args.map_basic:
-        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff)
-
-    if args.basic_hist:
-        KP.basic_hist(args.base_directory, args.fname_prefix,basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat)
-
-    if args.map_outliers_rivers:
-        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river")
-
-    if args.map_outliers_basins:
-        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "basin")
-
-    if args.map_outliers_gen:
-        KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "general")
-
-    if args.chi_basic:
-        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff)
-
-    if args.chi_gen:
-        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "general")
-
-    if args.chi_basin:
-        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "basin")
-
-
-    if args.chi_river:
-        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river")
-
-    if args.chi_RKEY_river:
-        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river", grouping = "source_key")
-
-    if args.chi_RKEY_raw:
-        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, grouping = "source_key")
-
-    if args.chi_RKEY_basin:
-        KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, grouping = "basin_key")
-
     if args.mchi_map_std:
         
-        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo)
+        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, knickpoint = True)
 
     if args.mchi_map_black:
         
-        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, bkbg = True)
-
-    if args.knickzone_profile:
-        KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, knickpoint_value = 'delta_ksn')
-        KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, knickpoint_value = 'natural')
-        KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, knickpoint_value = 'ratio_ksn')
-        KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, knickpoint_value = 'delta_ksn', outlier_detection_binning = 'general',outlier_detection_method ='Wgksn' )
-        KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, knickpoint_value = 'natural', outlier_detection_binning= 'general',outlier_detection_method ='Wgrad')
-        KP.chi_profile_knickzone(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, knickpoint_value = 'ratio_ksn', outlier_detection_binning = 'general',outlier_detection_method ='Wgrksn')
-
-
-    # if args.AllAnalysis:
-    #     KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff)
-    #     KP.basic_hist(args.base_directory, args.fname_prefix,basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat)
-    #     KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river")
-    #     KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "basin")
-    #     KP.map_knickpoint_standard(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "general")
-    #     KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff)
-    #     KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "general",segments = False)
-    #     KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "basin",segments = False)
-    #     KP.chi_profile_knickpoint(args.base_directory, args.fname_prefix, basin_list = these_basin_keys, size_format=args.size_format, FigFormat=args.FigFormat, mancut = args.manual_cutoff, outlier_detection_method = "river",segments = False)
-
+        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, bkbg = True, knickpoint = True)
 
 
 #=============================================================================

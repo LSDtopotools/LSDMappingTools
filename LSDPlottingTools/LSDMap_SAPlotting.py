@@ -317,21 +317,33 @@ def SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = 'show', size_format = "E
     # read in binned data
     binned_csv_fname = DataDirectory+DEM_prefix+'_SAbinned.csv'
     print("I'm reading in the csv file "+binned_csv_fname)
-    binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)
+        
+    if not parallel:
+        binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)
+    else:
+        binnedPointData = Helper.AppendSABinnedCSVs(DataDirectory, DEM_prefix)
+        binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)
 
     # Read in the raw data
     if(show_raw):
         print("I am going to show the raw data.")
         all_csv_fname = DataDirectory+DEM_prefix+'_SAvertical.csv'
-        allPointData = PointTools.LSDMap_PointData(all_csv_fname)
+        if not parallel:
+            allPointData = PointTools.LSDMap_PointData(all_csv_fname)
+        else:
+            allPointData = Helper.AppendSAVerticalCSVs(DataDirectory, DEM_prefix)
+            allPointData = PointTools.LSDMap_PointData(all_csv_fname)
 
     # Read in the segmented data
     if(show_segments):
         print("I am going to show segments on the main stem.")
         segmented_csv_fname = DataDirectory+DEM_prefix+'_SAsegmented.csv'
-        segmentedPointData = PointTools.LSDMap_PointData(segmented_csv_fname)
-
-
+        if not parallel:
+            segmentedPointData = PointTools.LSDMap_PointData(segmented_csv_fname)
+        else:
+            segmentedPointData = Helper.AppendSASegmentedCSVs(DataDirectory, DEM_prefix)
+            segmentedPointData = PointTools.LSDMap_PointData(segmented_csv_fname)
+            
     # get the basin keys and check if the basins in the basin list exist
     basin = binnedPointData.QueryData('basin_key')
     basin = [int(x) for x in basin]

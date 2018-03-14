@@ -69,22 +69,22 @@ def GetMultipleBasinOutlines(DataDirectory):
   # get a list of basins and declare the dictionary to populate
   basin_dict = Helper.MapBasinsToKeys(DataDirectory)
   BasinsDict = {}
-  
+
   #loop across the basins
   for outlet_jn, basin_key in basin_dict.iteritems():
     this_fname = "basin"+str(outlet_jn)+"_AllBasins.bil"
-    
+
     TempBasins = GetBasinOutlines(DataDirectory,this_fname)
-  
+
     for temp_outlet, temp_basin_key in TempBasins.iteritems():
       if len(TempBasins) > 1:
         print("WARNING: MULTIPLE BASINS IN basin #", outlet_jn)
       TempBasins[int(outlet_jn)] = TempBasins.pop(temp_outlet)
-    
+
     BasinsDict.update(TempBasins)
-  
+
   return BasinsDict
-              
+
 def GetBasinCentroids(DataDirectory, basins_fname):
 	"""
 	This function takes in the raster of basins and returns a dict where the
@@ -165,7 +165,7 @@ def GetPointsWithinMultipleBasins(DataDirectory,basins_fname):
   BasinDict = GetMultipleBasinOutlines(DataDirectory)
   print("BASIN DICT IS")
   print(BasinDict)
-  
+
   # get the centroids
   PointDict = {}
   for basin_key, basin in BasinDict.iteritems():
@@ -224,7 +224,7 @@ def GetPointWithinBasinsBuffered(DataDirectory,basins_fname, basin_list = [], bu
 	return PointDict
 
 
-##### This part is copied from the LSD_GeologyTools.py file to make the functions accessible from another scripts and thus easier to ingest, it will be cleaned up at some points. 
+##### This part is copied from the LSD_GeologyTools.py file to make the functions accessible from another scripts and thus easier to ingest, it will be cleaned up at some points.
 ##### the aim of those functions is to raterize a lithologic raster
 
 def readFile(filename):

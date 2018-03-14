@@ -14,6 +14,7 @@ matplotlib.use('Agg')
 #from __future__ import print_function
 import sys
 import os
+from decimal import Decimal
 from LSDPlottingTools import LSDMap_MOverNPlotting as MN
 from LSDPlottingTools import LSDMap_SAPlotting as SA
 from LSDMapFigure import PlottingHelpers as Helper
@@ -26,8 +27,11 @@ def print_welcome():
     print("\n\n=======================================================================")
     print("Hello! I'm going to plot the m/n analysis results for you.")
     print("You will need to tell me which directory to look in.")
-    print("Use the -wd flag to define the working directory.")
+    print("Use the -dir flag to define the working directory.")
     print("If you don't do this I will assume the data is in the same directory as this script.")
+    print("You also need the -fname flag which will give the prefix of the raster files.")
+    print("See our documentation for computing the data needed for these visualisation scripts:")
+    print("https://lsdtopotools.github.io/LSDTT_documentation/LSDTT_chi_analysis.html#_calculating_concavity")
     print("For help type:")
     print("   python PlotMOverNAnalysis.py -h\n")
     print("=======================================================================\n\n ")
@@ -132,12 +136,15 @@ def main(argv):
         #args.fname_prefix = split_fname # commented out for now since base fname given, basins will always have basinX fname_prefix
 
 
-    # we need the column headers
+#    # we need the column headers
     columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
     moverns = [float(x.split("=")[-1]) for x in columns]
     start_movern = moverns[0]
     n_movern = len(moverns)
-    d_movern = (moverns[-1] - moverns[0])/(n_movern-1)
+    x = Decimal((moverns[-1] - moverns[0])/(n_movern-1))
+    d_movern = round(x,2)
+    print ('Start movern, n_movern, d_movern: ')
+    print (start_movern, n_movern, d_movern)
 
     # some formatting for the figures
     if args.FigFormat == "manuscipt_svg":
@@ -153,9 +160,9 @@ def main(argv):
     # make the plots depending on your choices
     if args.plot_rasters:
         MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, simple_format, parallel=args.parallel)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, size_format=args.size_format, FigFormat=simple_format, parallel=args.parallel)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format, FigFormat=simple_format,parallel=args.parallel)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="SA", size_format=args.size_format, FigFormat=simple_format,parallel=args.parallel)
+#        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, size_format=args.size_format, FigFormat=simple_format, parallel=args.parallel)
+#        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format, FigFormat=simple_format,parallel=args.parallel)
+#        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="SA", size_format=args.size_format, FigFormat=simple_format,parallel=args.parallel)
     if args.plot_basic_chi:
         MN.MakePlotsWithMLEStats(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern,parallel=args.parallel)
     if args.plot_chi_profiles:
@@ -170,10 +177,10 @@ def main(argv):
         MN.PlotMLEWithMOverN(this_dir, args.fname_prefix,basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat =simple_format,parallel=args.parallel)
     if args.plot_SA_data:
         SA.SAPlotDriver(this_dir, args.fname_prefix, FigFormat = simple_format,size_format=args.size_format,
-                        show_raw = args.show_SA_raw, show_segments = args.show_SA_segments,basin_keys = these_basin_keys)
+                        show_raw = args.show_SA_raw, show_segments = args.show_SA_segments,basin_keys = these_basin_keys, parallel=args.parallel)
     if args.test_SA_regression:
         #SA.TestSARegression(this_dir, args.fname_prefix)
-        SA.LinearRegressionRawDataByChannel(this_dir,args.fname_prefix, basin_list=these_basin_keys)
+        SA.LinearRegressionRawDataByChannel(this_dir,args.fname_prefix, basin_list=these_basin_keys, parallel=args.parallel)
         #SA.LinearRegressionSegmentedData(this_dir, args.fname_prefix, basin_list=these_basin_keys)
     if args.plot_MCMC:
         MN.plot_MCMC_analysis(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat= simple_format, size_format=args.size_format,parallel=args.parallel)

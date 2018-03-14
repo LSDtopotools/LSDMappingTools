@@ -4,7 +4,6 @@ channels:
 - defaults
 dependencies:
 - affine=2.1.0=py_1
-- attrs=17.2.0=py27_0
 - backports_abc=0.5=py27_0
 - basemap=1.1.0=py27_2
 - blas=1.1=openblas
@@ -111,5 +110,5 @@ dependencies:
 - pip:
   - backports-abc==0.5
   - backports.ssl-match-hostname==3.5.0.1
-prefix: /home/fionaclubb/miniconda2/envs/LSDTT_linux64
+prefix: ~/miniconda2/envs/LSDTT
 
