@@ -121,6 +121,8 @@ class KP_plotting(object):
             self.df_SK = self.df_SK[self.df_SK["source_key"].isin(source_key)]
             self.df_kp_ksn = self.df_kp_ksn[self.df_kp_ksn["source_key"].isin(source_key)]
             self.df_kp_stepped = self.df_kp_stepped[self.df_kp_stepped["source_key"].isin(source_key)]
+            print("You selected the following Sources: ")
+            print(source_key)
 
         else:
             print("You selected the following Sources: ")
@@ -821,6 +823,69 @@ class KP_plotting(object):
         else:
             MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat = format, Fig_dpi = 500) # Save the figure
             plt.clf()
+
+
+
+
+    def stradivarius_analysis(self,size = "big", format = "png", label_size = 8):
+        """
+        Will plot a compilation of violin plot to illustrate  the distribution of the knickpoints function to some parameters
+        """
+        # check if a directory exists for the chi plots. If not then make it.
+        out_directory = self.fpath+'stat_plots/'
+        if not os.path.isdir(out_directory):
+            print("I am creating the river_plot/ directory to save your figures")
+            os.makedirs(out_directory)
+
+        
+        # Set up fonts for plots
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['Liberation Sans'] # Liberation Sans is a free alternative to Arial. Albeit being quite universal, Arial is propietary. #PRAISE_FREE_AND_OPENSOURCE
+        rcParams['font.size'] = label_size
+
+
+        # Create a figure with required dimensions
+        n_axis = 1
+        fig = self.get_fig_right_size(size = size, n_axis =1 , facecolor = "white")
+
+        toplot = ["elevation", "chi" , "flow_distance", "drainage_area"]
+        color = ["#CACACA","#29E1DF","#0049FF", "#03C845"]
+        xalabela = ["Elevation (m)", r"$\chi$ (m)", "Distance from\n outlet (m)", r"DA ($m^{2}$)"]
+        paddy = [-15,-15,-15,-12]
+
+
+        ax = []
+        n_vplot = len(toplot)
+        gs = plt.GridSpec(1,n_vplot,bottom=0.15, left=0.10, right=0.95, top=0.95)
+        for triceratops in range(n_vplot):
+            ax.append(fig.add_subplot(gs[0,triceratops], facecolor = "white"))
+            vp = ax[-1].violinplot(self.df_kp[toplot[triceratops]].values, bw_method = 0.05, widths = 0.75 , points = 10000)
+            vp['cbars'].set(color = "#5B5B5B", linewidths = 1, alpha =0.75 )
+            vp['cmins'].set(color = "#5B5B5B", linewidths = 1 , alpha =0.75)
+            vp['cmaxes'].set(color = "#5B5B5B", linewidths = 1 , alpha =0.75)
+            for bulbe in vp['bodies']:
+                bulbe.set(color = color[triceratops], alpha = 1)
+            ax[-1].set_xlabel(xalabela[triceratops])
+            ax[-1].set_xticks([1])
+            ax[-1].set_xticklabels([""])
+            ax[-1].grid(alpha = 0.5)
+
+
+            ax[-1].get_yaxis().set_tick_params(direction='in', pad = paddy[triceratops], size = 4)
+            for tick in ax[-1].yaxis.get_major_ticks():
+                tick.label.set_fontsize(4) 
+            if(toplot[triceratops] == "drainage_area"):
+                ax[-1].set_yscale("log", nonposy='clip')
+
+
+
+        plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.05, hspace=0.05)
+        plt.savefig(out_directory + self.fprefix + "_stradivarius.%s"%(format), dpi = 500)
+        plt.clf()
+
+
+
+
 
 
     def save_output_csv(self):

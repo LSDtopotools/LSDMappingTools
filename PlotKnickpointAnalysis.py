@@ -82,6 +82,7 @@ def main(argv):
     parser.add_argument("-rasplot", "--raster_plots", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
     parser.add_argument("-rasplot_ld", "--raster_plots_large_dataset", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
     parser.add_argument("-statplot", "--statistical_plots", type = bool, default = False, help="Print a bunch of statistics about the knickpoints in the folder .../raster_plots/")
+    parser.add_argument("-stradivarius", "--multi_violin_plots", type = bool, default = False, help="Print a bunch of statistical distribution against elevation, chi, ... for the selected knickpoints")
 
     # Others
     parser.add_argument("-nbh", "--n_bin_hist", type = int, default = 0, help = "Customization of the number of bin you want for the general histogram. Default is an automatic in-built selection from numpy")
@@ -215,6 +216,8 @@ def main(argv):
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
+    if(args.multi_violin_plots):
+        KI.stradivarius_analysis(size = size, format = args.FigFormat)
     
     if(args.lithologic_raster):
         dict_file = LP.litho_pre_check(args.base_directory,"", fname = args.fname_prefix)
