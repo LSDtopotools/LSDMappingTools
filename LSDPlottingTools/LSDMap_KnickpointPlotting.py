@@ -833,9 +833,6 @@ class KP_plotting(object):
         self.df_kp_stepped.to_csv(self.fpath+self.fprefix+"_output_stepped.csv", index = False)
 
 
-            
-
-
 
 
 
