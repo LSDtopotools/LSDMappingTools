@@ -449,7 +449,7 @@ class KP_plotting(object):
             this_df_kp_raw = self.df_kp_raw[self.df_kp_raw[binning] == sources]
             this_df_river = self.df_river[self.df_river[binning] == sources]
 
-            if(this_df_kp_ksn.shape[0]> 0 or this_df_dsegelev_pos[0] > 0):
+            if(this_df_kp_ksn.shape[0]> 0 or this_df_dsegelev_pos.shape[0] > 0):
                 # Create a figure with required dimensions
                 n_axis = 1
                 fig = self.get_fig_right_size(size = size, n_axis =1 , facecolor = facecolor)
