@@ -41,7 +41,7 @@ class KP_plotting(object):
     """
 
 
-    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0, cut_off_val = [0,0,0,0], main_stem = False):
+    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0, cut_off_val = [0,0,0,0], main_stem = False, normalisation = None):
         """
             This creates a knickpoint object to help with plotting. One object helps you to select certain river and or basins; provide some tool to pre-sort the dataset, and generate
             stats figures, profiles and map. It requires the output of LSDTopoTools.
@@ -87,6 +87,9 @@ class KP_plotting(object):
 
 
         print("Managing the data:")
+
+        if(normalisation != None):
+            self.normalise_elevation(method = normalisation)
 
         if(isinstance(cut_off_val,str) and (cut_off_val == "auto")):
             cut_off_val = [self.df_kp_ksn["delta_ksn"].quantile(0.25),self.df_kp_ksn["delta_ksn"].quantile(0.75),-10000,self.df_kp_stepped["delta_segelev"].quantile(0.75)]
@@ -252,6 +255,38 @@ class KP_plotting(object):
                 wsize = 4.92126
 
         return wsize
+
+    def normalise_elevation(self,method = "relative"):
+        """
+            Normalise the elevation to the outlet of the basin in a relative way (outlet = 0 and elevation = old elevation - outlet elevation) or
+            absolute way: outlet = 0 and maximum elevation = 1 
+        """
+
+        for bas in self.df_SK["basin_key"].unique():
+            norm_elev = self.df_river["elevation"][self.df_river["basin_key"] == bas].min()
+            self.df_river["elevation"][self.df_river["basin_key"] == bas] -= norm_elev
+            self.df_rivraw["elevation"][self.df_rivraw["basin_key"] == bas] -= norm_elev 
+            self.df_kp_raw["elevation"][self.df_kp_raw["basin_key"] == bas] -= norm_elev 
+            self.df_kp["elevation"][self.df_kp["basin_key"] == bas] -= norm_elev 
+            self.df_kp_ksn["elevation"][self.df_kp_ksn["basin_key"] == bas] -= norm_elev 
+            self.df_kp_stepped["elevation"][self.df_kp_stepped["basin_key"] == bas] -= norm_elev 
+            if(method == "absolute"):
+                norm_elev = self.df_river["elevation"][self.df_river["basin_key"] == bas].max()
+                self.df_river["elevation"][self.df_river["basin_key"] == bas] /= norm_elev
+                self.df_rivraw["elevation"][self.df_rivraw["basin_key"] == bas] /= norm_elev 
+                self.df_kp_raw["elevation"][self.df_kp_raw["basin_key"] == bas] /= norm_elev 
+                self.df_kp["elevation"][self.df_kp["basin_key"] == bas] /= norm_elev 
+                self.df_kp_ksn["elevation"][self.df_kp_ksn["basin_key"] == bas] /= norm_elev 
+                self.df_kp_stepped["elevation"][self.df_kp_stepped["basin_key"] == bas] /= norm_elev 
+
+
+
+
+
+
+ 
+
+
 
 
 
@@ -448,6 +483,10 @@ class KP_plotting(object):
 
             this_df_kp_raw = self.df_kp_raw[self.df_kp_raw[binning] == sources]
             this_df_river = self.df_river[self.df_river[binning] == sources]
+
+            # Dealing with the knickpoint offset
+
+            up_set = (this_df_river["elevation"].max() - this_df_river["elevation"].min())*0.1
 
             if(this_df_kp_ksn.shape[0]> 0 or this_df_dsegelev_pos.shape[0] > 0):
                 # Create a figure with required dimensions

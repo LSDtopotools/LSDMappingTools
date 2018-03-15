@@ -97,6 +97,9 @@ def main(argv):
     parser.add_argument("-save","--save_output", type = bool, default = False, help = "switch on if you have the willingness to save your selected knickpoints in a new csv file named prefix_output.csv")
     parser.add_argument("-coeff_size_kp", "--kp_coeff_size", type = float, default = 10, help = "qualitative size of knickpoints on river profile. Default 10, increase or decrease to adapt the size of the triangles")
     parser.add_argument("-fixed_size_kp_min_max_river", "--fixed_size_kp_min_max_river", type = str, default = "", help = "qualitative size of knickpoints on river profile. Default 50, increase or decrease to adapt the size of the triangles")
+    parser.add_argument("-normelev_rel", "--normalise_elevation_to_outlet_relative", type = bool, default = False, help = "Normalize the elevation for each watershed, considering the outlet points as 0, but without changing the relief.")
+    parser.add_argument("-normelev_abs", "--normalise_elevation_to_outlet_absolute", type = bool, default = False, help = "Normalize the elevation for each watershed, considering the outlet points as 0 and the maximum to 1.")
+
 
 
     args = parser.parse_args()
@@ -169,10 +172,23 @@ def main(argv):
         sys.exit()
     print("Done")
 
+    # Normalisation???
+    if(args.normalise_elevation_to_outlet_absolute and args.normalise_elevation_to_outlet_relative):
+        print("Erm, you cannot normaliSe your elevation in relatively absolute or absolutely relative way! you have to choose.")
+        quit()
+    elif(args.normalise_elevation_to_outlet_absolute):
+
+        normalisation = "absolute"
+    elif(args.normalise_elevation_to_outlet_relative):
+        normalisation = "relative"
+    else:
+        normalisation = None
+
+
 
     print("Loading the dataset:")
 
-    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe, main_stem = args.isolate_main_stem)
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe, main_stem = args.isolate_main_stem, normalisation = normalisation)
     
     if(args.AllAnalysisDebug):
         args.AllAnalysis = True
