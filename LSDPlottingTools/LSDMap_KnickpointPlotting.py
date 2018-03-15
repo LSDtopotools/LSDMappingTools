@@ -73,8 +73,8 @@ class KP_plotting(object):
             self.df_kp_raw = Helper.ReadKnickpointCSV(self.fpath, self.fprefix, ftype = "raw") # Contains the raw knickpint info (before TVD or else) -> Debugging purposes
             self.df_kp = Helper.ReadKnickpointCSV(self.fpath, self.fprefix) # Contains the knickpoint location and informations
             self.df_SK = Helper.readSKKPstats(self.fpath, self.fprefix) # Contains few metrics per river keys
-            self.df_kp_ksn = self.df_kp.copy()
-            self.df_kp_stepped = self.df_kp.copy()
+            self.df_kp_ksn = self.df_kp[self.df_kp["delta_ksn"] != 0]
+            self.df_kp_stepped = self.df_kp[self.df_kp["delta_segelev"] > 0]
 
         except IOError:
             print("I didnae find your knickpoint related files make sure that:")
@@ -86,6 +86,9 @@ class KP_plotting(object):
 
         print("Managing the data:")
 
+        if(isinstance(cut_off_val,str) and (cut_off_val == "auto")):
+            cut_off_val = [self.df_kp_ksn["delta_ksn"].quantile(0.25),self.df_kp_ksn["delta_ksn"].quantile(0.75),-10000,self.df_kp_stepped["delta_segelev"].quantile(0.75)]
+
         if(cut_off_val != [0,0,0,0]):
             print("I am selecting your knickpoints")
             # This selection process is a bit messy, but really efficient with pandas!
@@ -93,6 +96,8 @@ class KP_plotting(object):
             self.df_kp = self.df_kp[((self.df_kp["delta_ksn"] <= cut_off_val[0]) | (self.df_kp["delta_ksn"] >= cut_off_val[1])) | ((self.df_kp["delta_segelev"] <= cut_off_val[2]) | (self.df_kp["delta_segelev"] >= cut_off_val[3]))]
             self.df_kp_ksn = self.df_kp[((self.df_kp["delta_ksn"] <= cut_off_val[0]) | (self.df_kp["delta_ksn"] >= cut_off_val[1]))]
             self.df_kp_stepped = self.df_kp[((self.df_kp["delta_segelev"] <= cut_off_val[2]) | (self.df_kp["delta_segelev"] >= cut_off_val[3]))]
+        
+
         # Selection of Basins and sources
         if(basin_key == []):
             print("All the basins are selected:")
@@ -859,7 +864,7 @@ class KP_plotting(object):
         gs = plt.GridSpec(1,n_vplot,bottom=0.15, left=0.10, right=0.95, top=0.95)
         for triceratops in range(n_vplot):
             ax.append(fig.add_subplot(gs[0,triceratops], facecolor = "white"))
-            vp = ax[-1].violinplot(self.df_kp[toplot[triceratops]].values, bw_method = 0.05, widths = 0.75 , points = 10000)
+            vp = ax[-1].violinplot(self.df_kp[toplot[triceratops]].values, bw_method = 0.05, widths = 0.75 , points = 1000000)
             vp['cbars'].set(color = "#5B5B5B", linewidths = 1, alpha =0.75 )
             vp['cmins'].set(color = "#5B5B5B", linewidths = 1 , alpha =0.75)
             vp['cmaxes'].set(color = "#5B5B5B", linewidths = 1 , alpha =0.75)

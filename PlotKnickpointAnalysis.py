@@ -94,6 +94,7 @@ def main(argv):
     parser.add_argument("-max_hist", "--maximum_extent_for_histogram", type = int, default = 0, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-lith_rast","--lithologic_raster", type = bool, default = False, help = "switch on if you have a _LITHRAST raster, it will plot a hillshade colored by lithologic unit")
     parser.add_argument("-save","--save_output", type = bool, default = False, help = "switch on if you have the willingness to save your selected knickpoints in a new csv file named prefix_output.csv")
+    parser.add_argument("-size_kp_river", "--kp_coeff_size", type = float, default = 50, help = "qualitative size of knickpoints on river profile. Default 50, increase or decrease to adapt the size of the triangles")
 
     args = parser.parse_args()
 
@@ -132,16 +133,21 @@ def main(argv):
 
 
     print("Getting your cut off values...")
-    try:
-        covfefe = [float(item) for item in args.cut_off_val.replace(" ", "").split(',')]
-        print("ok.")
-        covfefe_t = [-covfefe[0],covfefe[1],-10000,covfefe[2]]
-        covfefe = covfefe_t
-    except ValueError:
-        print("Something went wrong - I am defaulting the values")
-        covfefe = [0,0,-10000,0]
-    print("cut off values:")
-    print(covfefe)
+    if(args.cut_off_val != "auto"):
+        try:
+            covfefe = [float(item) for item in args.cut_off_val.replace(" ", "").split(',')]
+            print("ok.")
+            covfefe_t = [-covfefe[0],covfefe[1],-10000,covfefe[2]]
+            covfefe = covfefe_t
+        except ValueError:
+            print("Something went wrong - I am defaulting the values")
+            covfefe = [0,0,-10000,0]
+        print("cut off values:")
+        print(covfefe)
+    else:
+        covfefe = "auto"
+        print("I will choose automatically the cut-off values, based on the quartiles")
+
     # Processing the size choice
     try:
         size = [int(item) for item in args.size_format.split(',')]
@@ -196,9 +202,9 @@ def main(argv):
 
     if(args.river_profile):
         print("Printing river profiles in chi spaces")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size)
         print("Printing river profiles in flow distance")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size)
         print("Printing river profiles for the entire basins")
 
     if (args.basin_plot):
