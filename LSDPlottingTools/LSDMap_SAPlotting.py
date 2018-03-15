@@ -46,7 +46,7 @@ def LinearRegressionRawData(DataDirectory, DEM_prefix, basin_list=[],parallel=Fa
     if not parallel:
       df = Helper.ReadRawSAData(DataDirectory, DEM_prefix)
     else:
-      df = Helper.AppendRawSAData(DataDirectory)
+      df = Helper.AppendRawSAData(DataDirectory, DEM_prefix)
 
     # get a list of the basins if needed
     if basin_list == []:
@@ -317,7 +317,7 @@ def SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = 'show', size_format = "E
     # read in binned data
     binned_csv_fname = DataDirectory+DEM_prefix+'_SAbinned.csv'
     print("I'm reading in the csv file "+binned_csv_fname)
-        
+
     if not parallel:
         binnedPointData = PointTools.LSDMap_PointData(binned_csv_fname)
     else:
@@ -343,7 +343,7 @@ def SAPlotDriver(DataDirectory, DEM_prefix, FigFormat = 'show', size_format = "E
         else:
             segmentedPointData = Helper.AppendSASegmentedCSVs(DataDirectory, DEM_prefix)
             segmentedPointData = PointTools.LSDMap_PointData(segmented_csv_fname)
-            
+
     # get the basin keys and check if the basins in the basin list exist
     basin = binnedPointData.QueryData('basin_key')
     basin = [int(x) for x in basin]

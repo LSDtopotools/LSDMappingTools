@@ -318,14 +318,14 @@ class MapFigure(object):
     def SetCustomExtent(self,xmin,xmax,ymin,ymax):
         """
         This function sets the plot extent in map coordinates and remakes the axis ticks
-        
+
         Args:
           xmin: the minimum extent in easting
           xmax: the maximum extent in easting
           ymin: the minimum extent in northing
           ymax: the maximum extent in northing
-        
-        Author: MDH   
+
+        Author: MDH
         """
         # Get the tick properties
         self._xmin = xmin
@@ -333,13 +333,13 @@ class MapFigure(object):
         self._xmax = xmax
         self._ymax = ymax
         self.make_ticks()
-        
+
         # Annoying but the scatter plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(self._xmin,self._xmax)
         self.ax_list[0].set_ylim(self._ymin,self._ymax)
         self.ax_list = self.make_base_image(self.ax_list)
-        
-        
+
+
     def make_ticks(self):
         """
         This function makes the tick marks and the tick labels.
@@ -673,7 +673,7 @@ class MapFigure(object):
         if not parallel:
           BasinInfoDF = phelp.ReadBasinInfoCSV(Directory, BasinInfoPrefix)
         else:
-          BasinInfoDF = phelp.AppendBasinInfoCSVs(Directory)
+          BasinInfoDF = phelp.AppendBasinInfoCSVs(Directory,BasinInfoPrefix)
 
         # Extract the basin keys
         basin_keys = list(BasinInfoDF['basin_key'])
@@ -1145,7 +1145,7 @@ class MapFigure(object):
         EPSG_string = self._RasterList[0]._EPSGString
         print("I am going to plot some points for you. The EPSG string is:"+EPSG_string)
 
-        
+
         # convert to easting and northing or pull easting northing from file
         # I had an old file that didnt report lat/long so pull directly if lat/lon not found
         # MDH 1/3/18
@@ -1155,7 +1155,7 @@ class MapFigure(object):
             # check to see if easting and northing data already exists
             easting = thisPointData.QueryData("easting").as_matrix().astype(float)
             northing = thisPointData.QueryData("northing").as_matrix().astype(float)
-        
+
         print("I got the easting and northing")
 
         # check if the column for plotting exists
@@ -1311,7 +1311,7 @@ class MapFigure(object):
             linewidth(float): width of the line around the basins.
             zorder (int): priority for plotting
             alpha (float): transparency (between 0 and 1).
-            
+
         Author: MDH
         """
 
@@ -1800,7 +1800,7 @@ class MapFigure(object):
         self.ax_list[0].set_xlim(self._xmin,self._xmax)
         #self.ax_list[0].set_ylim(self._ymax,self._ymin)
         self.ax_list[0].set_ylim(self._ymin,self._ymax)
-        
+
         # add the title
         if self.title != "None":
             self.ax_list[0].set_title(self.title)

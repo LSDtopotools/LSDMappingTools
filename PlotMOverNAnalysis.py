@@ -127,7 +127,7 @@ def main(argv):
     if not args.parallel:
         BasinDF = Helper.ReadBasinStatsCSV(this_dir, args.fname_prefix)
     else:
-        BasinDF = Helper.AppendBasinCSVs(this_dir)
+        BasinDF = Helper.AppendBasinCSVs(this_dir, args.fname_prefix)
 
         # if parallel, get the fname from the data directory. This assumes that your directory is called
         # something sensible that relates to the DEM name.
@@ -187,7 +187,7 @@ def main(argv):
     if args.point_uncertainty:
         MN.PlotMCPointsUncertainty(this_dir, args.fname_prefix,basin_list=these_basin_keys, FigFormat=simple_format, size_format=args.size_format,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern,parallel=args.parallel)
     if args.plot_histogram:
-        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=simple_format, size_format=args.size_format, show_legend=args.show_legend, parallel=args.parallel)
+        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=simple_format, size_format=args.size_format, show_legend=args.show_legend)
     if args.plot_summary:
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, parallel=args.parallel)
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend,parallel=args.parallel)
@@ -207,9 +207,9 @@ def main(argv):
 
         # make the SA plots
         SA.SAPlotDriver(this_dir, args.fname_prefix, FigFormat = args.FigFormat,size_format=args.size_format,
-                        show_raw = args.show_SA_raw, show_segments = True, basin_keys = these_basin_keys)
+                        show_raw = args.show_SA_raw, show_segments = True, basin_keys = these_basin_keys, parallel=args.parallel)
         SA.SAPlotDriver(this_dir, args.fname_prefix, FigFormat = args.FigFormat,size_format=args.size_format,
-                        show_raw = args.show_SA_raw, show_segments = False, basin_keys = these_basin_keys)
+                        show_raw = args.show_SA_raw, show_segments = False, basin_keys = these_basin_keys, parallel=args.parallel)
 
         #summary plots
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern,parallel=args.parallel)
