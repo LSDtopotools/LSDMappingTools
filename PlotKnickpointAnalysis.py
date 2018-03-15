@@ -58,6 +58,7 @@ def main(argv):
     # Sources selection
     parser.add_argument("-source_keys", "--source_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of sources you want for the plotting. Default = all sources")
     parser.add_argument("-min_sl", "--min_source_length", type=float , default = 0, help = "This is a minimum length for the river to plot, if you want to only plot the river profile of the main rivers for example. Default = 0 (no restrictions)")
+    parser.add_argument("-main_stem", "--isolate_main_stem", type=bool , default =False, help = "set to True to only keep the main stem of each basins")
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
@@ -94,7 +95,9 @@ def main(argv):
     parser.add_argument("-max_hist", "--maximum_extent_for_histogram", type = int, default = 0, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-lith_rast","--lithologic_raster", type = bool, default = False, help = "switch on if you have a _LITHRAST raster, it will plot a hillshade colored by lithologic unit")
     parser.add_argument("-save","--save_output", type = bool, default = False, help = "switch on if you have the willingness to save your selected knickpoints in a new csv file named prefix_output.csv")
-    parser.add_argument("-size_kp_river", "--kp_coeff_size", type = float, default = 50, help = "qualitative size of knickpoints on river profile. Default 50, increase or decrease to adapt the size of the triangles")
+    parser.add_argument("-coeff_size_kp", "--kp_coeff_size", type = float, default = 10, help = "qualitative size of knickpoints on river profile. Default 10, increase or decrease to adapt the size of the triangles")
+    parser.add_argument("-fixed_size_kp_min_max_river", "--fixed_size_kp_min_max_river", type = str, default = "", help = "qualitative size of knickpoints on river profile. Default 50, increase or decrease to adapt the size of the triangles")
+
 
     args = parser.parse_args()
 
@@ -116,6 +119,13 @@ def main(argv):
         these_source_keys = [int(item) for item in args.source_keys.split(',')]
         print("The sources preselected are:")
         print(these_source_keys)
+
+    if len(args.fixed_size_kp_min_max_river) != 2:
+        min_max_kp_river = []
+    else:
+        min_max_kp_river = [float(item) for item in args.min_max_kp_river.split(',')]
+        print("You are recasting the size for all your knickpoints triangles plotted on the river_plots:")
+        print(min_max_kp_river)
 
     if len(args.manual_extent_colormap_knickpoint_raster) > 0:
         manual_cmap_extent_raster_plot = [int(item) for item in args.manual_extent_colormap_knickpoint_raster.split(',')]
@@ -162,7 +172,7 @@ def main(argv):
 
     print("Loading the dataset:")
 
-    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe)
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe, main_stem = args.isolate_main_stem)
     
     if(args.AllAnalysisDebug):
         args.AllAnalysis = True
@@ -202,9 +212,9 @@ def main(argv):
 
     if(args.river_profile):
         print("Printing river profiles in chi spaces")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river)
         print("Printing river profiles in flow distance")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river)
         print("Printing river profiles for the entire basins")
 
     if (args.basin_plot):
