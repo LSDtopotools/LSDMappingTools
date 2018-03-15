@@ -145,7 +145,9 @@ class KP_plotting(object):
             print("Wait, you just want the main stem, let me deal with that")
             source_key = []
             for bas in self.df_SK["basin_key"].unique():
-                source_key.append(self.df_SK["source_key"][self.df_SK["length"][self.df_SK["basin_key"] == bas] == self.df_SK["length"][self.df_SK["basin_key"] == bas].max()][0])
+                TSK = self.df_SK[self.df_SK["basin_key"] == bas]
+                ts = TSK["source_key"][TSK["length"] == TSK["length"].max()].values[0]
+                source_key.append(ts)
 
             self.df_river = self.df_river[self.df_river["source_key"].isin(source_key)]
             self.df_kp_raw = self.df_kp_raw[self.df_kp_raw["source_key"].isin(source_key)]
