@@ -507,7 +507,7 @@ def long_profiler_dist(DataDirectory,fname_prefix, min_size=5000, FigFormat='png
 
     plt.clf()
 
-def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, FigFormat='png'):
+def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, colour_by_ksn=False, FigFormat='png'):
     """
     Function takes in the csv file of terrace centreline data
     and plots as a long profile against the baseline channel.
@@ -523,14 +523,25 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, FigFor
     fig = CreateFigure()
     ax = plt.subplot(111)
 
-    # read in the terrace centreline shapefile`
-    #terrace_df = SelectTerracePointsFromCentrelines(DataDirectory,shapefile_name,fname_prefix, distance=5)
-
-    terrace_df = pd.read_csv(DataDirectory+fname_prefix+'_terrace_info_centrelines.csv')
+    # check if the csv already exists. if not then select the points from the centrelines
+    csv_filename = DataDirectory+fname_prefix+'_terrace_info_centrelines.csv'
+    if os.path.isfile(csv_filename):
+        terrace_df = pd.read_csv(DataDirectory+fname_prefix+'_terrace_info_centrelines.csv')
+    else:
+        terrace_df = SelectTerracePointsFromCentrelines(DataDirectory,shapefile_name,fname_prefix, distance=5)
 
     # read in the baseline channel csv
     lp = H.read_channel_csv(DataDirectory,fname_prefix)
     lp = lp[lp['Elevation'] != -9999]
+
+    # read in the chi data map if you want to colour the channel by ksn
+    if (colour_by_ksn == True):
+        chi_df = H.ReadChiDataMapCSV(DataDirectory,fname_prefix)
+        # mask to the main channel
+        chi_df = chi_df[chi_df['source_key'] == 0]
+        # now we need to join the baseline data.
+
+
 
     # get the distance from outlet along the baseline for each terrace pixels
     terrace_df = terrace_df.merge(lp, left_on = "BaselineNode", right_on = "node")
