@@ -515,7 +515,7 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, FigFor
     Author: FJC
     """
     # check if a directory exists for the chi plots. If not then make it.
-    T_directory = DataDirectory+'terrace_plots'
+    T_directory = DataDirectory+'terrace_plots/'
     if not os.path.isdir(T_directory):
         os.makedirs(T_directory)
 
@@ -523,7 +523,7 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, FigFor
     fig = CreateFigure()
     ax = plt.subplot(111)
 
-    # read in the terrace centreline shapefile
+    # read in the terrace centreline shapefile`
     #terrace_df = SelectTerracePointsFromCentrelines(DataDirectory,shapefile_name,fname_prefix, distance=5)
 
     terrace_df = pd.read_csv(DataDirectory+fname_prefix+'_terrace_info_centrelines.csv')
@@ -584,7 +584,7 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, FigFor
 
 
     plt.tight_layout()
-
+    #plt.show()
     plt.savefig(T_directory+fname_prefix+'_terrace_plot_centrelines.'+FigFormat,format=FigFormat,dpi=300)
 
 #---------------------------------------------------------------------------------------------#
