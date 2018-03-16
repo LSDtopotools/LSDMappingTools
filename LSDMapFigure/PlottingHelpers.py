@@ -908,31 +908,90 @@ def ReadChiDataMapCSV(DataDirectory, fname_prefix):
 # Terraces
 #--------------------------------------------------------------------------------#
 
-def ReadTerraceCSV(DataDirectory, fname_prefix, outlet_jn):
+def read_terrace_csv(DataDirectory,fname_prefix):
     """
-    This function reads in the file with the suffix '_swath_plots_junction_number.csv'
-    to a pandas dataframe
-    where junction_number is the outlet junction of the channel
+    This function reads in the csv file with the extension "_terrace_info.csv"
+    and returns it as a pandas dataframe
 
     Args:
-        DataDirectory: the data directory
-        fname_prefix: the file name prefix
-        outlet_jn: the junction number of the outlet
+        DataDirectory (str): the data directory
+        fname_prefix (str): the name of the DEM
 
     Returns:
-        pandas dataframe with the csv file
+        pandas dataframe with the terrace info
 
     Author: FJC
     """
-    jn_str = str(outlet_jn)
+    csv_suffix = '_terrace_info.csv'
+    fname = DataDirectory+fname_prefix+csv_suffix
 
-    # get the csv filename
-    csv_suffix = '_terrace_swath_plots_'+jn_str+'.csv'
+    df = pd.read_csv(fname)
 
-    fname = fname_prefix+csv_suffix
-    # read in the dataframe using pandas
-    df = pd.read_csv(DataDirectory+fname)
     return df
+
+def read_channel_csv(DataDirectory,fname_prefix):
+    """
+    This function reads in the csv file with the extension "_baseline_channel_info.csv"
+    and returns it as a pandas dataframe
+
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the name of the DEM
+
+    Returns:
+        pandas dataframe with the channel info
+
+    Author: FJC
+    """
+    csv_suffix = '_baseline_channel_info.csv'
+    fname = DataDirectory+fname_prefix+csv_suffix
+
+    df = pd.read_csv(fname)
+
+    return df
+
+def read_terrace_shapefile(DataDirectory, shapefile_name):
+    """
+    This function reads in a shapefile of digitised terraces
+    using shapely and fiona
+
+    Args:
+        DataDirectory (str): the data directory
+        shapefile_name (str): the name of the shapefile
+
+    Returns: shapely polygons with terraces
+
+    Author: FJC
+    """
+    Polygons = {}
+    with fiona.open(DataDirectory+shapefile_name, 'r') as input:
+        for f in input:
+            this_shape = Polygon(shape(f['geometry']))
+            this_id = f['properties']['id']
+            Polygons[this_id] = this_shape
+
+    return Polygons
+
+def read_terrace_centrelines(DataDirectory, shapefile_name):
+    """
+    This function reads in a shapefile of terrace centrelines
+    using shapely and fiona
+
+    Args:
+        DataDirectory (str): the data directory
+        shapefile_name (str): the name of the shapefile
+
+    Returns: shapely polygons with terraces
+
+    Author: FJC
+    """
+    Lines = {}
+    with fiona.open(DataDirectory+shapefile_name, 'r') as input:
+        for f in input:
+            this_line = LineString(shape(f['geometry']))
+            this_id = f['properties']['id']
+            Lines[this_id] = this_line
+    return Lines
 
 def ReadModelCSV(DataDirectory, Base_file):
     """
