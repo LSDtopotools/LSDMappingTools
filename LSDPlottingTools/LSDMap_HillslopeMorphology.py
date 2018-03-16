@@ -1075,7 +1075,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
         mchi_upper_err.append(mchi_upperP-this_median)
 
     # set up the figure
-    fig, ax = plt.subplots(nrows = 7, ncols=1, sharex=True, figsize=(6,12), facecolor='white')
+    fig, ax = plt.subplots(nrows = 6, ncols=1, sharex=True, figsize=(6,10), facecolor='white')
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
@@ -1097,27 +1097,22 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     # read the uplift data in
     # read in the csv
-    uplift_df = pd.read_csv(DataDirectory+'m_over_n.csv')
-
-    # plot the junction angle
-    ax[4].errorbar(basin_keys, uplift_df['junction_angle_median'], yerr=[uplift_df['junction_angle_median']-uplift_df['junction_angle_25thP'], uplift_df['junction_angle_75thP']-uplift_df['junction_angle_median']], fmt='o',ecolor='0.5',markersize=5,mfc='green',mec='k')
-    ax[4].set_ylabel('Junction angle (deg)')
+    uplift_df = pd.read_csv(DataDirectory+'MTJ_basin_uplift.csv')
+    dd_df = pd.read_csv(DataDirectory+FilenamePrefix+'_basin_dd.csv')
 
     # get the drainage density
-    drainage_density = uplift_df['drainage_density']
-    ax[5].scatter(basin_keys, drainage_density, c='k', edgecolors='k', s=20)
-    ax[5].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
-    ax[5].set_ylabel('Drainage density (m/m$^2$)')
-
-
+    drainage_density = dd_df['drainage_density']
+    ax[4].scatter(basin_keys, drainage_density, c='k', edgecolors='k', s=20)
+    ax[4].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
+    ax[4].set_ylabel('Drainage density (m/m$^2$)')
 
     # get the data
     uplift_rate = uplift_df['Uplift_rate']
-    ax[6].plot(basin_keys, uplift_rate, c='k', ls='--')
-    ax[6].set_ylabel('Uplift rate (mm/yr)')
+    ax[5].plot(basin_keys, uplift_rate, c='k', ls='--')
+    ax[5].set_ylabel('Uplift rate (mm/yr)')
 
     # set the axes labels
-    ax[6].set_xlabel('Basin ID')
+    ax[5].set_xlabel('Basin ID')
     plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1))
     plt.tight_layout()
 
