@@ -305,6 +305,8 @@ def main(argv):
     # What sort of analyses you want--these are rather simple versions
     parser.add_argument("-PB", "--plot_basins", type=bool, default=False, help="If this is true, I'll make a simple basin plot.")
     parser.add_argument("-PBC", "--plot_basins_channels", type=bool, default=False, help="If this is true, I'll make a simple basin plot with channels.")
+    parser.add_argument("-PCh", "--plot_channels", type=bool, default=False, help="If this is true, I'll make a simple plot of channels.")
+    
     parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that puts a colour scale on a drape of your choice.")
     parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.") 
     
@@ -503,7 +505,7 @@ def main(argv):
         # First the basins, labeled:
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
       
-    # This just plots the basins. Useful for checking on basin selection
+    # This just plots the basins with the channels. Useful for checking on basin selection.
     if args.plot_basins_channels:
         print("I am going to print basins and channels.")
         
@@ -517,10 +519,30 @@ def main(argv):
         raster_out_prefix = "/raster_plots/"+out_fname_prefix      
         # First the basins, with blue channels scaled by drainage area
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basinschannels",include_channels = True, label_basins = False)  
+
+    # This just plots the basins with the channels. Useful for checking on basin selection.
+    if args.plot_channels:
+        print("I am going to print channels.")
+        
+        # check if a raster directory exists. If not then make it.
+        raster_directory = this_dir+'raster_plots/'
+        print("I am printing to a raster directory:")
+        print(raster_directory)
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+            
+        # Get the names of the relevant files
+        ChannelFname = args.fname_prefix+"_chi_data_map.csv"
+        
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix   
+        
+        # First the basins, with blue channels scaled by drainage area
+        # Now plot the channels coloured by the source number
+        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="elevation", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_channels", discrete_colours = False, colour_log = False, show_basins = False)              
         
     # This prints a draped plot. All you need is a drape layer
-    if args.plot_basins_channels:
-        print("I am going to print basins and channels.")
+    if args.plot_drape:
+        print("I am going to print a draped plot.")
         
         # check if a raster directory exists. If not then make it.
         raster_directory = this_dir+'raster_plots/'
@@ -529,7 +551,8 @@ def main(argv):
         if not os.path.isdir(raster_directory):
             os.makedirs(raster_directory)  
         
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix    
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix  
+        print("Hey, I am afraid my masters have not finished programming this bit.")
             
         
     # This plots the chi coordinates. You need to have chi rasters for this
@@ -596,7 +619,7 @@ def main(argv):
         if not os.path.isdir(chi_profile_directory):
             os.makedirs(chi_profile_directory)   
 
-         # Get the names of the relevant files
+        # Get the names of the relevant files
         ChannelFname = args.fname_prefix+"_MChiSegmented.csv"
         
         raster_out_prefix = "/raster_plots/"+args.fname_prefix       

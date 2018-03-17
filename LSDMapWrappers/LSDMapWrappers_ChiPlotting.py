@@ -103,7 +103,7 @@ def PrintChiChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labe
 
 
 
-def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10, colour_log = True, colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} , value_dict = {}, out_fname_prefix = ""):
+def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10, colour_log = True, colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} , value_dict = {}, out_fname_prefix = "", show_basins = True):
     """
     This function prints a channel map over a hillshade.
 
@@ -124,6 +124,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
         Basin_remove_list (list): A lists containing either key or junction indices of basins you want to remove from plotting
         Basin_rename_dict (dict): A dict where the key is either basin key or junction index, and the value is a new name for the basin denoted by the key
         out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
+        show_basins (bool): If true, plot the basins
 
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Includes channels. These can be plotted by various metrics denoted but the plotting_column parameter. 
@@ -183,7 +184,8 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location="None")
 
     # This adds the basins
-    MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False,
+    if show_basins:
+        MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False,
                       colourmap = "gray")    
     
     if discrete_colours:
@@ -205,7 +207,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
 
     
     
-def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "cubehelix", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10, colour_log = True, colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} , value_dict = {}, plot_chi_raster = False, out_fname_prefix = ""):
+def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "cubehelix", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10, colour_log = True, colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} , value_dict = {}, plot_chi_raster = False, out_fname_prefix = "", show_basins = True):
     """
     This function prints a channel map over a hillshade.
 
@@ -226,6 +228,7 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
         Basin_remove_list (list): A lists containing either key or junction indices of basins you want to remove from plotting
         Basin_rename_dict (dict): A dict where the key is either basin key or junction index, and the value is a new name for the basin denoted by the key
         out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
+        show_basins (bool): If true, plot the basins
 
     Returns:
         Shaded relief plot with the basins coloured by basin ID. Includes channels. These can be plotted by various metrics denoted but the plotting_column parameter. 
@@ -288,13 +291,18 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
     # This adds the basins
  
     
-    if plot_chi_raster:
-        MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False, colourmap = "gray", alpha = 1, outlines_only = True)   
+    if plot_chi_raster:      
+        if show_basins:
+            MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False, colourmap = "gray", alpha = 1, outlines_only = True) 
+            
         MF.add_drape_image(ChiCoordName,DataDirectory,colourmap = "cubehelix",alpha=0.6,zorder = 0.5)
+        
         MF.add_point_data(thisPointData,column_for_plotting = plotting_column,scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = cbar_loc,colorbarlabel = colorbarlabel, this_colourmap = cmap,scaled_data_in_log = True,max_point_size = 2, min_point_size = 0.5,zorder=0.4, colour_log = colour_log, discrete_colours = discrete_colours, NColours = NColours)
-    else:
-         MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False, colourmap = "gray", alpha = 0.7, outlines_only = False)
-         MF.add_point_data(thisPointData,column_for_plotting = plotting_column,scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = cbar_loc,colorbarlabel = colorbarlabel, this_colourmap = cmap,scaled_data_in_log = True,max_point_size = 2, min_point_size = 0.5,zorder=10, colour_log = colour_log, discrete_colours = discrete_colours, NColours = NColours)
+    else:       
+        if show_basins:
+            MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False, colourmap = "gray", alpha = 0.7, outlines_only = False)
+         
+        MF.add_point_data(thisPointData,column_for_plotting = plotting_column,scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = cbar_loc,colorbarlabel = colorbarlabel, this_colourmap = cmap,scaled_data_in_log = True,max_point_size = 2, min_point_size = 0.5,zorder=10, colour_log = colour_log, discrete_colours = discrete_colours, NColours = NColours)
     
 
         
