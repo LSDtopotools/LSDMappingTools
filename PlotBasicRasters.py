@@ -305,10 +305,10 @@ def main(argv):
     # What sort of analyses you want--these are rather simple versions
     parser.add_argument("-PB", "--plot_basins", type=bool, default=False, help="If this is true, I'll make a simple basin plot.")
     parser.add_argument("-PBC", "--plot_basins_channels", type=bool, default=False, help="If this is true, I'll make a simple basin plot with channels.")
-    parser.add_argument("-PCh", "--plot_channels", type=bool, default=False, help="If this is true, I'll make a simple plot of channels.")
-    
+    parser.add_argument("-PCh", "--plot_channels", type=bool, default=False, help="If this is true, I'll make a simple plot of channels.") 
     parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that puts a colour scale on a drape of your choice.")
     parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.") 
+    parser.add_argument("-SimpleChFmt", "--simple_channel_format", type=str, default="elevation", help="The colum in the channel file used to colour the channels.")     
     
     #===============================================================================    
     # What sort of analyses you want--these are rather simple versions   
@@ -516,9 +516,28 @@ def main(argv):
         if not os.path.isdir(raster_directory):
             os.makedirs(raster_directory)
         
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix      
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix 
+        
+        # Get the names of the relevant files
+        ChannelFname = args.fname_prefix+"_chi_data_map.csv"
+        
         # First the basins, with blue channels scaled by drainage area
-        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basinschannels",include_channels = True, label_basins = False)  
+        #LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basinschannels",include_channels = True, label_basins = False)  
+        
+        if args.simple_channel_format == "elevation":
+            # Now plot the channels coloured by the source number
+            LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "Blues_r", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="elevation", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_BChElevation", discrete_colours = False, colour_log = False, show_basins = True)  
+        elif args.simple_channel_format == "source_key":
+            # Now plot the channels coloured by the source number
+            LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "tab20b", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="source_key", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"BSourceKey", discrete_colours = True, NColours = 20, colour_log = False, show_basins = True)
+        elif args.simple_channel_format == "basin_key":
+            # Now plot the channels coloured by the source number
+            LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "jet", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="source_key", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"BBasinKey", discrete_colours = True, NColours = 20, colour_log = False, show_basins = True)
+        elif args.simple_channel_format == "drainage_area":
+            # Now plot the channels coloured by the source number
+            LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "Reds_r", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="elevation", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_BDrainArea", discrete_colours = False, colour_log = True, show_basins = True) 
+        else:
+            print("You didn't select a valid channel colouring scheme.\n Choices are elevation, source_key, basin_key, and drainage_area")
 
     # This just plots the basins with the channels. Useful for checking on basin selection.
     if args.plot_channels:
@@ -537,8 +556,21 @@ def main(argv):
         raster_out_prefix = "/raster_plots/"+out_fname_prefix   
         
         # First the basins, with blue channels scaled by drainage area
-        # Now plot the channels coloured by the source number
-        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "Blues_r", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="elevation", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_channels", discrete_colours = False, colour_log = False, show_basins = False)              
+        # Now plot the channels coloured by the elevation
+        if args.simple_channel_format == "elevation":
+            # Now plot the channels coloured by the source number
+            LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "Blues_r", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="elevation", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_ChElevation", discrete_colours = False, colour_log = False, show_basins = False)  
+        elif args.simple_channel_format == "source_key":
+            # Now plot the channels coloured by the source number
+            LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "tab20b", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="source_key", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"SourceKey", discrete_colours = True, NColours = 20, colour_log = False, show_basins = False)
+        elif args.simple_channel_format == "basin_key":
+            # Now plot the channels coloured by the source number
+            LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "jet", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="source_key", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"BasinKey", discrete_colours = True, NColours = 20, colour_log = False, show_basins = False)
+        elif args.simple_channel_format == "drainage_area":
+            # Now plot the channels coloured by the source number
+            LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "Reds_r", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="elevation", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_DrainArea", discrete_colours = False, colour_log = True, show_basins = False) 
+        else:
+            print("You didn't select a valid channel colouring scheme.\n Choices are elevation, source_key, basin_key, and drainage_area")
         
     # This prints a draped plot. All you need is a drape layer
     if args.plot_drape:
