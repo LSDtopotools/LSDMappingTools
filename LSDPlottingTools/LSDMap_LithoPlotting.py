@@ -174,7 +174,7 @@ def get_color_litho(fname_prefix, DataDirectory, lithocode):
 	return cocode
 
 
-def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict, size_format='ESURF', FigFormat='png'):
+def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict, size_format='ESURF', FigFormat='png', basins = True):
 	"""
 	This function makes a shaded relief plot of the DEM with lithologic map on the top and basin outline
 
@@ -183,6 +183,7 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 	fname_prefix (str): The prefix for the m/n csv files
 	size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
 	FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+	Basins (bool): Do you want the basin on top
 
 	Returns:
 	Shaded relief plot with the basins coloured by basin ID
@@ -209,16 +210,18 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 		fig_width_inches = 4.92126
 
 	# get the basin IDs to make a discrete colourmap for each ID
-	BasinInfoDF = Helper.ReadBasinInfoCSV(DataDirectory, fname_prefix)
+	if(basins):
+		BasinInfoDF = Helper.ReadBasinInfoCSV(DataDirectory, fname_prefix)
 
-	basin_keys = list(BasinInfoDF['basin_key'])
-	basin_keys = [int(x) for x in basin_keys]
+		basin_keys = list(BasinInfoDF['basin_key'])
+		basin_keys = [int(x) for x in basin_keys]
 
-	basin_junctions = list(BasinInfoDF['outlet_junction'])
-	basin_junctions = [float(x) for x in basin_junctions]
+		basin_junctions = list(BasinInfoDF['outlet_junction'])
+		basin_junctions = [float(x) for x in basin_junctions]
 
-	print ('Basin keys are: ')
-	print basin_keys
+		print ('Basin keys are: ')
+		print basin_keys
+		BasinsName = fname_prefix+'_AllBasins'+raster_ext
 
 
 
@@ -229,7 +232,7 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 	raster_ext = '.bil'
 	BackgroundRasterName = fname_prefix+raster_ext
 	HillshadeName = fname_prefix+'_hs'+raster_ext
-	BasinsName = fname_prefix+'_AllBasins'+raster_ext
+
 	LithoMap = lname_prefix+raster_ext
 
 	# create the map figure
@@ -254,23 +257,31 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 						modify_raster_values=False,
 						old_values=[], new_values=[], cbar_type=int,
 						NFF_opti = True, custom_min_max = [])
+	
+	if(basins):
 	# add the basin outlines
-	Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
-	MF.plot_polygon_outlines(Basins, linewidth=0.8)
+	
+		Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
+		MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
-	# add the channel network
-	ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
-	ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-	MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100)
+		# add the channel network
+		ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
+		ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+		MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100)
 
-	# add the basin labelling
-	label_dict = dict(zip(basin_junctions,basin_keys))
-	Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
-	MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict,zorder=200)
+	if(basins):
+		# add the basin labelling
+		label_dict = dict(zip(basin_junctions,basin_keys))
+		Points = LSDP.GetPointWithinBasins(DataDirectory, BasinsName)
+		MF.add_text_annotation_from_shapely_points(Points, text_colour='k', label_dict=label_dict,zorder=200)
 
-	# Save the figure
-	ImageName = raster_directory+fname_prefix+'_basin_keys_litho.'+FigFormat
-	MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
+	if(basins):
+		# Save the figure
+		ImageName = raster_directory+fname_prefix+'_basin_keys_litho.'+FigFormat
+	else:
+		ImageName = raster_directory+fname_prefix+'_litho.'+FigFormat
+
+	MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 500)
 
 
 def generate_legend_in_csv(name, force = False):
