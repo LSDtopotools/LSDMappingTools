@@ -531,17 +531,8 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, colour
         terrace_df = SelectTerracePointsFromCentrelines(DataDirectory,shapefile_name,fname_prefix, distance=5)
 
     # read in the baseline channel csv
-    lp = H.read_channel_csv(DataDirectory,fname_prefix)
-    lp = lp[lp['Elevation'] != -9999]
-
-    # read in the chi data map if you want to colour the channel by ksn
-    if (colour_by_ksn == True):
-        chi_df = H.ReadChiDataMapCSV(DataDirectory,fname_prefix)
-        # mask to the main channel
-        chi_df = chi_df[chi_df['source_key'] == 0]
-        # now we need to join the baseline data.
-
-
+    lp = H.ReadMChiSegCSV(DataDirectory,fname_prefix)
+    lp = lp[lp['elevation'] != -9999]
 
     # get the distance from outlet along the baseline for each terrace pixels
     terrace_df = terrace_df.merge(lp, left_on = "BaselineNode", right_on = "node")
@@ -559,8 +550,8 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, colour
     for id in terrace_ids:
         # mask for this ID
         this_df = terrace_df[terrace_df['TerraceID'] == id]
-        this_dist = this_df['DistFromOutlet']/1000
-        this_elev = this_df['Elevation_x']
+        this_dist = this_df['flow_distance']/1000
+        this_elev = this_df['Elevation']
         # work out the number of bins. We want a spacing of ~ 10 m
         bins = np.arange(this_dist.min(), this_dist.max(), 0.05)
         n_bins = len(bins)
@@ -572,7 +563,7 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, colour
         mean = sy/n
 
         # work out the gradient of each terrace ID...rise/run. Use this to colour the terrace.
-        delta_x = this_df['DistFromOutlet'].max() - this_df['DistFromOutlet'].min()
+        delta_x = this_df['flow_distance'].max() - this_df['flow_distance'].min()
         delta_z = this_elev.max() - this_elev.min()
         gradient = delta_z / delta_x
         color=mapper.to_rgba(gradient)
@@ -581,12 +572,19 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, colour
         # plot the terrace
         ax.plot((_[1:] + _[:-1])/2, mean,c=color,zorder=2)
 
-    ax.plot(lp['DistFromOutlet']/1000,lp['Elevation'],'k',lw=1)
+    lp_mainstem = H.read_index_channel_csv(DataDirectory,fname_prefix)
+    lp_mainstem = lp_mainstem[lp_mainstem['elevation'] != -9999]
+    lp_mainstem = lp_mainstem.merge(lp, left_on="id", right_on="node")
+    if colour_by_ksn == True:
+        ax.scatter(lp_mainstem["flow_distance_x"]/1000, lp_mainstem["elevation_x"], c=lp_mainstem["m_chi"], cmap=cm.hot, norm=colors.Normalize(lp_mainstem["m_chi"].min(), lp_mainstem["m_chi"].max()), s=0.5, lw=0.1)
+    else:
+        ax.plot(lp_mainstem['flow_distance_x']/1000,lp_mainstem['elevation_x'],'k',lw=1)
+
     # set axis params and save
     ax.set_xlabel('Distance from outlet (km)')
     ax.set_ylabel('Elevation (m)')
-    ax.set_xlim(0,(terrace_df['DistFromOutlet'].max()/1000))
-    ax.set_ylim(0,terrace_df['Elevation_x'].max()+10)
+    ax.set_xlim(0,(terrace_df['flow_distance'].max()/1000))
+    ax.set_ylim(0,terrace_df['elevation'].max()+10)
 
     # add a colourbar
     mapper.set_array(terrace_gradients)
@@ -597,6 +595,98 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, colour
     plt.tight_layout()
     #plt.show()
     plt.savefig(T_directory+fname_prefix+'_terrace_plot_centrelines.'+FigFormat,format=FigFormat,dpi=300)
+
+#---------------------------------------------------------------------------------------------#
+# Terrace plots in chi space
+#---------------------------------------------------------------------------------------------#
+def MakeTerracePlotChiSpace(DataDirectory,fname_prefix,shapefile_name, colour_by_ksn=True):
+    """
+    This function makes a plot of the terraces in chi-elevation space. The elevation
+    of each terrace is plotted based on the chi of the nearest channel
+    FJC 21/03/18
+    """
+    # check if a directory exists for the chi plots. If not then make it.
+    T_directory = DataDirectory+'terrace_plots/'
+    if not os.path.isdir(T_directory):
+        os.makedirs(T_directory)
+
+    # make a figure
+    fig = CreateFigure()
+    ax = plt.subplot(111)
+
+    # check if the csv already exists. if not then select the points from the centrelines
+    csv_filename = DataDirectory+fname_prefix+'_terrace_info_centrelines.csv'
+    if os.path.isfile(csv_filename):
+        terrace_df = pd.read_csv(DataDirectory+fname_prefix+'_terrace_info_centrelines.csv')
+    else:
+        terrace_df = SelectTerracePointsFromCentrelines(DataDirectory,shapefile_name,fname_prefix, distance=5)
+
+    # read in the mchi  csv
+    lp = H.ReadMChiSegCSV(DataDirectory,fname_prefix)
+    lp = lp[lp['elevation'] != -9999]
+
+    # get the distance from outlet along the baseline for each terrace pixels
+    terrace_df = terrace_df.merge(lp, left_on = "BaselineNode", right_on = "node")
+
+    # make the long profile plot
+    terrace_ids = terrace_df['TerraceID'].unique()
+
+    # sort out the colours. We want a different colour for each terrace...
+    this_cmap = cm.viridis
+    norm = colors.Normalize(vmin=terrace_df['m_chi'].min(), vmax=terrace_df['m_chi'].max()-10, clip=True)
+    mapper = cm.ScalarMappable(norm=norm, cmap=this_cmap)
+
+    terrace_gradients = []
+
+    for id in terrace_ids:
+        # mask for this ID
+        this_df = terrace_df[terrace_df['TerraceID'] == id]
+        this_chi = this_df['chi']
+        this_elev = this_df['Elevation']
+        # work out the number of bins. We want a spacing of ~ 10 m
+        bins = np.arange(this_chi.min(), this_chi.max(), 0.01)
+        n_bins = len(bins)
+        if n_bins < 1: n_bins = 1
+        # bin the data
+        n, _ = np.histogram(this_chi, bins=n_bins)
+        sy, _ = np.histogram(this_chi, bins=n_bins, weights = this_elev)
+        sy2, _ = np.histogram(this_chi, bins=n_bins, weights = this_elev*this_elev)
+        mean = sy/n
+
+        # work out the gradient of each terrace ID...rise/run. Use this to colour the terrace.
+        delta_x = this_df['chi'].max() - this_df['chi'].min()
+        delta_z = this_elev.max() - this_elev.min()
+        gradient = delta_z / delta_x
+        color=mapper.to_rgba(gradient)
+        terrace_gradients.append(gradient)
+
+        # plot the terrace
+        ax.plot((_[1:] + _[:-1])/2, mean,c=color,zorder=2)
+
+    lp_mainstem = H.read_index_channel_csv(DataDirectory,fname_prefix)
+    lp_mainstem = lp_mainstem[lp_mainstem['elevation'] != -9999]
+    lp_mainstem = lp_mainstem.merge(lp, left_on="id", right_on="node")
+    if colour_by_ksn == True:
+        ax.scatter(lp_mainstem["chi"], lp_mainstem["elevation_y"], c=lp_mainstem["m_chi"], cmap=cm.viridis, norm=colors.Normalize(lp_mainstem["m_chi"].min()-10, lp_mainstem["m_chi"].max()), s=0.5, lw=0.1)
+    else:
+        ax.plot(lp_mainstem['chi'],lp_mainstem['elevation_y'],'k',lw=1)
+
+    # set axis params and save
+    ax.set_xlabel('$\chi$')
+    ax.set_ylabel('Elevation (m)')
+    ax.set_xlim(0,(terrace_df['chi'].max()))
+    ax.set_ylim(0,terrace_df['Elevation'].max()+10)
+
+    # add a colourbar
+    mapper.set_array(terrace_gradients)
+    cbar = plt.colorbar(mapper,cmap=this_cmap,norm=norm,orientation='vertical')
+    cbar.set_label('$k_{sn}$')
+
+
+    plt.tight_layout()
+    #plt.show()
+    plt.savefig(T_directory+fname_prefix+'_terrace_plot_chi.png',format='png',dpi=300)
+
 
 #---------------------------------------------------------------------------------------------#
 # RASTER PLOTS

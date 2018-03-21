@@ -32,6 +32,8 @@ def main(argv):
     parser.add_argument("-DT", "--digitised_terraces", type=bool,default=False, help="If this is true I'll filter the terrace points using a shapefile of digitised terraces.")
     parser.add_argument("-shp", "--shapefile_name", type=str, default=None, help="The shapefile of digitised terraces. Must be supplied if you want to filter terraces by shapefile, obvz.")
 
+    parser.add_argument("-ksn", "--colour_by_ksn", type=bool, default=False, help="If this is true I'll colour the main stem channel by ksn. Can only be used if you have the csv file ending in '_MChiSegmented.csv'")
+
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
@@ -58,7 +60,8 @@ def main(argv):
             TerracePlotter.long_profiler_dist(this_dir, args.fname_prefix)
         else:
             #TerracePlotter.long_profiler_dist(this_dir, args.fname_prefix, digitised_terraces=True, shapefile_name = args.shapefile_name)
-            TerracePlotter.long_profiler_centrelines(this_dir,args.fname_prefix,args.shapefile_name)
+            TerracePlotter.long_profiler_centrelines(this_dir,args.fname_prefix,args.shapefile_name, args.colour_by_ksn)
+            TerracePlotter.MakeTerracePlotChiSpace(this_dir, args.fname_prefix,args.shapefile_name)
 
     if args.plot_rasters:
         TerracePlotter.MakeRasterPlotTerraceIDs(this_dir, args.fname_prefix, args.FigFormat, args.size_format)

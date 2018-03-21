@@ -11,6 +11,8 @@ Released under GPL3
 
 import os
 import pandas as pd
+import fiona
+from shapely.geometry import shape, Polygon, Point, LineString
 
 #==============================================================================
 def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", title = "None",
@@ -944,6 +946,27 @@ def read_channel_csv(DataDirectory,fname_prefix):
     Author: FJC
     """
     csv_suffix = '_baseline_channel_info.csv'
+    fname = DataDirectory+fname_prefix+csv_suffix
+
+    df = pd.read_csv(fname)
+
+    return df
+
+def read_index_channel_csv(DataDirectory,fname_prefix):
+    """
+    This function reads in the csv file with the extension "_index_chan.csv"
+    and returns it as a pandas dataframe
+
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the name of the DEM
+
+    Returns:
+        pandas dataframe with the channel info
+
+    Author: FJC
+    """
+    csv_suffix = '_index_chan.csv'
     fname = DataDirectory+fname_prefix+csv_suffix
 
     df = pd.read_csv(fname)
