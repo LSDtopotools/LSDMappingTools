@@ -174,7 +174,7 @@ def get_color_litho(fname_prefix, DataDirectory, lithocode):
 	return cocode
 
 
-def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict, size_format='ESURF', FigFormat='png', basins = True, m_chi = True, mancol = [], log_scale_river = False):
+def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict, size_format='ESURF', FigFormat='png', basins = True, m_chi = True, mancol = [], log_scale_river = False, minmax_m_chi = []):
 	"""
 	This function makes a shaded relief plot of the DEM with lithologic map on the top and basin outline
 
@@ -184,6 +184,7 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 	size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
 	FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
 	Basins (bool): Do you want the basin on top
+	minmax_m_chi (list): define a minimum/maximum for plotting m_chi on the top of litho (at the moment this plot is generated from knickpoint dataset)
 
 	Returns:
 	Shaded relief plot with the basins coloured by basin ID
@@ -268,7 +269,7 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 		if(m_chi):
 			ChannelDF = pd.read_csv(DataDirectory+fname_prefix+"_ksnkp_mchi.csv")
 			ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-			MF.add_point_data(ChannelPoints,column_for_plotting = 'm_chi',show_colourbar = True, scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100,this_colourmap = "RdBu_r" ,colour_manual_scale = mancol, scaled_data_in_log = log_scale_river)
+			MF.add_point_data(ChannelPoints,column_for_plotting = 'm_chi',show_colourbar = True, scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100,this_colourmap = "RdBu_r" ,colour_manual_scale = mancol, scaled_data_in_log = log_scale_river,max_point_size = minmax_m_chi[1], min_point_size = minmax_m_chi[0])
 		else:
 		# add the channel network
 			ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
