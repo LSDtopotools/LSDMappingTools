@@ -41,7 +41,7 @@ import random
 def litho_pre_check(directory, lk = "", fname = ""):
 	"""
 	This function check if you have the right files to work with the litho.
-	
+
 	Author: Boris
 
 	"""
@@ -59,7 +59,7 @@ def litho_pre_check(directory, lk = "", fname = ""):
 		if(len(result) == 1):
 			print("I found your lithokey file, this last host the conversion information, just check if this is the right one: ")
 			print(result[0])
-			
+
 			print("now renaming this file with the right prefix_suffix:")
 			system_call = "mv "+directory+result[0]+" "+directory + fname + "_lithokey.csv"
 			print(directory + fname + "_lithokey.csv")
@@ -89,7 +89,7 @@ def litho_pre_check(directory, lk = "", fname = ""):
 		dict_litho[df_litho["rocktype"][i]] = df_litho["ID"][i]
 
 	dict_file["lithodict"] = dict_litho
-	
+
 
 
 	return dict_file
@@ -118,7 +118,7 @@ def getLithoColorMap(fname_prefix, DataDirectory, values = "None"):
 			if(i in df["rocktype"].values):
 				colorList.append(df["legend"][df["rocktype"] == i].values[0])
 			else:
-				colorList.append("#01FA1E")
+				colorList.append("#FFFFFF")
 
 
 
@@ -209,6 +209,8 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 	else:
 		fig_width_inches = 4.92126
 
+	raster_ext = '.bil'
+
 	# get the basin IDs to make a discrete colourmap for each ID
 	if(basins):
 		BasinInfoDF = Helper.ReadBasinInfoCSV(DataDirectory, fname_prefix)
@@ -251,23 +253,23 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 	MF.add_drape_image(LithoMap,DataDirectory,colourmap = color_map_litho,
 						alpha=0.4,
 						show_colourbar = False,
-						colorbarlabel = "Colourbar", discrete_cmap=False, 
+						colorbarlabel = "Colourbar", discrete_cmap=False,
 						norm = "None",
 						colour_min_max = [0,df_litho_size["rocktype"].max()-1],
 						modify_raster_values=False,
 						old_values=[], new_values=[], cbar_type=int,
 						NFF_opti = True, custom_min_max = [])
-	
+
 	if(basins):
 	# add the basin outlines
-	
+
 		Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
 		MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
 		# add the channel network
-		ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
-		ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-		MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100)
+		# ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
+		# ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+		# MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100)
 
 	if(basins):
 		# add the basin labelling
@@ -291,7 +293,7 @@ def generate_legend_in_csv(name, force = False):
 	This will generate legend only if this hasn't been done yet to avoid overwritting you existing colors.
 	param:
 		name (str): name of the csv lithokey file. It should be prefix_lithokey.csv
-		force (bool): 
+		force (bool):
 	Do someone read the documentation? if yes just send me an email.
 
 	Author: BG
@@ -316,7 +318,7 @@ def generate_legend_in_csv(name, force = False):
 	else:
 		print("You already have a legend in your lithokey file! Well done.")
 
-	#now creating and returning the colormap 
+	#now creating and returning the colormap
 	cm = colors.LinearSegmentedColormap.from_list("LithoColorMap", dft.legend, N=dft.shape[0]-1)
 	return cm
 
@@ -325,7 +327,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 	"""
 		Function to plot the movern repartition beetween two lithologies per basins, using the percentage of each lithologies in the basin.
 		something like this:
-		
+
 
 				|	o	  o o    |
 				| o			     |
@@ -333,7 +335,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 				|				 |
 				|_o______________|
 			  lith1			  lith2
-			  100%			   100%  
+			  100%			   100%
 
 		@params:
 			fname_prefix (str): the prefix of all your files.
@@ -352,7 +354,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 	"""
 	print("Printing a recapitulative chart containing the movern value in function of the basin lithology")
 
-	
+
 	# check if a directory exists for the summary plots. If not then make it.
 	summary_directory = DataDirectory+'summary_plots/'
 	if not os.path.isdir(summary_directory):
@@ -417,12 +419,12 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 		first_percentage = dfl[str(litho[0])][dfl["basin_id"]==i].values
 		second_percentage = dfl[str(litho[1])][dfl["basin_id"]==i].values
 		tot = first_percentage+second_percentage
-		
+
 		# Normalization to 100 %
 		if( tot != 100 and normalization):
 			first_percentage = first_percentage*100/tot
 			second_percentage = second_percentage*100/tot
-		# setting the value 
+		# setting the value
 		df["litho_percent"][df["basin_key"]==i] = second_percentage
 
 
@@ -439,10 +441,10 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 		points_min_err = df['Chi_MLE_points_min'].as_matrix()
 		points_min_err = median_movern-points_min_err
 		errors = np.array(zip(points_min_err, points_max_err)).T
-		
+
 
 		points_chi_keys = df['basin_key'].as_matrix()-0.1
-		
+
 		# generating Random color for basins
 		# Assigning the random color values
 		if color_by_basin:
@@ -485,7 +487,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 				# 	else:
 				# 		coloritemp = get_color_litho(fname_prefix, DataDirectory, litho[1])
 				# 	#print coloritemp
-					
+
 				# 	tpp = ax.scatter(df["litho_percent"].values[q], df['Chi_MLE_points'].values[q], s=15, c=coloritemp,  marker='o', edgecolors='k', lw=0.5,facecolors=coloritemp, label='Chi Monte Carlo',zorder=200)
 				# 	ax.errorbar(df["litho_percent"].values[q], df['Chi_MLE_points'].values[q], s=15, marker='o', xerr=None, yerr=errors[0][q], ecolor=coloritemp, fmt='none', elinewidth=1,label='_nolegend_')
 			else:
@@ -495,7 +497,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 		if(color_by_basin and show_legend):
 			gs2 = plt.GridSpec(100,100,bottom=0,left=0,right=1,top=1)
 			cax = fig.add_subplot(gs2[10:90,90:93])
-			
+
 			plt.colorbar(tpp, cax = cax,ticks =[0,df.basin_key.max()], orientation = "vertical",label = '')
 	else:
 		# plot the full chi data
@@ -581,7 +583,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 
 	else:
 		plt.savefig(summary_directory+fname_prefix+"_movern_two_litho.png", dpi = 300)
-	
+
 	plt.clf()
 
 def MakeChiPlotsByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7,
@@ -632,7 +634,7 @@ def MakeChiPlotsByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern
 		fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
 		#l_pad = -35
 
-	
+
 	#colorbar axis
 	gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.95,top=1.0)
 	if plot_colorbar:
@@ -692,24 +694,24 @@ def MakeChiPlotsByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern
 			MainStemX = list(ProfileDF_MS[movern_key])
 			MainStemElevation = list(ProfileDF_MS['elevation'])
 			MainStemK = list(ProfileDF_MS[fname_prefix+"_geol"])
-			
+
 
 			# get the chi, elevation, and MLE for the tributaries
 			TributariesX = list(ProfileDF_tribs[movern_key])
 			TributariesElevation = list(ProfileDF_tribs['elevation'])
 			TributariesK = list(ProfileDF_tribs[fname_prefix+"_geol"])
-			
-			
+
+
 			# get the colourmap to colour channels by the MLE value
 			#NUM_COLORS = len(MLE)
 			K_array = np.asarray(TributariesK)
 			#min_K = np.min(K_array)
 			#max_K = np.max(K_array)
 			#seal_the_seal = pd.concat(TributariesK,MainStemK)
-			
+
 			this_cmap = getLithoColorMap(fname_prefix, DataDirectory, values = ProfileDF_basin[fname_prefix+"_geol"].unique())
 			n_colours = 10
-			
+
 			#cNorm  = colors.Normalize(vmin=min_K, vmax=max_K)
 			#plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
 
@@ -778,7 +780,7 @@ def MakeChiPlotsByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern
 			for tick in ax.xaxis.get_major_ticks():
 				tick.set_pad(2)
 			# WTF is there an indent issue there
-						
+
 			plt.savefig(newFilename,format=FigFormat,dpi=300)
 			ax.cla()
 			if(plot_colorbar):
@@ -794,5 +796,3 @@ def MakeChiPlotsByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern
 			system_call = "rm "+K_directory+"Chi_profiles_by_Lith*.png"
 			subprocess.call(system_call, shell=True)
 	plt.close(fig)
-
-	
