@@ -598,6 +598,7 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, colour
 
 #---------------------------------------------------------------------------------------------#
 # Terrace plots in chi space
+# FOR THE FIRST TIME! WOOOOOP
 #---------------------------------------------------------------------------------------------#
 def MakeTerracePlotChiSpace(DataDirectory,fname_prefix,shapefile_name, colour_by_ksn=True):
     """
