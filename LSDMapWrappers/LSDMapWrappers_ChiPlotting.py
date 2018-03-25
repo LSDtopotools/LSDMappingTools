@@ -97,8 +97,8 @@ def PrintChiChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labe
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_chi_channels."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_chi_channels."+fig_format   
-        
+        ImageName = DataDirectory+out_fname_prefix+"_chi_channels."+fig_format
+
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
@@ -129,7 +129,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
         max_channel_point_size (float): The maximum size of a channel point in points
 
     Returns:
-        Shaded relief plot with the basins coloured by basin ID. Includes channels. These can be plotted by various metrics denoted but the plotting_column parameter. 
+        Shaded relief plot with the basins coloured by basin ID. Includes channels. These can be plotted by various metrics denoted but the plotting_column parameter.
 
     Author: SMM
     """
@@ -170,9 +170,9 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     chi_csv_fname = DataDirectory+ChannelFileName
 
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
-    
+
     #thisPointData.ThinDataSelection("basin_key",[10])
-    
+
     thisPointData.selectValue("basin_key",value = Basin_remove_list, operator = "!=")
     #print("The new point data is:")
     #print(thisPointData.GetLongitude())
@@ -188,11 +188,11 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     # This adds the basins
     if show_basins:
         MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False,
-                      colourmap = "gray")    
-    
+                      colourmap = "gray")
+
     if discrete_colours:
         print("I am printing discrete colours.")
-        
+
     MF.add_point_data(thisPointData,column_for_plotting = plotting_column,
                        scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = cbar_loc,
                        colorbarlabel = colorbarlabel, this_colourmap = cmap,
@@ -203,12 +203,12 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_chi_channels_and_basins."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_chi_channels_and_basins."+fig_format   
-    
+        ImageName = DataDirectory+out_fname_prefix+"_chi_channels_and_basins."+fig_format
+
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
-    
-    
+
+
 def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "cubehelix", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10, colour_log = True, colorbarlabel = "Colourbar", Basin_remove_list = [], Basin_rename_dict = {} , value_dict = {}, plot_chi_raster = False, out_fname_prefix = "", show_basins = True, min_channel_point_size = 0.5, max_channel_point_size = 2):
     """
     This function prints a channel map over a hillshade.
@@ -235,7 +235,7 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
         max_channel_point_size (float): The maximum size of a channel point in points
 
     Returns:
-        Shaded relief plot with the basins coloured by basin ID. Includes channels. These can be plotted by various metrics denoted but the plotting_column parameter. 
+        Shaded relief plot with the basins coloured by basin ID. Includes channels. These can be plotted by various metrics denoted but the plotting_column parameter.
 
     Author: SMM
     """
@@ -277,9 +277,9 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
     chi_csv_fname = DataDirectory+ChannelFileName
 
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
-    
+
     #thisPointData.ThinDataSelection("basin_key",[10])
-    
+
     thisPointData.selectValue("basin_key",value = Basin_remove_list, operator = "!=")
     #print("The new point data is:")
     #print(thisPointData.GetLongitude())
@@ -293,36 +293,36 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location="None")
 
     # This adds the basins
- 
-    
-    if plot_chi_raster:      
+
+
+    if plot_chi_raster:
         if show_basins:
-            MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False, colourmap = "gray", alpha = 1, outlines_only = True) 
-            
+            MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False, colourmap = "gray", alpha = 1, outlines_only = True)
+
         MF.add_drape_image(ChiCoordName,DataDirectory,colourmap = "cubehelix",alpha=0.6,zorder = 0.5)
-        
+
         MF.add_point_data(thisPointData,column_for_plotting = plotting_column,scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = cbar_loc,colorbarlabel = colorbarlabel, this_colourmap = cmap,scaled_data_in_log = True,max_point_size = max_channel_point_size, min_point_size = min_channel_point_size,zorder=0.4, colour_log = colour_log, discrete_colours = discrete_colours, NColours = NColours)
-    else:       
+    else:
         if show_basins:
             MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, mask_list = Basin_remove_list, rename_dict = Basin_rename_dict, value_dict = value_dict, label_basins = add_basin_labels, show_colourbar = False, colourmap = "gray", alpha = 0.7, outlines_only = False)
-         
-        MF.add_point_data(thisPointData,column_for_plotting = plotting_column,scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = cbar_loc,colorbarlabel = colorbarlabel, this_colourmap = cmap,scaled_data_in_log = True,max_point_size = 2, min_point_size = 0.5,zorder=10, colour_log = colour_log, discrete_colours = discrete_colours, NColours = NColours)
-    
 
-        
+        MF.add_point_data(thisPointData,column_for_plotting = plotting_column,scale_points = True,column_for_scaling = "drainage_area", show_colourbar = True, colourbar_location = cbar_loc,colorbarlabel = colorbarlabel, this_colourmap = cmap,scaled_data_in_log = True,max_point_size = 2, min_point_size = 0.5,zorder=10, colour_log = colour_log, discrete_colours = discrete_colours, NColours = NColours)
+
+
+
 
 
     # Save the image
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_chicoord_and_basins."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_chicoord_and_basins."+fig_format   
-    
-    MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi) 
-    
-    
-    
-def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "bottom", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plot_data_name = "m_chi", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2, X_offset = 5):
+        ImageName = DataDirectory+out_fname_prefix+"_chicoord_and_basins."+fig_format
+
+    MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
+
+
+
+def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "bottom", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plot_data_name = "m_chi", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2, X_offset = 5, rotate_labels=False):
     """
     This function prints a channel map over a hillshade.
 
@@ -346,7 +346,7 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
         plot_data_name (str): the data name used to colour the plot
 
     Returns:
-        Shaded relief plot with the basins coloured by basin ID. Includes channels. These can be plotted by various metrics denoted but the plotting_column parameter. 
+        Shaded relief plot with the basins coloured by basin ID. Includes channels. These can be plotted by various metrics denoted but the plotting_column parameter.
     """
 
 
@@ -371,34 +371,34 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
 
     print ('Basin keys are: ')
     print basin_keys
-    
-    
+
+
     chi_csv_fname = DataDirectory+ChannelFileName
- 
+
     # Save the image
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_stacked_chi."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_stacked_chi."+fig_format  
-        
+        ImageName = DataDirectory+out_fname_prefix+"_stacked_chi."+fig_format
+
     if axis_data_name == "flow_distance" and X_offset <= 10:
         print("WARNING! You have a weird flow distance offset. I think it is the chi offset. Check your offset.")
         x_offset = 50000
     else:
         x_offset = X_offset
-        
+
     # print("The colourbar is located on the "+cbar_loc)
     # print("Cmap is: "+cmap)
-    
+
     print("About to go into the stacks. My x_offset is: " +str(x_offset)+ ", and my rename dict is:" )
     print(Basin_rename_dict)
     LSDCP.StackedProfilesGradient(chi_csv_fname, FigFileName = ImageName,
                        FigFormat = fig_format,elevation_threshold = 0,
                        first_basin = first_basin, last_basin = last_basin, basin_order_list = Basin_select_list,
                        basin_rename_dict = Basin_rename_dict,
-                       this_cmap = cmap,axis_data_name = axis_data_name, colour_data_name = plot_data_name, 
+                       this_cmap = cmap,axis_data_name = axis_data_name, colour_data_name = plot_data_name,
                        discrete_colours = discrete_colours, NColours = NColours,
                        colorbarlabel = colorbarlabel, cbar_loc = cbar_loc, X_offset = x_offset,
                        plotting_data_format = plotting_data_format,
                        label_sources = False, source_thinning_threshold = 0,
-                       size_format = size_format, aspect_ratio = figure_aspect_ratio, dpi = dpi)
+                       size_format = size_format, aspect_ratio = figure_aspect_ratio, dpi = dpi, rotate_labels=rotate_labels)
