@@ -118,6 +118,7 @@ def main(argv):
         LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat=args.FigFormat, basins = True)
     if args.Basic_LithoMap:
         LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat=args.FigFormat, basins = False)
+    
     if args.legend:
         print "ongoing work on the legend"
 

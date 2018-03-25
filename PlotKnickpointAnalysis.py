@@ -250,10 +250,17 @@ def main(argv):
 
     if(args.multi_violin_plots):
         KI.stradivarius_analysis(size = size, format = args.FigFormat)
+
+
+    # Preparing the min_max color for mchi maps
+    if(args.max_mchi_map <= args.min_mchi_map):
+        colo = []
+    else:
+        colo = [args.min_mchi_map,args.max_mchi_map]
     
     if(args.lithologic_raster):
         dict_file = LP.litho_pre_check(args.base_directory,"", fname = args.fname_prefix)
-        LP.MakeRasterLithoBasinMap(args.base_directory, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat='png')
+        LP.MakeRasterLithoBasinMap(args.base_directory, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format= size, FigFormat=args.FigFormat, m_chi = True, mancol = colo, log_scale_river = True, minmax_m_chi = [0.01,1])
         cml = LP.getLithoColorMap(args.fname_prefix, args.base_directory)
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, cml = cml, lith_raster = True)
 

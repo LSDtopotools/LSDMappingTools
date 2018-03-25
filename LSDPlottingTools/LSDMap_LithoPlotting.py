@@ -174,7 +174,7 @@ def get_color_litho(fname_prefix, DataDirectory, lithocode):
 	return cocode
 
 
-def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict, size_format='ESURF', FigFormat='png', basins = True):
+def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict, size_format='ESURF', FigFormat='png', basins = True, m_chi = True, mancol = [], log_scale_river = False, minmax_m_chi = []):
 	"""
 	This function makes a shaded relief plot of the DEM with lithologic map on the top and basin outline
 
@@ -184,6 +184,7 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 	size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
 	FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
 	Basins (bool): Do you want the basin on top
+	minmax_m_chi (list): define a minimum/maximum for plotting m_chi on the top of litho (at the moment this plot is generated from knickpoint dataset)
 
 	Returns:
 	Shaded relief plot with the basins coloured by basin ID
@@ -223,7 +224,7 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 
 		print ('Basin keys are: ')
 		print basin_keys
-		BasinsName = fname_prefix+'_AllBasins'+raster_ext
+		BasinsName = fname_prefix+'_AllBasins.bil'
 
 
 
@@ -239,7 +240,7 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 
 	# create the map figure
 	MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", colourbar_location='None')
-
+	MF.add_drape_image(HillshadeName,DataDirectory,NFF_opti = True, custom_min_max = [90,240], alpha = 1)
 	# add the geology drape
 	# MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory,
 	#				  use_keys_not_junctions = True, show_colourbar = True,
@@ -251,7 +252,7 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 	df_litho_size = pd.read_csv(DataDirectory+fname_prefix+"_lithokey.csv")
 
 	MF.add_drape_image(LithoMap,DataDirectory,colourmap = color_map_litho,
-						alpha=0.4,
+						alpha=0.6,
 						show_colourbar = False,
 						colorbarlabel = "Colourbar", discrete_cmap=False,
 						norm = "None",
@@ -266,10 +267,16 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 		Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
 		MF.plot_polygon_outlines(Basins, linewidth=0.8)
 
+		# knickpoints!
+		if(m_chi):
+			ChannelDF = pd.read_csv(DataDirectory+fname_prefix+"_ksnkp_mchi.csv")
+			ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+			MF.add_point_data(ChannelPoints,column_for_plotting = 'm_chi',show_colourbar = True, scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100,this_colourmap = "RdBu_r" ,colour_manual_scale = mancol, scaled_data_in_log = log_scale_river,max_point_size = minmax_m_chi[1], min_point_size = minmax_m_chi[0])
+		else:
 		# add the channel network
-		# ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
-		# ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-		# MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100)
+			ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
+			ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
+			MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, column_for_scaling='drainage_area',alpha=0.5,zorder=100)
 
 	if(basins):
 		# add the basin labelling
