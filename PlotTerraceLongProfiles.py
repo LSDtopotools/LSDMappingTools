@@ -24,6 +24,7 @@ def main(argv):
     # The location of the data files
     parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the terrace analysis. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error.")
+    parser.add_argument("-basin_jns", "--junction_list", type=str, help="If you want, you can pass in a list of junction numbers which I will use to plot the terraces. Useful if you ran the terrace code in parallel. Needs to be a comma separated string!")
 
     # What sort of analyses you want to do
     parser.add_argument("-LP", "--long_profiler", type=bool, default=False, help="If this is true, I'll make plots of the terrace long profiles (Default = true)")
@@ -68,11 +69,19 @@ def main(argv):
         TerracePlotter.MakeRasterPlotTerraceIDs(this_dir, args.fname_prefix, args.FigFormat, args.size_format)
         TerracePlotter.MakeRasterPlotTerraceElev(this_dir, args.fname_prefix, args.FigFormat, args.size_format)
     if args.heat_map:
-        TerracePlotter.MakeTerraceHeatMap(this_dir,args.fname_prefix, 150, args.FigFormat)
-        TerracePlotter.MakeTerraceHeatMapNormalised(this_dir,args.fname_prefix, 150, args.FigFormat)
+        TerracePlotter.MakeTerraceHeatMap(this_dir,args.fname_prefix, args.fname_prefix, prec=150, FigFormat=args.FigFormat)
+        TerracePlotter.MakeTerraceHeatMapNormalised(this_dir,args.fname_prefix, args.fname_prefix, prec=150, FigFormat=args.FigFormat)
     if args.dips:
         TerracePlotter.write_dip_and_dipdir_to_csv(this_dir,args.fname_prefix, args.digitised_terraces, args.shapefile_name)
         # TerracePlotter.MakeRasterPlotTerraceDips(this_dir,args.fname_prefix,FigFormat=args.FigFormat,size_format=args.size_format)
+    if len(args.junction_list) > 0:
+        print("You passed in a list of basin junctions. I'll append these to your filename, and make heat plots for each one.")
+        jn_list = args.junction_list.split(",")
+        for jn in jn_list:
+            this_fname = args.fname_prefix+"_"+jn
+            print ("This fname is: ", this_fname)
+            TerracePlotter.MakeTerraceHeatMap(this_dir,this_fname, args.fname_prefix, prec=150, FigFormat=args.FigFormat)
+            TerracePlotter.MakeTerraceHeatMapNormalised(this_dir,this_fname, args.fname_prefix, prec=150, FigFormat=args.FigFormat)
 
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.
