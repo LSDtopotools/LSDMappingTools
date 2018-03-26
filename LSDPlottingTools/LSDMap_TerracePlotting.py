@@ -688,6 +688,65 @@ def MakeTerracePlotChiSpace(DataDirectory,fname_prefix,shapefile_name, colour_by
     #plt.show()
     plt.savefig(T_directory+fname_prefix+'_terrace_plot_chi.png',format='png',dpi=300)
 
+def MakeTerraceHeatMap(DataDirectory,fname_prefix, prec=100, FigFormat='png'):
+    """
+    Function to make a heat map of the terrace pixels
+    FJC 26/03/18
+    """
+    import scipy.stats as st
+
+    # check if a directory exists for the chi plots. If not then make it.
+    T_directory = DataDirectory+'terrace_plots/'
+    if not os.path.isdir(T_directory):
+        os.makedirs(T_directory)
+
+    # make a figure
+    fig = CreateFigure()
+    ax = plt.subplot(111)
+
+    # read in the terrace DataFrame
+    terrace_df = H.read_terrace_csv(DataDirectory,fname_prefix)
+    terrace_df = terrace_df[terrace_df['BaselineNode'] != -9999]
+
+    # read in the mchi  csv
+    lp = H.ReadMChiSegCSV(DataDirectory,fname_prefix)
+    lp = lp[lp['elevation'] != -9999]
+
+    # get the distance from outlet along the baseline for each terrace pixels
+    terrace_df = terrace_df.merge(lp, left_on = "BaselineNode", right_on = "node")
+
+	## Getting the extent of our dataset
+    xmin = 0
+    xmax = terrace_df['flow_distance'].max()
+    ymin = 0
+    ymax = terrace_df["Elevation"].max()
+
+    ## formatting the data in a meshgrid
+    X,Y = np.meshgrid(np.linspace(0,xmax,num = prec),np.linspace(0,ymax, num = prec))
+    positions = np.vstack([X.ravel(), Y.ravel()[::-1]]) # inverted Y to get the axis in the bottom left
+    values = np.vstack([terrace_df['flow_distance'], terrace_df['Elevation']])
+    KDE = st.gaussian_kde(values, bw_method = 0.04)
+    Z = np.reshape(KDE(positions).T,X.shape)
+
+    cb = ax.imshow(Z, interpolation = "None",  extent=[xmin, xmax, ymin, ymax], cmap = "Reds", aspect = "auto")
+
+    # plot the main stem channel
+    lp_mainstem = H.read_index_channel_csv(DataDirectory,fname_prefix)
+    lp_mainstem = lp_mainstem[lp_mainstem['elevation'] != -9999]
+    lp_mainstem = lp_mainstem.merge(lp, left_on="id", right_on="node")
+    ax.plot(lp_mainstem['flow_distance_y'],lp_mainstem['elevation_y'],'k',lw=1)
+
+    # set some plot lims
+    ax.set_xlim(xmin,xmax)
+    ax.set_ylim(ymin,ymax)
+    ax.set_xlabel('Flow distance (m)')
+    ax.set_ylabel('Elevation (m)')
+
+    plt.tight_layout()
+    plt.savefig(T_directory+fname_prefix+'_terrace_plot_heat_map.png',format=FigFormat,dpi=300)
+    plt.clf()
+
+
 
 #---------------------------------------------------------------------------------------------#
 # RASTER PLOTS
