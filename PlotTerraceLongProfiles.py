@@ -68,7 +68,8 @@ def main(argv):
         TerracePlotter.MakeRasterPlotTerraceIDs(this_dir, args.fname_prefix, args.FigFormat, args.size_format)
         TerracePlotter.MakeRasterPlotTerraceElev(this_dir, args.fname_prefix, args.FigFormat, args.size_format)
     if args.heat_map:
-        TerracePlotter.MakeTerraceHeatMap(this_dir,args.fname_prefix, 100, args.FigFormat)
+        TerracePlotter.MakeTerraceHeatMap(this_dir,args.fname_prefix, 150, args.FigFormat)
+        TerracePlotter.MakeTerraceHeatMapNormalised(this_dir,args.fname_prefix, 150, args.FigFormat)
     if args.dips:
         TerracePlotter.write_dip_and_dipdir_to_csv(this_dir,args.fname_prefix, args.digitised_terraces, args.shapefile_name)
         # TerracePlotter.MakeRasterPlotTerraceDips(this_dir,args.fname_prefix,FigFormat=args.FigFormat,size_format=args.size_format)

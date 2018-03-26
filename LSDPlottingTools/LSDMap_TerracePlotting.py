@@ -688,9 +688,20 @@ def MakeTerracePlotChiSpace(DataDirectory,fname_prefix,shapefile_name, colour_by
     #plt.show()
     plt.savefig(T_directory+fname_prefix+'_terrace_plot_chi.png',format='png',dpi=300)
 
-def MakeTerraceHeatMap(DataDirectory,fname_prefix, prec=100, FigFormat='png'):
+def MakeTerraceHeatMap(DataDirectory,fname_prefix, prec=100, bw_method=0.03, FigFormat='png'):
     """
-    Function to make a heat map of the terrace pixels
+    Function to make a heat map of the terrace pixels using Gaussian KDE.
+    see https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.gaussian_kde.html
+    for more details.
+
+    Args:
+        DataDirectory(str): the data directory
+        fname_prefix(str): prefix of your DEM
+        prec(int): the resolution for the KDE. Increase this to get a finer resolution, decrease for coarser.
+        bw_method: the method for determining the bandwidth of the KDE.  This is apparently quite sensitive to this.
+        Can either be "scott", "silverman" (where the bandwidth will be determined automatically), or a scalar. Default = 0.03
+        FigFormat(str): figure format, default = png
+
     FJC 26/03/18
     """
     import scipy.stats as st
@@ -703,6 +714,7 @@ def MakeTerraceHeatMap(DataDirectory,fname_prefix, prec=100, FigFormat='png'):
     # make a figure
     fig = CreateFigure()
     ax = plt.subplot(111)
+    #ax1 = plt.subplot(212)
 
     # read in the terrace DataFrame
     terrace_df = H.read_terrace_csv(DataDirectory,fname_prefix)
@@ -714,36 +726,138 @@ def MakeTerraceHeatMap(DataDirectory,fname_prefix, prec=100, FigFormat='png'):
 
     # get the distance from outlet along the baseline for each terrace pixels
     terrace_df = terrace_df.merge(lp, left_on = "BaselineNode", right_on = "node")
+    flow_dist = terrace_df['flow_distance']/1000
 
 	## Getting the extent of our dataset
     xmin = 0
-    xmax = terrace_df['flow_distance'].max()
+    xmax = flow_dist.max()
     ymin = 0
     ymax = terrace_df["Elevation"].max()
 
     ## formatting the data in a meshgrid
     X,Y = np.meshgrid(np.linspace(0,xmax,num = prec),np.linspace(0,ymax, num = prec))
     positions = np.vstack([X.ravel(), Y.ravel()[::-1]]) # inverted Y to get the axis in the bottom left
-    values = np.vstack([terrace_df['flow_distance'], terrace_df['Elevation']])
-    KDE = st.gaussian_kde(values, bw_method = 0.04)
+    values = np.vstack([flow_dist, terrace_df['Elevation']])
+    KDE = st.gaussian_kde(values, bw_method = bw_method)
     Z = np.reshape(KDE(positions).T,X.shape)
+    #Z = np.ma.masked_where(Z < 0.00000000001, Z)
 
-    cb = ax.imshow(Z, interpolation = "None",  extent=[xmin, xmax, ymin, ymax], cmap = "Reds", aspect = "auto")
+    # try a 2d hist
+    # h, fd_bins, elev_bins = np.histogram2d(flow_dist, terrace_df['Elevation'], bins=500)
+    # h = h.T
+    # h = np.ma.masked_where(h == 0, h)
+    # X,Y = np.meshgrid(fd_bins, elev_bins)
+    # ax.pcolormesh(X,Y,h, cmap="seismic")
+
+    #
+    cmap = cm.gist_heat_r
+    cmap.set_bad(alpha=0)
+    #norm=colors.LogNorm(vmin=0, vmax=Z.max(),cmap=cmap)
+    cb = ax.imshow(Z, interpolation = "None",  extent=[xmin, xmax, ymin, ymax], cmap=cmap, aspect = "auto")
+    #ax.pcolormesh(X,Y,Z, cmap="seismic")
 
     # plot the main stem channel
     lp_mainstem = H.read_index_channel_csv(DataDirectory,fname_prefix)
     lp_mainstem = lp_mainstem[lp_mainstem['elevation'] != -9999]
     lp_mainstem = lp_mainstem.merge(lp, left_on="id", right_on="node")
-    ax.plot(lp_mainstem['flow_distance_y'],lp_mainstem['elevation_y'],'k',lw=1)
+    lp_flow_dist = lp_mainstem['flow_distance_y']/1000
+    ax.plot(lp_flow_dist,lp_mainstem['elevation_y'],'k',lw=1)
 
     # set some plot lims
     ax.set_xlim(xmin,xmax)
     ax.set_ylim(ymin,ymax)
-    ax.set_xlabel('Flow distance (m)')
+    ax.set_xlabel('Flow distance (km)')
     ax.set_ylabel('Elevation (m)')
+
+    # add a colourbar
+    cbar = plt.colorbar(cb,cmap=cmap,orientation='vertical')
+    cbar.set_label('Density')
 
     plt.tight_layout()
     plt.savefig(T_directory+fname_prefix+'_terrace_plot_heat_map.png',format=FigFormat,dpi=300)
+    plt.clf()
+
+def MakeTerraceHeatMapNormalised(DataDirectory,fname_prefix, prec=100, FigFormat='png'):
+    """
+    Function to make a heat map of the terrace pixels using Gaussian KDE. Pixels are normalised based on
+    elevation of closest channel pixel.
+    see https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.gaussian_kde.html
+    for more details.
+
+    Args:
+        DataDirectory(str): the data directory
+        fname_prefix(str): prefix of your DEM
+        prec(int): the resolution for the KDE. Increase this to get a finer resolution, decrease for coarser.
+        bw_method: the method for determining the bandwidth of the KDE.  This is apparently quite sensitive to this.
+        Can either be "scott", "silverman" (where the bandwidth will be determined automatically), or a scalar. Default = 0.03
+        FigFormat(str): figure format, default = png
+
+    FJC 26/03/18
+    """
+    import scipy.stats as st
+
+    # check if a directory exists for the chi plots. If not then make it.
+    T_directory = DataDirectory+'terrace_plots/'
+    if not os.path.isdir(T_directory):
+        os.makedirs(T_directory)
+
+    # make a figure
+    fig = CreateFigure()
+    ax = plt.subplot(111)
+    #ax1 = plt.subplot(212)
+
+    # read in the terrace DataFrame
+    terrace_df = H.read_terrace_csv(DataDirectory,fname_prefix)
+    terrace_df = terrace_df[terrace_df['BaselineNode'] != -9999]
+
+    # read in the mchi  csv
+    lp = H.ReadMChiSegCSV(DataDirectory,fname_prefix)
+    lp = lp[lp['elevation'] != -9999]
+
+    # get the distance from outlet along the baseline for each terrace pixels
+    terrace_df = terrace_df.merge(lp, left_on = "BaselineNode", right_on = "node")
+    flow_dist = terrace_df['flow_distance']/1000
+
+	## Getting the extent of our dataset
+    xmin = 0
+    xmax = flow_dist.max()
+    ymin = 0
+    ymax = terrace_df["ChannelRelief"].max()
+
+    ## formatting the data in a meshgrid
+    X,Y = np.meshgrid(np.linspace(0,xmax,num = prec),np.linspace(0,ymax, num = prec))
+    positions = np.vstack([X.ravel(), Y.ravel()[::-1]]) # inverted Y to get the axis in the bottom left
+    values = np.vstack([flow_dist, terrace_df["ChannelRelief"]])
+    KDE = st.gaussian_kde(values, bw_method = bw_method)
+    Z = np.reshape(KDE(positions).T,X.shape)
+    #Z = np.ma.masked_where(Z < 0.00000000001, Z)
+
+    # try a 2d hist
+    # h, fd_bins, elev_bins = np.histogram2d(flow_dist, terrace_df['Elevation'], bins=500)
+    # h = h.T
+    # h = np.ma.masked_where(h == 0, h)
+    # X,Y = np.meshgrid(fd_bins, elev_bins)
+    # ax.pcolormesh(X,Y,h, cmap="seismic")
+
+    #
+    cmap = cm.gist_heat_r
+    cmap.set_bad(alpha=0)
+    #norm=colors.LogNorm(vmin=0, vmax=Z.max(),cmap=cmap)
+    cb = ax.imshow(Z, interpolation = "None",  extent=[xmin, xmax, ymin, ymax], cmap=cmap, aspect = "auto")
+    #ax.pcolormesh(X,Y,Z, cmap="seismic")
+
+    # set some plot lims
+    ax.set_xlim(xmin,xmax)
+    ax.set_ylim(ymin,ymax)
+    ax.set_xlabel('Flow distance (km)')
+    ax.set_ylabel('Elevation above channel (m)')
+
+    # add a colourbar
+    cbar = plt.colorbar(cb,cmap=cmap,orientation='vertical')
+    cbar.set_label('Density')
+
+    plt.tight_layout()
+    plt.savefig(T_directory+fname_prefix+'_terrace_plot_heat_map_norm.png',format=FigFormat,dpi=300)
     plt.clf()
 
 
