@@ -2157,7 +2157,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     # plot the chi disorder data if you want it
     if Chi_disorder:
         disorder_chi_keys = df['basin_key'].as_matrix()-0.3
-        ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#FF7F50', s=15, zorder=100, label='Chi disorder')
+        ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#FFF59D', s=15, zorder=100, label='Chi disorder')
 
 
     # plot the SA data
@@ -2413,7 +2413,7 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     if Chi_disorder:
         columns = ['Chi_MLE_full', 'Chi_MLE_points', 'Chi_disorder', 'SA_raw', 'SA_segments']
         these_labels = ['Chi all data', 'Chi Monte Carlo', 'Chi disorder', 'S-A all data', 'Segmented S-A']
-        colours = ['#e34a33', '#fdbb84', '#FF7F50', '#2b8cbe', '#a6bddb']
+        colours = ['#e34a33', '#fdbb84', '#FFF59D', '#2b8cbe', '#a6bddb']
 
     else:
         columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
