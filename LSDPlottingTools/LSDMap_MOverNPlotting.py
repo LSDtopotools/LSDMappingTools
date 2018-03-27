@@ -2152,7 +2152,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     points_chi_keys = df['basin_key'].as_matrix()-0.1
     ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
-    ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+    ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi bootstrap',zorder=200)
 
     # plot the chi disorder data if you want it
     if Chi_disorder:
@@ -2305,7 +2305,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
 
             points_chi_keys = df['basin_key'].as_matrix() # -0.1 I removed that to fix the movern plots - Boris
             ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
-            ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+            ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi bootstrap',zorder=200)
 
             # plot the SA data
         elif movern_method=='SA_raw':
@@ -2412,12 +2412,12 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     print (basin_keys)
     if Chi_disorder:
         columns = ['Chi_MLE_full', 'Chi_MLE_points', 'Chi_disorder', 'SA_raw', 'SA_segments']
-        these_labels = ['Chi all data', 'Chi Monte Carlo', 'Chi disorder', 'S-A all data', 'Segmented S-A']
+        these_labels = ['Chi all data', 'Chi bootstrap', 'Chi disorder', 'S-A all data', 'Segmented S-A']
         colours = ['#e34a33', '#fdbb84', '#F06292', '#2b8cbe', '#a6bddb']
 
     else:
         columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
-        these_labels = ['Chi all data', 'Chi Monte Carlo', 'S-A all data', 'Segmented S-A']
+        these_labels = ['Chi all data', 'Chi bootstrap', 'S-A all data', 'Segmented S-A']
         colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
     x_spacing = 0.1
     fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit $m/n$ distribution',x_spacing=x_spacing)
@@ -2499,10 +2499,10 @@ def PlotMOverNByBasin(DataDirectory, fname_prefix, basin_list = [], size_format=
             values_to_colour = df[column_header].tolist()
             this_cmap = plt.cm.Set2
             ax.errorbar(basin_list, df['Chi_MLE_points'], s=20, marker='o', xerr=None, yerr=errors, ecolor=values_to_colour, cmap=this_cmap, fmt='none', elinewidth=1,label='_nolegend_')
-            ax.scatter(basin_list, df['Chi_MLE_points'], s=20, c=values_to_colour, cmap=this_cmap, marker='o', edgecolors=None, lw=0.5, label='Chi Monte Carlo',zorder=200)
+            ax.scatter(basin_list, df['Chi_MLE_points'], s=20, c=values_to_colour, cmap=this_cmap, marker='o', edgecolors=None, lw=0.5, label='Chi bootstrap',zorder=200)
     else:
         ax.errorbar(basin_list, df['Chi_MLE_points'], s=20, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
-        ax.scatter(basin_list, df['Chi_MLE_points'], s=20, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+        ax.scatter(basin_list, df['Chi_MLE_points'], s=20, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi bootstrap',zorder=200)
 
     # set the axis labels
     ax.set_xlabel('Basin key')
@@ -2793,7 +2793,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         label_list = [str(i)+": "+str(j) for i,j in zip(basin_keys,moverns)]
         labeldict = dict(zip(basin_junctions,label_list))
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_points.'+FigFormat
-        title = "Chi Monte Carlo analysis"
+        title = "Chi bootstrap analysis"
     elif movern_method == "SA":
         SlopeAreaDF = SA.LinearRegressionRawData(DataDirectory,fname_prefix,parallel=parallel)
         moverns = SlopeAreaDF['regression_slope'].tolist()
