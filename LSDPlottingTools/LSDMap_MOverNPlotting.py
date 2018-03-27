@@ -2156,7 +2156,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # plot the chi disorder data if you want it
     if Chi_disorder:
-        disorder_chi_keys = df['basin_key'].as_matrix()-0.3
+        disorder_chi_keys = df['basin_key'].as_matrix()-0.35
         ax.scatter(full_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#FF7F50', s=15, zorder=200, label='Chi disorder')
 
 
