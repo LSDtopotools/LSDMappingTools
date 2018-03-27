@@ -2156,8 +2156,8 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # plot the chi disorder data if you want it
     if Chi_disorder:
-        disorder_chi_keys = df['basin_key'].as_matrix()-0.35
-        ax.scatter(full_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#FF7F50', s=15, zorder=200, label='Chi disorder')
+        disorder_chi_keys = df['basin_key'].as_matrix()-0.4
+        ax.scatter(full_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#FF7F50', s=15, zorder=100, label='Chi disorder')
 
 
     # plot the SA data
@@ -2345,7 +2345,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
         ax.cla()
         plt.close(fig)
 
-def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_format='ESURF', FigFormat='png', start_movern=0.1, n_movern=7, d_movern=0.1, mn_method = "Chi", show_legend=True, parallel=False):
+def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_format='ESURF', FigFormat='png', start_movern=0.1, n_movern=7, d_movern=0.1, mn_method = "Chi", show_legend=True, parallel=False, Chi_disorder=False):
     """
     This function makes a joyplot showing the distribution of m/n values for each method
 
@@ -2359,6 +2359,7 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
         n_movern (float): the number of m/n values analysed. Default is 7.
         mn_method (str): the method of calculating m/n, either "Chi", or "SA". Default "Chi"
         show_legend (bool): if true, add a legend to the plot (default=True)
+        Chi_disorder(bool): if true, add the chi disorder analysis
 
     Returns:
         Histogram of the m/n values
@@ -2409,9 +2410,15 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     # get the basin keys
     basin_keys = df['basin_key'].tolist()
     print (basin_keys)
-    columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
-    these_labels = ['Chi all data', 'Chi Monte Carlo', 'S-A all data', 'Segmented S-A']
-    colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
+    if Chi_disorder:
+        columns = ['Chi_MLE_full', 'Chi_MLE_points', 'Chi_disorder', 'SA_raw', 'SA_segments']
+        these_labels = ['Chi all data', 'Chi Monte Carlo', 'Chi disorder', 'S-A all data', 'Segmented S-A']
+        colours = ['#e34a33', '#fdbb84', '#FF7F50', '#2b8cbe', '#a6bddb']
+
+    else:
+        columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
+        these_labels = ['Chi all data', 'Chi Monte Carlo', 'S-A all data', 'Segmented S-A']
+        colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
     x_spacing = 0.1
     fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit $m/n$ distribution',x_spacing=x_spacing)
     #plt.xlabel('Best fit $m/n$')
