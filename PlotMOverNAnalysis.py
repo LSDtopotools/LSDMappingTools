@@ -197,6 +197,7 @@ def main(argv):
         MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_disorder", size_format=args.size_format, FigFormat=args.FigFormat,parallel=args.parallel)
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend,parallel=args.parallel, Chi_disorder=True)
+        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend, Chi_disorder=True)
     # if args.basin_joyplot:
     #     MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern)
     #     MN.MakeBasinJoyplot(this_dir, args.fname_prefix, basin_list=these_basin_keys, FigFormat=simple_format, size_format=args.size_format)
