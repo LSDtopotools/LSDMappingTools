@@ -237,6 +237,38 @@ def GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list=[0], para
 
     return OutputDF
 
+def GetBestFitMOverNFromDisorder(BasinDF):
+    """
+    This function looks in the basin DF from the disorder CSV files
+    and returns a dict with the basin ID and the best-fit m/n for each one.
+    The best fit m/n is the one with the minimum disorder statistic.
+
+    Args:
+        BasinDF: basin disorder dataframe
+
+    Returns: dict with the best fit m/n for each basin, key is the basin ID and value is the best fit m/n
+
+    Author: FJC
+    """
+    # read in the basin csv
+    basin_keys = list(BasinDF['basin_key'])
+    #print BasinDF
+
+    # remove the first 2 columns from DF
+    del BasinDF['basin_key']
+    del BasinDF['outlet_jn']
+
+    # now find the index and value of the max MLE in each row
+    MOverNs = list(BasinDF.idxmin(axis=1))
+    MOverNs = [float(x.split()[-1]) for x in MOverNs]
+    print ("Best-fit m/ns disorder")
+    print (MOverNs)
+
+    # zip into a dictionary
+    MOverNDict = dict(zip(basin_keys, MOverNs))
+    return MOverNDict
+
+
 def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7):
     """
     This function compiles
@@ -301,7 +333,7 @@ def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_mov
     # Now plot the figure
     PlotMOverNDicts(DataDirectory, fname_prefix, SA_movern_dict,best_fit_movern_dict, FigFormat = "png", size_format = "ESURF")
 
-def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7, parallel=False):
+def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7, parallel=False, chi_disorder=False):
     """
     This function reads in all the files with the data for the various methods of estimating
     the best fit m/n and produces a summary csv file which has the best fit m/n and uncertainty
@@ -315,6 +347,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
         start_movern (float): the starting m/n value. Default is 0.2
         d_movern (float): the increment between the m/n values. Default is 0.1
         n_movern (float): the number of m/n values analysed. Default is 7.
+        chi_disorder (bool): If true, will include the chi disorder stats
 
     Returns:
         writes a csv with the best fit m/n info for each basin
@@ -386,6 +419,11 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['SA_segments'] = SASegmentedDF['median_movern']
     OutDF['SA_segments_min'] = SASegmentedDF['FirstQ_movern']
     OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
+
+    if (chi_disorder == True):
+        DisorderDF = Helper.ReadDisorderCSV(DataDirectory, fname_prefix)
+        DisorderMovernDict = GetBestFitMOverNFromDisorder(DisorderDF)
+        OutDF['Chi_disorder'] = OutDF['basin_key'].map(DisorderMovernDict)
 
     # print the SA segment data
     OutSAname = "_SA_segment_summary.csv"
@@ -2032,7 +2070,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         ax.cla()
     plt.close(fig)
 
-def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True,parallel=False):
+def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True,parallel=False,chi_disorder=False):
     """
     This function makes a summary plot of the best fit m/n from the different
     methods.
@@ -2048,6 +2086,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
         SA_channels (bool): If true, will include the SA data separated by channel
         show_legend (bool): If true, display the legend with the plot
+        chi_disorder (bool): if true, will include the data from the chi disorder method
 
     Returns:
         Makes a summary plot
@@ -2752,6 +2791,16 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         labeldict = dict(zip(basin_junctions,label_list))
         ImageName = raster_directory+fname_prefix+'_basins_movern_SA.'+FigFormat
         title = "Slope-area analysis"
+    elif movern_method == "Chi_disorder":
+        DisorderDF = Helper.ReadDisorderCSV(DataDirectory, fname_prefix)
+        MOverNDict = GetBestFitMOverNFromDisorder(DisorderDF)
+        print MOverNDict
+        m_over_ns = MOverNDict.values()
+        label_list = [str(i)+": "+str(j) for i,j in zip(basin_keys,m_over_ns)]
+        labeldict = dict(zip(basin_junctions,label_list))
+        ImageName = raster_directory+fname_prefix+'_basins_movern_chi_disorder.'+FigFormat
+        title = "Chi disorder analysis"
+
     else:
         print ("You didn't select an appropriate movern method. Please choose either 'Chi_full', 'Chi_points, or 'SA'.")
         sys.exit()
