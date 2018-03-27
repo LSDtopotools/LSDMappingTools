@@ -11,6 +11,8 @@ Released under GPL3
 
 import os
 import pandas as pd
+import fiona
+from shapely.geometry import shape, Polygon, Point, LineString
 
 #==============================================================================
 def MapFigureSizer(figure_width_inches,aspect_ratio, cbar_loc = "None", title = "None",
@@ -455,7 +457,7 @@ def ReadFullStatsCSV(DataDirectory, fname_prefix, m_over_n):
     Author: FJC
     """
     # get the csv filename
-    fullstats_suffix = '_movernstats_%s_fullstats.csv' %m_over_n
+    fullstats_suffix = '_movernstats_%s_fullstats.csv' % m_over_n
     fname = fname_prefix+fullstats_suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
@@ -512,7 +514,7 @@ def ReadBasinStatsCSV(DataDirectory, fname_prefix):
 
     return df
 
-def AppendBasinStatsCSVs(DataDirectory):
+def AppendBasinStatsCSVs(DataDirectory, FilenamePrefix):
     """
     This function reads in the files with the prefic "basin"
     and the suffix '_movernstats_basinstats.csv'
@@ -534,7 +536,7 @@ def AppendBasinStatsCSVs(DataDirectory):
     MasterDF = pd.DataFrame()
 
     # get the list of basins as a dict
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory,FilenamePrefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -770,7 +772,7 @@ def ReadRawSAData(DataDirectory, fname_prefix):
 
     return df
 
-def AppendRawSAData(DataDirectory):
+def AppendRawSAData(DataDirectory, FilenamePrefix):
     """
     This function reads in the raw SA data to a pandas dataframe
     from multiple CSV files with the filename prefix "basin"
@@ -788,7 +790,7 @@ def AppendRawSAData(DataDirectory):
     csv_suffix = "_SAvertical.csv"
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory, FilenamePrefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -908,31 +910,111 @@ def ReadChiDataMapCSV(DataDirectory, fname_prefix):
 # Terraces
 #--------------------------------------------------------------------------------#
 
-def ReadTerraceCSV(DataDirectory, fname_prefix, outlet_jn):
+def read_terrace_csv(DataDirectory,fname_prefix):
     """
-    This function reads in the file with the suffix '_swath_plots_junction_number.csv'
-    to a pandas dataframe
-    where junction_number is the outlet junction of the channel
+    This function reads in the csv file with the extension "_terrace_info.csv"
+    and returns it as a pandas dataframe
 
     Args:
-        DataDirectory: the data directory
-        fname_prefix: the file name prefix
-        outlet_jn: the junction number of the outlet
+        DataDirectory (str): the data directory
+        fname_prefix (str): the name of the DEM
 
     Returns:
-        pandas dataframe with the csv file
+        pandas dataframe with the terrace info
 
     Author: FJC
     """
-    jn_str = str(outlet_jn)
+    csv_suffix = '_terrace_info.csv'
+    fname = DataDirectory+fname_prefix+csv_suffix
 
-    # get the csv filename
-    csv_suffix = '_terrace_swath_plots_'+jn_str+'.csv'
+    df = pd.read_csv(fname)
 
-    fname = fname_prefix+csv_suffix
-    # read in the dataframe using pandas
-    df = pd.read_csv(DataDirectory+fname)
     return df
+
+def read_channel_csv(DataDirectory,fname_prefix):
+    """
+    This function reads in the csv file with the extension "_baseline_channel_info.csv"
+    and returns it as a pandas dataframe
+
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the name of the DEM
+
+    Returns:
+        pandas dataframe with the channel info
+
+    Author: FJC
+    """
+    csv_suffix = '_baseline_channel_info.csv'
+    fname = DataDirectory+fname_prefix+csv_suffix
+
+    df = pd.read_csv(fname)
+
+    return df
+
+def read_index_channel_csv(DataDirectory,fname_prefix):
+    """
+    This function reads in the csv file with the extension "_index_chan.csv"
+    and returns it as a pandas dataframe
+
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the name of the DEM
+
+    Returns:
+        pandas dataframe with the channel info
+
+    Author: FJC
+    """
+    csv_suffix = '_index_chan.csv'
+    fname = DataDirectory+fname_prefix+csv_suffix
+
+    df = pd.read_csv(fname)
+
+    return df
+
+def read_terrace_shapefile(DataDirectory, shapefile_name):
+    """
+    This function reads in a shapefile of digitised terraces
+    using shapely and fiona
+
+    Args:
+        DataDirectory (str): the data directory
+        shapefile_name (str): the name of the shapefile
+
+    Returns: shapely polygons with terraces
+
+    Author: FJC
+    """
+    Polygons = {}
+    with fiona.open(DataDirectory+shapefile_name, 'r') as input:
+        for f in input:
+            this_shape = Polygon(shape(f['geometry']))
+            this_id = f['properties']['id']
+            Polygons[this_id] = this_shape
+
+    return Polygons
+
+def read_terrace_centrelines(DataDirectory, shapefile_name):
+    """
+    This function reads in a shapefile of terrace centrelines
+    using shapely and fiona
+
+    Args:
+        DataDirectory (str): the data directory
+        shapefile_name (str): the name of the shapefile
+
+    Returns: shapely polygons with terraces
+
+    Author: FJC
+    """
+    Lines = {}
+    with fiona.open(DataDirectory+shapefile_name, 'r') as input:
+        for f in input:
+            this_line = LineString(shape(f['geometry']))
+            this_id = f['properties']['id']
+            Lines[this_id] = this_line
+    return Lines
 
 def ReadModelCSV(DataDirectory, Base_file):
     """
@@ -980,7 +1062,7 @@ def ReadPerimeterCSV(DataDirectory, fname_prefix):
 # FJC 19/10/17
 #-----------------------------------------------------------------------------#
 
-def AppendBasinCSVs(DataDirectory):
+def AppendBasinCSVs(DataDirectory, FilenamePrefix):
     """
     This function reads in a series of basin csv files and appends them together
     into one function for plotting
@@ -998,7 +1080,7 @@ def AppendBasinCSVs(DataDirectory):
     csv_suffix = "_movernstats_basinstats.csv"
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory,FilenamePrefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -1011,7 +1093,7 @@ def AppendBasinCSVs(DataDirectory):
 
     return MasterDF
 
-def AppendFullStatsCSVs(DataDirectory, m_over_n):
+def AppendFullStatsCSVs(DataDirectory, m_over_n, FilenamePrefix):
     """
     This function reads in a series of full stats csvs and appends them together
     into one function for plotting
@@ -1025,12 +1107,11 @@ def AppendFullStatsCSVs(DataDirectory, m_over_n):
 
     Author: FJC
     """
-
     # get the csv filename
-    csv_suffix =  '_movernstats_%s_fullstats.csv' %str(m_over_n)
+    csv_suffix =  '_movernstats_%s_fullstats.csv' % m_over_n
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory, FilenamePrefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -1063,7 +1144,7 @@ def ReadMovernCSV(DataDirectory, fname_prefix):
 
     return df
 
-def AppendMovernCSV(DataDirectory):
+def AppendMovernCSV(DataDirectory, FilenamePrefix):
     """
     This function reads in a series of csvs with the suffix "_movern"
     and appends them together into one function for plotting
@@ -1081,7 +1162,7 @@ def AppendMovernCSV(DataDirectory):
     csv_suffix =  '_movern.csv'
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory,FilenamePrefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -1094,7 +1175,7 @@ def AppendMovernCSV(DataDirectory):
 
     return MasterDF
 
-def AppendBasinInfoCSVs(DataDirectory):
+def AppendBasinInfoCSVs(DataDirectory, FilenamePrefix):
     """
     This function reads in a series of csvs with the suffix "_AllBasinsInfo"
     and appends them together into one function for plotting
@@ -1112,7 +1193,7 @@ def AppendBasinInfoCSVs(DataDirectory):
     csv_suffix =  '_AllBasinsInfo.csv'
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory, FilenamePrefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -1126,7 +1207,7 @@ def AppendBasinInfoCSVs(DataDirectory):
 
     return MasterDF
 
-def AppendChiDataMapCSVs(DataDirectory):
+def AppendChiDataMapCSVs(DataDirectory, FilenamePrefix):
     """
     This function reads in a series of csvs with the suffix "_chi_data_map"
     and appends them together into one function for plotting
@@ -1144,7 +1225,7 @@ def AppendChiDataMapCSVs(DataDirectory):
     csv_suffix =  '_chi_data_map.csv'
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory, FilenamePrefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -1175,7 +1256,7 @@ def AppendSABinnedCSVs(DataDirectory, fname_prefix):
     csv_suffix =  '_SAbinned.csv'
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory, fname_prefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -1209,7 +1290,7 @@ def AppendSASegmentedCSVs(DataDirectory, fname_prefix):
     csv_suffix =  '_SAsegmented.csv'
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory, fname_prefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -1243,7 +1324,7 @@ def AppendSAVerticalCSVs(DataDirectory, fname_prefix):
     csv_suffix =  '_SAvertical.csv'
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory, fname_prefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -1259,7 +1340,7 @@ def AppendSAVerticalCSVs(DataDirectory, fname_prefix):
 
     return MasterDF
 
-def AppendBasinPointCSVs(DataDirectory):
+def AppendBasinPointCSVs(DataDirectory, FilenamePrefix):
     """
     This function reads in a series of csvs with the suffix
      "_MCpoint_points_MC_basinstats" and appends them together
@@ -1278,7 +1359,7 @@ def AppendBasinPointCSVs(DataDirectory):
     csv_suffix =  '_MCpoint_points_MC_basinstats.csv'
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory, FilenamePrefix)
 
     # loop through and get each basin csv
     for outlet_jn, basin_key in basin_dict.iteritems():
@@ -1292,7 +1373,7 @@ def AppendBasinPointCSVs(DataDirectory):
 
     return MasterDF
 
-def AppendChiResidualsCSVs(DataDirectory):
+def AppendChiResidualsCSVs(DataDirectory, FilenamePrefix):
     """
     This function reads in a series of 3 csvs with the residuals data
      and appends them together into one function for plotting
@@ -1312,7 +1393,7 @@ def AppendChiResidualsCSVs(DataDirectory):
     MasterDFs = []
 
     MasterDF = pd.DataFrame()
-    basin_dict = MapBasinsToKeys(DataDirectory)
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory, FilenamePrefix)
 
     for f in fnames:
         # loop through and get each basin csv
@@ -1362,5 +1443,35 @@ def MapBasinsToKeys(DataDirectory):
                 fname = fname.split("n")[-1] #stupid way of getting just the basin junction number
                 basin_dict[fname] = key
                 key+=1
+
+    return basin_dict
+
+def MapBasinsToKeysFromJunctionList(DataDirectory,FilenamePrefix):
+    """
+    Function to map the basins to keys in an order specified by then
+    original junction list.
+
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): prefix of the DEM, should be the same as the
+        junctions.list file.
+
+    Returns:
+        dictionary where key is the outlet junction and value is the assigned
+        basin ID
+
+    Author: FJC
+    """
+    import csv
+
+    basin_dict = {}
+    key = 0
+    # read in the space delimited junctons.list file
+    reader = csv.reader(open(DataDirectory+FilenamePrefix+'_junctions.list'), delimiter=" ")
+
+    for row in reader:
+        for jn in row:
+            basin_dict[jn] = key
+            key+=1
 
     return basin_dict

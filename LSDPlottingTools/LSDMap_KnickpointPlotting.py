@@ -41,7 +41,7 @@ class KP_plotting(object):
     """
 
 
-    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0, cut_off_val = [0,0,0,0]):
+    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0, cut_off_val = [0,0,0,0], main_stem = False, normalisation = None):
         """
             This creates a knickpoint object to help with plotting. One object helps you to select certain river and or basins; provide some tool to pre-sort the dataset, and generate
             stats figures, profiles and map. It requires the output of LSDTopoTools.
@@ -53,6 +53,7 @@ class KP_plotting(object):
                 min_length (float): You can choose to ignore all the rivers below a threshold, to avoid dealing with tiny rivers.
                 cut_off_val (list of float): cut_off values for the knickpoints magnitude: [negative_delta_ksn,positive_delta_ksn,negative_delta_segelev,positive_delta_segelev].
                     for example [-1,2,-2,3] would select the data where (dksn<-1 AND dksn >2) OR (dsegelev<-2 AND dsegelev)
+                main_stem (bool): Only the main stem of each basins
             author: B.G - 2017/2018
 
         """
@@ -73,18 +74,25 @@ class KP_plotting(object):
             self.df_kp_raw = Helper.ReadKnickpointCSV(self.fpath, self.fprefix, ftype = "raw") # Contains the raw knickpint info (before TVD or else) -> Debugging purposes
             self.df_kp = Helper.ReadKnickpointCSV(self.fpath, self.fprefix) # Contains the knickpoint location and informations
             self.df_SK = Helper.readSKKPstats(self.fpath, self.fprefix) # Contains few metrics per river keys
-            self.df_kp_ksn = self.df_kp.copy()
-            self.df_kp_stepped = self.df_kp.copy()
+            self.df_kp_ksn = self.df_kp[self.df_kp["delta_ksn"] != 0]
+            self.df_kp_stepped = self.df_kp[self.df_kp["delta_segelev"] > 0]
 
         except IOError:
             print("I didnae find your knickpoint related files make sure that:")
             print("- You ran the knickpoint analysis")
             print("- Your path is good and finishing by '/' e.g. /home/name/kazakhstan/ ")
+            print("- Check your writing path in your param file used with chi_mapping_tool.exe, a wrong path won't trigger error but won't write files.")
 
             quit()
 
 
         print("Managing the data:")
+
+        if(normalisation != None):
+            self.normalise_elevation(method = normalisation)
+
+        if(isinstance(cut_off_val,str) and (cut_off_val == "auto")):
+            cut_off_val = [self.df_kp_ksn["delta_ksn"].quantile(0.25),self.df_kp_ksn["delta_ksn"].quantile(0.75),-10000,self.df_kp_stepped["delta_segelev"].quantile(0.75)]
 
         if(cut_off_val != [0,0,0,0]):
             print("I am selecting your knickpoints")
@@ -93,6 +101,8 @@ class KP_plotting(object):
             self.df_kp = self.df_kp[((self.df_kp["delta_ksn"] <= cut_off_val[0]) | (self.df_kp["delta_ksn"] >= cut_off_val[1])) | ((self.df_kp["delta_segelev"] <= cut_off_val[2]) | (self.df_kp["delta_segelev"] >= cut_off_val[3]))]
             self.df_kp_ksn = self.df_kp[((self.df_kp["delta_ksn"] <= cut_off_val[0]) | (self.df_kp["delta_ksn"] >= cut_off_val[1]))]
             self.df_kp_stepped = self.df_kp[((self.df_kp["delta_segelev"] <= cut_off_val[2]) | (self.df_kp["delta_segelev"] >= cut_off_val[3]))]
+        
+
         # Selection of Basins and sources
         if(basin_key == []):
             print("All the basins are selected:")
@@ -121,6 +131,8 @@ class KP_plotting(object):
             self.df_SK = self.df_SK[self.df_SK["source_key"].isin(source_key)]
             self.df_kp_ksn = self.df_kp_ksn[self.df_kp_ksn["source_key"].isin(source_key)]
             self.df_kp_stepped = self.df_kp_stepped[self.df_kp_stepped["source_key"].isin(source_key)]
+            print("You selected the following Sources: ")
+            print(source_key)
 
         else:
             print("You selected the following Sources: ")
@@ -131,6 +143,23 @@ class KP_plotting(object):
             self.df_SK = self.df_SK[self.df_SK["source_key"].isin(source_key)]
             self.df_kp_ksn = self.df_kp_ksn[self.df_kp_ksn["source_key"].isin(source_key)]
             self.df_kp_stepped = self.df_kp_stepped[self.df_kp_stepped["source_key"].isin(source_key)]
+
+        if(main_stem):
+            print("Wait, you just want the main stem, let me deal with that")
+            source_key = []
+            for bas in self.df_SK["basin_key"].unique():
+                TSK = self.df_SK[self.df_SK["basin_key"] == bas]
+                ts = TSK["source_key"][TSK["length"] == TSK["length"].max()].values[0]
+                source_key.append(ts)
+
+            self.df_river = self.df_river[self.df_river["source_key"].isin(source_key)]
+            self.df_kp_raw = self.df_kp_raw[self.df_kp_raw["source_key"].isin(source_key)]
+            self.df_kp = self.df_kp[self.df_kp["source_key"].isin(source_key)]
+            self.df_SK = self.df_SK[self.df_SK["source_key"].isin(source_key)]
+            self.df_kp_ksn = self.df_kp_ksn[self.df_kp_ksn["source_key"].isin(source_key)]
+            self.df_kp_stepped = self.df_kp_stepped[self.df_kp_stepped["source_key"].isin(source_key)]
+            print("final source_keys are: ")
+            print(source_key)
 
 
 
@@ -226,6 +255,38 @@ class KP_plotting(object):
                 wsize = 4.92126
 
         return wsize
+
+    def normalise_elevation(self,method = "relative"):
+        """
+            Normalise the elevation to the outlet of the basin in a relative way (outlet = 0 and elevation = old elevation - outlet elevation) or
+            absolute way: outlet = 0 and maximum elevation = 1 
+        """
+
+        for bas in self.df_SK["basin_key"].unique():
+            norm_elev = self.df_river["elevation"][self.df_river["basin_key"] == bas].min()
+            self.df_river["elevation"][self.df_river["basin_key"] == bas] -= norm_elev
+            self.df_rivraw["elevation"][self.df_rivraw["basin_key"] == bas] -= norm_elev 
+            self.df_kp_raw["elevation"][self.df_kp_raw["basin_key"] == bas] -= norm_elev 
+            self.df_kp["elevation"][self.df_kp["basin_key"] == bas] -= norm_elev 
+            self.df_kp_ksn["elevation"][self.df_kp_ksn["basin_key"] == bas] -= norm_elev 
+            self.df_kp_stepped["elevation"][self.df_kp_stepped["basin_key"] == bas] -= norm_elev 
+            if(method == "absolute"):
+                norm_elev = self.df_river["elevation"][self.df_river["basin_key"] == bas].max()
+                self.df_river["elevation"][self.df_river["basin_key"] == bas] /= norm_elev
+                self.df_rivraw["elevation"][self.df_rivraw["basin_key"] == bas] /= norm_elev 
+                self.df_kp_raw["elevation"][self.df_kp_raw["basin_key"] == bas] /= norm_elev 
+                self.df_kp["elevation"][self.df_kp["basin_key"] == bas] /= norm_elev 
+                self.df_kp_ksn["elevation"][self.df_kp_ksn["basin_key"] == bas] /= norm_elev 
+                self.df_kp_stepped["elevation"][self.df_kp_stepped["basin_key"] == bas] /= norm_elev 
+
+
+
+
+
+
+ 
+
+
 
 
 
@@ -392,7 +453,7 @@ class KP_plotting(object):
         # End of this function
 
     def print_river_profile(self,size = "big", format = "png", x_axis = "chi", knickpoint = True, title = "none", label_size = 8, facecolor = 'white',
-        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 50, kalib = False, binning = "source_key", print_seg_elev = False):
+        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 50, kalib = False, binning = "source_key", print_seg_elev = False, size_recasting = []):
 
         """
         """
@@ -423,77 +484,94 @@ class KP_plotting(object):
             this_df_kp_raw = self.df_kp_raw[self.df_kp_raw[binning] == sources]
             this_df_river = self.df_river[self.df_river[binning] == sources]
 
-            
-            # Create a figure with required dimensions
-            n_axis = 1
-            fig = self.get_fig_right_size(size = size, n_axis =1 , facecolor = facecolor)
+            # Dealing with the knickpoint offset
 
-            gs = plt.GridSpec(100,100,bottom=0.15, left=0.10, right=0.95, top=0.95)
-            ax1 = fig.add_subplot(gs[0:100,0:100], facecolor = "None")
+            up_set = (this_df_river["elevation"].max() - this_df_river["elevation"].min())*0.1
 
-            #plot the long/Chi profile
-            ax1.scatter(this_df_river[x_axis], this_df_river["elevation"], lw =0 , s = size_of_river, c = "#00DBE5" , zorder = 3)
-            # Plotting the river noes that does contain knickpoint to check combining
-            ax1.scatter(this_df_river[x_axis][this_df_river["ksnkp"]!=0], this_df_river["elevation"][this_df_river["ksnkp"]!=0], lw =0 , s = size_of_river, c = this_df_river["ksnkp"][this_df_river["ksnkp"]!=0], cmap = "RdBu_r" , zorder = 4)
+            if(this_df_kp_ksn.shape[0]> 0 or this_df_dsegelev_pos.shape[0] > 0):
+                # Create a figure with required dimensions
+                n_axis = 1
+                fig = self.get_fig_right_size(size = size, n_axis =1 , facecolor = facecolor)
 
-            # this can be printed to adapt the ksn extraction parameters from Mudd et al. 2014
-            if (print_seg_elev):    
-                cb1 = ax1.scatter(this_df_river[x_axis], this_df_river["segmented_elevation"], lw =0 , s = size_of_river/2, c = "k", alpha = 0.5, zorder = 3)
+                gs = plt.GridSpec(100,100,bottom=0.15, left=0.10, right=0.95, top=0.95)
+                ax1 = fig.add_subplot(gs[0:100,0:100], facecolor = "None")
 
-            # Plot the dksn knickpionts
-            ## First normalized the size
-            size_pos = this_df_dksn_pos["delta_ksn"]/this_df_kp_ksn["delta_ksn"].max()*0.8*coeff_size
-            size_neg = this_df_dksn_neg["delta_ksn"].abs()/this_df_kp_ksn["delta_ksn"].max()*0.8*coeff_size
-            ## plot the triangles
-            ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = size_pos, lw = 0, marker = "^", c = "r", alpha = 0.95, zorder = 5)
-            ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = size_neg, lw = 0, marker = "v", c = "b", alpha = 0.95, zorder = 5)
-            ## plot the contours
-            ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = size_pos, lw = 0.5, marker = "^", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
-            ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = size_neg, lw = 0.5, marker = "v", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
+                #plot the long/Chi profile
+                ax1.scatter(this_df_river[x_axis], this_df_river["elevation"], lw =0 , s = size_of_river, c = "#00DBE5" , zorder = 3)
+                # Plotting the river noes that does contain knickpoint to check combining
+                ax1.scatter(this_df_river[x_axis][this_df_river["ksnkp"]!=0], this_df_river["elevation"][this_df_river["ksnkp"]!=0], lw =0 , s = size_of_river, c = this_df_river["ksnkp"][this_df_river["ksnkp"]!=0], cmap = "RdBu_r" , zorder = 4)
 
-            # Plot the dksn knickpionts
-            ## First normalized the size
-            size_pos = this_df_dsegelev_pos["delta_segelev"]/this_df_kp_stepped["delta_segelev"].max()*coeff_size
-            ##plt the bars
-            ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, s = size_pos, lw = 1, marker = "|", c = "r", alpha = 0.95, zorder = 5)
-            #Plot vertical bars in beetween
-            ax1.vlines(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"], this_df_dksn_neg["elevation"] + up_set, zorder = 1, lw = 0.15 )
-            ax1.vlines(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"], this_df_dksn_pos["elevation"] + up_set, zorder = 1, lw = 0.15 )
-            ax1.vlines(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, this_df_dsegelev_pos["elevation"], zorder = 1, lw = 0.15 )
-            
+                # this can be printed to adapt the ksn extraction parameters from Mudd et al. 2014
+                if (print_seg_elev):    
+                    cb1 = ax1.scatter(this_df_river[x_axis], this_df_river["segmented_elevation"], lw =0 , s = size_of_river/2, c = "k", alpha = 0.5, zorder = 3)
+
+                # Plot the dksn knickpionts
+                ## First normalized the size
+
+                sizing = self.df_kp_ksn.copy()
+                sizing["delta_ksn"] = sizing["delta_ksn"].abs()
+                sizing = sizing["delta_ksn"][sizing[binning] == sources].values
+                if(len(size_recasting) == 2):
+                    sizing[sizing<size_recasting[0]] = size_recasting[0]
+                    sizing[sizing>size_recasting[1]] = size_recasting[1]
+
+                try:
+                    sizing = sizing/np.max(sizing)
+                    sizing += 0.01
+                    sizing = sizing * coeff_size
+
+                    ## plot the triangles
+                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = sizing, lw = 0, marker = "^", c = "r", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = sizing, lw = 0, marker = "v", c = "b", alpha = 0.95, zorder = 5)
+                    ## plot the contours
+                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = sizing, lw = 0.5, marker = "^", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = sizing, lw = 0.5, marker = "v", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
+
+                except ValueError:
+                    print("No ksn knickpoint on source " + str(sources))
+                # Plot the dksn knickpionts
+                ## First normalized the size
+                size_pos = this_df_dsegelev_pos["delta_segelev"]/this_df_kp_stepped["delta_segelev"].max()*coeff_size
+                ##plt the bars
+                ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, s = size_pos, lw = 1, marker = "|", c = "r", alpha = 0.95, zorder = 5)
+                #Plot vertical bars in beetween
+                ax1.vlines(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"], this_df_dksn_neg["elevation"] + up_set, zorder = 1, lw = 0.15 )
+                ax1.vlines(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"], this_df_dksn_pos["elevation"] + up_set, zorder = 1, lw = 0.15 )
+                ax1.vlines(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, this_df_dsegelev_pos["elevation"], zorder = 1, lw = 0.15 )
+                
 
 
-            if(kalib):
+                if(kalib):
 
-                kal = pd.read_csv("/home/s1675537/PhD/LSDTopoData/knickpoint/test_location_paper/Smugglers_SC/field_kp/calib_jointed.csv")
-                kal = kal[kal[binning] == sources]
-                colaray = kal["type"].values
-                colaray[colaray == "bases"] = "#A002D3"
-                colaray[colaray == "lips"] = "#57B300"
-                ax1.scatter(kal[x_axis],kal["elevation"], marker = "x", s = 7, lw = 0.4, zorder = 2, c = colaray)    
+                    kal = pd.read_csv("/home/s1675537/PhD/LSDTopoData/knickpoint/test_location_paper/Smugglers_SC/field_kp/calib_jointed.csv")
+                    kal = kal[kal[binning] == sources]
+                    colaray = kal["type"].values
+                    colaray[colaray == "bases"] = "#A002D3"
+                    colaray[colaray == "lips"] = "#57B300"
+                    ax1.scatter(kal[x_axis],kal["elevation"], marker = "x", s = 7, lw = 0.4, zorder = 2, c = colaray)    
 
 
-            if(x_axis == "chi"):
-                ax1.set_xlabel(r"$\chi$ (m)")
-            else:
-                ax1.set_xlabel("Distance from the outlet (m)")
+                if(x_axis == "chi"):
+                    ax1.set_xlabel(r"$\chi$ (m)")
+                else:
+                    ax1.set_xlabel("Distance from the outlet (m)")
 
-            ax1.set_ylabel("z (m)")
+                ax1.set_ylabel("z (m)")
 
-            # Title
-            if(title.lower() == "auto"):
-                this_title = "source %s" %(sources)
-            elif(title.lower() != "none"):
-                this_title = title
+                # Title
+                if(title.lower() == "auto"):
+                    this_title = "source %s" %(sources)
+                elif(title.lower() != "none"):
+                    this_title = title
 
-            if(title.lower() != "none"):
-                extra = ax1.add_patch(Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0, label = this_title))
+                if(title.lower() != "none"):
+                    extra = ax1.add_patch(Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0, label = this_title))
 
-                ax1.legend([extra],[this_title], loc = 0) # 1 = upper right 0 - best choice
+                    ax1.legend([extra],[this_title], loc = 0) # 1 = upper right 0 - best choice
 
-            # Saving the figure
-            plt.savefig(out_directory + self.fprefix + "_%s_%s_%s.%s"%(binning,sources,x_axis,format), dpi = 500)
-            plt.clf()
+                # Saving the figure
+                plt.savefig(out_directory + self.fprefix + "_%s_%s_%s.%s"%(binning,sources,x_axis,format), dpi = 500)
+                plt.clf()
             # switching to the next figure
 
 
@@ -823,6 +901,69 @@ class KP_plotting(object):
             plt.clf()
 
 
+
+
+    def stradivarius_analysis(self,size = "big", format = "png", label_size = 8):
+        """
+        Will plot a compilation of violin plot to illustrate  the distribution of the knickpoints function to some parameters
+        """
+        # check if a directory exists for the chi plots. If not then make it.
+        out_directory = self.fpath+'stat_plots/'
+        if not os.path.isdir(out_directory):
+            print("I am creating the river_plot/ directory to save your figures")
+            os.makedirs(out_directory)
+
+        
+        # Set up fonts for plots
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['Liberation Sans'] # Liberation Sans is a free alternative to Arial. Albeit being quite universal, Arial is propietary. #PRAISE_FREE_AND_OPENSOURCE
+        rcParams['font.size'] = label_size
+
+
+        # Create a figure with required dimensions
+        n_axis = 1
+        fig = self.get_fig_right_size(size = size, n_axis =1 , facecolor = "white")
+
+        toplot = ["elevation", "chi" , "flow_distance", "drainage_area"]
+        color = ["#CACACA","#29E1DF","#0049FF", "#03C845"]
+        xalabela = ["Elevation (m)", r"$\chi$ (m)", "Distance from\n outlet (m)", r"DA ($m^{2}$)"]
+        paddy = [-15,-15,-15,-12]
+
+
+        ax = []
+        n_vplot = len(toplot)
+        gs = plt.GridSpec(1,n_vplot,bottom=0.15, left=0.10, right=0.95, top=0.95)
+        for triceratops in range(n_vplot):
+            ax.append(fig.add_subplot(gs[0,triceratops], facecolor = "white"))
+            vp = ax[-1].violinplot(self.df_kp[toplot[triceratops]].values, bw_method = 0.05, widths = 0.75 , points = 1000000)
+            vp['cbars'].set(color = "#5B5B5B", linewidths = 1, alpha =0.75 )
+            vp['cmins'].set(color = "#5B5B5B", linewidths = 1 , alpha =0.75)
+            vp['cmaxes'].set(color = "#5B5B5B", linewidths = 1 , alpha =0.75)
+            for bulbe in vp['bodies']:
+                bulbe.set(color = color[triceratops], alpha = 1)
+            ax[-1].set_xlabel(xalabela[triceratops])
+            ax[-1].set_xticks([1])
+            ax[-1].set_xticklabels([""])
+            ax[-1].grid(alpha = 0.5)
+
+
+            ax[-1].get_yaxis().set_tick_params(direction='in', pad = paddy[triceratops], size = 4)
+            for tick in ax[-1].yaxis.get_major_ticks():
+                tick.label.set_fontsize(4) 
+            if(toplot[triceratops] == "drainage_area"):
+                ax[-1].set_yscale("log", nonposy='clip')
+
+
+
+        plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.05, hspace=0.05)
+        plt.savefig(out_directory + self.fprefix + "_stradivarius.%s"%(format), dpi = 500)
+        plt.clf()
+
+
+
+
+
+
     def save_output_csv(self):
         """
         If selected, will save the selected knickpoints into a csv file
@@ -831,9 +972,6 @@ class KP_plotting(object):
         print("I am saving the selected knickpoints in a new csv file")
         self.df_kp_ksn.to_csv(self.fpath+self.fprefix+"_output_ksn.csv", index = False)
         self.df_kp_stepped.to_csv(self.fpath+self.fprefix+"_output_stepped.csv", index = False)
-
-
-            
 
 
 

@@ -58,6 +58,7 @@ def main(argv):
     # Sources selection
     parser.add_argument("-source_keys", "--source_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of sources you want for the plotting. Default = all sources")
     parser.add_argument("-min_sl", "--min_source_length", type=float , default = 0, help = "This is a minimum length for the river to plot, if you want to only plot the river profile of the main rivers for example. Default = 0 (no restrictions)")
+    parser.add_argument("-main_stem", "--isolate_main_stem", type=bool , default =False, help = "set to True to only keep the main stem of each basins")
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
@@ -82,6 +83,7 @@ def main(argv):
     parser.add_argument("-rasplot", "--raster_plots", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
     parser.add_argument("-rasplot_ld", "--raster_plots_large_dataset", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
     parser.add_argument("-statplot", "--statistical_plots", type = bool, default = False, help="Print a bunch of statistics about the knickpoints in the folder .../raster_plots/")
+    parser.add_argument("-stradivarius", "--multi_violin_plots", type = bool, default = False, help="Print a bunch of statistical distribution against elevation, chi, ... for the selected knickpoints")
 
     # Others
     parser.add_argument("-nbh", "--n_bin_hist", type = int, default = 0, help = "Customization of the number of bin you want for the general histogram. Default is an automatic in-built selection from numpy")
@@ -93,6 +95,12 @@ def main(argv):
     parser.add_argument("-max_hist", "--maximum_extent_for_histogram", type = int, default = 0, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-lith_rast","--lithologic_raster", type = bool, default = False, help = "switch on if you have a _LITHRAST raster, it will plot a hillshade colored by lithologic unit")
     parser.add_argument("-save","--save_output", type = bool, default = False, help = "switch on if you have the willingness to save your selected knickpoints in a new csv file named prefix_output.csv")
+    parser.add_argument("-coeff_size_kp", "--kp_coeff_size", type = float, default = 10, help = "qualitative size of knickpoints on river profile. Default 10, increase or decrease to adapt the size of the triangles")
+    parser.add_argument("-fixed_size_kp_min_max_river", "--fixed_size_kp_min_max_river", type = str, default = "", help = "qualitative size of knickpoints on river profile. Default 50, increase or decrease to adapt the size of the triangles")
+    parser.add_argument("-normelev_rel", "--normalise_elevation_to_outlet_relative", type = bool, default = False, help = "Normalize the elevation for each watershed, considering the outlet points as 0, but without changing the relief.")
+    parser.add_argument("-normelev_abs", "--normalise_elevation_to_outlet_absolute", type = bool, default = False, help = "Normalize the elevation for each watershed, considering the outlet points as 0 and the maximum to 1.")
+
+
 
     args = parser.parse_args()
 
@@ -115,6 +123,13 @@ def main(argv):
         print("The sources preselected are:")
         print(these_source_keys)
 
+    if len(args.fixed_size_kp_min_max_river) != 2:
+        min_max_kp_river = []
+    else:
+        min_max_kp_river = [float(item) for item in args.min_max_kp_river.split(',')]
+        print("You are recasting the size for all your knickpoints triangles plotted on the river_plots:")
+        print(min_max_kp_river)
+
     if len(args.manual_extent_colormap_knickpoint_raster) > 0:
         manual_cmap_extent_raster_plot = [int(item) for item in args.manual_extent_colormap_knickpoint_raster.split(',')]
         print("You choose a manual colorbar for plotting:")
@@ -131,16 +146,21 @@ def main(argv):
 
 
     print("Getting your cut off values...")
-    try:
-        covfefe = [float(item) for item in args.cut_off_val.replace(" ", "").split(',')]
-        print("ok.")
-        covfefe_t = [-covfefe[0],covfefe[1],-10000,covfefe[2]]
-        covfefe = covfefe_t
-    except ValueError:
-        print("Something went wrong - I am defaulting the values")
-        covfefe = [0,0,-10000,0]
-    print("cut off values:")
-    print(covfefe)
+    if(args.cut_off_val != "auto"):
+        try:
+            covfefe = [float(item) for item in args.cut_off_val.replace(" ", "").split(',')]
+            print("ok.")
+            covfefe_t = [-covfefe[0],covfefe[1],-10000,covfefe[2]]
+            covfefe = covfefe_t
+        except ValueError:
+            print("Something went wrong - I am defaulting the values")
+            covfefe = [0,0,-10000,0]
+        print("cut off values:")
+        print(covfefe)
+    else:
+        covfefe = "auto"
+        print("I will choose automatically the cut-off values, based on the quartiles")
+
     # Processing the size choice
     try:
         size = [int(item) for item in args.size_format.split(',')]
@@ -152,10 +172,23 @@ def main(argv):
         sys.exit()
     print("Done")
 
+    # Normalisation???
+    if(args.normalise_elevation_to_outlet_absolute and args.normalise_elevation_to_outlet_relative):
+        print("Erm, you cannot normaliSe your elevation in relatively absolute or absolutely relative way! you have to choose.")
+        quit()
+    elif(args.normalise_elevation_to_outlet_absolute):
+
+        normalisation = "absolute"
+    elif(args.normalise_elevation_to_outlet_relative):
+        normalisation = "relative"
+    else:
+        normalisation = None
+
+
 
     print("Loading the dataset:")
 
-    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe)
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe, main_stem = args.isolate_main_stem, normalisation = normalisation)
     
     if(args.AllAnalysisDebug):
         args.AllAnalysis = True
@@ -195,9 +228,9 @@ def main(argv):
 
     if(args.river_profile):
         print("Printing river profiles in chi spaces")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river)
         print("Printing river profiles in flow distance")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river)
         print("Printing river profiles for the entire basins")
 
     if (args.basin_plot):
@@ -215,10 +248,19 @@ def main(argv):
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
+    if(args.multi_violin_plots):
+        KI.stradivarius_analysis(size = size, format = args.FigFormat)
+
+
+    # Preparing the min_max color for mchi maps
+    if(args.max_mchi_map <= args.min_mchi_map):
+        colo = []
+    else:
+        colo = [args.min_mchi_map,args.max_mchi_map]
     
     if(args.lithologic_raster):
         dict_file = LP.litho_pre_check(args.base_directory,"", fname = args.fname_prefix)
-        LP.MakeRasterLithoBasinMap(args.base_directory, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat='png')
+        LP.MakeRasterLithoBasinMap(args.base_directory, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format= size, FigFormat=args.FigFormat, m_chi = True, mancol = colo, log_scale_river = True, minmax_m_chi = [0.01,1])
         cml = LP.getLithoColorMap(args.fname_prefix, args.base_directory)
         KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, cml = cml, lith_raster = True)
 
