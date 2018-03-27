@@ -333,7 +333,7 @@ def CompareChiAndSAMOverN(DataDirectory, fname_prefix, basin_list=[0], start_mov
     # Now plot the figure
     PlotMOverNDicts(DataDirectory, fname_prefix, SA_movern_dict,best_fit_movern_dict, FigFormat = "png", size_format = "ESURF")
 
-def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7, parallel=False, chi_disorder=False):
+def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7, parallel=False, Chi_disorder=False):
     """
     This function reads in all the files with the data for the various methods of estimating
     the best fit m/n and produces a summary csv file which has the best fit m/n and uncertainty
@@ -347,7 +347,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
         start_movern (float): the starting m/n value. Default is 0.2
         d_movern (float): the increment between the m/n values. Default is 0.1
         n_movern (float): the number of m/n values analysed. Default is 7.
-        chi_disorder (bool): If true, will include the chi disorder stats
+        Chi_disorder (bool): If true, will include the chi disorder stats
 
     Returns:
         writes a csv with the best fit m/n info for each basin
@@ -420,7 +420,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['SA_segments_min'] = SASegmentedDF['FirstQ_movern']
     OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
 
-    if (chi_disorder == True):
+    if Chi_disorder:
         DisorderDF = Helper.ReadDisorderCSV(DataDirectory, fname_prefix)
         DisorderMovernDict = GetBestFitMOverNFromDisorder(DisorderDF)
         OutDF['Chi_disorder'] = OutDF['basin_key'].map(DisorderMovernDict)
@@ -2070,7 +2070,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         ax.cla()
     plt.close(fig)
 
-def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True,parallel=False,chi_disorder=False):
+def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, size_format='ESURF', FigFormat='png', SA_channels=False, show_legend=True,parallel=False,Chi_disorder=False):
     """
     This function makes a summary plot of the best fit m/n from the different
     methods.
@@ -2086,7 +2086,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
         SA_channels (bool): If true, will include the SA data separated by channel
         show_legend (bool): If true, display the legend with the plot
-        chi_disorder (bool): if true, will include the data from the chi disorder method
+        Chi_disorder (bool): if true, will include the data from the chi disorder method
 
     Returns:
         Makes a summary plot
@@ -2153,6 +2153,12 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     points_chi_keys = df['basin_key'].as_matrix()-0.1
     ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
     ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi Monte Carlo',zorder=200)
+
+    # plot the chi disorder data if you want it
+    if Chi_disorder:
+        disorder_chi_keys = df['basin_key'].as_matrix()-0.3
+        ax.scatter(full_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#FF7F50', s=15, zorder=200, label='Chi disorder')
+
 
     # plot the SA data
     SA_keys = df['basin_key'].as_matrix()
