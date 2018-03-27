@@ -176,7 +176,7 @@ def main(argv):
                     MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = args.FigFormat,size_format=args.size_format, show_legend=args.show_legend)
                     #joyplot
                     MN.MakeMOverNPlotOneMethod(this_dir,args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern,d_movern=d_movern,n_movern=n_movern,FigFormat=args.FigFormat,size_format=args.size_format)
-                    MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend)
+                    #MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend)
 
     # collate all the results to get the final figure
     MN.PlotSensitivityResultsSigma(Directory, args.fname_prefix,FigFormat=args.FigFormat,size_format=args.size_format,movern_method='points')
