@@ -688,7 +688,7 @@ def MakeTerracePlotChiSpace(DataDirectory,fname_prefix,shapefile_name, colour_by
     #plt.show()
     plt.savefig(T_directory+fname_prefix+'_terrace_plot_chi.png',format='png',dpi=300)
 
-def MakeTerraceHeatMap(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_method=0.03, FigFormat='png'):
+def MakeTerraceHeatMap(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_method=0.03, FigFormat='png', ages=""):
     """
     Function to make a heat map of the terrace pixels using Gaussian KDE.
     see https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.gaussian_kde.html
@@ -701,6 +701,7 @@ def MakeTerraceHeatMap(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_meth
         bw_method: the method for determining the bandwidth of the KDE.  This is apparently quite sensitive to this.
         Can either be "scott", "silverman" (where the bandwidth will be determined automatically), or a scalar. Default = 0.03
         FigFormat(str): figure format, default = png
+        ages (str): Can pass in the name of a csv file with terrace ages which will be plotted on the profile. Must be in the same directory
 
     FJC 26/03/18
     """
@@ -714,17 +715,14 @@ def MakeTerraceHeatMap(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_meth
     # make a figure
     fig = CreateFigure()
     ax = plt.subplot(111)
-    #ax1 = plt.subplot(212)
 
     # read in the terrace DataFrame
     terrace_df = H.read_terrace_csv(DataDirectory,fname_prefix)
     terrace_df = terrace_df[terrace_df['BaselineNode'] != -9999]
-    #print(terrace_df)
 
-    # read in the mchi  csv
+    # read in the mchi csv
     lp = H.ReadMChiSegCSV(DataDirectory,mchi_fname)
     lp = lp[lp['elevation'] != -9999]
-    #print(lp)
 
     # get the distance from outlet along the baseline for each terrace pixels
     terrace_df = terrace_df.merge(lp, left_on = "BaselineNode", right_on = "node")
@@ -736,7 +734,6 @@ def MakeTerraceHeatMap(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_meth
     xmax = flow_dist.max()
     ymin = 0
     ymax = terrace_df["Elevation"].max()
-    #print ("xmax,ymax:", xmax, ymax)
 
     ## formatting the data in a meshgrid
     X,Y = np.meshgrid(np.linspace(0,xmax,num = prec),np.linspace(0,ymax, num = prec))
@@ -745,23 +742,14 @@ def MakeTerraceHeatMap(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_meth
     if len(values) == 0:
         print("You don't have any terraces, I'm going to quit now.")
     else:
+        # get the kernel density estimation
         KDE = st.gaussian_kde(values, bw_method = bw_method)
         Z = np.reshape(KDE(positions).T,X.shape)
-        #Z = np.ma.masked_where(Z < 0.00000000001, Z)
 
-        # try a 2d hist
-        # h, fd_bins, elev_bins = np.histogram2d(flow_dist, terrace_df['Elevation'], bins=500)
-        # h = h.T
-        # h = np.ma.masked_where(h == 0, h)
-        # X,Y = np.meshgrid(fd_bins, elev_bins)
-        # ax.pcolormesh(X,Y,h, cmap="seismic")
-
-        #
+        # plot the density on the profile
         cmap = cm.gist_heat_r
         cmap.set_bad(alpha=0)
-        #norm=colors.LogNorm(vmin=0, vmax=Z.max(),cmap=cmap)
         cb = ax.imshow(Z, interpolation = "None",  extent=[xmin, xmax, ymin, ymax], cmap=cmap, aspect = "auto")
-        #ax.pcolormesh(X,Y,Z, cmap="seismic")
 
         # plot the main stem channel
         lp_mainstem = H.read_index_channel_csv(DataDirectory,fname_prefix)
@@ -769,6 +757,16 @@ def MakeTerraceHeatMap(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_meth
         lp_mainstem = lp_mainstem.merge(lp, left_on="id", right_on="node")
         lp_flow_dist = lp_mainstem['flow_distance_y']/1000
         ax.plot(lp_flow_dist,lp_mainstem['elevation_y'],'k',lw=1)
+
+        # if present, plot the ages on the profile
+        if ages:
+            # read in the ages csv
+            ages_df = pd.read_csv(DataDirectory+ages)
+            upstream_dist = list(ages_df['upstream_dist'])
+            elevation = list(ages_df['elevation'])
+            ages = list(ages_df['age_centroid'])
+            print ages
+            ax.scatter(upstream_dist, elevation, s=5, c="w", edgecolors="k")
 
         # set some plot lims
         ax.set_xlim(xmin,xmax)
@@ -780,11 +778,12 @@ def MakeTerraceHeatMap(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_meth
         cbar = plt.colorbar(cb,cmap=cmap,orientation='vertical')
         cbar.set_label('Density')
 
+        # save the figure
         plt.tight_layout()
         plt.savefig(T_directory+fname_prefix+'_terrace_plot_heat_map.png',format=FigFormat,dpi=300)
         plt.clf()
 
-def MakeTerraceHeatMapNormalised(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_method=0.03, FigFormat='png'):
+def MakeTerraceHeatMapNormalised(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_method=0.03, FigFormat='png', ages=""):
     """
     Function to make a heat map of the terrace pixels using Gaussian KDE. Pixels are normalised based on
     elevation of closest channel pixel.
@@ -799,6 +798,7 @@ def MakeTerraceHeatMapNormalised(DataDirectory,fname_prefix, mchi_fname, prec=10
         bw_method: the method for determining the bandwidth of the KDE.  This is apparently quite sensitive to this.
         Can either be "scott", "silverman" (where the bandwidth will be determined automatically), or a scalar. Default = 0.03
         FigFormat(str): figure format, default = png
+        ages (str): Can pass in the name of a csv file with terrace ages which will be plotted on the profile. Must be in the same directory
 
     FJC 26/03/18
     """
