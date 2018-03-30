@@ -756,7 +756,7 @@ def MakeTerraceHeatMap(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_meth
         lp_mainstem = lp_mainstem[lp_mainstem['elevation'] != -9999]
         lp_mainstem = lp_mainstem.merge(lp, left_on="id", right_on="node")
         lp_flow_dist = lp_mainstem['flow_distance_y']/1000
-        ax.plot(lp_flow_dist,lp_mainstem['elevation_y'],'k',lw=1)
+        ax.plot(lp_flow_dist,lp_mainstem['elevation_y'],'k',lw=1, label='_nolegend_')
 
         # if present, plot the ages on the profile
         if ages:
@@ -764,9 +764,8 @@ def MakeTerraceHeatMap(DataDirectory,fname_prefix, mchi_fname, prec=100, bw_meth
             ages_df = pd.read_csv(DataDirectory+ages)
             upstream_dist = list(ages_df['upstream_dist'])
             elevation = list(ages_df['elevation'])
-            ages = list(ages_df['age_centroid'])
-            print ages
-            ax.scatter(upstream_dist, elevation, s=5, c="w", edgecolors="k")
+            ax.scatter(upstream_dist, elevation, s=8, c="w", edgecolors="k", label="$^{14}$C age (cal years B.P.)")
+            ax.legend(loc='upper left', fontsize=8, numpoints=1)
 
         # set some plot lims
         ax.set_xlim(xmin,xmax)
