@@ -1892,6 +1892,11 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
     for tick in ax.xaxis.get_major_ticks():
         tick.set_pad(2)
 
+    if rotate_labels:
+        # remove the first y label. This is not working at the moment :( Fiona 30/03/18
+        yticks = ax.yaxis.get_major_ticks()
+        yticks[0].label1.set_visible(False)
+
 
     # Lets try to size the figure
     #cbar_L = "bottom"
