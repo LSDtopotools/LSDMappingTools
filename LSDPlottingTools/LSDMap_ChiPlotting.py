@@ -1664,7 +1664,10 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         z_axis_max = int(max_Elevation/10)*10+10
         X_axis_max = int(max_X/5)*5+5
         M_chi_axis_max = max_M_chi
-        M_chi_axis_min = min_M_chi
+        if min_M_chi < 0:
+            M_chi_axis_min = 0
+        else:
+            M_chi_axis_min = min_M_chi
 
         elevation_range = z_axis_max-z_axis_min
         z_axis_min = z_axis_min - 0.075*elevation_range
@@ -1771,7 +1774,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                     verticalalignment='bottom', horizontalalignment='left',fontsize=8)
         else:
             ax.text(this_min_x+0.05*width_box, z_axis_min+0.055*elevation_range, this_basin_text, style='italic',
-                    verticalalignment='bottom', horizontalalignment='left',fontsize=6, rotation=90)
+                    verticalalignment='bottom', horizontalalignment='left',fontsize=12, rotation=90)
 
         # Here is some logic for getting the maximum value for the last basin
         if basin_number == basins_list[-1]:
