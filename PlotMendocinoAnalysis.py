@@ -23,6 +23,9 @@ from osgeo import ogr
 from LSDPlottingTools import LSDMap_HillslopeMorphology as HS
 from LSDPlottingTools import LSDMap_TerracePlotting as T
 
+import rotated_mapping_tools as R
+import matplotlib.pyplot as plt
+
 
 
 #=============================================================================
@@ -234,9 +237,10 @@ def main(argv):
 
     # What sort of analyses you want
     parser.add_argument("-all_rasters", "--all_raster_plots", type=bool, default=False, help="If this is true, I'll make all the raster plots.")
-    parser.add_argument("-all_chi", "--all_chi_plots", type=bool, default=False, help="If this is true, I'll make all the chi plots.")
+    parser.add_argument("-chi", "--chi_plots", type=bool, default=False, help="If this is true, I'll make all the chi plots.")
     parser.add_argument("-means_uplift", "--plot_means_with_uplift", type=bool, default=False, help="If this is true I'l make plots of the mean hillslope data vs uplift rate")
     parser.add_argument("-terraces", "--plot_terraces", type=bool, default=False, help="If this is true I'll make the terrace long profiles.")
+    parser.add_argument("-ages", "--ages", type=str, default="", help="If this is passed then I will add labels with calculated terrace ages to the profile. Need to pass the name of the csv file with the ages.")
 
     # Some simple geographic functions that can aid in plotting regional maps. They do things like create shapefile that
     # can then be used with basemap. We don't include the basemap functions since that is not in the LSDTT toolchain (but
@@ -305,7 +309,7 @@ def main(argv):
     existing_basin_keys = []
     if os.path.isfile(BasinInfoFileName):
         print("There is a basins info csv file")
-        BasinInfoDF = phelp.ReadBasinInfoCSV(this_dir, args.fname_prefix)
+        BasinInfoDF = H.ReadBasinInfoCSV(this_dir, args.fname_prefix)
         existing_basin_keys = list(BasinInfoDF['basin_key'])
         existing_basin_keys = [int(x) for x in existing_basin_keys]
     else:
@@ -390,47 +394,6 @@ def main(argv):
         simple_format = args.FigFormat
 
 
-    # This just plots the basins. Useful for checking on basin selection
-    if args.plot_basins:
-        print("I am only going to print basins.")
-
-        # check if a raster directory exists. If not then make it.
-        raster_directory = this_dir+'raster_plots/'
-        if not os.path.isdir(raster_directory):
-            os.makedirs(raster_directory)
-
-        raster_out_prefix = "/raster_plots/"+args.fname_prefix
-        # Now for raster plots
-        # First the basins, labeled:
-        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
-
-    # This just plots the basins. Useful for checking on basin selection
-    if args.plot_chi_coord:
-        print("I am only going to print basins.")
-
-        # check if a raster directory exists. If not then make it.
-        raster_directory = this_dir+'raster_plots/'
-        if not os.path.isdir(raster_directory):
-            os.makedirs(raster_directory)
-
-        # Get the names of the relevant files
-        ChannelFname = args.fname_prefix+"_chi_data_map.csv"
-
-        raster_out_prefix = "/raster_plots/"+args.fname_prefix
-        # Now for raster plots
-        # First the basins, labeled:
-        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
-
-        # Then the chi plot
-        LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = False, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_raster", plot_chi_raster = True)
-
-        LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = False, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_channels", plot_chi_raster = False)
-
-    # This bundles a number of different analyses
-    if args.all_chi_plots:
-        print("You have chosen to plot all raster and stacked plots.")
-        args.all_raster_plots = True
-        args.all_stacked_plots = True
 
     # make the plots depending on your choices
     if args.all_raster_plots:
@@ -446,22 +409,23 @@ def main(argv):
 
         raster_out_prefix = "/raster_plots/"+args.fname_prefix
 
-        # Now for raster plots
-        # First the basins, labeled:
-        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
+        # print a simple plot of the basins with no labels
+        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins", label_basins = False)
 
-        # Basins colour coded
-        print("The value dict is: ")
-        print(this_value_dict)
-        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict, Value_dict = this_value_dict, cmap = "gray", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_stack_basins")
+        # # print a rotated plot of the basins
+        # ShapeFile = this_dir+args.fname_prefix+"_AllBasins.shp"
+        #
+        # # check if you've already resampled your raster to lat and long.
+        # resample_fname = this_dir+args.fname_prefix+"_hs_resample_latlong.bil"
+        # if not os.path.isfile(resample_fname):
+        #     R.ResampleRaster(this_dir+args.fname_prefix+"_hs.bil",this_dir+args.fname_prefix+"_hs_resample.bil",10)
+        #     R.ConvertRaster2LatLong(this_dir+args.fname_prefix+"_hs_resample.bil",this_dir+args.fname_prefix+"_hs_resample_latlong.bil")
+        # Fig, Ax, Map = R.CreateMapFigure(this_dir+args.fname_prefix+"_AllBasins.shp",FigSizeFormat="JGR",Rotation=300)
+        # R.PlotRaster(this_dir+args.fname_prefix+"_hs_resample_latlong.bil",Map)
+        # R.PlotShapefile(ShapeFile,Map,Ax,'k','w')
+        # plt.savefig(this_dir+raster_out_prefix+"_basins_rotated.png")
 
-        # Now the chi steepness
-        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "viridis", cbar_loc = "right", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="m_chi",colorbarlabel = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = value_dict_single_basin, out_fname_prefix = raster_out_prefix+"_ksn")
-
-        # Now plot the channels coloured by the source number
-        LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "tab20b", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="source_key", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"sources", discrete_colours = True, NColours = 20, colour_log = False)
-
-    if args.all_stacked_plots:
+    if args.chi_plots:
 
         # check if a chi profile directory exists. If not then make it.
         chi_profile_directory = this_dir+'chi_profile_plots/'
@@ -494,6 +458,11 @@ def main(argv):
 
             # This prints the channel profiles coloured by source number
             LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)
+
+    if args.plot_terraces:
+            # Make a terrace heat map
+            T.MakeTerraceHeatMap(this_dir,args.fname_prefix, args.fname_prefix, prec=150, FigFormat=args.FigFormat)
+            T.MakeTerraceHeatMapNormalised(this_dir,args.fname_prefix, args.fname_prefix, prec=150, FigFormat=args.FigFormat, ages = args.ages)
 
 
 #=============================================================================
