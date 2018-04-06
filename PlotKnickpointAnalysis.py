@@ -99,6 +99,7 @@ def main(argv):
     parser.add_argument("-fixed_size_kp_min_max_river", "--fixed_size_kp_min_max_river", type = str, default = "", help = "qualitative size of knickpoints on river profile. Default 50, increase or decrease to adapt the size of the triangles")
     parser.add_argument("-normelev_rel", "--normalise_elevation_to_outlet_relative", type = bool, default = False, help = "Normalize the elevation for each watershed, considering the outlet points as 0, but without changing the relief.")
     parser.add_argument("-normelev_abs", "--normalise_elevation_to_outlet_absolute", type = bool, default = False, help = "Normalize the elevation for each watershed, considering the outlet points as 0 and the maximum to 1.")
+    parser.add_argument("-unicol_kp", "--unicolor_for_knickpoint_map", type = str, default = None, help = "use this flag to force a uni color for knickpoints on map. It has to be a matplotlib color code (simplest way is to use html colorcode like #AABB47)")
 
 
 
@@ -131,7 +132,7 @@ def main(argv):
         print(min_max_kp_river)
 
     if len(args.manual_extent_colormap_knickpoint_raster) > 0:
-        manual_cmap_extent_raster_plot = [int(item) for item in args.manual_extent_colormap_knickpoint_raster.split(',')]
+        manual_cmap_extent_raster_plot = [float(item) for item in args.manual_extent_colormap_knickpoint_raster.split(',')]
         print("You choose a manual colorbar for plotting:")
         print(manual_cmap_extent_raster_plot)
     else:
@@ -241,12 +242,12 @@ def main(argv):
 
     if(args.raster_plots):
         KI.print_map_topo(size = size, format = args.FigFormat,label_size = 8, return_fig = False, extent_cmap = [], kalib = False)
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
     if(args.raster_plots_large_dataset):
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
     if(args.multi_violin_plots):
         KI.stradivarius_analysis(size = size, format = args.FigFormat)
@@ -262,7 +263,7 @@ def main(argv):
         dict_file = LP.litho_pre_check(args.base_directory,"", fname = args.fname_prefix)
         LP.MakeRasterLithoBasinMap(args.base_directory, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format= size, FigFormat=args.FigFormat, m_chi = True, mancol = colo, log_scale_river = True, minmax_m_chi = [0.01,1])
         cml = LP.getLithoColorMap(args.fname_prefix, args.base_directory)
-        KI.print_map_of_kp(size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, cml = cml, lith_raster = True)
+        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, cml = cml, lith_raster = True)
 
 
     if(args.save_output):

@@ -580,7 +580,7 @@ class KP_plotting(object):
 
 
 
-    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20, return_fig = False, extent_cmap = [], kalib = False,lith_raster = False,cml = None):
+    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20, return_fig = False, extent_cmap = [], kalib = False,lith_raster = False,cml = None, unicolor_kp = None):
 
             # check if a directory exists for the chi plots. If not then make it.
         raster_directory = self.fpath+'raster_plots/'
@@ -613,7 +613,7 @@ class KP_plotting(object):
             LithoMap = self.fprefix+"_LITHRAST.bil"
 
             MF.add_drape_image(LithoMap,self.fpath,colourmap = color_map_litho,
-                                alpha=0.4,
+                                alpha=0.6,
                                 show_colourbar = False,
                                 colorbarlabel = "Colourbar", discrete_cmap=False, 
                                 norm = "None",
@@ -660,9 +660,15 @@ class KP_plotting(object):
             MF.add_point_data(kalpoint, marker ="*", column_for_plotting = "van_gogh", alpha=1, manual_size = 20, zorder = 199, unicolor = kal["van_gogh"].values )
 
 
+        if(unicolor_kp == None):
+            MF.add_point_data(kp_pos,this_colourmap = "autumn",colour_manual_scale = [extent_cmap[0],extent_cmap[1]], marker ="^", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar=True, colorbarlabel = r'$\Delta k_{sn}$', colourbar_location = "bottom", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
+            MF.add_point_data(kp_neg,this_colourmap = "autumn",colour_manual_scale = [extent_cmap[0],extent_cmap[1]], marker ="v", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar="False", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
+        
+        else:
+            MF.add_point_data(kp_pos, unicolor = unicolor_kp, marker ="^", scale_points = scale_points, alpha=1, max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
+            MF.add_point_data(kp_neg, unicolor = unicolor_kp, marker ="v", scale_points = scale_points, alpha=1, max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
 
-        MF.add_point_data(kp_pos,this_colourmap = "autumn",colour_manual_scale = [extent_cmap[0],extent_cmap[1]], marker ="^", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar=True, colorbarlabel = r'$\Delta k_{sn}$', colourbar_location = "bottom", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
-        MF.add_point_data(kp_neg,this_colourmap = "autumn",colour_manual_scale = [extent_cmap[0],extent_cmap[1]], marker ="v", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar="False", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
+
         MF.add_point_data(kp_step,unicolor = "#00FF42",marker ="s", column_for_plotting = "none", alpha=1,zorder=200,manual_size = size_kp*0.2)
 
         if(black_bg):
