@@ -62,7 +62,7 @@ def main(argv):
         if not args.digitised_terraces:
             TerracePlotter.long_profiler_dist(this_dir, args.fname_prefix)
         else:
-            TerracePlotter.long_profiler_centrelines(this_dir,args.fname_prefix,args.shapefile_name, args.colour_by_ksn)
+            TerracePlotter.long_profiler_centrelines(this_dir,args.fname_prefix,args.shapefile_name, args.colour_by_ksn,args.ages)
             TerracePlotter.MakeTerracePlotChiSpace(this_dir, args.fname_prefix,args.shapefile_name)
 
     if args.plot_rasters:

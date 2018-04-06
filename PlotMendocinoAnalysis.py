@@ -459,6 +459,8 @@ def main(argv):
             # This prints the channel profiles coloured by source number
             LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)
 
+            LSDMW.PrintChiStackedWithUplift
+
     if args.plot_terraces:
             # Make a terrace heat map
             T.MakeTerraceHeatMap(this_dir,args.fname_prefix, args.fname_prefix, prec=150, FigFormat=args.FigFormat)

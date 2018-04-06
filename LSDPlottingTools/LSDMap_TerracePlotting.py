@@ -507,7 +507,7 @@ def long_profiler_dist(DataDirectory,fname_prefix, min_size=5000, FigFormat='png
 
     plt.clf()
 
-def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, colour_by_ksn=False, FigFormat='png'):
+def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, colour_by_ksn=False, ages="", FigFormat='png'):
     """
     Function takes in the csv file of terrace centreline data
     and plots as a long profile against the baseline channel.
@@ -578,10 +578,20 @@ def long_profiler_centrelines(DataDirectory,fname_prefix, shapefile_name, colour
     if colour_by_ksn == True:
         ax.scatter(lp_mainstem["flow_distance_x"]/1000, lp_mainstem["elevation_x"], c=lp_mainstem["m_chi"], cmap=cm.hot, norm=colors.Normalize(lp_mainstem["m_chi"].min(), lp_mainstem["m_chi"].max()), s=0.5, lw=0.1)
     else:
-        ax.plot(lp_mainstem['flow_distance_x']/1000,lp_mainstem['elevation_x'],'k',lw=1)
+        ax.plot(lp_mainstem['flow_distance_x']/1000,lp_mainstem['elevation_x'],'k',lw=1,label='_nolegend_')
+
+    # if present, plot the ages on the profile
+    print (ages)
+    if ages:
+        # read in the ages csv
+        ages_df = pd.read_csv(DataDirectory+ages)
+        upstream_dist = list(ages_df['upstream_dist'])
+        elevation = list(ages_df['elevation'])
+        ax.scatter(upstream_dist, elevation, s=8, c="w", edgecolors="k", label="$^{14}$C age (cal years B.P.)")
+        ax.legend(loc='upper left', fontsize=8, numpoints=1)
 
     # set axis params and save
-    ax.set_xlabel('Distance from outlet (km)')
+    ax.set_xlabel('Flow distance (km)')
     ax.set_ylabel('Elevation (m)')
     ax.set_xlim(0,(terrace_df['flow_distance'].max()/1000))
     ax.set_ylim(0,terrace_df['elevation'].max()+10)
