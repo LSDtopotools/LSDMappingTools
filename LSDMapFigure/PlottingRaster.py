@@ -712,7 +712,7 @@ class MapFigure(object):
             # First get the points
             Points = {}
             print("The number of basins are: "+str(len(Basins)))
-            for basin_key, basin in Basins.iteritems():
+            for basin_key, basin in Basins.items():
                 Points[basin_key] = Point(basin.representative_point())
             print("The number of points are: "+str(len(Points)))
 
@@ -795,7 +795,7 @@ class MapFigure(object):
 
             # now plot the polygons
             print('Plotting the polygons, colouring by basin...')
-            for key, poly in Basins.iteritems():
+            for key, poly in Basins.items():
                 print(key, int(key))
                 colourkey = int(key) % n_colours
                 # We need two patches since we don't want the edges transparent
@@ -829,7 +829,7 @@ class MapFigure(object):
             print(Basins)
             print(junction_to_key_dict)
             print('Plotting the polygons, colouring by value...')
-            for junc, poly in Basins.iteritems():
+            for junc, poly in Basins.items():
 
                 # If we are using keys, we need to check to see if the key referred to by
                 # this junction is in the value dict
@@ -1474,7 +1474,7 @@ class MapFigure(object):
 
         new_points = {}
         if label_dict:
-            for key, label in label_dict.iteritems():
+            for key, label in label_dict.items():
                 # get the point for this key
                 new_points[label] = points.get(key)
                 print((key, label, new_points[label]))
@@ -1491,7 +1491,7 @@ class MapFigure(object):
         bbox_props = dict(boxstyle="Round4,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
 
         print(points)
-        for key, point in points.iteritems():
+        for key, point in points.items():
             x = point.x
             y = point.y
             texts.append(self.ax_list[0].text(point.x, point.y, str(key), fontsize=8, color=text_colour,alpha=alpha,bbox=bbox_props, ha= 'center',zorder=zorder))
@@ -1534,7 +1534,7 @@ class MapFigure(object):
         # Format the bounding box
         bbox_props = dict(boxstyle="Round4,pad=0.1", fc="w", ec=border_colour, lw=0.5,alpha = alpha)
 
-        for key, point in points.iteritems():
+        for key, point in points.items():
             x = point.x
             y = point.y
 
@@ -1659,7 +1659,7 @@ class MapFigure(object):
 
         print('Plotting the polygon outlines...')
 
-        for key, poly in polygons.iteritems():
+        for key, poly in polygons.items():
             if poly.geom_type == 'Polygon':
                 x,y = poly.exterior.xy
                 self.ax_list[0].plot(x,y, c=colour, lw = linewidth, alpha = alpha)
@@ -1685,7 +1685,7 @@ class MapFigure(object):
         print('Plotting the polygons...')
 
         #patches = []
-        for key, poly in polygons.iteritems():
+        for key, poly in polygons.items():
             this_patch = PolygonPatch(poly, fc=facecolour, ec=edgecolour, alpha=alpha)
             self.ax_list[0].add_patch(this_patch)
 
