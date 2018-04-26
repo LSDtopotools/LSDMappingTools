@@ -879,7 +879,7 @@ class KP_plotting(object):
         try:
             BackgroundRasterName = self.fprefix+"_PP"+raster_ext
             MF.add_drape_image(BackgroundRasterName,self.fpath,colourmap = "terrain",alpha=0.4,NFF_opti = True)
-        except Exception, e:
+        except Exception as e:
             BackgroundRasterName = self.fprefix+raster_ext
             MF.add_drape_image(BackgroundRasterName,self.fpath,colourmap = "terrain",alpha=0.4,NFF_opti = True)
         

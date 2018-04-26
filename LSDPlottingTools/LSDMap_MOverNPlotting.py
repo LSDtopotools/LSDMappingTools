@@ -2645,7 +2645,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     else:
         BasinInfoDF = Helper.AppendBasinInfoCSVs(DataDirectory,fname_prefix)
 
-    print BasinInfoDF
+    print (BasinInfoDF)
 
     basin_keys = list(BasinInfoDF['basin_key'])
     basin_keys = [int(x) for x in basin_keys]
@@ -2807,7 +2807,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     elif movern_method == "Chi_disorder":
         DisorderDF = Helper.ReadDisorderCSV(DataDirectory, fname_prefix)
         MOverNDict = GetBestFitMOverNFromDisorder(DisorderDF)
-        print MOverNDict
+        print (MOverNDict)
         m_over_ns = MOverNDict.values()
         label_list = [str(i)+": "+str(j) for i,j in zip(basin_keys,m_over_ns)]
         labeldict = dict(zip(basin_junctions,label_list))

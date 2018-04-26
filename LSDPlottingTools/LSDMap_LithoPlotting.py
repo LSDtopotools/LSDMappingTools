@@ -33,7 +33,7 @@ from LSDMapFigure.PlottingRaster import MapFigure
 from LSDMapFigure.PlottingRaster import BaseRaster
 from LSDPlottingTools import LSDMap_SAPlotting as SA
 from LSDPlottingTools import joyplot
-import LSDMap_MOverNPlotting as MN
+from . import LSDMap_MOverNPlotting as MN
 import fnmatch
 import random
 
@@ -223,7 +223,7 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 		basin_junctions = [float(x) for x in basin_junctions]
 
 		print ('Basin keys are: ')
-		print basin_keys
+		print (basin_keys)
 		BasinsName = fname_prefix+'_AllBasins.bil'
 
 
@@ -408,7 +408,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 	else:
 		# get the basin keys
 		basin_keys = df['basin_key'].tolist()
-		print basin_keys
+		print (basin_keys)
 
 	df = df[df['basin_key'].isin(basin_keys)]
 
@@ -570,7 +570,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 	ax.set_xticklabels([litho_wanne,'',"50",'',litho_tou])
 
 	if show_legend and not only_MLE:
-		print "ADDING THE LEGEND"
+		print ("ADDING THE LEGEND")
 		# sort both labels and handles by labels
 		handles, labels = ax.get_legend_handles_labels()
 		labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
@@ -742,8 +742,8 @@ def MakeChiPlotsByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern
 
 			# the best fit m/n
 			best_fit_movern = best_fit_moverns[basin_key]
-			print "BEST FIT M/N IS: "+ str(best_fit_movern)
-			print "THIS M/N IS: "+str(m_over_n)
+			print ("BEST FIT M/N IS: "+ str(best_fit_movern))
+			print ("THIS M/N IS: "+str(m_over_n))
 
 			# label with the basin and m/n
 			title_string = "Basin "+str(basin_key)+", $m/n$ = "+str(m_over_n)
@@ -796,7 +796,7 @@ def MakeChiPlotsByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern
 	if animate:
 		# animate the pngs using ffmpeg
 		system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+K_directory+"Chi_profiles_by_Lith*.png' -y -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+K_directory+"Chi_profiles_by_Lith.mp4"
-		print system_call
+		print (system_call)
 		subprocess.call(system_call, shell=True)
 		# delete the pngs if you want
 		if not keep_pngs:
