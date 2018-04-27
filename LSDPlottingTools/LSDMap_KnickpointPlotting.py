@@ -453,7 +453,7 @@ class KP_plotting(object):
         # End of this function
 
     def print_river_profile(self,size = "big", format = "png", x_axis = "chi", knickpoint = True, title = "none", label_size = 8, facecolor = 'white',
-        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 50, kalib = False, binning = "source_key", print_seg_elev = False, size_recasting = []):
+        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 30, kalib = False, binning = "source_key", print_seg_elev = False, size_recasting = []):
 
         """
         """
@@ -508,24 +508,24 @@ class KP_plotting(object):
                 # Plot the dksn knickpionts
                 ## First normalized the size
 
-                sizing = self.df_kp_ksn.copy()
-                sizing["delta_ksn"] = sizing["delta_ksn"].abs()
-                sizing = sizing["delta_ksn"][sizing[binning] == sources].values
-                if(len(size_recasting) == 2):
-                    sizing[sizing<size_recasting[0]] = size_recasting[0]
-                    sizing[sizing>size_recasting[1]] = size_recasting[1]
+                # sizing = self.df_kp_ksn.copy()
+                # sizing["delta_ksn"] = sizing["delta_ksn"].abs()
+                # sizing = sizing["delta_ksn"][sizing[binning] == sources].values
+                # if(len(size_recasting) == 2):
+                #     sizing[sizing<size_recasting[0]] = size_recasting[0]
+                #     sizing[sizing>size_recasting[1]] = size_recasting[1]
 
                 try:
-                    sizing = sizing/np.max(sizing)
-                    sizing += 0.01
-                    sizing = sizing * coeff_size
+                    # sizing = sizing/np.max(sizing)
+                    # sizing += 0.01
+                    # sizing = sizing * coeff_size
 
                     ## plot the triangles
-                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = sizing, lw = 0, marker = "^", c = "r", alpha = 0.95, zorder = 5)
-                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = sizing, lw = 0, marker = "v", c = "b", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = ((this_df_dksn_pos["delta_ksn"].abs()/this_df_dksn_pos["delta_ksn"].abs().max()))*coeff_size, lw = 0, marker = "^", c = "r", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = ((this_df_dksn_neg["delta_ksn"].abs()/this_df_dksn_neg["delta_ksn"].abs().max()))*coeff_size, lw = 0, marker = "v", c = "b", alpha = 0.95, zorder = 5)
                     ## plot the contours
-                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = sizing, lw = 0.5, marker = "^", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
-                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = sizing, lw = 0.5, marker = "v", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = ((this_df_dksn_pos["delta_ksn"].abs()/this_df_dksn_pos["delta_ksn"].abs().max()))*coeff_size, lw = 0.5, marker = "^", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = ((this_df_dksn_neg["delta_ksn"].abs()/this_df_dksn_neg["delta_ksn"].abs().max()))*coeff_size, lw = 0.5, marker = "v", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
 
                 except ValueError:
                     print("No ksn knickpoint on source " + str(sources))
