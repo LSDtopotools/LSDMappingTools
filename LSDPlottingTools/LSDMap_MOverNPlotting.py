@@ -1854,7 +1854,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
             ax.set_ylabel("Elevation (m)")
 
             # label with the basin and m/n
-            title_string = "Basin "+str(basin_number)+", best fit "+r'$\theta$' + ' = "+str(best_fit_movern)
+            title_string = "Basin "+str(basin_number)+", best fit "+r'$\theta$' + " = str(best_fit_movern)"
             ax.text(0.05, 0.95, title_string,
                     verticalalignment='top', horizontalalignment='left',
                     transform=ax.transAxes,
