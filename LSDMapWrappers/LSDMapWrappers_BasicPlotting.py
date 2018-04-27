@@ -83,13 +83,13 @@ def SimpleHillshade(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", s
         ImageName = DataDirectory+Base_file+"_hillshade."+fig_format
     else:
         ImageName = DataDirectory+out_fname_prefix+"_hillshade."+fig_format
-    
+
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
-    
+
 def SimpleDrape(DataDirectory,Base_file, Drape_prefix, cmap = "jet", cbar_loc = "right", cbar_label = "drape colourbar", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):
     """
-    This function makes a simple drape plot. You can choose the colourbar in this one. Similar to the PlotHillshade routine but a bit more flexible. 
+    This function makes a simple drape plot. You can choose the colourbar in this one. Similar to the PlotHillshade routine but a bit more flexible.
 
     Args:
         DataDirectory (str): the data directory with the rasters
@@ -128,23 +128,23 @@ def SimpleDrape(DataDirectory,Base_file, Drape_prefix, cmap = "jet", cbar_loc = 
     # set up the base image and the map
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
     #MF.add_drape_image(ElevationName,DataDirectory,colourmap = "gray", alpha = 0.6, colorbarlabel = None)
-    MF.add_drape_image(DrapeName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = cbar_label)    
+    MF.add_drape_image(DrapeName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = cbar_label)
 
     # Save the image
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+Base_file+"_drape."+fig_format
     else:
         ImageName = DataDirectory+out_fname_prefix+"_drape."+fig_format
-    
-    MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)    
-    
-    
-def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right", 
-                                size_format = "ESURF", fig_format = "png", 
-                                dpi = 250, imgnumber = 0, full_basefile = [], 
+
+    MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
+
+
+def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right",
+                                size_format = "ESURF", fig_format = "png",
+                                dpi = 250, imgnumber = 0, full_basefile = [],
                                 custom_cbar_min_max = [], out_fname_prefix = ""):
     """
-    This function make a hillshade image that is optimised for creating 
+    This function make a hillshade image that is optimised for creating
     an animation. Used with the MuddPILE model
 
     Args:
@@ -188,14 +188,14 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
     MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = "Elevation (m)",colour_min_max = custom_cbar_min_max)
 
     # Save the image
-    if(full_basefile == []):       
+    if(full_basefile == []):
         if len(out_fname_prefix) == 0:
             ImageName = DataDirectory+Base_file+"_img"+"%004d" % (imgnumber)+"."+fig_format
         else:
             ImageName = DataDirectory+out_fname_prefix+"_img"+"%004d" % (imgnumber)+"."+fig_format
     else:
         ImageName = full_basefile+"_img"+"%004d" % (imgnumber)+"."+fig_format
-    
+
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi, adjust_cbar_characters=False,
                  fixed_cbar_characters=4)
 
@@ -252,14 +252,14 @@ def PrintAllChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap =
                        scaled_data_in_log = False,
                        max_point_size = 5, min_point_size = 1)
 
-    
+
     # Save the image
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_channels."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_channels."+fig_format    
-    
-    
+        ImageName = DataDirectory+out_fname_prefix+"_channels."+fig_format
+
+
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
@@ -320,8 +320,8 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_channels_coloured_by_basin."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_channels_coloured_by_basin."+fig_format   
-    
+        ImageName = DataDirectory+out_fname_prefix+"_channels_coloured_by_basin."+fig_format
+
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
@@ -406,8 +406,8 @@ def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, 
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_channels_with_basins."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_channels_with_basins."+fig_format  
-        
+        ImageName = DataDirectory+out_fname_prefix+"_channels_with_basins."+fig_format
+
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi)
 
 
@@ -498,8 +498,8 @@ def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_basins."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_basins."+fig_format  
-        
+        ImageName = DataDirectory+out_fname_prefix+"_basins."+fig_format
+
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi) # Save the figure
 
 
@@ -535,7 +535,7 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
         label_basins (bool): If true, the basins get labels
 
     Returns:
-        Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin. This allows more complex plotting with renamed and excluded basins. 
+        Shaded relief plot with the basins coloured by basin ID. Uses a colourbar to show each basin. This allows more complex plotting with renamed and excluded basins.
 
     Author: FJC, SMM
     """
@@ -588,22 +588,17 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
         chi_csv_fname = DataDirectory+ChannelFileName
 
         thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
-        
+
         MF.add_point_data(thisPointData,column_for_plotting = "basin_key",
                        scale_points = True,column_for_scaling = "drainage_area",
                        this_colourmap = "Blues_r", scaled_data_in_log = True,
                        max_point_size = 3, min_point_size = 1, discrete_colours = True, NColours = 1, zorder = 5)
-    
-    
+
+
     # Save the image
     if len(out_fname_prefix) == 0:
         ImageName = DataDirectory+fname_prefix+"_selected_basins."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_selected_basins."+fig_format  
-        
-    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi) # Save the figure
+        ImageName = DataDirectory+out_fname_prefix+"_selected_basins."+fig_format
 
-    
-    
-    
-    
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi, transparent=True) # Save the figure

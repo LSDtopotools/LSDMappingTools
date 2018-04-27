@@ -670,6 +670,27 @@ def ReadDisorderCSV(DataDirectory, fname_prefix):
 
     return df
 
+def ReadDisorderUncertCSV(DataDirectory, fname_prefix):
+    """
+    Function to read in the CSV from the chi disorder
+    analysis
+    Args:
+        DataDirectory: the data directory
+        fname_prefix: the file name prefix
+
+    Returns:
+        pandas dataframe with the csv file
+
+    Author: FJC
+    """
+    # get the csv filename
+    mc_points_suffix = '_fullstats_disorder_uncert.csv'
+    fname = fname_prefix+mc_points_suffix
+    # read in the dataframe using pandas
+    df = pd.read_csv(DataDirectory+fname)
+
+    return df
+
 def readSKKPstats(DataDirectory, fname_prefix):
     """
     This function reads in the file with the suffix

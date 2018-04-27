@@ -421,9 +421,10 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
 
     if Chi_disorder:
-        DisorderDF = Helper.ReadDisorderCSV(DataDirectory, fname_prefix)
-        DisorderMovernDict = GetBestFitMOverNFromDisorder(DisorderDF)
-        OutDF['Chi_disorder'] = OutDF['basin_key'].map(DisorderMovernDict)
+        DisorderDF = Helper.ReadDisorderUncertCSV(DataDirectory,fname_prefix)
+        OutDF['Chi_disorder'] = DisorderDF['median']
+        OutDF['Chi_disorder_min'] = DisorderDF['first_quartile']
+        OutDF['Chi_disorder_max'] = DisorderDF['third_quartile']
 
     # print the SA segment data
     OutSAname = "_SA_segment_summary.csv"
@@ -2156,7 +2157,15 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # plot the chi disorder data if you want it
     if Chi_disorder:
+        median_movern = df['Chi_disorder'].as_matrix()
+        points_max_err = df['Chi_disorder_max'].as_matrix()
+        points_max_err = points_max_err-median_movern
+        points_min_err = df['Chi_disorder_min'].as_matrix()
+        points_min_err = median_movern-points_min_err
+        errors = np.array(zip(points_min_err, points_max_err)).T
+
         disorder_chi_keys = df['basin_key'].as_matrix()-0.3
+        ax.errorbar(disorder_chi_keys, df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
         ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#F06292', s=15, zorder=100, label='Chi disorder')
 
 
