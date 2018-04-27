@@ -1854,7 +1854,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
             ax.set_ylabel("Elevation (m)")
 
             # label with the basin and m/n
-            title_string = "Basin "+str(basin_number)+", best fit $m/n$ = "+str(best_fit_movern)
+            title_string = "Basin "+str(basin_number)+", best fit "+r'$\theta$' + ' = "+str(best_fit_movern)
             ax.text(0.05, 0.95, title_string,
                     verticalalignment='top', horizontalalignment='left',
                     transform=ax.transAxes,
@@ -2202,7 +2202,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # set the axis labels
     ax.set_xlabel('Basin key')
-    ax.set_ylabel('Best fit $m/n$')
+    ax.set_ylabel('Best fit '+r'$\theta$')
 
     if show_legend:
         print ("ADDING THE LEGEND")
@@ -2338,7 +2338,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
 
         # set the axis labels
         ax.set_xlabel('Basin key')
-        ax.set_ylabel('Best fit $m/n$')
+        ax.set_ylabel('Best fit '+r'$\theta$')
 
         # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
         ax.tick_params(axis='both', width=1, pad = 2)
@@ -2429,7 +2429,7 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
         these_labels = ['Chi all data', 'Chi bootstrap', 'S-A all data', 'Segmented S-A']
         colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
     x_spacing = 0.1
-    fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit $m/n$ distribution',x_spacing=x_spacing)
+    fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit '+r'$\theta$' +' distribution',x_spacing=x_spacing)
     #plt.xlabel('Best fit $m/n$')
 
     newFilename = summary_directory+fname_prefix+"_movern_hist."+FigFormat
@@ -2515,7 +2515,7 @@ def PlotMOverNByBasin(DataDirectory, fname_prefix, basin_list = [], size_format=
 
     # set the axis labels
     ax.set_xlabel('Basin key')
-    ax.set_ylabel('Best fit $m/n$')
+    ax.set_ylabel('Best fit '+r'$\theta$')
 
     # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
     ax.tick_params(axis='both', width=1, pad = 2)
