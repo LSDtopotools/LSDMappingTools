@@ -1997,7 +1997,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
             idx = int(round((best_fit_movern - start_movern)/d_movern,0))
             print (idx)
             best_fit_MLE = basin_MLEs[idx][i]
-            print ("The best fit MLE is: "+str(best_fit_MLE)+", where m/n = " +str(best_fit_movern))
+            print ("The best fit MLE is: "+str(best_fit_MLE)+", where "+ r'$\theta$'  ' = '+str(best_fit_movern))
 
             # get the MLEs for this iteration
             these_MLEs = basin_MLEs[:,i]
@@ -2221,6 +2221,9 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     ax.xaxis.set_major_locator(ticker.MultipleLocator(base=2))
     ax.set_xlim(-1,)
     #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
+
+    # remove first tick from the x axis
+    #ax.xaxis.set_major_locator(MaxNLocator(prune='lower'))
 
     #set y axis lims
     #end_movern = end_movern = start_movern+d_movern*(n_movern-1)
