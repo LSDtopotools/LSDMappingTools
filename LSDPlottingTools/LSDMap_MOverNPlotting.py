@@ -1213,7 +1213,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             best_fit_movern = best_fit_moverns[basin_key]
 
             # label with the basin and m/n
-            title_string = "Basin "+str(basin_key)+", $m/n$ = "+movern_str
+            title_string = "Basin "+str(basin_key)+", "+ r"$\theta$ = "+movern_str
             if best_fit_movern == m_over_n:
                 ax.text(0.05, 0.95, title_string,
                         verticalalignment='top', horizontalalignment='left',
@@ -2027,14 +2027,14 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
                         facecolor = 'r',
                         edgecolor = 'r')
                     )
-                ax.text(best_fit_movern-0.075, max_MLE-1.7*(dy*spacing), "Best-fit \n$m/n$ = "+str(best_fit_movern),fontsize=8, color="r")
+                ax.text(best_fit_movern-0.075, max_MLE-1.7*(dy*spacing), "Best-fit \n" + r"$m/n$ = "+str(best_fit_movern),fontsize=8, color="r")
             #remove tribs
             #else:
                 # plot the data
                 #ax.scatter(m_over_n_values,ratio_MLEs, label = str(i), s=5, c=colours[i]) # different linestyle for each iteration?
 
         # set the axes labels
-        ax.set_xlabel('$m/n$')
+        ax.set_xlabel(r'$\theta$')
         ax.set_ylabel('MLE')
 
         # set the ylim
