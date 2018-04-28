@@ -2027,7 +2027,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
                         facecolor = 'r',
                         edgecolor = 'r')
                     )
-                ax.text(best_fit_movern-0.075, max_MLE-1.7*(dy*spacing), "Best-fit \n" + r"$m/n$ = "+str(best_fit_movern),fontsize=8, color="r")
+                ax.text(best_fit_movern-0.09, max_MLE-1.5*(dy*spacing), "Best-fit " + r"$\theta$ = "+str(best_fit_movern),fontsize=8, color="r")
             #remove tribs
             #else:
                 # plot the data
@@ -3206,10 +3206,10 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
                 facecolor = 'k',
                 edgecolor = 'k')
             )
-        ax.text(best_fit_moverns[basin_key]-0.075, max_MLE-1.5*(dy*spacing), "Best-fit $m/n$",fontsize=8)
+        ax.text(best_fit_moverns[basin_key]-0.075, max_MLE-1.5*(dy*spacing), "Best-fit "+r"$\theta$",fontsize=8)
 
         # set the axes labels
-        ax.set_xlabel('$m/n$')
+        ax.set_xlabel(r'$\theta$')
         ax.set_ylabel('MLE')
         #ax.set_title('Basin '+str(basin_key))
         ax.set_xlim(start_movern,end_movern)
