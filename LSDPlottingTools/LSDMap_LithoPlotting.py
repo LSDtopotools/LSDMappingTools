@@ -174,7 +174,7 @@ def get_color_litho(fname_prefix, DataDirectory, lithocode):
 	return cocode
 
 
-def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict, size_format='ESURF', FigFormat='png', basins = True, m_chi = True, mancol = [], log_scale_river = False, minmax_m_chi = []):
+def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict, size_format='ESURF', FigFormat='png', basins = True, m_chi = False, mancol = [], log_scale_river = False, minmax_m_chi = []):
 	"""
 	This function makes a shaded relief plot of the DEM with lithologic map on the top and basin outline
 
