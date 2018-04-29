@@ -558,7 +558,7 @@ def movern_two_litho(fname_prefix, DataDirectory, lname_prefix ='' , color_by_ba
 
 	# set the axis labels
 	ax.set_xlabel('%  Lithologies')
-	ax.set_ylabel('Best fit $m/n$')
+	ax.set_ylabel('Best fit '+r'$\theta$')
 
 	#Now deal with the Lithology names
 
@@ -746,7 +746,7 @@ def MakeChiPlotsByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern
 			print ("THIS M/N IS: "+str(m_over_n))
 
 			# label with the basin and m/n
-			title_string = "Basin "+str(basin_key)+", $m/n$ = "+str(m_over_n)
+			title_string = "Basin "+str(basin_key)+", "+r"$\theta$ = "+str(m_over_n)
 			if best_fit_movern == m_over_n:
 				ax.text(0.05, 0.95, title_string,
 						verticalalignment='top', horizontalalignment='left',
