@@ -2036,7 +2036,7 @@ def map_Mchi_standard(DataDirectory, fname_prefix, size_format='ESURF', FigForma
     # create the map figure
     MF = MapFigure(HillshadeName, DataDirectory,coord_type="UTM_km", alpha = alpha_background)
     if bkbg:
-        MF.add_drape_image(HillshadeName,DataDirectory,colourmap = "gray",alpha=1,colour_min_max = [10000,10001],modify_raster_values=False,old_values=[], new_values=[],NFF_opti = True, alpha =alpha_background)
+        MF.add_drape_image(HillshadeName,DataDirectory,colourmap = "gray",colour_min_max = [10000,10001],modify_raster_values=False,old_values=[], new_values=[],NFF_opti = True, alpha =alpha_background)
         # plot the basin outlines
         Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
         MF.plot_polygon_outlines(Basins, linewidth=0.5, colour = "white")

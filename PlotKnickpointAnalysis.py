@@ -74,7 +74,7 @@ def main(argv):
     parser.add_argument("-mcbk", "--mchi_map_black", type=bool, default = False, help="Turn to True to plot a standart M_chi map on Black background. Small reminder, Mchi = Ksn if calculated with A0 = 1.")
     parser.add_argument("-minmc", "--min_mchi_map", type=int, default = 0, help="mininum value for the scale of your m_chi maps, default 0")
     parser.add_argument("-maxmc", "--max_mchi_map", type=int, default = 0, help="maximum value for the scale of your m_chi maps, default auto")
-    parser.add_argument("-almc", "--alpha_mchi", type=int, default = 0, help="alpha_value for the background mchi raster")
+    parser.add_argument("-almc", "--alpha_mchi", type=float, default = 0, help="alpha_value for the background mchi raster")
 
 
     #knickpint related
