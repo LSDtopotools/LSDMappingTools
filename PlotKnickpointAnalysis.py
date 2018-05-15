@@ -93,17 +93,16 @@ def main(argv):
     parser.add_argument("-kal", "--kalib", type = bool, default = False, help = "Don't use that.")
     parser.add_argument("-segelev", "--print_segmented_elevation", type = bool, default = False, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-extent_rast_cmap", "--manual_extent_colormap_knickpoint_raster", type = str, default = "", help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
-    parser.add_argument("-size_kp_map", "--size_kp_map", type = int, default = 5, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
+    parser.add_argument("-size_kp_map", "--size_kp_map", type = bool, default = True, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-max_hist", "--maximum_extent_for_histogram", type = int, default = 0, help = "This print the segmented elevation on the top of the river profiles, in transparent black. Useful to check segment boundaries and adjust target_nodes parameter. Default False.")
     parser.add_argument("-lith_rast","--lithologic_raster", type = bool, default = False, help = "switch on if you have a _LITHRAST raster, it will plot a hillshade colored by lithologic unit")
     parser.add_argument("-save","--save_output", type = bool, default = False, help = "switch on if you have the willingness to save your selected knickpoints in a new csv file named prefix_output.csv")
-    parser.add_argument("-coeff_size_kp", "--kp_coeff_size", type = float, default = 10, help = "qualitative size of knickpoints on river profile. Default 10, increase or decrease to adapt the size of the triangles")
+    parser.add_argument("-coeff_size_kp", "--kp_coeff_size", type = float, default = 1, help = "qualitative size of knickpoints on river profile. Default 10, increase or decrease to adapt the size of the triangles")
     parser.add_argument("-fixed_size_kp_min_max_river", "--fixed_size_kp_min_max_river", type = str, default = "", help = "qualitative size of knickpoints on river profile. Default 50, increase or decrease to adapt the size of the triangles")
     parser.add_argument("-normelev_rel", "--normalise_elevation_to_outlet_relative", type = bool, default = False, help = "Normalize the elevation for each watershed, considering the outlet points as 0, but without changing the relief.")
     parser.add_argument("-normelev_abs", "--normalise_elevation_to_outlet_absolute", type = bool, default = False, help = "Normalize the elevation for each watershed, considering the outlet points as 0 and the maximum to 1.")
     parser.add_argument("-unicol_kp", "--unicolor_for_knickpoint_map", type = str, default = None, help = "use this flag to force a uni color for knickpoints on map. It has to be a matplotlib color code (simplest way is to use html colorcode like #AABB47)")
-
-
+    parser.add_argument("-GS", "--general_size",type=str,default = "", help = "This is a comma delimited string used to scale your knickpoints relatively: min_value,min_size,max_value,max_size. see documentation for explanations")
 
     args = parser.parse_args()
 
@@ -146,6 +145,13 @@ def main(argv):
     else:
         ext_dseg_hist = []
         ext_dksn_hist = []
+
+    if len(args.general_size) == 0:
+        print("Sizing the knickpoints automatically")
+        general_size_kp = []
+    else:
+        general_size_kp = [float(item) for item in args.general_size.split(',')]
+        print(general_size_kp)
 
 
     print("Getting your cut off values...")
@@ -191,7 +197,9 @@ def main(argv):
 
     print("Loading the dataset:")
 
-    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, cut_off_val = covfefe, main_stem = args.isolate_main_stem, normalisation = normalisation)
+    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, 
+        cut_off_val = covfefe, main_stem = args.isolate_main_stem, normalisation = normalisation, size_kp = general_size_kp)
+
     
     if(args.AllAnalysisDebug):
         args.AllAnalysis = True
@@ -231,25 +239,33 @@ def main(argv):
 
     if(args.river_profile):
         print("Printing river profiles in chi spaces")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib,
+         print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river)
         print("Printing river profiles in flow distance")
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib,
+         print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river)
         print("Printing river profiles for the entire basins")
 
     if (args.basin_plot):
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
-        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", 
+            kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+        KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", 
+            kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
 
 
 
     if(args.raster_plots):
         KI.print_map_topo(size = size, format = args.FigFormat,label_size = 8, return_fig = False, extent_cmap = [], kalib = False)
-        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
-        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = True, label_size = 6,
+            size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = True, scale_points = True, label_size = 6,
+            size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
     if(args.raster_plots_large_dataset):
-        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
-        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6, 
+            size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
+        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = True, scale_points = False, label_size = 6, 
+            size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib)
 
     if(args.multi_violin_plots):
         KI.stradivarius_analysis(size = size, format = args.FigFormat)
@@ -263,9 +279,11 @@ def main(argv):
     
     if(args.lithologic_raster):
         dict_file = LP.litho_pre_check(args.base_directory,"", fname = args.fname_prefix)
-        LP.MakeRasterLithoBasinMap(args.base_directory, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format= size, FigFormat=args.FigFormat, m_chi = True, mancol = colo, log_scale_river = True, minmax_m_chi = [0.01,1])
+        LP.MakeRasterLithoBasinMap(args.base_directory, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format= size, FigFormat=args.FigFormat, 
+            m_chi = True, mancol = colo, log_scale_river = True, minmax_m_chi = [0.01,1])
         cml = LP.getLithoColorMap(args.fname_prefix, args.base_directory)
-        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, cml = cml, lith_raster = True)
+        KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,
+            size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, cml = cml, lith_raster = True)
 
 
     if(args.save_output):
@@ -279,11 +297,13 @@ def main(argv):
 
     if args.mchi_map_std:
         
-        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, knickpoint = True, alpha_background = args.alpha_mchi)
+        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, 
+            colmanscal = colo, knickpoint = True, alpha_background = args.alpha_mchi)
 
     if args.mchi_map_black:
         
-        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, colmanscal = colo, bkbg = True, knickpoint = True, alpha_background = args.alpha_mchi)
+        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, 
+            colmanscal = colo, bkbg = True, knickpoint = True, alpha_background = args.alpha_mchi)
 
 
 #=============================================================================

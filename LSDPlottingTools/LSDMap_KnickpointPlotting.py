@@ -41,7 +41,7 @@ class KP_plotting(object):
     """
 
 
-    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0, cut_off_val = [0,0,0,0], main_stem = False, normalisation = None):
+    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0, cut_off_val = [0,0,0,0], main_stem = False, normalisation = None, size_kp = []):
         """
             This creates a knickpoint object to help with plotting. One object helps you to select certain river and or basins; provide some tool to pre-sort the dataset, and generate
             stats figures, profiles and map. It requires the output of LSDTopoTools.
@@ -54,6 +54,8 @@ class KP_plotting(object):
                 cut_off_val (list of float): cut_off values for the knickpoints magnitude: [negative_delta_ksn,positive_delta_ksn,negative_delta_segelev,positive_delta_segelev].
                     for example [-1,2,-2,3] would select the data where (dksn<-1 AND dksn >2) OR (dsegelev<-2 AND dsegelev)
                 main_stem (bool): Only the main stem of each basins
+                normalisation (str): "relative" or "absolute" reset the elevation to the minimum/maximum of a basin
+                size_of_kp: leave blank for auto, otherwise [min_value,size,max_value,size]. For example [1.5,5,4.5,10] would plot all the knickpoints <= 1.5 with a size of 5, all the knickpoints >= 4.5 with a size of 10 and everything in between graduadly increasing.
             author: B.G - 2017/2018
 
         """
@@ -162,6 +164,35 @@ class KP_plotting(object):
             print(source_key)
 
 
+        #### Now dealing with the size of knickpoints on map/profile.
+        # By default I am setting the minimum size to the 1st quartile and the maximum to the 3rd quartile
+        
+        if(len(size_kp)!= 4):
+            size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.25))
+            size_kp.append(5)
+            size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.75))
+            size_kp.append(40)
+
+
+
+        # applying the size column
+        self.df_kp_ksn["size_kp"] = pd.Series(data = 0, index = self.df_kp_ksn.index)
+        self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() <= size_kp[0]] = size_kp[0]
+        self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() >= size_kp[2]] = size_kp[2]
+        self.df_kp_ksn["size_kp"][(self.df_kp_ksn["delta_ksn"].abs() > size_kp[0]) & (self.df_kp_ksn["delta_ksn"].abs() < size_kp[2])] = self.df_kp_ksn["delta_ksn"].abs()[(self.df_kp_ksn["delta_ksn"].abs() > size_kp[0]) & (self.df_kp_ksn["delta_ksn"].abs() < size_kp[2])]
+        self.df_kp_ksn["size_kp"] = (self.df_kp_ksn["size_kp"]/size_kp[2])*size_kp[3]+size_kp[1]
+        self.df_kp_ksn[self.df_kp_ksn["delta_ksn"]== 0] = 0
+
+        ###########################################################
+        self.df_kp["size_kp"] = pd.Series(data = 0, index = self.df_kp.index)
+        self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() <= size_kp[0]] = size_kp[0]
+        self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() >= size_kp[2]] = size_kp[2]
+        self.df_kp["size_kp"][(self.df_kp["delta_ksn"].abs() > size_kp[0]) & (self.df_kp["delta_ksn"].abs() < size_kp[2])] = self.df_kp["delta_ksn"].abs()[(self.df_kp["delta_ksn"].abs() > size_kp[0]) & (self.df_kp["delta_ksn"].abs() < size_kp[2])]
+        self.df_kp["size_kp"] = (self.df_kp["size_kp"]/size_kp[2])*size_kp[3]+size_kp[1]
+        self.df_kp[self.df_kp["delta_ksn"]== 0] = 0
+
+        # print(self.df_kp["size_kp"].unique())
+        # quit()
 
         # Just getting rid of few NoData
         self.df_river["m_chi"][self.df_river["m_chi"] == -9999] = 0
@@ -521,19 +552,19 @@ class KP_plotting(object):
                     # sizing = sizing * coeff_size
 
                     ## plot the triangles
-                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = ((this_df_dksn_pos["delta_ksn"].abs()/this_df_dksn_pos["delta_ksn"].abs().max()))*coeff_size, lw = 0, marker = "^", c = "r", alpha = 0.95, zorder = 5)
-                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = ((this_df_dksn_neg["delta_ksn"].abs()/this_df_dksn_neg["delta_ksn"].abs().max()))*coeff_size, lw = 0, marker = "v", c = "b", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = this_df_dksn_pos["size_kp"]*coeff_size, lw = 0, marker = "^", c = "r", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = this_df_dksn_neg["size_kp"]*coeff_size, lw = 0, marker = "v", c = "b", alpha = 0.95, zorder = 5)
                     ## plot the contours
-                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = ((this_df_dksn_pos["delta_ksn"].abs()/this_df_dksn_pos["delta_ksn"].abs().max()))*coeff_size, lw = 0.5, marker = "^", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
-                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = ((this_df_dksn_neg["delta_ksn"].abs()/this_df_dksn_neg["delta_ksn"].abs().max()))*coeff_size, lw = 0.5, marker = "v", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = this_df_dksn_pos["size_kp"]*coeff_size, lw = 0.5, marker = "^", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = this_df_dksn_neg["size_kp"]*coeff_size, lw = 0.5, marker = "v", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
 
                 except ValueError:
                     print("No ksn knickpoint on source " + str(sources))
                 # Plot the dksn knickpionts
                 ## First normalized the size
-                size_pos = this_df_dsegelev_pos["delta_segelev"]/this_df_kp_stepped["delta_segelev"].max()*coeff_size
+                size_pos = this_df_dsegelev_pos["delta_segelev"]/this_df_kp_stepped["delta_segelev"].max()*coeff_size*3
                 ##plt the bars
-                ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, s = size_pos, lw = 1, marker = "|", c = "r", alpha = 0.95, zorder = 5)
+                ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, s = size_pos, lw = 1, marker = "|", c = "#F2BE1F", alpha = 0.95, zorder = 5)
                 #Plot vertical bars in beetween
                 ax1.vlines(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"], this_df_dksn_neg["elevation"] + up_set, zorder = 1, lw = 0.15 )
                 ax1.vlines(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"], this_df_dksn_pos["elevation"] + up_set, zorder = 1, lw = 0.15 )
@@ -580,7 +611,8 @@ class KP_plotting(object):
 
 
 
-    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = False, label_size = 8, size_kp = 20, return_fig = False, extent_cmap = [], kalib = False,lith_raster = False,cml = None, unicolor_kp = None):
+    def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = True, label_size = 8, size_kp = 20, return_fig = False, 
+        extent_cmap = [], kalib = False,lith_raster = False,cml = None, unicolor_kp = None, size_stepped_kp_map = 5):
 
             # check if a directory exists for the chi plots. If not then make it.
         raster_directory = self.fpath+'raster_plots/'
@@ -649,6 +681,7 @@ class KP_plotting(object):
             extent_cmap = [0,self.df_kp["delta_ksn"].abs().max()]
 
 
+        # Ignore that, that is for paper purposes
         if(kalib):
 
             kal = pd.read_csv("/home/s1675537/PhD/LSDTopoData/knickpoint/test_location_paper/Smugglers_SC/field_kp/calib_jointed.csv")
@@ -661,15 +694,15 @@ class KP_plotting(object):
 
 
         if(unicolor_kp == None):
-            MF.add_point_data(kp_pos,this_colourmap = "autumn",colour_manual_scale = [extent_cmap[0],extent_cmap[1]], marker ="^", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar=True, colorbarlabel = r'$\Delta k_{sn}$', colourbar_location = "bottom", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
-            MF.add_point_data(kp_neg,this_colourmap = "autumn",colour_manual_scale = [extent_cmap[0],extent_cmap[1]], marker ="v", column_for_plotting = "delta_ksn", color_abs = True ,show_colourbar="False", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'delta_ksn',scale_in_absolute = True ,alpha=1,max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
+            MF.add_point_data(kp_pos,unicolor = "r", marker ="^", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'size_kp', scale_in_absolute = True , alpha=1, max_point_size = 15, min_point_size = 4, zorder=200)
+            MF.add_point_data(kp_neg,unicolor = "b", marker ="v", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'size_kp', scale_in_absolute = True , alpha=1, max_point_size = 15, min_point_size = 4, zorder=200)
         
         else:
-            MF.add_point_data(kp_pos, unicolor = unicolor_kp, marker ="^", scale_points = scale_points, alpha=1, max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
-            MF.add_point_data(kp_neg, unicolor = unicolor_kp, marker ="v", scale_points = scale_points, alpha=1, max_point_size = 15,min_point_size = 1,zorder=200,manual_size = size_kp)
+            MF.add_point_data(kp_pos, unicolor = unicolor_kp, marker ="^", scale_points = scale_points, alpha=1, max_point_size = 15, min_point_size = 1,zorder=200,manual_size = size_kp)
+            MF.add_point_data(kp_neg, unicolor = unicolor_kp, marker ="v", scale_points = scale_points, alpha=1, max_point_size = 15, min_point_size = 1,zorder=200,manual_size = size_kp)
 
 
-        MF.add_point_data(kp_step,unicolor = "#00FF42",marker ="s", column_for_plotting = "none", alpha=1,zorder=200,manual_size = size_kp*0.2)
+        MF.add_point_data(kp_step,unicolor = "#F2BE1F",marker ="s", column_for_plotting = "none", alpha=1,zorder=200,manual_size = size_stepped_kp_map)
 
         if(black_bg):
             suffix = "dark"
