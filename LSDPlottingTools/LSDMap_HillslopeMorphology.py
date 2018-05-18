@@ -1262,7 +1262,7 @@ def PlotKsnAgainstRStar(DataDirectory, FilenamePrefix, PlotDirectory):
 
     ax.scatter(df['mchi_median'], df['Rstar_median'], c=df['basin_keys'], s=25, edgecolors='k', zorder=100, cmap=cm.viridis)
     ax.errorbar(df['mchi_median'], df['Rstar_median'], xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']], fmt='o', ecolor='0.5',markersize=1,mfc='white',mec='k')
-    ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
+    #ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
     ax.plot(x, new_y, c='0.5', ls='--')
     ax.set_xlim(0,200)
 
