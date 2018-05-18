@@ -100,7 +100,10 @@ def main(argv):
 
     basin_junctions = list(BasinInfoDF['outlet_junction'])
     basin_junctions = [int(x) for x in basin_junctions]
-
+    print("\n\n")
+    print(basin_keys)
+    print(basin_junctions)
+    print("\n\n")
     # get a discrete colormap
     cmap = plt.cm.Blues
 
@@ -121,35 +124,46 @@ def main(argv):
     MF.add_basin_plot(BasinsName,fname_prefix,DataDirectory, label_basins=False,
                       use_keys_not_junctions = True, show_colourbar = True, 
                       value_dict = BasinsDict, discrete_cmap=True, n_colours=len(basin_keys),
-                      colorbarlabel = "Basin ID", cbar_type=int, tickspacefactor=2,
-                      colourmap = cmap, edgecolour='none', adjust_text = True, parallel=parallel)
+                      colorbarlabel = "Basin ID", cbar_type=int, 
+                      colourmap = cmap, colorbartickthinfactor=2, edgecolour='none', adjust_text = True, parallel=parallel)  
 
     # add the faults
     if faults:
         LineFileName = DataDirectory + fname_prefix + "_faults.shp"
-        MF.add_line_data(LineFileName, Dashed = True, ZOrder = 101)
+        MF.add_line_data(LineFileName, linestyle="-", linewidth=1.5, zorder=99, legend=True, label="Fault Segments")
         
     # add the basin outlines ### need to parallelise
     if not parallel:
       Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     else:
       Basins = LSDP.GetMultipleBasinOutlines(DataDirectory)
-      
-    MF.plot_polygon_outlines(Basins, colour='k', linewidth=0.5, alpha = 1)
+    
+    # Find the relay basins and plot separately
+    RelayBasinIDs = [1248, 4788, 4995, 5185, 6187, 6758, 6805]
+    RelayBasins = {key:value for key, value in Basins.items() if key in RelayBasinIDs}
 
+    # Plot all basins
+    MF.plot_polygon_outlines(Basins, colour='k', linewidth=0.5, alpha = 1, legend=True, label="Catchments")
+
+    # Plot relay basins
+    MF.plot_polygon_outlines(RelayBasins, colour='r', linewidth=0.5, alpha = 1, legend=True, label="Relay Catchments")
+    
     # add the channel network
     if not parallel:
         ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,fname_prefix)
     else:
         ChannelDF = Helper.AppendChiDataMapCSVs(DataDirectory)
     ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-    MF.add_point_data(ChannelPoints,show_colourbar="False", manual_size=0.5, alpha=0.1,zorder=100)
+    MF.add_point_data(ChannelPoints,show_colourbar="False", manual_size=0.5, alpha=0.1,zorder=90, legend=True, label="Stream Network")
 
+    # Add the legend
+    MF.add_legend()
+    
     # Save the figure
     ImageName = raster_directory+fname_prefix+'_basin_keys.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
 
-    # Make m/n summary plots
+    
     
 if __name__ == "__main__":
     main(sys.argv[1:])

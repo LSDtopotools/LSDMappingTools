@@ -140,8 +140,9 @@ def main(argv):
 	
     # add the faults
     if faults:
+        print("Plotting faults...")
         LineFileName = DataDirectory + fname_prefix + "_faults.shp"
-        MF.add_line_data(LineFileName, Dashed = True, ZOrder = 101)
+        MF.add_line_data(LineFileName, linestyle="--", zorder=101)
         
     # add the basin outlines ### need to parallelise
     if not parallel:

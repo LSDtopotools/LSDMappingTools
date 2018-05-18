@@ -22,6 +22,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.cm as _cm
 import matplotlib.colors as _mcolors
+import matplotlib.lines as mlines
 from matplotlib import colors
 import matplotlib.axes
 import numpy as np
@@ -281,6 +282,7 @@ class MapFigure(object):
         self.FigFileName = self._Directory+"TestFig.png"
         self.FigFormat = "png"
 
+        
 
         # The way this is going to work is that you can have many rasters in the
         # plot that get appended into a list. Each one has its own colourmap
@@ -314,6 +316,9 @@ class MapFigure(object):
 
         # A title if needed
         self.title = plot_title
+        
+        # set up a list of legend handles for building the legend if needed
+        self.legend_handles_list = []
 
     def SetCustomExtent(self,xmin,xmax,ymin,ymax):
         """
@@ -621,7 +626,7 @@ class MapFigure(object):
                          use_keys_not_junctions = True,
                          label_basins = True, adjust_text = False, rename_dict = {},
                          value_dict = {}, mask_list = [],
-                         edgecolour='black', linewidth=1, cbar_dict = {}, parallel=False,
+                         edgecolour='black', linewidth=1, cbar_dict = {}, colorbartickthinfactor=1, parallel=False,
                          outlines_only = False,zorder = 1):
         """
         This is a basin plotting routine. It plots basins as polygons which
@@ -649,6 +654,7 @@ class MapFigure(object):
             cbar_dict (dict): an optional dictionary to set the min and max of the colourbars, where the key is the
             min and the max, and the values are what you want to set the colourbar to. Leave empty if you just want this
             to be the same as the value dict.
+            colorbartickthinfactor(int): a factor to reduce the number of ticks and labels displayed on the colour bar. Value of 2 would display every 2nd tick.
             parallel (bool): option flag for processing multiple basin raster files triggered by parallel chi mapping tool.
             outlines_only (bool): If true, only plot the outlines.
 
@@ -867,8 +873,15 @@ class MapFigure(object):
                 print("CBAR TYPE IS", cbar_type)
                 this_cbar_type = cbar_type
                 this_cbarlabel = colorbarlabel
+                
+                print("\n\n")
+                print(min_value)
+                print(max_value)
+                print(n_colours)
+                print("\n\n")
+                
                 self.ax_list = self.add_objectless_colourbar(self.ax_list,
-                                                         min_value, max_value,
+                                                         min_value, max_value, thinningfactor=colorbartickthinfactor, 
                                                          cmap = this_cmap,colorbarlabel = this_cbarlabel,
                                                          discrete=discrete_cmap, n_colours=n_colours, cbar_type=this_cbar_type)
 
@@ -945,7 +958,7 @@ class MapFigure(object):
         return ax_list
 
     def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours, cbar_type=float,
-                            use_baseraster = True, min_value = 0, max_value = 0, cbar_label_rotation=30):
+                            use_baseraster = True, min_value = 0, max_value = 0, cbar_label_rotation=30,thinningfactor=1):
         """
         This function takes a discrete colourbar and fixes the ticks so they are
         in the middle of each colour
@@ -989,14 +1002,16 @@ class MapFigure(object):
         tick_spacing = float(vmax-vmin)/float(n_colours)
         print(tick_spacing)
         new_vmin = vmin-(tick_spacing/2)
-        new_vmax = vmax+(tick_spacing/2)+tick_spacing
+        new_vmax = vmax+(tick_spacing/2) #+tick_spacing
 
         #get list of tick locations
         tick_locs = np.arange(new_vmin, new_vmax, step=tick_spacing)
-        print(tick_locs)
-
+        tick_locs = tick_locs[::thinningfactor]-1
+        
         # update ticks
         tick_locator = ticker.FixedLocator(tick_locs)
+        print(tick_locator)
+        
         cbar.locator = tick_locator
         cbar.update_ticks()
 
@@ -1010,6 +1025,8 @@ class MapFigure(object):
             tick_labels = [str(x) for x in tick_labels]
         print(tick_labels)
 
+        tick_labels = tick_labels[::thinningfactor]
+        
         if self.colourbar_orientation == "horizontal":
             cbar.ax.set_xticklabels(tick_labels, rotation=cbar_label_rotation)
         else:
@@ -1045,7 +1062,7 @@ class MapFigure(object):
 
     def add_objectless_colourbar(self,ax_list,minimum_value, maximum_value,
                                  cmap = "cubehelix",colorbarlabel = "Colourbar",
-                                 discrete=False, n_colours=10, cbar_type=float):
+                                 discrete=False, n_colours=10, cbar_type=float, thinningfactor=1):
         """
         This adds a colourbar that is not attached to any particular object
 
@@ -1071,7 +1088,7 @@ class MapFigure(object):
 
         if discrete==True:
             # change ticks
-            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type, False, minimum_value, maximum_value)
+            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type, False, minimum_value, maximum_value, thinningfactor=thinningfactor)
             cbar_label_rotation=30
 
 
@@ -1098,7 +1115,7 @@ class MapFigure(object):
                        colour_log = False, colour_manual_scale = [],
                        manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10, label_field = "None",
                        font_size = 6, offset = 100, zorder=1, marker = "o", discrete_colours = False, NColours = 10,scale_in_absolute = False, color_abs =False, unicolor = "blue",
-                       recast_scale_min_max = [], scale_in_abs_after_recasting = False):
+                       recast_scale_min_max = [], scale_in_abs_after_recasting = False, legend=False, label=""):
 
         """
         This add point data to the map.
@@ -1300,7 +1317,12 @@ class MapFigure(object):
                 print("Let me add a colourbar for your point data")
                 self.ax_list = self.add_point_colourbar(self.ax_list,sc,cmap=this_colourmap, colorbarlabel = colorbarlabel)
 
-    def add_line_data(self, ThisLineFile, linestyle = '-', edgecolour = "k", linewidth=0.5, zorder = 1, alpha=0):
+        if legend:
+            print("Trying to update legend!")
+            legend_line = mlines.Line2D([],[], color=unicolor, lw=min_point_size, label=label)
+            self.legend_handles_list.append(legend_line)
+          
+    def add_line_data(self, ThisLineFile, linestyle = '-', edgecolour = "k", linewidth=0.5, zorder = 1, alpha=1, legend=False, label=""):
         """
         This adds line data from a named shapefile to the map.
 
@@ -1333,10 +1355,16 @@ class MapFigure(object):
                 x, y = geom.xy
                 self.ax_list[0].plot(x,y,linestyle,color=edgecolour,lw=linewidth, zorder=zorder, alpha=alpha)
 
-        # Annoying but the scatter plot resets the extents so you need to reassert them
+        # Annoying but the plot resets the extents so you need to reassert them
         self.ax_list[0].set_xlim(this_xlim)
         self.ax_list[0].set_ylim(this_ylim)
 
+        # get legend handle
+        if legend:
+            print("Trying to update legend!")
+            legend_line = mlines.Line2D([],[], color=edgecolour, lw=linewidth, label=label)
+            self.legend_handles_list.append(legend_line)
+        
     def plot_segment_of_knickzone(self, thisPointData, color = "k", lw = 1):
         # Get the axis limits to assert after
         this_xlim = self.ax_list[0].get_xlim()
@@ -1644,10 +1672,11 @@ class MapFigure(object):
             self.ax_list[0].text(X[i], Y[i]-symbol_length, dips[i], fontsize=4, color=colour,alpha=alpha,bbox=bbox_props, ha= 'center',zorder=2)
 
 
-    def plot_polygon_outlines(self,polygons, colour='black', linewidth=1, alpha = 1):
+    def plot_polygon_outlines(self,polygons, colour='black', linewidth=1, alpha = 1, legend=False, label=""):
         """
         This function plots an outline of a series of shapely polygons
         Modified to also plot shapely Multipolygons if passed.
+        Added ability to create legend item
 
         Args:
             ax_list: list of axes
@@ -1667,6 +1696,12 @@ class MapFigure(object):
                 for singlepoly in poly:
                     x,y = singlepoly.exterior.xy
                     self.ax_list[0].plot(x,y, c=colour, lw = linewidth, alpha = alpha)
+        
+        # get legend handles
+        if legend:
+            print("Trying to update legend!")
+            legend_line = mlines.Line2D([],[], color=colour, lw=linewidth, label=label)
+            self.legend_handles_list.append(legend_line)              
 
     def plot_filled_polygons(self,polygons, facecolour='green', edgecolour='black', linewidth=1, alpha=0.5):
         """
@@ -1839,3 +1874,21 @@ class MapFigure(object):
         rcParams['font.sans-serif'] = ['arial']
         rcParams['font.size'] = label_size
         rcParams['lines.linewidth']  = 1.5
+        
+    def add_legend(self,location="best", handlelength=1):
+        """
+        This intiates the legend and sets some RCParams
+        
+        Args:
+            location: position of the legend, defaults to best position
+        
+        MDH
+        
+        """
+        
+        #handles, labels = self.ax_list[0].get_legend_handle_labels()
+        #print(handles)
+        #print(labels)
+        rcParams['legend.loc'] = location
+        rcParams['legend.handlelength'] = handlelength
+        self.ax_list[0].legend(handles=self.legend_handles_list)
