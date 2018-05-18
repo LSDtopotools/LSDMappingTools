@@ -709,7 +709,7 @@ def PlotEStarRStar(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     ModelRStar = [y for _,y in sorted(zip(MainStemEStar,ModelRStar))]
 
 
-    Ax.plot(ModelEStar,ModelRStar, c='k')
+    #Ax.plot(ModelEStar,ModelRStar, c='k')
     Ax.scatter(MainStemEStar,MainStemRStar,c=MainStemDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
     # Ax.scatter(TribsEStar,TribsRStar,c=TribsDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
     # Ax.set_xscale('log')
@@ -1104,7 +1104,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     drainage_density = dd_df['drainage_density']
     ax[4].scatter(basin_keys, drainage_density, c='k', edgecolors='k', s=20)
     ax[4].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
-    ax[4].set_ylabel('Drainage density (m/m$^2$)')
+    ax[4].set_ylabel('$D_d$ (m/m$^2$)')
 
     # get the data
     uplift_rate = uplift_df['Uplift_rate']
@@ -1114,6 +1114,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     # set the axes labels
     ax[5].set_xlabel('Basin ID')
     plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1))
+    ax[5].tick_params(axis='x', which='major', labelsize=6, rotation=45)
     plt.tight_layout()
 
     #save output
@@ -1229,7 +1230,7 @@ def PlotBasinDataAgainstUplift(DataDirectory, FilenamePrefix, PlotDirectory):
     ax[3].set_ylabel('Channel steepness ($k_{sn}$)')
 
     ax[4].scatter(df['uplift_rate'], df['drainage_density'], c='k')
-    ax[4].set_ylabel('Drainage densiy (m/m$^2$)')
+    ax[4].set_ylabel('$D_d$ (m/m$^2$)')
     ax[4].set_ylim(np.min(df['drainage_density'])-0.001, np.max(df['drainage_density'])+0.001)
 
     # set the axes labels
@@ -1254,31 +1255,75 @@ def PlotKsnAgainstRStar(DataDirectory, FilenamePrefix, PlotDirectory):
     # linregress
     slope, intercept, r_value, p_value, std_err = stats.linregress(df['mchi_median'],df['Rstar_median'])
     print (slope, intercept, r_value, p_value)
-    x = np.linspace(0, 200, 100)
+    x = np.linspace(0, 100, 100)
     new_y = slope*x + intercept
 
     # set up the figure
     fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, figsize=(5,5))
 
-    ax.scatter(df['mchi_median'], df['Rstar_median'], c=df['basin_keys'], s=25, edgecolors='k', zorder=100, cmap=cm.viridis)
+    ax.scatter(df['mchi_median'], df['Rstar_median'], c=df['basin_keys'], s=50, edgecolors='k', zorder=100, cmap=cm.viridis)
     ax.errorbar(df['mchi_median'], df['Rstar_median'], xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']], fmt='o', ecolor='0.5',markersize=1,mfc='white',mec='k')
     #ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
     ax.plot(x, new_y, c='0.5', ls='--')
-    ax.set_xlim(0,200)
+    ax.set_xlim(0,100)
 
-    ax.set_xlabel('$k_{sn}$')
-    ax.set_ylabel('$R*$')
+    ax.set_xlabel('$k_{sn}$', fontsize=12)
+    ax.set_ylabel('$R*$', fontsize=12)
 
     plt.subplots_adjust(left=0.15,right=0.85, bottom=0.1, top=0.95)
     CAx = fig.add_axes([0.87,0.1,0.02,0.85])
     m = cm.ScalarMappable(cmap=cm.viridis)
     m.set_array(df['basin_keys'])
-    plt.colorbar(m, cax=CAx,orientation='vertical', label='Basin key')
+    plt.colorbar(m, cax=CAx,orientation='vertical')
+    #plt.colorbar(m, cax=CAx,orientation='vertical', label='Basin key', fontsize=12)
+    CAx.set_ylabel('Basin key', fontsize=12)
 
     #plt.tight_layout()
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix +"_ksn_vs_rstar.png", dpi=300)
+    plt.clf()
+
+def PlotKsnAgainstEStar(DataDirectory, FilenamePrefix, PlotDirectory):
+    """
+    Function to plot median Ksn against E* for a series of basins
+
+    Author: FJC
+    """
+
+    input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
+    df = pd.read_csv(input_csv)
+
+    # linregress
+    slope, intercept, r_value, p_value, std_err = stats.linregress(df['mchi_median'],df['Estar_median'])
+    print (slope, intercept, r_value, p_value)
+    x = np.linspace(0, 100, 100)
+    new_y = slope*x + intercept
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, figsize=(5,5))
+
+    ax.scatter(df['mchi_median'], df['Estar_median'], c=df['basin_keys'], s=50, edgecolors='k', zorder=100, cmap=cm.viridis)
+    ax.errorbar(df['mchi_median'], df['Estar_median'], xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Estar_lower_err'], df['Estar_upper_err']], fmt='o', ecolor='0.5',markersize=1,mfc='white',mec='k')
+    ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
+    ax.plot(x, new_y, c='0.5', ls='--')
+    ax.set_xlim(0,100)
+
+    ax.set_xlabel('$k_{sn}$', fontsize=12)
+    ax.set_ylabel('$E*$', fontsize=12)
+
+    plt.subplots_adjust(left=0.15,right=0.85, bottom=0.1, top=0.95)
+    CAx = fig.add_axes([0.87,0.1,0.02,0.85])
+    m = cm.ScalarMappable(cmap=cm.viridis)
+    m.set_array(df['basin_keys'])
+    plt.colorbar(m, cax=CAx,orientation='vertical')
+    #plt.colorbar(m, cax=CAx,orientation='vertical', label='Basin key', fontsize=12)
+    CAx.set_ylabel('Basin key', fontsize=12)
+
+    #plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_ksn_vs_estar.png", dpi=300)
     plt.clf()
 
 def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory):
@@ -1290,26 +1335,26 @@ def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory):
     df = pd.read_csv(input_csv)
 
     # steady state model
-    x = np.linspace(0,50,1000)
+    x = np.linspace(1,50,1000)
     predicted_Rstar = ((1. / x) * (np.sqrt(1. + (x * x)) -
             np.log(0.5 * (1. + np.sqrt(1. + (x * x)))) - 1.))
 
     # set up the figure
     fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, figsize=(5,5))
 
-    ax.scatter(df['Estar_median'], df['Rstar_median'], c=df['basin_keys'], s=25, edgecolors='k', zorder=100, cmap=cm.viridis, label=None)
+    ax.scatter(df['Estar_median'], df['Rstar_median'], c=df['basin_keys'], s=50, edgecolors='k', zorder=100, cmap=cm.viridis, label=None)
     ax.errorbar(df['Estar_median'], df['Rstar_median'], xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']], fmt='o', ecolor='0.5',markersize=1,mfc='white',mec='k',label=None)
     #ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
     ax.plot(x, predicted_Rstar, c='0.5', ls='--', label='Steady state model')
-    ax.set_xlim(0,50)
+    #ax.set_xlim(0,30)
 
     ax.set_xlabel('$E*$')
     ax.set_ylabel('$R*$')
 
     ax.legend(loc='lower right')
 
-    # ax.set_xscale('log')
-    # ax.set_yscale('log')
+    ax.set_xscale('log')
+    ax.set_yscale('log')
 
     plt.subplots_adjust(left=0.15,right=0.85, bottom=0.1, top=0.95)
     CAx = fig.add_axes([0.87,0.1,0.02,0.85])

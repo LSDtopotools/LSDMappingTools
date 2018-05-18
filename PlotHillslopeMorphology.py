@@ -142,6 +142,7 @@ def main(argv):
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
         HS.PlotEStarRStarBasins(this_dir, args.fname_prefix, PlotDirectory)
         HS.PlotKsnAgainstRStar(this_dir, args.fname_prefix, PlotDirectory)
+        HS.PlotKsnAgainstEStar(this_dir, args.fname_prefix, PlotDirectory)
         # HS.PlotHillslopeDataWithBasinsFromCSV(this_dir, args.fname_prefix)
     if args.plot_means_with_uplift:
         HS.PlotBasinDataAgainstUplift(this_dir, args.fname_prefix, PlotDirectory)
