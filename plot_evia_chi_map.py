@@ -136,25 +136,30 @@ def main(argv):
     ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
     
 	# add chi map
-    MF.add_point_data(ChannelPoints, column_for_plotting = "chi", column_for_scaling = "chi", show_colourbar="True", this_colourmap = cmap, colourbar_location="top")
+    MF.add_point_data(ChannelPoints, column_for_plotting = "chi", column_for_scaling = "chi", colorbarlabel = "$\chi$ (m)", show_colourbar=True, this_colourmap = cmap, colourbar_location="top")
 	
     # add the faults
     if faults:
-        print("Plotting faults...")
         LineFileName = DataDirectory + fname_prefix + "_faults.shp"
-        MF.add_line_data(LineFileName, linestyle="--", zorder=101)
+        MF.add_line_data(LineFileName, linestyle="-", linewidth=1.5, zorder=99, legend=True, label="Fault Segments")
         
     # add the basin outlines ### need to parallelise
     if not parallel:
       Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
     else:
       Basins = LSDP.GetMultipleBasinOutlines(DataDirectory)
-      
-    MF.plot_polygon_outlines(Basins, colour='k', linewidth=0.5, alpha = 1)
+    
+    # Find the relay basins and plot separately
+    RelayBasinIDs = [1248, 4788, 4995, 5185, 6187, 6758, 6805]
+    RelayBasins = {key:value for key, value in Basins.items() if key in RelayBasinIDs}
 
+    # Plot all basins
+    MF.plot_polygon_outlines(Basins, colour='k', linewidth=0.5, alpha = 1, legend=True, label="Catchments")
+    MF.plot_polygon_outlines(RelayBasins, colour='r', linewidth=0.5, alpha = 1,legend=True, label="Relay Catchments")
+
+    # Add the legend
+    MF.add_legend()
     
-    
-        #MF.add_point_data(ChannelPoints, column_for_plotting = "chi", show_colourbar="True", this_colourmap = "cubehelix", manual_size=0.5, alpha=0.1, zorder=100)
     # Save the figure
     ImageName = raster_directory+fname_prefix+'_chi_map.'+FigFormat
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=FigFormat, Fig_dpi = 300)
