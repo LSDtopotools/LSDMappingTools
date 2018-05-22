@@ -2819,7 +2819,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     elif movern_method == "Chi_disorder":
         #DisorderDF = Helper.ReadDisorderCSV(DataDirectory, fname_prefix)
         DisorderDF = Helper.ReadDisorderUncertCSV(DataDirectory, fname_prefix)
-        m_over_ns = DisorderDF['median'].values()
+        m_over_ns = DisorderDF['median'].tolist()
         label_list = [str(i)+": "+str(j) for i,j in zip(basin_keys,m_over_ns)]
         labeldict = dict(zip(basin_junctions,label_list))
         ImageName = raster_directory+fname_prefix+'_basins_movern_chi_disorder.'+FigFormat
