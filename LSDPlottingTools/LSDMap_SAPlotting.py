@@ -890,7 +890,7 @@ def BinnedWithRawSlopeAreaPlot(DataDirectory, fname_prefix, FigFileName = 'Image
     ax.set_xscale('log')
     ax.set_yscale('log')
 
-    ax.set_title('Basin '+str(basin_key)+', best fit $m/n$='+str(this_movern), fontsize=10)
+    ax.set_title('Basin '+str(basin_key)+', best fit '+r'$\theta$'+' = '+str(this_movern), fontsize=10)
 
     # set axis limits
     #x_pad = 1000
