@@ -106,6 +106,22 @@ def main(argv):
 
     args = parser.parse_args()
 
+    # Housekeeping for filenames and directory names
+    if not args.fname_prefix:
+        if not args.parallel:
+            print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
+            sys.exit()
+
+    # get the base directory
+    if args.base_directory:
+        this_dir = args.base_directory
+        # check if you remembered a / at the end of your path_name
+        if not this_dir.endswith(os.sep):
+            print("You forgot the separator at the end of the directory, appending...")
+            this_dir = this_dir+os.sep
+    else:
+        this_dir = os.getcwd()    
+    
     # Processing the basin/source keys selection
     print("I am reading the basin/source key selection and checking your parameters...")
     
@@ -197,7 +213,7 @@ def main(argv):
 
     print("Loading the dataset:")
 
-    KI = KP.KP_plotting(args.base_directory,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, 
+    KI = KP.KP_plotting(this_dir,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, 
         cut_off_val = covfefe, main_stem = args.isolate_main_stem, normalisation = normalisation, size_kp = general_size_kp)
 
     
@@ -278,10 +294,10 @@ def main(argv):
         colo = [args.min_mchi_map,args.max_mchi_map]
     
     if(args.lithologic_raster):
-        dict_file = LP.litho_pre_check(args.base_directory,"", fname = args.fname_prefix)
-        LP.MakeRasterLithoBasinMap(args.base_directory, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format= size, FigFormat=args.FigFormat, 
+        dict_file = LP.litho_pre_check(this_dir,"", fname = args.fname_prefix)
+        LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format= size, FigFormat=args.FigFormat, 
             m_chi = True, mancol = colo, log_scale_river = True, minmax_m_chi = [0.01,1])
-        cml = LP.getLithoColorMap(args.fname_prefix, args.base_directory)
+        cml = LP.getLithoColorMap(args.fname_prefix, this_dir)
         KI.print_map_of_kp(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = False, label_size = 6,
             size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, cml = cml, lith_raster = True)
 
@@ -297,12 +313,12 @@ def main(argv):
 
     if args.mchi_map_std:
         
-        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, 
+        CP.map_Mchi_standard(this_dir, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, 
             colmanscal = colo, knickpoint = True, alpha_background = args.alpha_mchi)
 
     if args.mchi_map_black:
         
-        CP.map_Mchi_standard(args.base_directory, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, 
+        CP.map_Mchi_standard(this_dir, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, 
             colmanscal = colo, bkbg = True, knickpoint = True, alpha_background = args.alpha_mchi)
 
 
