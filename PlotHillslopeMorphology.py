@@ -70,6 +70,10 @@ def main(argv):
     parser.add_argument("-traces", "--plot_hillslope_traces",type=bool, default=False, help="if this is true I'll plot a hillshade with hillslope traces overlain")
     parser.add_argument("-angles", "--plot_junction_angles", type=bool, default=False, help="If this is true I'll make plots of the basin junction angles vs basin ID")
     parser.add_argument("-extent", "--custom_plot_extent", type=float, nargs=4, default=None, help="four values required to define the [xmin, xmax, ymin, ymax] extent to plot map data")
+
+    parser.add_argument("-sc", "--sc", type=float, default=0.8, help="Critical slope for E*R* calculations. Default = 0.8")
+
+    #parse the argments
     args = parser.parse_args()
 
     if not args.fname_prefix:
@@ -139,10 +143,10 @@ def main(argv):
             # HS.PlotLHDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
     if args.plot_mean_basin_data:
-        HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
-        HS.PlotEStarRStarBasins(this_dir, args.fname_prefix, PlotDirectory)
-        HS.PlotKsnAgainstRStar(this_dir, args.fname_prefix, PlotDirectory)
-        HS.PlotKsnAgainstEStar(this_dir, args.fname_prefix, PlotDirectory)
+        # HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
+        HS.PlotEStarRStarBasins(this_dir, args.fname_prefix, PlotDirectory, args.sc)
+        # HS.PlotKsnAgainstRStar(this_dir, args.fname_prefix, PlotDirectory)
+        # HS.PlotKsnAgainstEStar(this_dir, args.fname_prefix, PlotDirectory)
         # HS.PlotHillslopeDataWithBasinsFromCSV(this_dir, args.fname_prefix)
     if args.plot_means_with_uplift:
         HS.PlotBasinDataAgainstUplift(this_dir, args.fname_prefix, PlotDirectory)

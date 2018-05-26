@@ -371,6 +371,104 @@ def SaveChannelDataByBasin(DataDirectory,FilenamePrefix):
         #write to file
         BasinChannelData.to_csv(OutputFilename, index=False)
 
+#---------------------------------------------------------------------------------#
+# ANALYSIS FUNCTIONS
+#---------------------------------------------------------------------------------#
+def CalculateEStarRStar(DataDirectory,FilenamePrefix,Basin,Sc=0.71):
+
+    """
+    Calculate EStar and RStar here so that you can change the critical slope
+    Calculate for a specific basin.
+
+    returns: pandas data frame with Estar Rstar data and quantiles for hillslopes
+        organised by channel segments for the specified basin
+
+    MDH, Septmeber 2017
+
+    """
+
+    # load the channel data
+    ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
+
+    #load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    # isolate basin data
+    BasinChannelData = ChannelData[ChannelData.basin_key == Basin]
+
+    # segments in the hillslope data
+    #Segments = BasinHillslopeData.StreamID.unique()
+    Segments = BasinChannelData.segment_number.unique()
+
+    # For each segment get the MChi value and collect dimensionless hillslope data
+    # record the number of traces in each segment inbto a new dataframe
+    Data = pd.DataFrame(columns=['SegmentNo','MChi','FlowLength','SegmentLength','EStar','EStarLower','EStarUpper','RStar','RStarLower','RStarUpper','NTraces'])
+
+
+    for i in range(0,len(Segments)):
+
+        #Get segment hillslope data
+        SegmentHillslopeData = HillslopeData[HillslopeData.StreamID == float(Segments[i])]
+
+        #Get segment channel data and calculate flow length
+        SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
+
+        #channels
+        MChi = SegmentChannelData.m_chi.unique()[0]
+        TempFL = SegmentChannelData.flow_distance
+        FlowLength = np.median(TempFL)
+        SegmentLength = np.max(TempFL)-np.min(TempFL)
+
+        #hillslopes
+        TempEs = (-2.*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh)/Sc
+        TempRs = SegmentHillslopeData.S/Sc
+
+
+        #get the stats to plot
+        EStar = TempEs.quantile(0.5)
+        EStarUpper = TempEs.quantile(0.75)
+        EStarLower = TempEs.quantile(0.25)
+        RStar = TempRs.quantile(0.5)
+        RStarUpper = TempRs.quantile(0.75)
+        RStarLower = TempRs.quantile(0.25)
+
+        NTraces = SegmentHillslopeData.size
+
+        #add to data frame
+        Data.loc[i] = [Segments[i],MChi,FlowLength,SegmentLength,EStar,EStarLower,EStarUpper,RStar,RStarLower,RStarUpper,NTraces]
+
+    # remove rows with no data (i.e. no hillslope traces)
+    Data = Data.dropna(0,'any')
+
+    # only keep segments with more than 50 hillslope traces
+    Data = Data[Data.NTraces > 50]
+
+    return Data
+
+
+def CalculateRStar(EStar):
+    """
+    MDH
+
+    """
+
+    RStar = (1./EStar)*(np.sqrt(1.+(EStar**2.)) - np.log(0.5*(1.+np.sqrt(1+EStar**2.))) - 1.)
+    return RStar
+
+def PlotEStarRStarTheoretical():
+    """
+    MDH
+
+    """
+    # Calculate analytical relationship
+    EStar = np.logspace(-1,3,1000)
+    RStar = CalculateRStar(EStar)
+
+    # Plot with open figure
+    plt.plot(EStar,RStar,'k--')
+#-------------------------------------------------------------------------------#
+# PLOTTING FUNCTIONS
+#-------------------------------------------------------------------------------#
 def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
     # load the channel data
@@ -643,7 +741,7 @@ def PlotCHTAgainstChannelData(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_CHT_flowdist.png", dpi=300)
 
-def PlotEStarRStar(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
     Makes a plot of E* against R* where the points are coloured by
     their distance from the outlet of the basin
@@ -709,7 +807,7 @@ def PlotEStarRStar(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     ModelRStar = [y for _,y in sorted(zip(MainStemEStar,ModelRStar))]
 
 
-    #Ax.plot(ModelEStar,ModelRStar, c='k')
+    Ax.plot(ModelEStar,ModelRStar, c='k')
     Ax.scatter(MainStemEStar,MainStemRStar,c=MainStemDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
     # Ax.scatter(TribsEStar,TribsRStar,c=TribsDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
     # Ax.set_xscale('log')
@@ -735,7 +833,7 @@ def PlotEStarRStar(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
 def PlotRStarDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
-    Makes a plot of R* against distance from outlet
+    Makes a plot of R* against distance from outlet within a basin
 
     Author: FJC
     """
@@ -824,7 +922,7 @@ def PlotRStarDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
 
 def PlotLHDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
-    Makes a plot of Lh against distance from outlet
+    Makes a plot of Lh against distance from outlet within a basin
 
     Author: FJC
     """
@@ -996,9 +1094,8 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
 def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     """
     Function to make plots of hillslope data vs basin id.
-    Martin probably has nice versions of this but I need something
-    quick for my poster
-
+    At the moment this is hard coded for the MTJ because I need to add in the
+    uplift data...sorry!
     Author: FJC
     """
 
@@ -1104,7 +1201,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     drainage_density = dd_df['drainage_density']
     ax[4].scatter(basin_keys, drainage_density, c='k', edgecolors='k', s=20)
     ax[4].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
-    ax[4].set_ylabel('$D_d$ (m/m$^2$)')
+    ax[4].set_ylabel('Drainage density (m/m$^2$)')
 
     # get the data
     uplift_rate = uplift_df['Uplift_rate']
@@ -1114,7 +1211,6 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     # set the axes labels
     ax[5].set_xlabel('Basin ID')
     plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1))
-    ax[5].tick_params(axis='x', which='major', labelsize=6, rotation=45)
     plt.tight_layout()
 
     #save output
@@ -1149,9 +1245,10 @@ def PlotHillslopeDataWithBasinsFromCSV(DataDirectory, FilenamePrefix):
     """
     Function to make same plot as above but read data from csv
     with the extension '_hillslope_means.csv'
+    This also needs a field with the uplift rate so it's kind of hard coded
+    for the MTJ data at the moment.
 
     Author: FJC
-    Will clean this up after AGU
     """
     input_csv = DataDirectory+FilenamePrefix+'_hillslope_means.csv'
     df = pd.read_csv(input_csv)
@@ -1193,6 +1290,7 @@ def PlotBasinDataAgainstUplift(DataDirectory, FilenamePrefix, PlotDirectory):
     """
     Function to plot mean basin data as a function of uplift rate
     using the hillslope means csv file
+    Again, needs a field called 'uplift_rate' in the csv
 
     Args:
         DataDirectory (str): the data directory
@@ -1230,7 +1328,7 @@ def PlotBasinDataAgainstUplift(DataDirectory, FilenamePrefix, PlotDirectory):
     ax[3].set_ylabel('Channel steepness ($k_{sn}$)')
 
     ax[4].scatter(df['uplift_rate'], df['drainage_density'], c='k')
-    ax[4].set_ylabel('$D_d$ (m/m$^2$)')
+    ax[4].set_ylabel('Drainage densiy (m/m$^2$)')
     ax[4].set_ylim(np.min(df['drainage_density'])-0.001, np.max(df['drainage_density'])+0.001)
 
     # set the axes labels
@@ -1255,7 +1353,7 @@ def PlotKsnAgainstRStar(DataDirectory, FilenamePrefix, PlotDirectory):
     # linregress
     slope, intercept, r_value, p_value, std_err = stats.linregress(df['mchi_median'],df['Rstar_median'])
     print (slope, intercept, r_value, p_value)
-    x = np.linspace(0, 100, 100)
+    x = np.linspace(0, 200, 100)
     new_y = slope*x + intercept
 
     # set up the figure
@@ -1263,98 +1361,12 @@ def PlotKsnAgainstRStar(DataDirectory, FilenamePrefix, PlotDirectory):
 
     ax.scatter(df['mchi_median'], df['Rstar_median'], c=df['basin_keys'], s=50, edgecolors='k', zorder=100, cmap=cm.viridis)
     ax.errorbar(df['mchi_median'], df['Rstar_median'], xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']], fmt='o', ecolor='0.5',markersize=1,mfc='white',mec='k')
-    #ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
+    # ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
     ax.plot(x, new_y, c='0.5', ls='--')
     ax.set_xlim(0,100)
 
-    ax.set_xlabel('$k_{sn}$', fontsize=12)
-    ax.set_ylabel('$R*$', fontsize=12)
-
-    plt.subplots_adjust(left=0.15,right=0.85, bottom=0.1, top=0.95)
-    CAx = fig.add_axes([0.87,0.1,0.02,0.85])
-    m = cm.ScalarMappable(cmap=cm.viridis)
-    m.set_array(df['basin_keys'])
-    plt.colorbar(m, cax=CAx,orientation='vertical')
-    #plt.colorbar(m, cax=CAx,orientation='vertical', label='Basin key', fontsize=12)
-    CAx.set_ylabel('Basin key', fontsize=12)
-
-    #plt.tight_layout()
-
-    #save output
-    plt.savefig(PlotDirectory+FilenamePrefix +"_ksn_vs_rstar.png", dpi=300)
-    plt.clf()
-
-def PlotKsnAgainstEStar(DataDirectory, FilenamePrefix, PlotDirectory):
-    """
-    Function to plot median Ksn against E* for a series of basins
-
-    Author: FJC
-    """
-
-    input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
-    df = pd.read_csv(input_csv)
-
-    # linregress
-    slope, intercept, r_value, p_value, std_err = stats.linregress(df['mchi_median'],df['Estar_median'])
-    print (slope, intercept, r_value, p_value)
-    x = np.linspace(0, 100, 100)
-    new_y = slope*x + intercept
-
-    # set up the figure
-    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, figsize=(5,5))
-
-    ax.scatter(df['mchi_median'], df['Estar_median'], c=df['basin_keys'], s=50, edgecolors='k', zorder=100, cmap=cm.viridis)
-    ax.errorbar(df['mchi_median'], df['Estar_median'], xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Estar_lower_err'], df['Estar_upper_err']], fmt='o', ecolor='0.5',markersize=1,mfc='white',mec='k')
-    ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
-    ax.plot(x, new_y, c='0.5', ls='--')
-    ax.set_xlim(0,100)
-
-    ax.set_xlabel('$k_{sn}$', fontsize=12)
-    ax.set_ylabel('$E*$', fontsize=12)
-
-    plt.subplots_adjust(left=0.15,right=0.85, bottom=0.1, top=0.95)
-    CAx = fig.add_axes([0.87,0.1,0.02,0.85])
-    m = cm.ScalarMappable(cmap=cm.viridis)
-    m.set_array(df['basin_keys'])
-    plt.colorbar(m, cax=CAx,orientation='vertical')
-    #plt.colorbar(m, cax=CAx,orientation='vertical', label='Basin key', fontsize=12)
-    CAx.set_ylabel('Basin key', fontsize=12)
-
-    #plt.tight_layout()
-
-    #save output
-    plt.savefig(PlotDirectory+FilenamePrefix +"_ksn_vs_estar.png", dpi=300)
-    plt.clf()
-
-def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory):
-    """
-    Function to make an E*R* plot for a series of drainage basins
-    Author: FJC
-    """
-    input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
-    df = pd.read_csv(input_csv)
-
-    # steady state model
-    x = np.linspace(1,50,1000)
-    predicted_Rstar = ((1. / x) * (np.sqrt(1. + (x * x)) -
-            np.log(0.5 * (1. + np.sqrt(1. + (x * x)))) - 1.))
-
-    # set up the figure
-    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, figsize=(5,5))
-
-    ax.scatter(df['Estar_median'], df['Rstar_median'], c=df['basin_keys'], s=50, edgecolors='k', zorder=100, cmap=cm.viridis, label=None)
-    ax.errorbar(df['Estar_median'], df['Rstar_median'], xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']], fmt='o', ecolor='0.5',markersize=1,mfc='white',mec='k',label=None)
-    #ax.text(0.55, 0.1, '$y = $'+str(np.round(slope,4))+'$x + $'+str(np.round(intercept,2))+'\n$R^2 = $'+str(np.round(r_value,2))+'\n$p = $'+str(p_value), fontsize=9, color='black', transform=ax.transAxes)
-    ax.plot(x, predicted_Rstar, c='0.5', ls='--', label='Steady state model')
-    #ax.set_xlim(0,30)
-
-    ax.set_xlabel('$E*$')
+    ax.set_xlabel('$k_{sn}$')
     ax.set_ylabel('$R*$')
-
-    ax.legend(loc='lower right')
-
-    ax.set_xscale('log')
-    ax.set_yscale('log')
 
     plt.subplots_adjust(left=0.15,right=0.85, bottom=0.1, top=0.95)
     CAx = fig.add_axes([0.87,0.1,0.02,0.85])
@@ -1365,7 +1377,74 @@ def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory):
     #plt.tight_layout()
 
     #save output
-    plt.savefig(PlotDirectory+FilenamePrefix +"_estar_vs_rstar.png", dpi=300)
+    plt.savefig(PlotDirectory+FilenamePrefix +"_ksn_vs_rstar.png", dpi=300)
+    plt.clf()
+
+def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.8):
+    """
+    Function to make an E*R* plot for a series of drainage basins.
+    Changing so that we calculate E* and R* in the python script following
+    Martin's example, so that we can test sensitivity to Sc.
+    Author: FJC
+    """
+    input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
+    df = pd.read_csv(input_csv)
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, figsize=(5,5))
+    PlotEStarRStarTheoretical()
+
+    #choose colormap
+    ColourMap = cm.viridis
+
+    # get the basins
+    basins = df['basin_keys'].unique()
+    NoBasins = len(basins)
+
+    for basin_key in basins:
+        Data = CalculateEStarRStar(DataDirectory,FilenamePrefix,basin_key, Sc=Sc)
+
+        # colour code by basin number
+        colour = float(basin_key)/float(NoBasins)
+        EStarMedian = Data.EStar.median()
+        RStarMedian = Data.RStar.median()
+        EStar_lower_err = np.percentile(Data.EStar.as_matrix(), 25)
+        EStar_upper_err = np.percentile(Data.EStar.as_matrix(), 75)
+        RStar_lower_err = np.percentile(Data.RStar.as_matrix(), 25)
+        RStar_upper_err = np.percentile(Data.RStar.as_matrix(), 75)
+
+        # get the median e star and r star
+        ax.scatter(EStarMedian,RStarMedian,color=ColourMap(colour),s=50, edgecolors='k', zorder=100)
+        ax.errorbar(EStarMedian,RStarMedian,xerr=[[EStarMedian-EStar_lower_err],[EStar_upper_err-EStarMedian]], yerr=[[RStarMedian-RStar_lower_err],[RStar_upper_err-RStarMedian]],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+
+    # Finalise the figure
+    plt.xlabel('$E^*={{-2\:C_{HT}\:L_H}/{S_C}}$')
+    plt.ylabel('$R^*=S/S_C$')
+    plt.xlim(0.1,20)
+    plt.ylim(0.05,1)
+
+    # add colour bar
+    m = cm.ScalarMappable(cmap=ColourMap)
+    m.set_array(np.arange(0,NoBasins))
+    cbar = plt.colorbar(m)
+    tick_locator = ticker.MaxNLocator(nbins=5)
+    cbar.locator = tick_locator
+    cbar.update_ticks()
+    # ax.set_xlabel('$E*$')
+    # ax.set_ylabel('$R*$')
+    # # ax.set_xscale('log')
+    # # ax.set_yscale('log')
+    #
+    # plt.subplots_adjust(left=0.15,right=0.85, bottom=0.1, top=0.95)
+    # CAx = fig.add_axes([0.87,0.1,0.02,0.85])
+    # m = cm.ScalarMappable(cmap=cm.viridis)
+    # m.set_array(df['basin_keys'])
+    # plt.colorbar(m, cax=CAx,orientation='vertical', label='Basin key')
+
+    #plt.tight_layout()
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_estar_vs_rstar{}.png".format(Sc), dpi=300)
     plt.clf()
 
 def PlotJunctionAnglesAgainstBasinID(DataDirectory, FilenamePrefix, PlotDirectory):
@@ -1473,3 +1552,167 @@ def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExte
     #finalise and save figure
     MF.SetRCParams(label_size=8)
     MF.save_fig(fig_width_inches = FigWidth_Inches, FigFileName = ImageName, FigFormat="png", Fig_dpi = 300)
+
+def PlotEStarRStar(Basin, Sc=0.71):
+    """
+    MDH
+    """
+
+    Data = CalculateEStarRStar(Basin)
+
+    # setup the figure
+    Fig = CreateFigure(AspectRatio=1.2)
+
+    #choose colormap
+    ColourMap = cm.viridis
+
+    #Plot analytical relationship
+    PlotEStarRStarTheoretical()
+
+    # colour code by flow length
+    MinFlowLength = Data.FlowLength.min()
+    Data.FlowLength = Data.FlowLength-MinFlowLength
+    MaxFlowLength = Data.FlowLength.max()
+    colours = (Data.FlowLength/MaxFlowLength)
+
+    #plot the data
+    plt.loglog()
+
+    # Error bars with colours but faded (alpha)
+    for i, row in Data.iterrows():
+        EStarErr = np.array([[row.EStarLower],[row.EStarUpper]])
+        RStarErr = np.array([[row.RStarLower],[row.RStarUpper]])
+        plt.plot([row.EStar,row.EStar],RStarErr,'-', lw=1, color=ColourMap(colours[i]), alpha=0.5,zorder=9)
+        plt.plot(EStarErr,[row.RStar,row.RStar],'-', lw=1, color=ColourMap(colours[i]), alpha=0.5,zorder=9)
+        plt.plot(row.EStar,row.RStar,'o',ms=4,color=ColourMap(colours[i]),zorder=32)
+
+    # Finalise the figure
+    plt.xlabel('$E^*={{-2\:C_{HT}\:L_H}/{S_C}}$')
+    plt.ylabel('$R^*=S/S_C$')
+    plt.xlim(0.1,1000)
+    plt.ylim(0.01,1.5)
+
+    # add colour bar
+    m = cm.ScalarMappable(cmap=ColourMap)
+    m.set_array(Data.FlowLength)
+    cbar = plt.colorbar(m)
+    tick_locator = ticker.MaxNLocator(nbins=5)
+    cbar.locator = tick_locator
+    cbar.update_ticks()
+    cbar.set_label('Distance to Outlet (m)')
+
+    plt.suptitle("Basin "+str(Basin)+" Dimensionless Hillslope Morphology")
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(PlotDirectory+FilenamePrefix + "_" + "%02d" % Basin + "_EStarRStar.png", dpi=300)
+    plt.close(Fig)
+
+def PlotEStarRStarProgression(Sc=0.71):
+    """
+    Plots the progression of hillslopes along Bolinas in Estar Rstar space
+
+    MDH, September 2017
+
+    """
+
+    from scipy.stats import gaussian_kde
+
+    # setup the figure
+    Fig = CreateFigure(AspectRatio=1.2)
+
+    #choose colormap
+    ColourMap = cm.viridis
+
+    #Plot analytical relationship
+    plt.loglog()
+    PlotEStarRStarTheoretical()
+
+    #Store median values to plot the track through E* R* space
+    EStarMedian = np.zeros(NoBasins)
+    RStarMedian = np.zeros(NoBasins)
+
+    # Setup extent for data density calcs
+    ESmin = np.log10(0.1)
+    ESmax = np.log10(100.)
+    RSmin = np.log10(0.05)
+    RSmax = np.log10(1.5)
+
+    # setup grid for density calcs
+    ESgrid = np.logspace(ESmin,ESmax,(ESmax-ESmin)*100.)
+    RSgrid = np.logspace(RSmin,RSmax,(RSmax-RSmin)*100.)
+
+    #loop through the basins
+    for Basin in range(0,NoBasins):
+    #for Basin in range(0,1):
+
+        # Get the hillslope data for the basin
+        Data = CalculateEStarRStar(Basin)
+
+        # Get the convex hull
+        #Points = np.column_stack((Data.EStar,Data.RStar))
+        #Hull = ConvexHull(Points)
+
+        # calculate the 2D density of the data given
+        #Counts,Xbins,Ybins=np.histogram2d(Data.EStar,Data.RStar,bins=100)
+        #Counts = Counts.T
+        #X,Y = np.meshgrid(Xbins,Ybins)
+        #plt.pcolormesh(X,Y,Counts)
+
+        # calculate gaussian kernel density
+        Values = np.vstack([np.log10(Data.EStar), np.log10(Data.RStar)])
+        Density = gaussian_kde(Values)
+
+        ES,RS = np.meshgrid(np.log10(ESgrid),np.log10(RSgrid))
+        Positions = np.vstack([ES.ravel(), RS.ravel()])
+
+        # colour code by basin number
+        colour = float(Basin)/float(NoBasins)
+
+        Density = np.reshape(Density(Positions).T, ES.shape)
+        Density /= np.max(Density)
+        #plt.pcolormesh(10**ES,10**RS,Density,cmap=cm.Reds)
+
+        plt.contour(10**ES,10**RS,Density,[0.2,],colors=[ColourMap(colour),],linewidths=1.,alpha=0.5)
+        #plt.plot(Data.EStar,Data.RStar,'k.',ms=2,zorder=32)
+
+        # make the contour plot
+        #plt.contour(counts.transpose(),extent=[xbins.min(),xbins.max(),
+        #    ybins.min(),ybins.max()],linewidths=3,colors='black',
+        #    linestyles='solid')
+
+        # colour code by basin number
+        #colour = float(Basin)/float(NoBasins)
+
+        # Get median EStar RStar
+        EStarMedian[Basin] = Data.EStar.median()
+        RStarMedian[Basin] = Data.RStar.median()
+        plt.plot(Data.EStar.median(),Data.RStar.median(),'o',ms=5,color=ColourMap(colour), zorder=32)
+
+        # Plot the Hull
+        #if Basin % 4 == 0:
+
+
+        #    Ind = np.append(Hull.vertices, Hull.vertices[0])
+        #    plt.plot(Points[Ind,0], Points[Ind,1], '-', color=ColourMap(colour), lw=1,alpha=0.5)
+
+    #plot the path
+    #plt.plot(EStarMedian,RStarMedian,'k-')
+
+    # Finalise the figure
+    plt.xlabel('$E^*={{-2\:C_{HT}\:L_H}/{S_C}}$')
+    plt.ylabel('$R^*=S/S_C$')
+    plt.xlim(0.1,100)
+    plt.ylim(0.05,1.5)
+
+    # add colour bar
+    m = cm.ScalarMappable(cmap=ColourMap)
+    m.set_array(np.arange(0,NoBasins))
+    cbar = plt.colorbar(m)
+    tick_locator = ticker.MaxNLocator(nbins=5)
+    cbar.locator = tick_locator
+    cbar.update_ticks()
+    cbar.set_label('Basin No.')
+
+    #save the figure
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(PlotDirectory+FilenamePrefix + "_EStarRStarProgression.png", dpi=300)
+    plt.close(Fig)
