@@ -1426,22 +1426,10 @@ def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.8)
     # add colour bar
     m = cm.ScalarMappable(cmap=ColourMap)
     m.set_array(np.arange(0,NoBasins))
-    cbar = plt.colorbar(m)
+    cbar = plt.colorbar(m, label='Basin key')
     tick_locator = ticker.MaxNLocator(nbins=5)
     cbar.locator = tick_locator
     cbar.update_ticks()
-    # ax.set_xlabel('$E*$')
-    # ax.set_ylabel('$R*$')
-    # # ax.set_xscale('log')
-    # # ax.set_yscale('log')
-    #
-    # plt.subplots_adjust(left=0.15,right=0.85, bottom=0.1, top=0.95)
-    # CAx = fig.add_axes([0.87,0.1,0.02,0.85])
-    # m = cm.ScalarMappable(cmap=cm.viridis)
-    # m.set_array(df['basin_keys'])
-    # plt.colorbar(m, cax=CAx,orientation='vertical', label='Basin key')
-
-    #plt.tight_layout()
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix +"_estar_vs_rstar{}.png".format(Sc), dpi=300)
