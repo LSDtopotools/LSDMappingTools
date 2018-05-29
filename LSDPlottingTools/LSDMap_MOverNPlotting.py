@@ -32,8 +32,31 @@ from LSDMapFigure.PlottingRaster import BaseRaster
 from LSDPlottingTools import LSDMap_SAPlotting as SA
 from LSDPlottingTools import joyplot
 
+#===========================================
+# Function to make a figure object
+#===========================================
+def makefigure(size_format = "ESURF"):
+    """
+    This function makes a figure object based on the specified size_format
+    of specific journals. This could be implemented at a global level
+    
+    MDH
+    
+    """
+    
+    if size_format == "geomorphology":
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
+        #l_pad = -40
+    elif size_format == "big":
+        fig = plt.figure(1, facecolor='white',figsize=(16,9))
+        #l_pad = -50
+    elif size_format == "EPSL":
+        fig = plt.figure(1, facecolor='white',figsize=(7.48,7.48*(9./16.)))
+    else:
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
+        #l_pad = -35
 
-
+    return fig
 #=============================================================================
 #=============================================================================
 # ANALYSIS FUNCTIONS
@@ -909,16 +932,9 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
     size_format = "default"
-    # make a figure,
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+
+    # make a figure
+    fig = makefigure(size_format)
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[5:100,10:95])
@@ -1104,15 +1120,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[10:95,5:80])
@@ -1292,15 +1300,8 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
+
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.95,top=1.0)
     ax = fig.add_subplot(gs[10:95,5:80])
@@ -1496,15 +1497,8 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
+
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.95,top=1.0)
     ax = fig.add_subplot(gs[10:95,5:80])
@@ -1692,15 +1686,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
     ax = fig.add_subplot(gs[10:95,5:80])
@@ -1919,15 +1905,8 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
     #                        cycler('linestyle', ['-', '--', ':', '-.', '--'])))
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
+
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
     ax = fig.add_subplot(gs[5:100,10:95])
@@ -2110,15 +2089,8 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
+
 
     print("SHOW LEGEND", show_legend)
 
@@ -2305,15 +2277,8 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
         rcParams['font.size'] = label_size
 
         # make a figure
-        if size_format == "geomorphology":
-            fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-            #l_pad = -40
-        elif size_format == "big":
-            fig = plt.figure(1, facecolor='white',figsize=(16,9))
-            #l_pad = -50
-        else:
-            fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-            #l_pad = -35
+        fig = makefigure(size_format)
+
 
         gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.95,top=0.95)
 
@@ -2423,18 +2388,8 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        #fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        figsize=(6.25,3.5)
-        #l_pad = -40
-    elif size_format == "big":
-        #fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        figsize=(16,9)
-        #l_pad = -50
-    else:
-        #fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        figsize=(4.92126,3.2)
-        #l_pad = -35
+    fig = makefigure(size_format)
+    figsize = fig.get_size_inches()
 
     # if show_legend:
     #     gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
@@ -2521,15 +2476,8 @@ def PlotMOverNByBasin(DataDirectory, fname_prefix, basin_list = [], size_format=
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
+
 
     gs = plt.GridSpec(100,100,bottom=0.1,left=0.05,right=0.95,top=0.95)
     ax = fig.add_subplot(gs[5:100,10:95])
@@ -2675,12 +2623,9 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format
-    if size_format == "geomorphology":
-        fig_width_inches = 6.25
-    elif size_format == "big":
-        fig_width_inches = 16
-    else:
-        fig_width_inches = 4.92126
+    # make a figure
+    fig = makefigure(size_format)
+    fig_width_inches = fig.get_size_inches()[0]
 
     # get the basin IDs to make a discrete colourmap for each ID
     if not parallel:
@@ -2781,13 +2726,9 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
 
-    # set figure sizes based on format
-    if size_format == "geomorphology":
-        fig_width_inches = 6.25
-    elif size_format == "big":
-        fig_width_inches = 16
-    else:
-        fig_width_inches = 4.92126
+    # make a figure
+    fig = makefigure(size_format)
+    fig_width_inches = fig.get_size_inches()[0]
 
     # get the basin IDs to make a discrete colourmap for each ID
     if not parallel:
@@ -2969,15 +2910,7 @@ def PlotMOverNDicts(DataDirectory,fname_prefix,SA_based_dict,Chi_based_dict, Fig
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
     ax = fig.add_subplot(gs[5:100,10:95])
@@ -3055,15 +2988,7 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
     ax = fig.add_subplot(gs[5:100,10:95])
@@ -3168,15 +3093,7 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
     ax = fig.add_subplot(gs[5:100,10:95])
@@ -3315,15 +3232,7 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
     rcParams['font.size'] = label_size
 
     # make a figure
-    if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
-    elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
-    else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+    fig = makefigure(size_format)
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=0.85,top=0.9)
     ax = fig.add_subplot(gs[5:100,10:95])

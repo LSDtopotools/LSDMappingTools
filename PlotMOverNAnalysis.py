@@ -57,6 +57,7 @@ def main(argv):
     # Get the arguments
     import argparse
     parser = argparse.ArgumentParser()
+    
     # The location of the data files
     parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the m/n analysis. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error (unless you're running the parallel plotting).")
@@ -84,7 +85,8 @@ def main(argv):
     parser.add_argument("-show_SA_raw", "--show_SA_raw", type=bool, default=True, help="Show the raw S-A data in background of SA plot. Default = True")
     parser.add_argument("-show_SA_segments", "--show_SA_segments", type=bool, default=False, help="Show the segmented S-A data in SA plot. Default = False")
     parser.add_argument("-test_SA_regression", "--test_SA_regression", type=bool, default=False, help="If this is true I'll print the regression stats for the slope area plots.")
-    parser.add_argument("-show_legend", "--show_legend", type=bool, default=True, help="If this is true, I'll display the legend for the SA plots.")
+    parser.add_argument("-show_legend", "--show_legend", type=bool, default=True, help="If this is true, I'll display the legend for plots.")
+    parser.add_argument("-no_legend", "--no_legend", dest="show_legend", action="store_false", help="Flag to not display legends, I'll not display the legend for plots, default is for legend to be displayed. Note taht setting show_legend False does not achieve this due to bool issues with python parsing")
 
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
 
@@ -97,6 +99,9 @@ def main(argv):
 
     args = parser.parse_args()
 
+    print argv
+    print args
+    
     if not args.fname_prefix:
         if not args.parallel:
             print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
