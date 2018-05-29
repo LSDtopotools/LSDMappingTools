@@ -1400,12 +1400,15 @@ def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.8)
     # get the basins
     basins = df['basin_keys'].unique()
     NoBasins = len(basins)
+    MinMChi = df.mchi_median.min()
+    MaxMChi = df.mchi_median.max()
 
     for basin_key in basins:
         Data = CalculateEStarRStar(DataDirectory,FilenamePrefix,basin_key, Sc=Sc)
 
         # colour code by basin number
-        colour = float(basin_key)/float(NoBasins)
+        #colour = float(basin_key)/float(NoBasins)
+        colour = df.mchi_median[df.basin_keys == basin_key].values[0]
         EStarMedian = Data.EStar.median()
         RStarMedian = Data.RStar.median()
         EStar_lower_err = np.percentile(Data.EStar.as_matrix(), 25)
@@ -1413,8 +1416,11 @@ def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.8)
         RStar_lower_err = np.percentile(Data.RStar.as_matrix(), 25)
         RStar_upper_err = np.percentile(Data.RStar.as_matrix(), 75)
 
+        cNorm  = colors.Normalize(vmin=MinMChi, vmax=MaxMChi)
+        plt.cm.ScalarMappable(norm=cNorm, cmap=ColourMap)
+
         # get the median e star and r star
-        ax.scatter(EStarMedian,RStarMedian,color=ColourMap(colour),s=50, edgecolors='k', zorder=100)
+        sc = ax.scatter(EStarMedian,RStarMedian,c=colour,s=50, edgecolors='k', zorder=100, norm=cNorm)
         ax.errorbar(EStarMedian,RStarMedian,xerr=[[EStarMedian-EStar_lower_err],[EStar_upper_err-EStarMedian]], yerr=[[RStarMedian-RStar_lower_err],[RStar_upper_err-RStarMedian]],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
     # Finalise the figure
@@ -1424,12 +1430,12 @@ def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.8)
     plt.ylim(0.05,1)
 
     # add colour bar
-    m = cm.ScalarMappable(cmap=ColourMap)
-    m.set_array(np.arange(0,NoBasins))
-    cbar = plt.colorbar(m, label='Basin key')
-    tick_locator = ticker.MaxNLocator(nbins=5)
-    cbar.locator = tick_locator
-    cbar.update_ticks()
+    cbar = plt.colorbar(sc,cmap=ColourMap)
+    colorbarlabel='$k_{sn}$'
+    cbar.set_label(colorbarlabel, fontsize=10)
+    # tick_locator = ticker.MaxNLocator(nbins=5)
+    # cbar.locator = tick_locator
+    # cbar.update_ticks()
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix +"_estar_vs_rstar{}.png".format(Sc), dpi=300)
