@@ -53,7 +53,9 @@ def makefigure(size_format = "EPSL", aspect_ratio=16./9.):
     rcParams['text.usetex'] = True
 
     # make the figure
-    if size_format == "geomorphology":
+    if type(size_format) is float:
+        fig = plt.figure(1, facecolor='white',figsize=(size_format,size_format/aspect_ratio))
+    elif size_format == "geomorphology":
         fig = plt.figure(1, facecolor='white',figsize=(6.25,6.25/aspect_ratio))
     elif size_format == "big":
         fig = plt.figure(1, facecolor='white',figsize=(16,16./aspect_ratio))
