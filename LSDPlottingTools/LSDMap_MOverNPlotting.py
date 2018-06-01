@@ -38,12 +38,21 @@ from LSDPlottingTools import joyplot
 def makefigure(size_format = "EPSL", aspect_ratio=16./9.):
     """
     This function makes a figure object based on the specified size_format
-    of specific journals. This could be implemented at a global level
+    of specific journals. This could be implemented at a global level.
+    Sets RC params for figures
     
     MDH
     
     """
     
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+    rcParams['text.usetex'] = True
+
+    # make the figure
     if size_format == "geomorphology":
         fig = plt.figure(1, facecolor='white',figsize=(6.25,6.25/aspect_ratio))
     elif size_format == "big":
