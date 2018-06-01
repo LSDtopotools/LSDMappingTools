@@ -35,7 +35,7 @@ from LSDPlottingTools import joyplot
 #===========================================
 # Function to make a figure object
 #===========================================
-def makefigure(size_format = "ESURF"):
+def makefigure(size_format = "EPSL", aspect_ratio=16./9.):
     """
     This function makes a figure object based on the specified size_format
     of specific journals. This could be implemented at a global level
@@ -45,18 +45,16 @@ def makefigure(size_format = "ESURF"):
     """
     
     if size_format == "geomorphology":
-        fig = plt.figure(1, facecolor='white',figsize=(6.25,3.5))
-        #l_pad = -40
+        fig = plt.figure(1, facecolor='white',figsize=(6.25,6.25/aspect_ratio))
     elif size_format == "big":
-        fig = plt.figure(1, facecolor='white',figsize=(16,9))
-        #l_pad = -50
+        fig = plt.figure(1, facecolor='white',figsize=(16,16./aspect_ratio))
     elif size_format == "EPSL":
-        fig = plt.figure(1, facecolor='white',figsize=(7.48,7.48*(9./16.)))
+        fig = plt.figure(1, facecolor='white',figsize=(7.48,7.48/aspect_ratio))
     else:
-        fig = plt.figure(1, facecolor='white',figsize=(4.92126,3.2))
-        #l_pad = -35
+        fig = plt.figure(1, facecolor='white',figsize=(4.92126,4.92126/aspect_ratio))
 
     return fig
+    
 #=============================================================================
 #=============================================================================
 # ANALYSIS FUNCTIONS
@@ -2103,7 +2101,6 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # read in the summary csv
     df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
-    print (df)
 
     if basin_list != []:
         basin_keys = basin_list
