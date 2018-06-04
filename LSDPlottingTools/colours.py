@@ -81,6 +81,24 @@ def discrete_colourmap(N, base_cmap=None):
     cmap_name = base.name + str(N)
     return base.from_list(cmap_name, color_list, N)
 
+def list_of_hex_colours(N, base_cmap):
+    """
+    Return a list of colors from a colourmap as hex codes
+
+        Arguments:
+            cmap: colormap instance, eg. cm.jet.
+            N: number of colors.
+
+        Author: FJC
+    """
+    cmap = _cm.get_cmap(base_cmap, N)
+
+    hex_codes = []
+    for i in range(cmap.N):
+        rgb = cmap(i)[:3] # will return rgba, we take only first 3 so we get rgb
+        hex_codes.append(_mcolors.rgb2hex(rgb))
+    return hex_codes
+
 def cmap_discretize(N, cmap):
     """Return a discrete colormap from the continuous colormap cmap.
 

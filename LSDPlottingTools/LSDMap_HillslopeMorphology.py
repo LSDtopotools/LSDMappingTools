@@ -1176,20 +1176,28 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
+    # get the colours
+    cmap = cm.Dark2
+    colors = LSDP.colours.list_of_hex_colours(6, cmap)
+
     # plot the hillslope length
-    ax[0].errorbar(basin_keys,median_Lh,yerr=[Lh_lower_err, Lh_upper_err],fmt='o', ecolor='0.5',markersize=5,mec='k')
+    ax[0].errorbar(basin_keys,median_Lh,yerr=[Lh_lower_err, Lh_upper_err],fmt='o', ecolor='0.5',markersize=6,mec='k',mfc=colors[0])
     ax[0].set_ylabel('$L_h$')
 
     #plot the cht
-    ax[1].errorbar(basin_keys,median_cht,yerr=[cht_lower_err, cht_upper_err],fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
+    ax[1].errorbar(basin_keys,median_cht,yerr=[cht_lower_err, cht_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[1],mec='k')
     ax[1].set_ylabel('$C_{HT}$')
 
+    #plot the E*
+    # ax[2].errorbar(basin_keys,median_Estar,yerr=[Estar_lower_err, Estar_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[2],mec='k')
+    # ax[2].set_ylabel('$E*$')
+
     #plot the R*
-    ax[2].errorbar(basin_keys,median_Rstar,yerr=[Rstar_lower_err, Rstar_upper_err],fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
+    ax[2].errorbar(basin_keys,median_Rstar,yerr=[Rstar_lower_err, Rstar_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[2],mec='k')
     ax[2].set_ylabel('$R*$')
 
     #plot the Mchi
-    ax[3].errorbar(basin_keys,median_mchi,yerr=[mchi_lower_err, mchi_upper_err],fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+    ax[3].errorbar(basin_keys,median_mchi,yerr=[mchi_lower_err, mchi_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[3],mec='k')
     ax[3].set_ylabel('$k_{sn}$')
 
     # read the uplift data in
@@ -1199,7 +1207,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     # get the drainage density
     drainage_density = dd_df['drainage_density']
-    ax[4].scatter(basin_keys, drainage_density, c='k', edgecolors='k', s=20)
+    ax[4].scatter(basin_keys, drainage_density, c=colors[5], edgecolors='k', s=30)
     ax[4].set_ylim(np.min(drainage_density)-0.001, np.max(drainage_density)+0.001)
     ax[4].set_ylabel('Drainage density (m/m$^2$)')
 
@@ -1210,7 +1218,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     # set the axes labels
     ax[5].set_xlabel('Basin ID')
-    plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1))
+    plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1), rotation=45, fontsize=8)
     plt.tight_layout()
 
     #save output
