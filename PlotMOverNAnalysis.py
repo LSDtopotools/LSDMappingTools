@@ -57,7 +57,7 @@ def main(argv):
     # Get the arguments
     import argparse
     parser = argparse.ArgumentParser()
-    
+
     # The location of the data files
     parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the m/n analysis. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error (unless you're running the parallel plotting).")
@@ -79,7 +79,7 @@ def main(argv):
     parser.add_argument("-SUM", "--plot_summary", type=bool, default=False, help="If this is true, I'll make the summary CSV file and plot of the best fit concavity from each of the methods.")
     parser.add_argument("-ALL", "--all_movern_estimates", type=bool, default=False, help="If this is true, I'll make all the plots")
 
-    
+
     # Plotting options
     parser.add_argument("-points", "--point_analysis", type=bool, default=False, help="If this is true then I'll assume that you're running the MLE analysis using the point method. Default = False")
     parser.add_argument("-show_SA_raw", "--show_SA_raw", type=bool, default=True, help="Show the raw S-A data in background of SA plot. Default = True")
@@ -101,7 +101,7 @@ def main(argv):
 
     print argv
     print args
-    
+
     if not args.fname_prefix:
         if not args.parallel:
             print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
@@ -201,16 +201,16 @@ def main(argv):
                                             n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
                                  n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend,parallel=args.parallel, Chi_disorder=True)
-        
+
         # This only prints the summary plots for bootstrap and disorder metrics
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
-                                 n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, 
-                                 show_legend=args.show_legend,parallel=args.parallel, 
-                                 Chi_all = False, SA_raw = False, SA_segmented = False, 
+                                 n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format,
+                                 show_legend=args.show_legend,parallel=args.parallel,
+                                 Chi_all = False, SA_raw = False, SA_segmented = False,
                                  SA_channels = False, Chi_bootstrap = True, Chi_disorder=True)
-        
+
         MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
-                                      n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend, Chi_disorder=True)    
+                                      n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend, Chi_disorder=True)
     if args.plot_disorder:
         MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_disorder", size_format=args.size_format, FigFormat=args.FigFormat,parallel=args.parallel)
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
@@ -244,18 +244,18 @@ def main(argv):
                                             n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
                                  n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend,parallel=args.parallel, Chi_disorder=True)
-        
+
         # This only prints the summary plots for bootstrap and disorder metrics
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
-                                 n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, 
-                                 show_legend=args.show_legend,parallel=args.parallel, 
-                                 Chi_all = False, SA_raw = False, SA_segmented = False, 
+                                 n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format,
+                                 show_legend=args.show_legend,parallel=args.parallel,
+                                 Chi_all = False, SA_raw = False, SA_segmented = False,
                                  SA_channels = False, Chi_bootstrap = True, Chi_disorder=True)
-        
+
         MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
-                                      n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend, Chi_disorder=True)        
-        
-        
+                                      n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend, Chi_disorder=True)
+
+
 #=============================================================================
 if __name__ == "__main__":
     main(sys.argv[1:])

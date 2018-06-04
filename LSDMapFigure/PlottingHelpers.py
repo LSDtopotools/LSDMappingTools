@@ -691,6 +691,36 @@ def ReadDisorderUncertCSV(DataDirectory, fname_prefix):
 
     return df
 
+def AppendDisorderCSV(DataDirectory, FilenamePrefix):
+    """
+    This function reads in a series of disorder csvs and appends them together
+    into one function for plotting
+
+    Args:
+        DataDirectory (str): the data DataDirectory
+
+    Returns:
+        pandas dataframe with the appended fullstats csvs
+
+    Author: FJC
+    """
+    # get the csv filename
+    csv_suffix =  '_fullstats_disorder_uncert.csv'
+
+    MasterDF = pd.DataFrame()
+    basin_dict = MapBasinsToKeysFromJunctionList(DataDirectory, FilenamePrefix)
+
+    # loop through and get each basin csv
+    for outlet_jn, basin_key in basin_dict.iteritems():
+        this_fname = "basin"+str(outlet_jn)+csv_suffix
+        # append to master DF and change the basin key and the junction
+        df = pd.read_csv(DataDirectory+this_fname)
+        df = df[df['basin_key'] == 0]
+        df['basin_key'] = basin_key
+        MasterDF = MasterDF.append(df, ignore_index = True)
+
+    return MasterDF
+
 def readSKKPstats(DataDirectory, fname_prefix):
     """
     This function reads in the file with the suffix

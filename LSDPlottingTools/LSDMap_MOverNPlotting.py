@@ -40,11 +40,11 @@ def makefigure(size_format = "EPSL", aspect_ratio=16./9.):
     This function makes a figure object based on the specified size_format
     of specific journals. This could be implemented at a global level.
     Sets RC params for figures
-    
+
     MDH
-    
+
     """
-    
+
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
@@ -65,7 +65,7 @@ def makefigure(size_format = "EPSL", aspect_ratio=16./9.):
         fig = plt.figure(1, facecolor='white',figsize=(4.92126,4.92126/aspect_ratio))
 
     return fig
-    
+
 #=============================================================================
 #=============================================================================
 # ANALYSIS FUNCTIONS
@@ -453,7 +453,10 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
 
     if Chi_disorder:
-        DisorderDF = Helper.ReadDisorderUncertCSV(DataDirectory,fname_prefix)
+        if not parallel:
+            DisorderDF = Helper.ReadDisorderUncertCSV(DataDirectory,fname_prefix)
+        else:
+            DisorderDF = Helper.AppendDisorderCSV(DataDirectory,fname_prefix)
         OutDF['Chi_disorder'] = DisorderDF['median']
         OutDF['Chi_disorder_min'] = DisorderDF['first_quartile']
         OutDF['Chi_disorder_max'] = DisorderDF['third_quartile']
@@ -2059,9 +2062,9 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
         ax.cla()
     plt.close(fig)
 
-def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, 
+def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7,
                           size_format='ESURF', FigFormat='png',
-                          SA_channels=False, show_legend=True,parallel=False,Chi_disorder=False, 
+                          SA_channels=False, show_legend=True,parallel=False,Chi_disorder=False,
                           Chi_all=True,Chi_bootstrap=True, SA_raw=True, SA_segmented=True):
     """
     This function makes a summary plot of the best fit m/n from the different
@@ -2124,7 +2127,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # plot the full chi data
     full_chi_keys = df['basin_key'].as_matrix()-0.2
-    
+
     if Chi_all:
         ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
 
@@ -2137,11 +2140,11 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     errors = np.array(zip(points_min_err, points_max_err)).T
 
     points_chi_keys = df['basin_key'].as_matrix()-0.1
-    
+
     if Chi_bootstrap:
-        ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, 
+        ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors,
                     ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
-        ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', 
+        ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k',
                    lw=0.5,facecolors='#fdbb84', label='Chi bootstrap',zorder=200)
 
     # plot the chi disorder data if you want it
@@ -2161,7 +2164,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     # plot the SA data
     SA_keys = df['basin_key'].as_matrix()
     SA_sterr = df['SA_raw_sterr'].as_matrix()
-    
+
     if SA_raw:
         ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='#2b8cbe', elinewidth=1, fmt='none',label='_nolegend_')
         ax.scatter(SA_keys, df['SA_raw'], s=15, c='#2b8cbe', edgecolors='k',lw=0.5, label='S-A all data', zorder=100)
@@ -2189,9 +2192,9 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     SA_segment_keys = df['basin_key'].as_matrix()+0.2
     if SA_segmented:
-        ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', xerr=None, yerr=errors, 
+        ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', xerr=None, yerr=errors,
                 edgecolors='#a6bddb', fmt='none', elinewidth=1, linestyle = ":", ecolor='#a6bddb',label='_nolegend_')
-        ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', edgecolors='k', 
+        ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', edgecolors='k',
                lw=0.5, label='Segmented S-A', zorder=100)
 
     # set the axis labels
@@ -2228,30 +2231,30 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     # print end_movern
     # ax.yaxis.set_ticks(np.arange(start_movern, end_movern, d_movern))
 
-    
+
     newFilename = summary_directory+fname_prefix+"_"
-    
+
     if Chi_all:
         newFilename = newFilename+"A"
     if Chi_bootstrap:
-        newFilename = newFilename+"B"  
+        newFilename = newFilename+"B"
     if Chi_disorder:
         newFilename = newFilename+"D"
     if SA_raw:
-        newFilename = newFilename+"S" 
+        newFilename = newFilename+"S"
     if SA_channels:
         newFilename = newFilename+"C"
     if SA_segmented:
         newFilename = newFilename+"G"
-        
+
     newFilename = newFilename+"_movern_summary."+FigFormat
-        
-   
+
+
     plt.savefig(newFilename,format=FigFormat,dpi=300)
     ax.cla()
     plt.close(fig)
 
-def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7, 
+def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_movern=0.2, d_movern=0.1, n_movern=7,
                             size_format='ESURF', FigFormat='png', movern_method='chi_points'):
         """
         This function makes a summary plot of the best fit m/n, you choose which method
@@ -2798,7 +2801,10 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
         title = "Slope-area analysis"
     elif movern_method == "Chi_disorder":
         #DisorderDF = Helper.ReadDisorderCSV(DataDirectory, fname_prefix)
-        DisorderDF = Helper.ReadDisorderUncertCSV(DataDirectory, fname_prefix)
+        if not parallel:
+            DisorderDF = Helper.ReadDisorderUncertCSV(DataDirectory, fname_prefix)
+        else:
+            DisorderDF = Helper.AppendDisorderCSV(DataDirectory, fname_prefix)
         m_over_ns = DisorderDF['median'].tolist()
         MOverNDict = dict(zip(basin_keys,m_over_ns))
         moverns = [round(i,2) for i in m_over_ns]
