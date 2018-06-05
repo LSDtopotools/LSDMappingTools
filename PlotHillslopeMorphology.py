@@ -69,6 +69,7 @@ def main(argv):
     parser.add_argument("-means_uplift", "--plot_means_with_uplift", type=bool, default=False, help="If this is true I'l make plots of the mean hillslope data vs uplift rate")
     parser.add_argument("-traces", "--plot_hillslope_traces",type=bool, default=False, help="if this is true I'll plot a hillshade with hillslope traces overlain")
     parser.add_argument("-angles", "--plot_junction_angles", type=bool, default=False, help="If this is true I'll make plots of the basin junction angles vs basin ID")
+    parser.add_argument("-determine_sc", "--determine_sc", type=bool, default=False, help="If this is true I will create some plots to determine what the correct critical slope value should be, based on Grieve et al. (2016, ESPL)")
     parser.add_argument("-extent", "--custom_plot_extent", type=float, nargs=4, default=None, help="four values required to define the [xmin, xmax, ymin, ymax] extent to plot map data")
 
     parser.add_argument("-sc", "--sc", type=float, default=0.8, help="Critical slope for E*R* calculations. Default = 0.8")
@@ -138,16 +139,12 @@ def main(argv):
     if args.plot_data_within_basin:
         for basin_key in these_basin_keys:
             print "This basin key is: ", basin_key
-            # HS.PlotEStarRStar(this_dir, args.fname_prefix, PlotDirectory, basin_key)
-            # HS.PlotRStarDistance(this_dir, args.fname_prefix, PlotDirectory,basin_key)
-            # HS.PlotLHDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+
     if args.plot_mean_basin_data:
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
-        HS.PlotEStarRStarBasins(this_dir, args.fname_prefix, PlotDirectory, args.sc)
-        # HS.PlotKsnAgainstRStar(this_dir, args.fname_prefix, PlotDirectory)
-        # HS.PlotKsnAgainstEStar(this_dir, args.fname_prefix, PlotDirectory)
-        # HS.PlotHillslopeDataWithBasinsFromCSV(this_dir, args.fname_prefix)
+        #HS.PlotEStarRStarSubPlots(this_dir, args.fname_prefix, PlotDirectory, args.sc)
+
     if args.plot_means_with_uplift:
         HS.PlotBasinDataAgainstUplift(this_dir, args.fname_prefix, PlotDirectory)
 
@@ -157,8 +154,8 @@ def main(argv):
       else:
         HS.PlotHillslopeTraces(this_dir, args.fname_prefix, PlotDirectory)
 
-    if args.plot_junction_angles:
-        HS.PlotJunctionAnglesAgainstBasinID(this_dir, args.fname_prefix, PlotDirectory)
+    if args.determine_sc:
+        HS.DetermineSc(this_dir, args.fname_prefix, PlotDirectory)
 
 #=============================================================================
 if __name__ == "__main__":
