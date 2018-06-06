@@ -143,7 +143,7 @@ def main(argv):
 
     if args.plot_mean_basin_data:
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
-        #HS.PlotEStarRStarSubPlots(this_dir, args.fname_prefix, PlotDirectory, args.sc)
+        HS.PlotEStarRStarSubPlots(this_dir, args.fname_prefix, PlotDirectory, args.sc)
 
     if args.plot_means_with_uplift:
         HS.PlotBasinDataAgainstUplift(this_dir, args.fname_prefix, PlotDirectory)
