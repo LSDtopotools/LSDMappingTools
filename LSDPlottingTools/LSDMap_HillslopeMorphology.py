@@ -370,6 +370,16 @@ def SaveChannelDataByBasin(DataDirectory,FilenamePrefix):
         #write to file
         BasinChannelData.to_csv(OutputFilename, index=False)
 
+def RemoveSmallSegments(BasinHillslopeData, n_traces=50):
+    """
+    Remove hilltop segments with less than a specified number of traces in a basin
+    Author: FJC
+    """
+    # remove segments shorter than the threshold length
+    BasinHillslopeData = BasinHillslopeData.groupby('StreamID').filter(lambda x: x.shape[0] > n_traces)
+    return BasinHillslopeData
+
+
 #---------------------------------------------------------------------------------#
 # ANALYSIS FUNCTIONS
 #---------------------------------------------------------------------------------#
@@ -583,7 +593,7 @@ def CalculateEStarRStar(DataDirectory,FilenamePrefix,Basin,Sc=0.71):
     Data = Data.dropna(0,'any')
 
     # only keep segments with more than 50 hillslope traces
-    Data = Data[Data.NTraces > 50]
+    #Data = Data[Data.NTraces > 50]
 
     return Data
 
@@ -1244,36 +1254,11 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     basins = df['basin_keys'].unique()
     NoBasins = len(basins)
 
-    EStarMedians = []
-    RStarMedians = []
-    MChiMedians = []
+    sc = ax[0].scatter(df.Estar_median,df.Rstar_median,c=df.basin_keys,s=50, edgecolors='k', zorder=100)
+    ax[0].errorbar(df.Estar_median,df.Rstar_median,xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
-    for basin_key in basins:
-        Data = CalculateEStarRStar(DataDirectory,FilenamePrefix,basin_key, Sc=Sc)
-
-        # colour code by basin number
-        colour = float(basin_key)/float(NoBasins)
-        MChiMedian = Data.MChi.median()
-        EStarMedian = Data.EStar.median()
-        RStarMedian = Data.RStar.median()
-        EStar_lower_err = np.percentile(Data.EStar.as_matrix(), 16)
-        EStar_upper_err = np.percentile(Data.EStar.as_matrix(), 84)
-        RStar_lower_err = np.percentile(Data.RStar.as_matrix(), 16)
-        RStar_upper_err = np.percentile(Data.RStar.as_matrix(), 84)
-        MChi_lower_err = np.percentile(Data.MChi.as_matrix(), 16)
-        MChi_upper_err = np.percentile(Data.MChi.as_matrix(), 84)
-
-        # plot the rstar vs estar
-        sc = ax[0].scatter(EStarMedian,RStarMedian,c=ColourMap(colour),s=50, edgecolors='k', zorder=100)
-        ax[0].errorbar(EStarMedian,RStarMedian,xerr=[[EStarMedian-EStar_lower_err],[EStar_upper_err-EStarMedian]], yerr=[[RStarMedian-RStar_lower_err],[RStar_upper_err-RStarMedian]],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
-
-        # plot the rstar vs ksn
-        ax[1].scatter(MChiMedian, RStarMedian, c=ColourMap(colour), s=50, edgecolors='k', zorder=100)
-        ax[1].errorbar(MChiMedian, RStarMedian,xerr=[[MChiMedian-MChi_lower_err],[MChi_upper_err-MChiMedian]], yerr=[[RStarMedian-RStar_lower_err],[RStar_upper_err-RStarMedian]], fmt='o', ecolor='0.5',markersize=1,mfc='white',mec='k')
-
-        EStarMedians.append(EStarMedian)
-        RStarMedians.append(RStarMedian)
-        MChiMedians.append(MChiMedian)
+    sc = ax[1].scatter(df.mchi_median,df.Rstar_median,c=df.basin_keys,s=50, edgecolors='k', zorder=100)
+    ax[1].errorbar(df.mchi_median,df.Rstar_median,xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
     # plot the theoretical relationships for each one
     # Calculate analytical relationship for estar rstar
@@ -1284,7 +1269,7 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     ax[0].plot(EStar_model,RStar_model,c='0.5',ls='--')
 
     # calculate linear fit for Rstar ksn
-    slope, intercept, r_value, p_value, std_err = stats.linregress(MChiMedians, RStarMedians)
+    slope, intercept, r_value, p_value, std_err = stats.linregress(df.mchi_median, df.Rstar_median)
     print (slope, intercept, r_value, p_value)
     x = np.linspace(0, 200, 100)
     new_y = slope*x + intercept
@@ -1293,10 +1278,10 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     # Finalise the figure
     ax[0].set_xlabel('$E^*={{-2\:C_{HT}\:L_H}/{S_C}}$')
     ax[0].set_ylabel('$R^*=S/S_C$')
-    ax[0].set_xlim(0.1,20)
+    ax[0].set_xlim(0.1,25)
     ax[0].set_ylim(0.2,1)
 
-    ax[1].set_xlim(10,80)
+    ax[1].set_xlim(10,90)
     ax[1].set_ylim(0.2,1)
     ax[1].set_xlabel('$k_{sn}$')
 
