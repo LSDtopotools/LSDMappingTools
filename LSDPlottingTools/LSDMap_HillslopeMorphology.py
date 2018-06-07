@@ -1324,7 +1324,7 @@ def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExte
 
 
     # Save the figure
-    ImageName = PlotDirectory+"bolinas_traces.png"
+    ImageName = PlotDirectory+FilenamePrefix+"_traces.png"
     print(ImageName)
     FigWidth_Inches = Get_FigWidth_Inches(FigSizeFormat)
 
@@ -1344,25 +1344,25 @@ def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExte
     # add hilltops
     HilltopPointsDF = ReadHillslopeData(DataDirectory, FilenamePrefix)
     HilltopPoints = LSDP.LSDMap_PointData(HilltopPointsDF, data_type = "pandas", PANDEX = True)
-    MF.add_point_data(HilltopPoints,alpha=1,zorder=100,unicolor=[0.8,0,0],manual_size=1)
+    MF.add_point_data(HilltopPoints,alpha=1,zorder=100,unicolor=[0.8,0,0],manual_size=2)
 
     # add channel heads
-    ChannelHeadsDF = pd.read_csv(DataDirectory+FilenamePrefix+"_CH_wiener_nodeindices_for_Arc.csv")
+    ChannelHeadsDF = pd.read_csv(DataDirectory+FilenamePrefix+"_Wsources.csv")
     ChannelHeadPoints = LSDP.LSDMap_PointData(ChannelHeadsDF, data_type = "pandas", PANDEX = True)
-    MF.add_point_data(ChannelHeadPoints,alpha=0.5,zorder=100,unicolor="blue",manual_size=5)
+    MF.add_point_data(ChannelHeadPoints,zorder=100,unicolor="blue",manual_size=8)
 
     # add channels
     ChannelDF = Helper.ReadChiDataMapCSV(DataDirectory,FilenamePrefix)
     ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-    MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, max_point_size = 2.5, min_point_size = 0.5, column_for_scaling='drainage_area',alpha=0.5,zorder=90)
+    MF.add_point_data(ChannelPoints,show_colourbar="False", scale_points=True, max_point_size = 2.5, min_point_size = 0.5, column_for_scaling='drainage_area',zorder=90)
 
     # add hillslope traces
     ThinningFactor=1
-    HillslopeTracesShp = DataDirectory+FilenamePrefix+"_hillslope_traces.shp"
-    if os.path.exists(HillslopeTracesShp) == False:
-      WriteHillslopeTracesShp(DataDirectory,FilenamePrefix,ThinningFactor,CustomExtent)
+    #HillslopeTracesShp = DataDirectory+FilenamePrefix+"_hillslope_traces.shp"
+    #if os.path.exists(HillslopeTracesShp) == False:
+    WriteHillslopeTracesShp(DataDirectory,FilenamePrefix,ThinningFactor,CustomExtent)
 
-    MF.add_line_data(DataDirectory+FilenamePrefix+"_hillslope_traces.shp",zorder=80,alpha=0.5,linewidth=0.2)
+    MF.add_line_data(DataDirectory+FilenamePrefix+"_hillslope_traces.shp",zorder=80,alpha=0.9,linewidth=0.8)
 
     #finalise and save figure
     MF.SetRCParams(label_size=8)
