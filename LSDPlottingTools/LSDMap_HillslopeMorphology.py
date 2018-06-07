@@ -1067,7 +1067,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     # plot the hillslope length
     ax[0].errorbar(basin_keys,median_Lh,yerr=[Lh_lower_err, Lh_upper_err],fmt='o', ecolor='0.5',markersize=6,mec='k',mfc=colors[0])
-    ax[0].set_ylabel('$L_h$')
+    ax[0].set_ylabel('$L_H$')
 
     #plot the cht
     ax[1].errorbar(basin_keys,median_cht,yerr=[cht_lower_err, cht_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[1],mec='k')
