@@ -1,8 +1,11 @@
 #=============================================================================
-# Script to plot the m/n analysis using the MLE collinearity
+# Script to plot various hillslope metrics that are generated from the 
+# <<not sure which on, maybe make_spaghetti.cpp>> driver file
 #
 # Authors:
 #     Fiona J. Clubb
+#     Martin D Hurst
+#     Simon M. Mudd
 #=============================================================================
 #=============================================================================
 # IMPORT MODULES

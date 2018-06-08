@@ -47,7 +47,21 @@ from LSDMapFigure.PlottingRaster import MapFigure
 #=============================================================================
 
 def Get_FigWidth_Inches(FigSizeFormat="default"):
+    """
+    This function gets the figure width in inches for different formats
 
+    Args:
+        FigSizeFormat: the figure size format according to journal for which the figure is intended
+            values are geomorphology,ESURF, ESPL, EPSL, JGR, big
+            default is ESURF
+
+    Returns:
+        figure width in inches. Inches is required since matplotlib was written by unreformed yanks.
+
+    Author: MDH
+    """
+    
+    
     # set figure sizes (in inches) based on format
     if FigSizeFormat == "geomorphology":
         FigWidth_Inches = 6.25
@@ -289,6 +303,8 @@ def WriteHillslopeTracesShp(DataDirectory,FilenamePrefix,ThinningFactor=1, Custo
     Args:
         DataDirectory: the data directory
         FilenamePrefix: the file name prefix
+        ThinningFactor (int): This determines how many of the traces are discarded. Higher numbers mean more traces are discarded
+        CustomExtent (list): if this is [-9999] the extent is grabbed from the raster. Otherwise you give it a 4 element list giving the extent of the area of interest. 
 
 
     Author: MDH
@@ -600,6 +616,10 @@ def CalculateEStarRStar(DataDirectory,FilenamePrefix,Basin,Sc=0.71):
 
 def CalculateRStar(EStar):
     """
+    Calculates E*
+    
+    returns: an array (?) of RStar values. 
+    
     MDH
 
     """
@@ -622,6 +642,19 @@ def PlotEStarRStarTheoretical():
 # PLOTTING FUNCTIONS
 #-------------------------------------------------------------------------------#
 def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+    """
+
+
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        BasinID (int): The basin to be plotted
+        
+    Author: MDH
+    
+    
+    """
 
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
@@ -657,7 +690,21 @@ def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, Basin
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevSeg.png", dpi=300)
 
 def PlotLongProfileSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+    """
 
+
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        BasinID (int): The basin to be plotted
+        
+    Author: MDH
+    
+    
+    """
+    
+    
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
 
@@ -692,7 +739,21 @@ def PlotLongProfileSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinI
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfSeg.png", dpi=300)
 
 def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+    """
 
+
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        BasinID (int): The basin to be plotted
+        
+    Author: MDH
+    
+    
+    """
+    
+    
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
 
@@ -746,7 +807,21 @@ def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevMChi.png", dpi=300)
 
 def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+    """
 
+
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        BasinID (int): The basin to be plotted
+        
+    Author: MDH
+    
+    
+    """
+    
+    
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
 
@@ -798,8 +873,15 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     This function makes some composite plots of the hillslope data vs
     distance upstream from the outlet
 
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        BasinID (int): The basin to be plotted  
+
     Author: FJC
     """
+    
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
     #print BasinChannelData
@@ -891,6 +973,12 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     Makes a plot of E* against R* where the points are coloured by
     their distance from the outlet of the basin
 
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        BasinID (int): The basin to be plotted
+        
     Author: FJC
     """
     import math
@@ -981,6 +1069,13 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     Function to make plots of hillslope data vs basin id.
     At the moment this is hard coded for the MTJ because I need to add in the
     uplift data...sorry!
+
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        BasinID (int): The basin to be plotted
+        
     Author: FJC
     """
 
