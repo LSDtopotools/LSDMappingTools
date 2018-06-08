@@ -1675,19 +1675,24 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
             ax3.scatter(row.Chi, row.RStarMedian, marker='o', edgecolors='k',lw=0.5, c=[0.5,0.7,0.9], s=20, zorder=200)
 
         # Finalise the figure
+        if PlotKsn:
+            ax1.set_ylabel(r"$k_{sn}$")
+        else:
+            ax1.set_ylabel('Elevation (m)')
+                      
         ax1.set_xlabel(r"$\chi$ (m)")
-        ax1.set_ylabel('Elevation (m)')
         ax2.set_ylabel('Dimensionless $C_{\mathit{HT}}$')
         ax3.set_ylabel('Dimensionless Relief $(S/S_C)$')
 
 
-        #add colourbar
-        CAx = Fig.add_axes([0.6,0.17,0.25,0.02])
-        m = cm.ScalarMappable(cmap=ColourMap)
-        m.set_array(PlotDF.Ksn)
-        plt.colorbar(m, cax=CAx,orientation='horizontal')
-        plt.xlabel('${\chi}$ (m)',fontsize=8)
-        CAx.tick_params(axis='both', labelsize=8)
+        #add colourbar if you have a profile plot
+        if not PlotKsn:
+            CAx = Fig.add_axes([0.6,0.17,0.25,0.02])
+            m = cm.ScalarMappable(cmap=ColourMap)
+            m.set_array(PlotDF.Ksn)
+            plt.colorbar(m, cax=CAx,orientation='horizontal')
+            plt.xlabel('$k_{sn}$',fontsize=8)
+            CAx.tick_params(axis='both', labelsize=8)
 
         # turn off ax2 overlap and x axis for superimposed plots
         ax1.patch.set_facecolor('none')
