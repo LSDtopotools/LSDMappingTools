@@ -1558,3 +1558,168 @@ def PlotEStarRStarProgression(Sc=0.71):
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.savefig(PlotDirectory+FilenamePrefix + "_EStarRStarProgression.png", dpi=300)
     plt.close(Fig)
+    
+def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Basins = [], PlotKsn = False, Sc = 0.71):
+    """
+    This plots the data by basin showing the E*, R* and either the chi profile or the K_sn data as a function of chi
+    
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        Basins (list): The basins to be plotted
+        PlotKsn (bool): If true, the profile plot will be Ksn instead of elevation
+        Sc (float): The critical slope
+    
+    Author: MDH
+    
+    """
+
+    #Load hillslope metrics data
+    HillslopesDF = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    # Read in the raw channel data
+    ChannelsDF = ReadChannelData(DataDirectory, FilenamePrefix)
+
+    # Basins list and keys
+    Basins = np.loadtxt(DataDirectory+FilenamePrefix+'_junctions.list',dtype=int)
+    
+    # loop through basins
+    for key, Basin in np.ndenumerate(Basins):
+
+        # print basin to screen
+        print(key[0], Basin)
+        
+        # isolate basin data
+        BasinChannelData = ChannelsDF[ChannelsDF.basin_key == key]
+        MinimumChi = BasinChannelData.chi.min()
+        MaximumMChi = BasinChannelData.m_chi.max()
+        MinKsn = BasinChannelData.m_chi.min()
+        MaxKsn = BasinChannelData.m_chi.max()
+        
+        # how many segments are we dealing with?    
+        Segments = BasinChannelData.segment_number.unique()
+        
+        # setup the figure
+        Fig = CreateFigure(FigSizeFormat="EPSL",AspectRatio=1)
+        ax1 = Fig.add_axes([0.1,0.1,0.8,0.35])
+        ax2 = Fig.add_axes([0.1,0.45,0.8,0.32])
+        ax3 = Fig.add_axes([0.1,0.65,0.8,0.32])
+
+        #choose colormap
+        ColourMap = cm.viridis
+
+        # create new dataframe for plotting
+        PlotDF = pd.DataFrame(columns=['Chi','Ksn','EStarMedian','EStarLower',
+                     'EStarUpper','RStarMedian','RStarLower','RStarUpper','NTraces'])
+        
+        # Get the data columns for plotting
+        for i, Segment in np.ndenumerate(Segments):
+            
+            # get metrics to plot
+            Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
+            Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment]
+            Elevation = BasinChannelData.elevation[BasinChannelData.segment_number == Segment]
+
+            #normalise chi by outlet chi
+            Chi = Chi-MinimumChi
+            
+            # plot the chi data
+            Colour = (Ksn-MinKsn)/(MaxKsn-MinKsn)
+            
+            if PlotKsn:
+                ax1.scatter(Chi,Ksn,marker='o', edgecolors='k',lw=0.5, c=[0.8,0.8,0.8], s=20, zorder=20)
+            else:    
+                ax1.plot(Chi,Elevation,'-', lw=1.5,c=ColourMap(Colour), zorder=10)
+
+            # get hillslope data
+            SegmentHillslopeData = HillslopesDF[HillslopesDF.StreamID == Segment]
+            NTraces = len(SegmentHillslopeData)
+
+            if NTraces<20:
+                continue
+                
+            # Calculate E* R*
+            EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
+            RStar = SegmentHillslopeData.S/Sc
+
+            EStarMedian = EStar.median()
+            EStarLower = EStar.quantile(0.25)
+            EStarUpper = EStar.quantile(0.75)
+
+            RStarMedian = RStar.median()
+            RStarLower = RStar.quantile(0.25)
+            RStarUpper = RStar.quantile(0.75)
+                
+            # add to plot dataframe
+            PlotDF.loc[i]  = [Chi.median(),Ksn,EStarMedian,EStarLower, EStarUpper, RStarMedian, RStarLower, RStarUpper,NTraces]
+
+        # reset indices
+        PlotDF = PlotDF.reset_index(drop=True)
+        
+        # Zip errors for plotting
+        Es_max_err = PlotDF.EStarUpper.values-PlotDF.EStarMedian
+        Es_min_err = PlotDF.EStarMedian-PlotDF.EStarLower.values
+        Es_errors = np.array(zip(Es_min_err, Es_max_err)).T
+        Rs_max_err = PlotDF.RStarUpper.values-PlotDF.RStarMedian
+        Rs_min_err = PlotDF.RStarMedian-PlotDF.RStarLower.values
+        Rs_errors = np.array(zip(Rs_min_err, Rs_max_err)).T
+
+        #Get colours for plotting from Chi
+        
+        #plot ksn vs EStar and Rstar, colouring by Chi        
+        for i, row in PlotDF.iterrows():
+            ax2.plot([row.Chi,row.Chi],[row.EStarLower, row.EStarUpper],'-',c=[0.5,0.9,0.7],lw=2)
+            ax2.scatter(row.Chi, row.EStarMedian, marker='o', edgecolors='k',lw=0.5, c=[0.5,0.9,0.7], s=20, zorder=200)
+            ax3.plot([row.Chi,row.Chi],[row.RStarLower, row.RStarUpper],'-',c=[0.5,0.7,0.9],lw=2)
+            ax3.scatter(row.Chi, row.RStarMedian, marker='o', edgecolors='k',lw=0.5, c=[0.5,0.7,0.9], s=20, zorder=200)
+
+        # Finalise the figure
+        ax1.set_xlabel(r"$\chi$ (m)")
+        ax1.set_ylabel('Elevation (m)')
+        ax2.set_ylabel('Dimensionless $C_{\mathit{HT}}$')
+        ax3.set_ylabel('Dimensionless Relief $(S/S_C)$')
+
+
+        #add colourbar
+        CAx = Fig.add_axes([0.6,0.17,0.25,0.02])
+        m = cm.ScalarMappable(cmap=ColourMap)
+        m.set_array(PlotDF.Ksn)
+        plt.colorbar(m, cax=CAx,orientation='horizontal')
+        plt.xlabel('${\chi}$ (m)',fontsize=8)
+        CAx.tick_params(axis='both', labelsize=8)
+
+        # turn off ax2 overlap and x axis for superimposed plots
+        ax1.patch.set_facecolor('none')
+        ax1.spines['right'].set_visible(False)
+        ax1.spines['top'].set_visible(False)
+        ax1.yaxis.set_ticks_position('left')
+        ax1.xaxis.set_ticks_position('bottom')
+        ax2.patch.set_facecolor('none')
+        ax2.spines['left'].set_visible(False)
+        ax2.spines['top'].set_visible(False)
+        ax2.spines['bottom'].set_visible(False)
+        ax2.xaxis.set_visible(False)
+        ax2.yaxis.tick_right()
+        ax2.yaxis.set_label_position("right")
+        ax3.patch.set_facecolor('none')
+        ax3.spines['right'].set_visible(False)
+        ax3.spines['top'].set_visible(False)
+        ax3.spines['bottom'].set_visible(False)
+        ax3.xaxis.set_visible(False)
+        ax3.yaxis.set_label_position("left")
+        ax3.yaxis.set_ticks_position('left')
+
+        # fix axis limits
+        if PlotKsn:
+            ax1.sey_ylim(0,MaxKsn)
+        
+        ax2.set_ylim(0,PlotDF.EStarUpper.max())
+        ax3.set_ylim(0,1)
+
+        #save output
+        plt.suptitle('Basin ID ' + str(key[0]) + " (" + str(Basin) + ")")
+        plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key[0]) + "_ChiProfileEsRs.png", dpi=300)
+        plt.clf()
+        plt.close()    
+    

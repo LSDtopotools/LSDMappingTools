@@ -72,11 +72,15 @@ def main(argv):
     parser.add_argument("-means_uplift", "--plot_means_with_uplift", type=bool, default=False, help="If this is true I'l make plots of the mean hillslope data vs uplift rate")
     parser.add_argument("-traces", "--plot_hillslope_traces",type=bool, default=False, help="if this is true I'll plot a hillshade with hillslope traces overlain")
     parser.add_argument("-angles", "--plot_junction_angles", type=bool, default=False, help="If this is true I'll make plots of the basin junction angles vs basin ID")
-    parser.add_argument("-determine_sc", "--determine_sc", type=bool, default=False, help="If this is true I will create some plots to determine what the correct critical slope value should be, based on Grieve et al. (2016, ESPL)")
-    parser.add_argument("-extent", "--custom_plot_extent", type=float, nargs=4, default=None, help="four values required to define the [xmin, xmax, ymin, ymax] extent to plot map data")
-
+    parser.add_argument("-determine_sc", "--determine_sc", type=bool, default=False, help="If this is true I will create some plots to determine what the correct critical slope value should be, based on Grieve et al. (2016, ESPL)")   
+    parser.add_argument("-profile_plots", "--profile_plots", type=bool, default=False, help="If this is true I will plot E*, R*, and either Ksn or elevation against chi for each basin.")
+    
+    
+    # Parameters that are used within plotting functions
     parser.add_argument("-sc", "--sc", type=float, default=0.8, help="Critical slope for E*R* calculations. Default = 0.8")
-
+    parser.add_argument("-extent", "--custom_plot_extent", type=float, nargs=4, default=None, help="four values required to define the [xmin, xmax, ymin, ymax] extent to plot map data")
+    parser.add_argument("-plot_Ksn", "--plot_Ksn", type=bool, default=False, help="If this is true I will plot Ksn in the profile plots.")
+    
     #parse the argments
     args = parser.parse_args()
 
@@ -159,6 +163,9 @@ def main(argv):
 
     if args.determine_sc:
         HS.DetermineSc(this_dir, args.fname_prefix, PlotDirectory)
+        
+    if args.profile_plots:
+        HS.PlotChiProfileHillslopeData(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.plot_Ksn, args.sc)
 
 #=============================================================================
 if __name__ == "__main__":
