@@ -1574,6 +1574,12 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     Author: MDH
     
     """
+    
+    print("Hi there. Let me print some basin by basin plots for you.")
+    if PlotKsn:
+        print("You are plotting chi-k_sn rather than chi-elevation")
+    else:
+        print("You are plotting chi-elevation rather than chi-k_sn")
 
     #Load hillslope metrics data
     HillslopesDF = ReadHillslopeData(DataDirectory, FilenamePrefix)
@@ -1617,9 +1623,17 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
         for i, Segment in np.ndenumerate(Segments):
             
             # get metrics to plot
+            if PlotKsn:
+                KKsn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment]
+            
             Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
             Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment]
             Elevation = BasinChannelData.elevation[BasinChannelData.segment_number == Segment]
+            
+            #print("Sizes are:")
+            #print("Ksn: "+str(Ksn.size))
+            #print("Chi: "+str(Chi.size))
+            #print("Elevation: "+str(Elevation.size))
 
             #normalise chi by outlet chi
             Chi = Chi-MinimumChi
@@ -1627,8 +1641,10 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
             # plot the chi data
             Colour = (Ksn-MinKsn)/(MaxKsn-MinKsn)
             
+            PlotMaxKsn = int(math.ceil(MaxKsn / 10.0)) * 10
+            
             if PlotKsn:
-                ax1.scatter(Chi,Ksn,marker='o', edgecolors='k',lw=0.5, c=[0.8,0.8,0.8], s=20, zorder=20)
+                ax1.scatter(Chi,KKsn,marker='o', edgecolors='k',lw=0.5, c=[0.8,0.8,0.8], s=20, zorder=20)
             else:    
                 ax1.plot(Chi,Elevation,'-', lw=1.5,c=ColourMap(Colour), zorder=10)
 
@@ -1717,14 +1733,18 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
 
         # fix axis limits
         if PlotKsn:
-            ax1.sey_ylim(0,MaxKsn)
+            ax1.set_ylim(0,PlotMaxKsn)
         
         ax2.set_ylim(0,PlotDF.EStarUpper.max())
         ax3.set_ylim(0,1)
 
         #save output
         plt.suptitle('Basin ID ' + str(key[0]) + " (" + str(Basin) + ")")
-        plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key[0]) + "_ChiProfileEsRs.png", dpi=300)
+        
+        if PlotKsn:
+            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key[0]) + "_ChiProfileEsRsKsn.png", dpi=300)
+        else:    
+            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key[0]) + "_ChiProfileEsRs.png", dpi=300)
         plt.clf()
         plt.close()    
     
