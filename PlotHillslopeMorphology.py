@@ -31,7 +31,7 @@ def print_welcome():
     print("Use the -dir flag to define the working directory.")
     print("If you don't do this I will assume the data is in the same directory as this script.")
     print("For help type:")
-    print("   python PlotMOverNAnalysis.py -h\n")
+    print("   python PlotHillslopeMorphologyAnalysis.py -h\n")
     print("=======================================================================\n\n ")
 
 #=============================================================================

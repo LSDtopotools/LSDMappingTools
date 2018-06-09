@@ -276,6 +276,13 @@ def MapBasinKeysToJunctions(DataDirectory,FilenamePrefix):
     """
     Function to write a dict of basin keys vs junctions
 
+    Args:
+        DataDirectory (str): the data directory
+        fname_prefix (str): the name of the DEM
+        
+    Returns:
+        A dictionary with the basin key as the key and the junction as the value
+
     Author: FJC
     """
     # load the channel data
@@ -306,6 +313,7 @@ def WriteHillslopeTracesShp(DataDirectory,FilenamePrefix,ThinningFactor=1, Custo
         ThinningFactor (int): This determines how many of the traces are discarded. Higher numbers mean more traces are discarded
         CustomExtent (list): if this is [-9999] the extent is grabbed from the raster. Otherwise you give it a 4 element list giving the extent of the area of interest. 
 
+    Returns: None, but writes a shapefile
 
     Author: MDH
     """
@@ -389,6 +397,11 @@ def SaveChannelDataByBasin(DataDirectory,FilenamePrefix):
 def RemoveSmallSegments(BasinHillslopeData, n_traces=50):
     """
     Remove hilltop segments with less than a specified number of traces in a basin
+    
+    Args:
+        BasinHillslopeData (pandas dataframe): The dataframe containing the hillslope data (ridgelines). You get this using the ReadHillslopeData function
+        n_traces (int) the minimum number of traces
+        
     Author: FJC
     """
     # remove segments shorter than the threshold length
@@ -401,8 +414,13 @@ def RemoveSmallSegments(BasinHillslopeData, n_traces=50):
 #---------------------------------------------------------------------------------#
 def DetermineSc(DataDirectory,FilenamePrefix,PlotDirectory):
     """
-    Following Grieve et al. 2016 How Long is a Hillslope?
+    Determines the critical slope following Grieve et al. 2016 How Long is a Hillslope?
 
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+    
     MDH
 
     """
@@ -547,6 +565,11 @@ def CalculateEStarRStar(DataDirectory,FilenamePrefix,Basin,Sc=0.71):
     """
     Calculate EStar and RStar here so that you can change the critical slope
     Calculate for a specific basin.
+    
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        Sc (float): The critical slope to use
 
     returns: pandas data frame with Estar Rstar data and quantiles for hillslopes
         organised by channel segments for the specified basin
@@ -572,7 +595,7 @@ def CalculateEStarRStar(DataDirectory,FilenamePrefix,Basin,Sc=0.71):
     # record the number of traces in each segment inbto a new dataframe
     Data = pd.DataFrame(columns=['SegmentNo','MChi','FlowLength','SegmentLength','EStar','EStarLower','EStarUpper','RStar','RStarLower','RStarUpper','NTraces'])
 
-
+    # Loop through the segments
     for i in range(0,len(Segments)):
 
         #Get segment hillslope data
@@ -1274,6 +1297,13 @@ def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.8)
     Function to make an E*R* plot for a series of drainage basins.
     Changing so that we calculate E* and R* in the python script following
     Martin's example, so that we can test sensitivity to Sc.
+    
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved 
+        Sc (float): The critical slope to be used in the analysis
+        
     Author: FJC
     """
     input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
@@ -1334,6 +1364,12 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     """
     Make a composite plot of E* R* and R* Ksn
 
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved 
+        Sc (float): The critical slope to be used in the analysis
+        
     FJC
     """
     input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
@@ -1398,6 +1434,12 @@ def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExte
     """
     Function to plot a hillshade image with hilltops, hillslope traces and the channel network superimposed.
 
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        CustomExtent (list): If [-9999] then just use extent of raster. Otherwise a four lement list with extents of the area you want to plot
+        FigSizeFormat (str): The format of the figure you want. Try your favourite journal. It may or may not be there. 
 
     MDH
     """
@@ -1450,7 +1492,10 @@ def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExte
 
 def PlotEStarRStarProgression(Sc=0.71):
     """
-    Plots the progression of hillslopes along Bolinas in Estar Rstar space
+    Plots the progression of hillslopes along Bolinas in Estar Rstar space. Maybe Fiona just copied this over since I'm not sure from where it will read data (SMM)
+
+    Args:
+        Sc (float): The critical slope
 
     MDH, September 2017
 
