@@ -720,7 +720,9 @@ def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, Basin
 
 def PlotLongProfileSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
-
+    This plots the chi--elevation prfile with the segments used in the hilltop analyses plotted in random colours.
+    The segments are not the same as the ones determined by the segmentation algorithm. Instead they are bits of the chi
+    profile split up to see the correspondence between channel and hillslope data. 
 
     Args:
         DataDirectory (str): the data directory
@@ -915,7 +917,8 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     """
     This function makes some composite plots of the hillslope data vs
     distance upstream from the outlet. 
-    It requires the hillslope and channel data csv files. 
+    It requires the hillslope and channel data csv files.
+    Note: It reads E* R* data from file so S_c is not tuned. It must be entered in the c++ code.
 
     Args:
         DataDirectory (str): the data directory
@@ -1063,10 +1066,11 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     # close this figure to prevent stupid warnings
     plt.close(fig)
 
-def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, BasinID, minimum_traces = 50):
     """
     Makes a plot of E* against R* where the points are coloured by
     their distance from the outlet of the basin
+    Note: It reads E* R* data from file so S_c is not tuned. It must be entered in the c++ code.
 
     Args:
         DataDirectory (str): the data directory
@@ -1077,6 +1081,8 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     Author: FJC
     """
     import math
+    
+    print("Plotting the E* R* curves for basin "+str(BasinID))
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
 
@@ -1094,8 +1100,12 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     # how many segments are we dealing with?
     Segments = BasinChannelData.segment_number.unique()
 
+    # try to figure out the source key
+    mainstem_source_key = BasinChannelData.source_key.iloc[0]
+    print("The mainstem source key is: " +str(mainstem_source_key))    
+    
     # separate into main stem and trib data
-    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
+    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == mainstem_source_key]
     MainStemSegments = MainStemChannelData.segment_number.unique()
 
     # set up the figure
@@ -1116,7 +1126,11 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
         SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
-        if SegmentHillslopeData.size > 50:
+        
+        # Get the number of traces
+        N_traces = len(SegmentHillslopeData["i"].tolist())
+        
+        if N_traces > minimum_traces:
             if Segments[i] in MainStemSegments:
                 MainStemEStar.append(SegmentHillslopeData.E_Star.mean())
                 MainStemRStar.append(SegmentHillslopeData.R_Star.mean())
@@ -1128,6 +1142,8 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
 
     # get the model data for this E_Star
     ModelRStar = []
+    
+    # SMM: Is this using S_c == 1?
     for x in MainStemEStar:
         ModelRStar.append((1./x) * (np.sqrt(1.+(x*x)) - np.log(0.5*(1. + np.sqrt(1.+(x*x)))) - 1.))
 
@@ -1137,7 +1153,7 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
 
     Ax.plot(ModelEStar,ModelRStar, c='k')
     Ax.scatter(MainStemEStar,MainStemRStar,c=MainStemDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
-    # Ax.scatter(TribsEStar,TribsRStar,c=TribsDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
+    Ax.scatter(TribsEStar,TribsRStar,c=TribsDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
     # Ax.set_xscale('log')
     # Ax.set_yscale('log')
     plt.xlabel('$E*$')
@@ -1158,6 +1174,7 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_EStar_RStar.png", dpi=300)
     plt.clf()
+    plt.close(Fig)
 
 def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     """
@@ -1767,7 +1784,7 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
 
             # get hillslope data
             SegmentHillslopeData = HillslopesDF[HillslopesDF.StreamID == Segment]
-            NTraces = len(SegmentHillslopeData)
+            NTraces = len(SegmentHillslopeData["i"].tolist())
 
             if NTraces<20:
                 continue

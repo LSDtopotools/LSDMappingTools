@@ -74,6 +74,8 @@ def main(argv):
     parser.add_argument("-angles", "--plot_junction_angles", type=bool, default=False, help="If this is true I'll make plots of the basin junction angles vs basin ID")
     parser.add_argument("-determine_sc", "--determine_sc", type=bool, default=False, help="If this is true I will create some plots to determine what the correct critical slope value should be, based on Grieve et al. (2016, ESPL)")   
     parser.add_argument("-profile_plots", "--profile_plots", type=bool, default=False, help="If this is true I will plot E*, R*, and either Ksn or elevation against chi for each basin.")
+    parser.add_argument("-EsRs_basin", "--plot_Es_Rs_by_basin", type=bool, default=False, help="This plots E* R* data for each basin.")
+    
     
     
     # Parameters that are used within plotting functions
@@ -82,6 +84,7 @@ def main(argv):
     parser.add_argument("-plot_Ksn", "--plot_Ksn", type=bool, default=False, help="If this is true I will plot Ksn in the profile plots.")
     parser.add_argument("-plot_chi_by_basin", "--plot_chi_by_basin", type=bool, default=False, help="If this is true I will plot with chi coordinate in main stem basin plots. If false I will plot by flow distance.")
     parser.add_argument("-min_traces", "--minimum_traces", type=int, default=50, help="The minimium number of traces to be used for plotting segment data.")
+    
     
     #parse the argments
     args = parser.parse_args()
@@ -155,6 +158,7 @@ def main(argv):
             HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key, args.plot_chi_by_basin, args.minimum_traces)
 
     if args.plot_mean_basin_data:
+        # NOTE this requires uplift data!!
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
         HS.PlotEStarRStarSubPlots(this_dir, args.fname_prefix, PlotDirectory, args.sc)
 
@@ -172,6 +176,11 @@ def main(argv):
         
     if args.profile_plots:
         HS.PlotChiProfileHillslopeData(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.plot_Ksn, args.sc)
+        
+    if args.plot_Es_Rs_by_basin:
+        print("Let me print the E* R* plots")
+        for basin_key in these_basin_keys:
+            HS.PlotEStarRStarWithinBasin(this_dir, args.fname_prefix, PlotDirectory, basin_key,args.minimum_traces)
 
 #=============================================================================
 if __name__ == "__main__":
