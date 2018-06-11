@@ -652,6 +652,8 @@ def CalculateRStar(EStar):
 
 def PlotEStarRStarTheoretical():
     """
+    This makes the theoretical E* vs R* plot. It prints to the current open figure. 
+    
     MDH
 
     """
@@ -661,6 +663,8 @@ def PlotEStarRStarTheoretical():
 
     # Plot with open figure
     plt.plot(EStar,RStar,'k--')
+    
+    
 #-------------------------------------------------------------------------------#
 # PLOTTING FUNCTIONS
 #-------------------------------------------------------------------------------#
@@ -891,10 +895,11 @@ def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfMChi.png", dpi=300)
 
-def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
+def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID, plot_vs_chi = False):
     """
     This function makes some composite plots of the hillslope data vs
-    distance upstream from the outlet
+    distance upstream from the outlet. 
+    It requires the hillslope and channel data csv files. 
 
     Args:
         DataDirectory (str): the data directory
@@ -919,12 +924,22 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     MinimumDistance = BasinChannelData.flow_distance.min()
     MaximumDistance = BasinChannelData.flow_distance.max()
     MaximumMChi = BasinChannelData.m_chi.max()
+    
+    # Get the minimum and maximum chi
+    MinimumChi = BasinChannelData.chi.min()
+    MaximumMChi = BasinChannelData.m_chi.max()    
 
     # how many segments are we dealing with?
     Segments = BasinChannelData.segment_number.unique()
 
     # separate into main stem and trib data
-    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
+    # (SMM): This is hard coded to take source key == 0 but this is only the source key for the first basin
+    
+    # try to figure out the source key
+    mainstem_source_key = BasinChannelData.source_key.iloc[0]
+    print("The mainstem source key is: " +str(mainstem_source_key))
+    
+    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == mainstem_source_key]
     MainStemSegments = MainStemChannelData.segment_number.unique()
 
     #choose colormap
@@ -942,13 +957,18 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     E_star_std = []
     M_chi = []
     M_chi_std = []
-
+    
+    
+    # COMMENT (SMM): Why does this not use chi coordinate? I will try to add it
+    chi_coord = []
+    
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
         SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
         if SegmentHillslopeData.size > 50: # remove traces with < 50 pixels
             # only analysing segments directly connected to the main stem
             if Segments[i] in MainStemSegments:
+                chi_coord.append(SegmentChannelData.chi.median())
                 DistanceFromOutlet.append(SegmentChannelData.flow_distance.median()/1000)
                 Lh.append(SegmentHillslopeData.Lh.mean())
                 Lh_std.append(SegmentHillslopeData.Lh.std())
@@ -960,31 +980,56 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
                 E_star_std.append(SegmentHillslopeData.E_Star.std())
                 M_chi.append(SegmentChannelData.m_chi.mean())
                 M_chi_std.append(SegmentChannelData.m_chi.std())
+                
+    # normalise by the outlet chi
+    chi_coord = chi_coord-MinimumChi
 
     # set up the figure
     fig, ax = plt.subplots(nrows = 4, ncols=1, sharex=True, figsize=(6,7))
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
-    # plot the hillslope length
-    print DistanceFromOutlet
-    ax[0].errorbar(DistanceFromOutlet,Lh,yerr=Lh_std,fmt='o', ecolor='0.5',markersize=5,mec='k')
+    
+    if(plot_vs_chi):
+        print chi_coord
+        ax[0].errorbar(chi_coord,Lh,yerr=Lh_std,fmt='o', ecolor='0.5',markersize=5,mec='k')
+           
+        #plot the cht
+        ax[1].errorbar(chi_coord,Cht,yerr=Cht_std,fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
+    
+        #plot the R*
+        ax[2].errorbar(chi_coord,R_star,yerr=R_star_std,fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
+    
+        #plot the M_chi
+        ax[3].errorbar(chi_coord,M_chi,yerr=M_chi_std,fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+
+        # set the axes labels
+        ax[3].set_xlabel('Chi (m)')
+    else:    
+        print DistanceFromOutlet
+        
+        # plot the hillslope length
+        ax[0].errorbar(DistanceFromOutlet,Lh,yerr=Lh_std,fmt='o', ecolor='0.5',markersize=5,mec='k')
+    
+        #plot the cht
+        ax[1].errorbar(DistanceFromOutlet,Cht,yerr=Cht_std,fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
+    
+        #plot the R*
+        ax[2].errorbar(DistanceFromOutlet,R_star,yerr=R_star_std,fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
+    
+        #plot the M_chi
+        ax[3].errorbar(DistanceFromOutlet,M_chi,yerr=M_chi_std,fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
+        
+        # set the axes labels
+        ax[3].set_xlabel('Distance from outlet (km)')  
+        
+    # remaining axis labels
     ax[0].set_ylabel('$L_h$')
-
-    #plot the cht
-    ax[1].errorbar(DistanceFromOutlet,Cht,yerr=Cht_std,fmt='o', ecolor='0.5',markersize=5,mfc='red',mec='k')
     ax[1].set_ylabel('$C_{HT}$')
-
-    #plot the R*
-    ax[2].errorbar(DistanceFromOutlet,R_star,yerr=R_star_std,fmt='o', ecolor='0.5',markersize=5,mfc='orange',mec='k')
     ax[2].set_ylabel('$R*$')
-
-    #plot the R*
-    ax[3].errorbar(DistanceFromOutlet,M_chi,yerr=M_chi_std,fmt='o', ecolor='0.5',markersize=5,mfc='purple',mec='k')
     ax[3].set_ylabel('$k_{sn}$')
+    
 
-    # set the axes labels
-    ax[3].set_xlabel('Distance from outlet (km)')
     plt.tight_layout()
 
     #save output

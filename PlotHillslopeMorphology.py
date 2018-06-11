@@ -80,6 +80,8 @@ def main(argv):
     parser.add_argument("-sc", "--sc", type=float, default=0.8, help="Critical slope for E*R* calculations. Default = 0.8")
     parser.add_argument("-extent", "--custom_plot_extent", type=float, nargs=4, default=None, help="four values required to define the [xmin, xmax, ymin, ymax] extent to plot map data")
     parser.add_argument("-plot_Ksn", "--plot_Ksn", type=bool, default=False, help="If this is true I will plot Ksn in the profile plots.")
+    parser.add_argument("-plot_chi_by_basin", "--plot_chi_by_basin", type=bool, default=False, help="If this is true I will plot with chi coordinate in main stem basin plots. If false I will plot by flow distance.")
+    
     
     #parse the argments
     args = parser.parse_args()
@@ -143,10 +145,11 @@ def main(argv):
         for basin_key in these_basin_keys:
             HS.PlotLongProfileSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotChiElevationSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+    
     if args.plot_data_within_basin:
         for basin_key in these_basin_keys:
             print "This basin key is: ", basin_key
-            HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+            HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key, args.plot_chi_by_basin)
 
     if args.plot_mean_basin_data:
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
