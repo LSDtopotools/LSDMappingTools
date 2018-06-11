@@ -911,7 +911,7 @@ def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfMChi.png", dpi=300)
     plt.close(Fig)
 
-def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID, plot_vs_chi = False):
+def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID, plot_vs_chi = False, minimum_traces = 50):
     """
     This function makes some composite plots of the hillslope data vs
     distance upstream from the outlet. 
@@ -957,6 +957,9 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     
     MainStemChannelData = BasinChannelData[BasinChannelData.source_key == mainstem_source_key]
     MainStemSegments = MainStemChannelData.segment_number.unique()
+    
+    print("The main stem segment numbers are: ")
+    print(MainStemSegments)
 
     #choose colormap
     ColourMap = cm.viridis
@@ -978,24 +981,31 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     # COMMENT (SMM): Why does this not use chi coordinate? I will try to add it
     chi_coord = []
     
-    for i in range (0, len(Segments)):
-        SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
-        SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == Segments[i]]
-        if SegmentHillslopeData.size > 50: # remove traces with < 50 pixels
-            # only analysing segments directly connected to the main stem
-            if Segments[i] in MainStemSegments:
-                chi_coord.append(SegmentChannelData.chi.median())
-                DistanceFromOutlet.append(SegmentChannelData.flow_distance.median()/1000)
-                Lh.append(SegmentHillslopeData.Lh.mean())
-                Lh_std.append(SegmentHillslopeData.Lh.std())
-                Cht.append(SegmentHillslopeData.Cht.mean())
-                Cht_std.append(SegmentHillslopeData.Cht.std())
-                R_star.append(SegmentHillslopeData.R_Star.mean())
-                R_star_std.append(SegmentHillslopeData.R_Star.std())
-                E_star.append(SegmentHillslopeData.E_Star.mean())
-                E_star_std.append(SegmentHillslopeData.E_Star.std())
-                M_chi.append(SegmentChannelData.m_chi.mean())
-                M_chi_std.append(SegmentChannelData.m_chi.std())
+    for i in range (0, len(MainStemSegments)):
+        
+        # Isolate the correct hillslope and channel segments
+        SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == MainStemSegments[i]]
+        SegmentChannelData = BasinChannelData[BasinChannelData.segment_number == MainStemSegments[i]]
+        N_traces = len(SegmentHillslopeData["i"].tolist())
+        #print("Sid: "+str(MainStemSegments[i])+" Bjunc: "+str(BasinJunctions[BasinID])+" Number of hilltops are: "+ str(len(SegmentHillslopeData["i"].tolist())))
+        
+        
+        if N_traces > minimum_traces: # remove traces less than the minimum number of traces
+            chi_coord.append(SegmentChannelData.chi.median())
+            DistanceFromOutlet.append(SegmentChannelData.flow_distance.median()/1000)
+            Lh.append(SegmentHillslopeData.Lh.mean())
+            Lh_std.append(SegmentHillslopeData.Lh.std())
+            Cht.append(SegmentHillslopeData.Cht.mean())
+            Cht_std.append(SegmentHillslopeData.Cht.std())
+            R_star.append(SegmentHillslopeData.R_Star.mean())
+            R_star_std.append(SegmentHillslopeData.R_Star.std())
+            E_star.append(SegmentHillslopeData.E_Star.mean())
+            E_star_std.append(SegmentHillslopeData.E_Star.std())
+            M_chi.append(SegmentChannelData.m_chi.mean())
+            M_chi_std.append(SegmentChannelData.m_chi.std())
+        #else:
+        #    print("Sid: "+str(MainStemSegments[i])+" Bjunc: "+str(BasinJunctions[BasinID])+" # Traces = "+str(N_traces)+ ", not enough at chi = "+ str(SegmentChannelData.chi.median()-MinimumChi))
+            
                 
     # normalise by the outlet chi
     chi_coord = chi_coord-MinimumChi
