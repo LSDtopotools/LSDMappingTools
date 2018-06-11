@@ -135,6 +135,7 @@ def main(argv):
         os.makedirs(PlotDirectory)
 
     if args.plot_mchi:
+        print("Hello. I am going to plot chi--elevation and distance--elevation plots by basin.")
         for basin_key in these_basin_keys:
             HS.PlotChiElevationMChi(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotLongProfileMChi(this_dir, args.fname_prefix, PlotDirectory, basin_key)
@@ -142,6 +143,8 @@ def main(argv):
         for basin_key in these_basin_keys:
             HS.PlotCHTAgainstChannelData(this_dir, args.fname_prefix, PlotDirectory, basin_key)
     if args.plot_segments:
+        print("Hello. I am going to plot the segments in chi--elevation and distance--elevation plots by basin.")
+        print("Note these are the segments linked to ridgetops and not the ones from the segementation algorithm")
         for basin_key in these_basin_keys:
             HS.PlotLongProfileSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotChiElevationSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)

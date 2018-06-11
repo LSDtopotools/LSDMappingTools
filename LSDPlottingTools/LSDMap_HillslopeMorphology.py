@@ -670,7 +670,9 @@ def PlotEStarRStarTheoretical():
 #-------------------------------------------------------------------------------#
 def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
-
+    This plots the chi--elevation prfile with the segments used in the hilltop analyses plotted in random colours.
+    The segments are not the same as the ones determined by the segmentation algorithm. Instead they are bits of the chi
+    profile split up to see the correspondence between channel and hillslope data. 
 
     Args:
         DataDirectory (str): the data directory
@@ -679,7 +681,6 @@ def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, Basin
         BasinID (int): The basin to be plotted
         
     Author: MDH
-    
     
     """
 
@@ -694,7 +695,7 @@ def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, Basin
     Segments = BasinChannelData.segment_number.unique()
 
     # setup the figure
-    CreateFigure()
+    Fig = CreateFigure()
 
     # Get the data columns for plotting
     for i in range(0, len(Segments)):
@@ -715,6 +716,7 @@ def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, Basin
     plt.title('Basin ID ' + str(BasinID))
     plt.tight_layout()
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevSeg.png", dpi=300)
+    plt.close(Fig)
 
 def PlotLongProfileSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
@@ -743,7 +745,7 @@ def PlotLongProfileSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinI
     Segments = BasinChannelData.segment_number.unique()
 
     # setup the figure
-    CreateFigure()
+    Fig = CreateFigure()
 
     # Get the data columns for plotting
     for i in range(0, len(Segments)):
@@ -764,10 +766,13 @@ def PlotLongProfileSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinI
     plt.title('Basin ID ' + str(BasinID))
     plt.tight_layout()
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfSeg.png", dpi=300)
+    plt.close(Fig)
+    
 
 def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
-
+    This function reads the channel data file and plots the chi-elevation profile along with the segments extracted from the segmentation algorithm. 
+    It also colours the plot with the M_chi value (or k_sn if A_0 = 1).
 
     Args:
         DataDirectory (str): the data directory
@@ -775,12 +780,10 @@ def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
         PlotDirectory (str): The directory into which the plots are saved
         BasinID (int): The basin to be plotted
         
-    Author: MDH
-    
-    
+    Author: MDH  
     """
     
-    
+    print("Plotting the chi-elevation plot for basin: " +str(BasinID))
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
 
@@ -793,30 +796,40 @@ def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     Segments = BasinChannelData.segment_number.unique()
 
     # separate into main stem and trib data
-    MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
-    MainStemSegments = MainStemChannelData.segment_number.unique()
+    # SMM this isn't used
+    #MainStemChannelData = BasinChannelData[BasinChannelData.source_key == 0]
+    #MainStemSegments = MainStemChannelData.segment_number.unique()
 
+    
+    # Get the minimum and maximum chi
+    MinimumChi = BasinChannelData.chi.min()
+    MaximumMChi = BasinChannelData.m_chi.max()    
+
+    # how many segments are we dealing with?
+    Segments = BasinChannelData.segment_number.unique()
+
+    
     # setup the figure
     Fig = CreateFigure(AspectRatio=4./3.)
 
     #choose colormap
-    ColourMap = cm.coolwarm
+    ColourMap = cm.viridis
 
     # Get the data columns for plotting
     for i in range(0, len(Segments)):
-        if Segments[i] in MainStemSegments:
-            #get data arrays
-            Chi = ChannelData.chi[ChannelData.segment_number == Segments[i]]
-            Elevation = ChannelData.elevation[ChannelData.segment_number == Segments[i]]
-            SegmentedElevation = ChannelData.segmented_elevation[ChannelData.segment_number == Segments[i]]
-            MChi = ChannelData.m_chi[ChannelData.segment_number == Segments[i]].unique()[0]
+        #if Segments[i] in MainStemSegments:
+        #get data arrays
+        Chi = ChannelData.chi[ChannelData.segment_number == Segments[i]]
+        Elevation = ChannelData.elevation[ChannelData.segment_number == Segments[i]]
+        SegmentedElevation = ChannelData.segmented_elevation[ChannelData.segment_number == Segments[i]]
+        MChi = ChannelData.m_chi[ChannelData.segment_number == Segments[i]].unique()[0]
 
-            #normalise chi by outlet chi
-            Chi = Chi-MinimumChi
-            #plot, colouring segments
-            Colour = MChi/MaximumMChi
-            plt.plot(Chi,Elevation,'k--',dashes=(2,2), lw=0.5,zorder=10)
-            plt.plot(Chi, SegmentedElevation, '-', lw=2, c=ColourMap(Colour),zorder=9)
+        #normalise chi by outlet chi
+        Chi = Chi-MinimumChi
+        #plot, colouring segments
+        Colour = MChi/MaximumMChi
+        plt.plot(Chi,Elevation,'k--',dashes=(2,2), lw=0.5,zorder=10)
+        plt.plot(Chi, SegmentedElevation, '-', lw=2, c=ColourMap(Colour),zorder=9)
 
     # Finalise the figure
     plt.xlabel(r'$\chi$ (m)')
@@ -832,10 +845,12 @@ def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     plt.xlabel('$k_{sn}$')
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevMChi.png", dpi=300)
+    plt.close(Fig)
 
 def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
-
+    This function reads the channel data file and plots the long profile along with the segments extracted from the segmentation algorithm. 
+    It also colours the plot with the M_chi value (or k_sn if A_0 = 1).
 
     Args:
         DataDirectory (str): the data directory
@@ -848,7 +863,7 @@ def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     
     """
     
-    
+    print("Plotting the distance-elevation plot for basin: " +str(BasinID))
     # load the channel data
     ChannelData = ReadChannelData(DataDirectory, FilenamePrefix)
 
@@ -894,6 +909,7 @@ def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     plt.xlabel('$M_{\chi}$ m$^{0.64}$')
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfMChi.png", dpi=300)
+    plt.close(Fig)
 
 def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID, plot_vs_chi = False):
     """
@@ -1034,7 +1050,8 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_hillslopes_distance.png", dpi=300)
-    #plt.clf()
+    # close this figure to prevent stupid warnings
+    plt.close(fig)
 
 def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
