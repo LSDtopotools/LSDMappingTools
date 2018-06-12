@@ -1172,18 +1172,17 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
                     CalcEsMed.append(EStar.median())
                     CalcEsLQ.append(EStar.quantile(0.25))
                     CalcEsUQ.append(EStar.quantile(0.75))
-                
-                    EsLowErr.append(EStar.quantile(0.25))
-                    EsUpErr.append(EStar.quantile(0.75))
+
+                    EsLowErr.append(EStar.median()-EStar.quantile(0.25))
+                    EsUpErr.append(EStar.quantile(0.75)-EStar.median())
 
                     CalcRsMed.append(RStar.median())
                     CalcRsLQ.append(RStar.quantile(0.25))
                     CalcRsUQ.append(RStar.quantile(0.75))
-                    
-                    
-            
-
                 
+                    RsLowErr.append(RStar.median()-RStar.quantile(0.25))
+                    RsUpErr.append(RStar.quantile(0.75)-RStar.median())
+      
             else:
                 EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
                 RStar = SegmentHillslopeData.S/Sc           
@@ -1200,16 +1199,18 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
                 CalcEsMed.append(EStar.median())
                 CalcEsLQ.append(EStar.quantile(0.25))
                 CalcEsUQ.append(EStar.quantile(0.75))
-  
-                EsLowErr.append(EStar.quantile(0.25))
-                EsUpErr.append(EStar.quantile(0.75))
 
-                #EsLowErr.append(EStar.median()-EStar.quantile(0.25))
-                #EsUpErr.append(EStar.median()-EStar.quantile(0.75))
+                EsLowErr.append(EStar.median()-EStar.quantile(0.25))
+                EsUpErr.append(EStar.quantile(0.75)-EStar.median())
 
                 CalcRsMed.append(RStar.median())
                 CalcRsLQ.append(RStar.quantile(0.25))
                 CalcRsUQ.append(RStar.quantile(0.75))
+                
+                RsLowErr.append(RStar.median()-RStar.quantile(0.25))
+                RsUpErr.append(RStar.quantile(0.75)-RStar.median())
+                
+                #print("Rs: "+str(RStar.quantile(0.25))+","+str(RStar.median())+","+str(RStar.quantile(0.75)))
             
 
     plt.loglog()
@@ -1219,7 +1220,7 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     #print(len(EsLowErr))
     #print(len(EsUpErr))
     
-    Ax.errorbar(CalcEsMed,CalcRsMed,xerr=[EsLowErr, EsUpErr], yerr=[CalcRsLQ,CalcRsUQ],fmt='.', ecolor='k',markersize=2,mec='k',mfc='k',zorder = 10, linewidth = 1, alpha = 0.25)
+    Ax.errorbar(CalcEsMed,CalcRsMed,xerr=[EsLowErr, EsUpErr], yerr=[RsLowErr,RsUpErr],fmt='.', ecolor='k',markersize=2,mec='k',mfc='k',zorder = 10, linewidth = 1, alpha = 0.5)
     
     if colour_by == "chi":
         Ax.scatter(CalcEsMed,CalcRsMed,c=AllChi,s=10, edgecolors='k', lw=0.1,cmap=ColourMap,zorder = 20)
@@ -1258,7 +1259,7 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     if total_data_points==0:
         plt.text(0.2, 0.8, 'Basin'+str(BasinID)+", no data points.", horizontalalignment='left', verticalalignment='bottom', transform=Ax.transAxes)
 
-    plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + figappendstr, dpi=300)
+    plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID).zfill(3) + figappendstr, dpi=300)
     plt.clf()
     plt.close(Fig)
 
