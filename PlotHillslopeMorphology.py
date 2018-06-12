@@ -84,7 +84,8 @@ def main(argv):
     parser.add_argument("-plot_Ksn", "--plot_Ksn", type=bool, default=False, help="If this is true I will plot Ksn in the profile plots.")
     parser.add_argument("-plot_chi_by_basin", "--plot_chi_by_basin", type=bool, default=False, help="If this is true I will plot with chi coordinate in main stem basin plots. If false I will plot by flow distance.")
     parser.add_argument("-min_traces", "--minimum_traces", type=int, default=50, help="The minimium number of traces to be used for plotting segment data.")
-    
+    parser.add_argument("-EsRs_colour_by", "--EsRs_colour_by", type=str, default="ksn", help="What to colour E* R* plots by.")
+    parser.add_argument("-mainstem_only", "--mainstem_only", type=bool, default=False, help="If true, use only mainstem data for E* R* plots.")
     
     #parse the argments
     args = parser.parse_args()
@@ -180,7 +181,7 @@ def main(argv):
     if args.plot_Es_Rs_by_basin:
         print("Let me print the E* R* plots")
         for basin_key in these_basin_keys:
-            HS.PlotEStarRStarWithinBasin(this_dir, args.fname_prefix, PlotDirectory, basin_key,args.minimum_traces)
+            HS.PlotEStarRStarWithinBasin(this_dir, args.fname_prefix, PlotDirectory, basin_key,args.minimum_traces, args.sc, args.mainstem_only, args.EsRs_colour_by)
 
 #=============================================================================
 if __name__ == "__main__":

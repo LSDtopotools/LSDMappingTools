@@ -1066,7 +1066,7 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     # close this figure to prevent stupid warnings
     plt.close(fig)
 
-def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, BasinID, minimum_traces = 50):
+def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, BasinID, minimum_traces = 50, Sc = 0.8, plot_mainstem_only = False, colour_by = "default"):
     """
     Makes a plot of E* against R* where the points are coloured by
     their distance from the outlet of the basin
@@ -1077,8 +1077,13 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
         FilenamePrefix (str): the file name prefix
         PlotDirectory (str): The directory into which the plots are saved
         BasinID (int): The basin to be plotted
+        minimum_traces (int): the minimum number of traces before a data point is recorded
+        Sc (float): the critical slope to be used in E* R* calculations
+        plot_mainstem_onlt (bool): If true only plot the mainstem data
+        colour_by (str): What the data points should be coloured by. Options are chi and distance, and anything else will be coloured by k_sn
+        calculate_Es_Rs (bool): If false, reads E* R* from the hillslope file. If true calculates it directly
         
-    Author: FJC
+    Author: FJC, SMM
     """
     import math
     
@@ -1115,13 +1120,21 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     #choose colormap
     ColourMap = cm.viridis
 
-    # loop through the channel data and get the E* and R* for this distance upstream.
-    MainStemEStar = []
-    MainStemRStar = []
-    MainStemDist = []
-    TribsEStar = []
-    TribsRStar = []
-    TribsDist = []
+    
+    CalcEsMed = []
+    CalcEsLQ = []
+    CalcEsUQ = []
+    
+    CalcRsMed = []
+    CalcRsLQ = []
+    CalcRsUQ = []
+    
+    AllDist = []
+    AllChi = []
+    AllKsn = []
+    
+    if plot_mainstem_only:
+        print("I am only going to plot the main stem data.")
 
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
@@ -1131,48 +1144,80 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
         N_traces = len(SegmentHillslopeData["i"].tolist())
         
         if N_traces > minimum_traces:
-            if Segments[i] in MainStemSegments:
-                MainStemEStar.append(SegmentHillslopeData.E_Star.mean())
-                MainStemRStar.append(SegmentHillslopeData.R_Star.mean())
-                MainStemDist.append(SegmentChannelData.flow_distance.median()/1000)
+            
+            # Calculate E* R*
+            if plot_mainstem_only:
+                if Segments[i] in MainStemSegments:
+                    EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
+                    RStar = SegmentHillslopeData.S/Sc           
+  
+                    # Get the medians and the quartiles.
+                    CalcEsMed.append(EStar.median())
+                    CalcEsLQ.append(EStar.quantile(0.25))
+                    CalcEsUQ.append(EStar.quantile(0.75))
+
+                    CalcRsMed.append(RStar.median())
+                    CalcRsLQ.append(RStar.quantile(0.25))
+                    CalcRsUQ.append(RStar.quantile(0.75))
+            
+                    # Get distances and chi values
+                    AllDist.append(SegmentChannelData.flow_distance.median()/1000)
+                    AllChi.append(SegmentChannelData.chi.median())
+
+                    # Now get the k_sn
+                    AllKsn.append(BasinChannelData.m_chi.unique()[0])
+                
             else:
-                TribsEStar.append(SegmentHillslopeData.E_Star.mean())
-                TribsRStar.append(SegmentHillslopeData.R_Star.mean())
-                TribsDist.append(SegmentChannelData.flow_distance.median()/1000)
+                EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
+                RStar = SegmentHillslopeData.S/Sc           
+  
+                # Get the medians and the quartiles.
+                CalcEsMed.append(EStar.median())
+                CalcEsLQ.append(EStar.quantile(0.25))
+                CalcEsUQ.append(EStar.quantile(0.75))
 
-    # get the model data for this E_Star
-    ModelRStar = []
-    
-    # SMM: Is this using S_c == 1?
-    for x in MainStemEStar:
-        ModelRStar.append((1./x) * (np.sqrt(1.+(x*x)) - np.log(0.5*(1. + np.sqrt(1.+(x*x)))) - 1.))
+                CalcRsMed.append(RStar.median())
+                CalcRsLQ.append(RStar.quantile(0.25))
+                CalcRsUQ.append(RStar.quantile(0.75))
+            
+                # Get distances and chi values
+                AllDist.append(SegmentChannelData.flow_distance.median()/1000)
+                AllChi.append(SegmentChannelData.chi.median())
 
-    ModelEStar = [x for x,_ in sorted(zip(MainStemEStar,ModelRStar))]
-    ModelRStar = [y for _,y in sorted(zip(MainStemEStar,ModelRStar))]
+                # Now get the k_sn
+                AllKsn.append(BasinChannelData.m_chi.unique()[0])
+            
 
 
-    Ax.plot(ModelEStar,ModelRStar, c='k')
-    Ax.scatter(MainStemEStar,MainStemRStar,c=MainStemDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
-    Ax.scatter(TribsEStar,TribsRStar,c=TribsDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
-    # Ax.set_xscale('log')
+    plt.loglog()
+    PlotEStarRStarTheoretical()
+    Ax.scatter(CalcEsMed,CalcRsMed,c=AllDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
+
     # Ax.set_yscale('log')
     plt.xlabel('$E*$')
     plt.ylabel('$R*$')
 
 
-
+    # Make the plot
     plt.subplots_adjust(left=0.18,right=0.85, bottom=0.2, top=0.9)
     CAx = Fig.add_axes([0.86,0.2,0.02,0.7])
     m = cm.ScalarMappable(cmap=ColourMap)
-    m.set_array(MainStemDist)
-    plt.colorbar(m, cax=CAx,orientation='vertical', label='Distance from outlet (km)')
+    
+    if colour_by == "chi":
+        m.set_array(AllChi)                        
+        plt.colorbar(m, cax=CAx,orientation='vertical', label='$\chi$ (m)')
+        figappendstr = "_EStar_RStar_chi.png"
+    elif colour_by == "distance":
+        m.set_array(AllDist)                        
+        plt.colorbar(m, cax=CAx,orientation='vertical', label='Distance from outlet (km)')
+        figappendstr = "_EStar_RStar_dist.png"
+    else:
+        m.set_array(AllKsn)                        
+        plt.colorbar(m, cax=CAx,orientation='vertical', label='$k_{sn}$')
+        figappendstr = "_EStar_RStar_ksn.png"
+        
 
-    #Ax.set_ylim(-20,1)
-    #plt.text(-0.2,-0.3,'Basin ID ' + str(BasinID),transform = Ax.transAxes,color=[0.35,0.35,0.35])
-    #plt.tight_layout()
-
-    #save output
-    plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_EStar_RStar.png", dpi=300)
+    plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + figappendstr, dpi=300)
     plt.clf()
     plt.close(Fig)
 
