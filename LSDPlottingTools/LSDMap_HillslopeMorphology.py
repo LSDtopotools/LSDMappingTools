@@ -1133,8 +1133,15 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     AllChi = []
     AllKsn = []
     
+    EsLowErr = []
+    EsUpErr = []
+    RsLowErr = []
+    RsUpErr = []
+    
     if plot_mainstem_only:
         print("I am only going to plot the main stem data.")
+        
+    total_data_points = 0
 
     for i in range (0, len(Segments)):
         SegmentHillslopeData = BasinHillslopeData[BasinHillslopeData.StreamID == Segments[i]]
@@ -1145,53 +1152,81 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
         
         if N_traces > minimum_traces:
             
+            # keep track of how many data points you have
+            total_data_points = total_data_points+1
+            
             # Calculate E* R*
             if plot_mainstem_only:
                 if Segments[i] in MainStemSegments:
                     EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
-                    RStar = SegmentHillslopeData.S/Sc           
-  
-                    # Get the medians and the quartiles.
-                    CalcEsMed.append(EStar.median())
-                    CalcEsLQ.append(EStar.quantile(0.25))
-                    CalcEsUQ.append(EStar.quantile(0.75))
-
-                    CalcRsMed.append(RStar.median())
-                    CalcRsLQ.append(RStar.quantile(0.25))
-                    CalcRsUQ.append(RStar.quantile(0.75))
-            
+                    RStar = SegmentHillslopeData.S/Sc   
+                    
                     # Get distances and chi values
                     AllDist.append(SegmentChannelData.flow_distance.median()/1000)
                     AllChi.append(SegmentChannelData.chi.median())
 
                     # Now get the k_sn
-                    AllKsn.append(BasinChannelData.m_chi.unique()[0])
+                    AllKsn.append(SegmentChannelData.m_chi.unique()[0])
+                                       
+                    # Get the medians and the quartiles.
+                    CalcEsMed.append(EStar.median())
+                    CalcEsLQ.append(EStar.quantile(0.25))
+                    CalcEsUQ.append(EStar.quantile(0.75))
+                
+                    EsLowErr.append(EStar.quantile(0.25))
+                    EsUpErr.append(EStar.quantile(0.75))
+
+                    CalcRsMed.append(RStar.median())
+                    CalcRsLQ.append(RStar.quantile(0.25))
+                    CalcRsUQ.append(RStar.quantile(0.75))
+                    
+                    
+            
+
                 
             else:
                 EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
                 RStar = SegmentHillslopeData.S/Sc           
-  
-                # Get the medians and the quartiles.
-                CalcEsMed.append(EStar.median())
-                CalcEsLQ.append(EStar.quantile(0.25))
-                CalcEsUQ.append(EStar.quantile(0.75))
 
-                CalcRsMed.append(RStar.median())
-                CalcRsLQ.append(RStar.quantile(0.25))
-                CalcRsUQ.append(RStar.quantile(0.75))
-            
                 # Get distances and chi values
                 AllDist.append(SegmentChannelData.flow_distance.median()/1000)
                 AllChi.append(SegmentChannelData.chi.median())
 
                 # Now get the k_sn
-                AllKsn.append(BasinChannelData.m_chi.unique()[0])
-            
+                AllKsn.append(SegmentChannelData.m_chi.unique()[0])
+                #print("Segment m_chi is: "+ str(SegmentChannelData.m_chi.unique()[0]))
+                
+                # Get the medians and the quartiles.
+                CalcEsMed.append(EStar.median())
+                CalcEsLQ.append(EStar.quantile(0.25))
+                CalcEsUQ.append(EStar.quantile(0.75))
+  
+                EsLowErr.append(EStar.quantile(0.25))
+                EsUpErr.append(EStar.quantile(0.75))
 
+                #EsLowErr.append(EStar.median()-EStar.quantile(0.25))
+                #EsUpErr.append(EStar.median()-EStar.quantile(0.75))
+
+                CalcRsMed.append(RStar.median())
+                CalcRsLQ.append(RStar.quantile(0.25))
+                CalcRsUQ.append(RStar.quantile(0.75))
+            
 
     plt.loglog()
     PlotEStarRStarTheoretical()
-    Ax.scatter(CalcEsMed,CalcRsMed,c=AllDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap)
+    
+    #print(len(CalcEsMed))
+    #print(len(EsLowErr))
+    #print(len(EsUpErr))
+    
+    Ax.errorbar(CalcEsMed,CalcRsMed,xerr=[EsLowErr, EsUpErr], yerr=[CalcRsLQ,CalcRsUQ],fmt='.', ecolor='k',markersize=2,mec='k',mfc='k',zorder = 10, linewidth = 1, alpha = 0.25)
+    
+    if colour_by == "chi":
+        Ax.scatter(CalcEsMed,CalcRsMed,c=AllChi,s=10, edgecolors='k', lw=0.1,cmap=ColourMap,zorder = 20)
+    elif colour_by == "distance":
+        Ax.scatter(CalcEsMed,CalcRsMed,c=AllDist,s=10, edgecolors='k', lw=0.1,cmap=ColourMap,zorder = 20)
+    else:
+        Ax.scatter(CalcEsMed,CalcRsMed,c=AllKsn,s=10, edgecolors='k', lw=0.1,cmap=ColourMap,zorder = 20)  
 
     # Ax.set_yscale('log')
     plt.xlabel('$E*$')
@@ -1216,6 +1251,12 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
         plt.colorbar(m, cax=CAx,orientation='vertical', label='$k_{sn}$')
         figappendstr = "_EStar_RStar_ksn.png"
         
+    plt.text(0.6, 0.025, 'Basin: '+str(BasinID), horizontalalignment='left', verticalalignment='bottom', transform=Ax.transAxes, fontsize = 12)
+    
+    print("total_data_points: "+ str(total_data_points))
+    
+    if total_data_points==0:
+        plt.text(0.2, 0.8, 'Basin'+str(BasinID)+", no data points.", horizontalalignment='left', verticalalignment='bottom', transform=Ax.transAxes)
 
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + figappendstr, dpi=300)
     plt.clf()
