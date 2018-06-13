@@ -197,8 +197,11 @@ def main(argv):
     # SMM 
     if args.plot_Ksn_vs_Es_Rs_by_basin:
         print("Hello, I will print plots k_sn vs E* and R*.")
-        print("All tributaries can be plotted.")
-        HS.PlotCatchmentKsnEsRs(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.sc)
+        if args.mainstem_only:
+            print("I am only going to print data from the main stem.")
+        else:
+            print("All tributaries can be plotted.")
+        HS.PlotCatchmentKsnEsRs(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.sc, args.mainstem_only)
         
         
     # SMM: This has been tested

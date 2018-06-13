@@ -1993,7 +1993,7 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
 
 # This has been taken from one of Martin's scripts
 # Tested and working as of 13-6-2018 (SMM)
-def PlotCatchmentKsnEsRs(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [], Sc = 0.71):
+def PlotCatchmentKsnEsRs(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [], Sc = 0.71, mainstem_only = False):
     """
     This prints plots of k_sn vs E* and R* for each basin. It colours points by the chi coordinate/
        
@@ -2044,37 +2044,78 @@ def PlotCatchmentKsnEsRs(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [
         PlotDF = pd.DataFrame(columns=['Chi','Ksn','EStarMedian','EStarLower',
                     'EStarUpper','RStarMedian','RStarLower','RStarUpper','NTraces'])
         
+        # try to figure out the source key
+        mainstem_source_key = BasinChannelData.source_key.iloc[0]
+        print("The mainstem source key is: " +str(mainstem_source_key))    
+    
+        # separate into main stem and trib data
+        MainStemChannelData = BasinChannelData[BasinChannelData.source_key == mainstem_source_key]
+        MainStemSegments = MainStemChannelData.segment_number.unique()
+        
         # Get the data columns for plotting
         for i, Segment in np.ndenumerate(Segments):
             
-            # get metrics to plot
-            Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
-            Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment].median()
+            # A rather stupid way to ensure only mainstem but I don't have time to make this pythonic (SMM)
+            if mainstem_only:
+                if Segments[i] in MainStemSegments:
+                    # get metrics to plot
+                    Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
+                    Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment].median()
             
-            #normalise chi by outlet chi
-            Chi = Chi-MinimumChi
-        
-            # get hillslope data
-            SegmentHillslopeData = HillslopesDF[HillslopesDF.StreamID == Segment]
-            NTraces = len(SegmentHillslopeData)
+                    #normalise chi by outlet chi
+                    Chi = Chi-MinimumChi
 
-            if NTraces<20:
-                continue
-                
-            # Calculate E* R*
-            EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
-            RStar = SegmentHillslopeData.S/Sc
+                    # get hillslope data
+                    SegmentHillslopeData = HillslopesDF[HillslopesDF.StreamID == Segment]
+                    NTraces = len(SegmentHillslopeData)
 
-            EStarMedian = EStar.median()
-            EStarLower = EStar.quantile(0.25)
-            EStarUpper = EStar.quantile(0.75)
+                    if NTraces<20:
+                        continue
 
-            RStarMedian = RStar.median()
-            RStarLower = RStar.quantile(0.25)
-            RStarUpper = RStar.quantile(0.75)
-                
-            # add to plot dataframe
-            PlotDF.loc[i]  = [Chi,Ksn,EStarMedian,EStarLower, EStarUpper, RStarMedian, RStarLower, RStarUpper,NTraces]
+                    # Calculate E* R*
+                    EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
+                    RStar = SegmentHillslopeData.S/Sc
+
+                    EStarMedian = EStar.median()
+                    EStarLower = EStar.quantile(0.25)
+                    EStarUpper = EStar.quantile(0.75)
+
+                    RStarMedian = RStar.median()
+                    RStarLower = RStar.quantile(0.25)
+                    RStarUpper = RStar.quantile(0.75)
+
+                    # add to plot dataframe
+                    PlotDF.loc[i]  = [Chi,Ksn,EStarMedian,EStarLower, EStarUpper, RStarMedian, RStarLower, RStarUpper,NTraces]
+                    
+            else:       
+                # get metrics to plot
+                Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
+                Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment].median()
+
+                #normalise chi by outlet chi
+                Chi = Chi-MinimumChi
+
+                # get hillslope data
+                SegmentHillslopeData = HillslopesDF[HillslopesDF.StreamID == Segment]
+                NTraces = len(SegmentHillslopeData)
+
+                if NTraces<20:
+                    continue
+
+                # Calculate E* R*
+                EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
+                RStar = SegmentHillslopeData.S/Sc
+
+                EStarMedian = EStar.median()
+                EStarLower = EStar.quantile(0.25)
+                EStarUpper = EStar.quantile(0.75)
+
+                RStarMedian = RStar.median()
+                RStarLower = RStar.quantile(0.25)
+                RStarUpper = RStar.quantile(0.75)
+
+                # add to plot dataframe
+                PlotDF.loc[i]  = [Chi,Ksn,EStarMedian,EStarLower, EStarUpper, RStarMedian, RStarLower, RStarUpper,NTraces]
 
         # reset indices
         PlotDF = PlotDF.reset_index(drop=True)
@@ -2133,6 +2174,11 @@ def PlotCatchmentKsnEsRs(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [
 
         #save output
         plt.suptitle('Basin ID ' + str(key) + " (" + str(Basin) + ")")
-        plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(3) + "_KsnEsRs.png", dpi=300)
+        
+        if mainstem_only:
+            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(3) + "_KsnEsRs_ms.png", dpi=300)
+        else:
+            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(3) + "_KsnEsRs.png", dpi=300) 
+            
         plt.clf()
         plt.close()
