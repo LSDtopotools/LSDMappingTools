@@ -1802,7 +1802,8 @@ def PlotEStarRStarProgression(Sc=0.71):
 # SMM Checked, revised and working 13/06/2018
 # This is now working and produces lots of nice profile plots. 
 # It could be revised so that it shows the main stem only
-def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Basins = [], PlotKsn = False, Sc = 0.71, mainstem_only = False, minimum_traces = 50):
+def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Basins = [], PlotKsn = False, Sc = 0.71, mainstem_only = False, minimum_traces = 50, 
+                               common_max_Es = -99, common_max_Ksn = -99):
     """
     This plots the data by basin showing the E*, R* and either the chi profile or the K_sn data as a function of chi
     
@@ -1813,6 +1814,10 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
         Basins (list): The basins to be plotted
         PlotKsn (bool): If true, the profile plot will be Ksn instead of elevation
         Sc (float): The critical slope
+        mainstem_only (bool): If true, only plot the data from the main stem
+        minimum_traces (int): The minimum number of traces required to plot the hillslope data
+        common_max_Es (float): If this is positive, use as the maximum Es for all plots
+        common_max_Ksn (float): If this is positive, use as the maximum Ksn for all plots
     
     Author: MDH
     
@@ -1901,7 +1906,7 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
                     PlotMaxKsn = int(math.ceil(MaxKsn / 10.0)) * 10
 
                     if PlotKsn:
-                        ax1.scatter(Chi,KKsn,marker='o', edgecolors='k',lw=0.5, c=[0.8,0.8,0.8], s=20, zorder=20)
+                        ax1.scatter(Chi,KKsn,marker='o', edgecolors='none', lw=0.5, c=[1.0,0.0,0.0], s=20, zorder=20)
                     else:    
                         ax1.plot(Chi,Elevation,'-', lw=1.5,c=ColourMap(Colour), zorder=10)
 
@@ -1950,7 +1955,7 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
                 PlotMaxKsn = int(math.ceil(MaxKsn / 10.0)) * 10
 
                 if PlotKsn:
-                    ax1.scatter(Chi,KKsn,marker='o', edgecolors='k',lw=0.5, c=[0.8,0.8,0.8], s=20, zorder=20)
+                    ax1.scatter(Chi,KKsn,marker='o', edgecolors='none',lw=0.5, c=[1.0,0.0,0.0], s=20, zorder=20)
                 else:    
                     ax1.plot(Chi,Elevation,'-', lw=1.5,c=ColourMap(Colour), zorder=10)
 
@@ -2039,9 +2044,16 @@ def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Ba
 
         # fix axis limits
         if PlotKsn:
-            ax1.set_ylim(0,PlotMaxKsn)
+            if common_max_Ksn > 0:
+                ax1.set_ylim(0,common_max_Ksn)
+            else:
+                ax1.set_ylim(0,PlotMaxKsn)
         
-        ax2.set_ylim(0,PlotDF.EStarUpper.max())
+        if common_max_Es > 0:
+            ax2.set_ylim(0,common_max_Es)
+        else:
+            ax2.set_ylim(0,PlotDF.EStarUpper.max())
+        
         ax3.set_ylim(0,1)
 
         #save output
@@ -2070,7 +2082,11 @@ def PlotCatchmentKsnEsRs(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [
         Sc (float)@ The critical slope
         DataDirectory (str): the data directory
         FilenamePrefix (str): the file name prefix
-        PlotDirectory (str): The directory into which the plots are saved       
+        PlotDirectory (str): The directory into which the plots are saved 
+        Basins (int list): A list of the basin numbers to plot
+        Sc (float): The critical slope
+        mainstem_only (bool): If true, only plot the data from the main stem
+        minimum_traces (int): The minimum number of traces required to plot the hillslope data
         
     Author:
         MDH

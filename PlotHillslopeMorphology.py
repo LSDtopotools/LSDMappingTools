@@ -88,6 +88,9 @@ def main(argv):
     parser.add_argument("-EsRs_colour_by", "--EsRs_colour_by", type=str, default="ksn", help="What to colour E* R* plots by.")
     parser.add_argument("-mainstem_only", "--mainstem_only", type=bool, default=False, help="If true, use only mainstem data for E* R* plots.")
     
+    parser.add_argument("-common_max_Ksn", "--common_max_Ksn", type=float, default=-99, help="If positive, use as common maximum Ksn for all plots")
+    parser.add_argument("-common_max_Es", "--common_max_Es", type=float, default=-99, help="If positive, use as common maximum E star for all plots")
+    
     #parse the argments
     args = parser.parse_args()
 
@@ -195,7 +198,9 @@ def main(argv):
             print("I am only going to print data from the main stem.")
         else:
             print("All tributaries can be plotted.")
-        HS.PlotChiProfileHillslopeData(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.plot_Ksn, args.sc, args.mainstem_only, args.minimum_traces)
+        HS.PlotChiProfileHillslopeData(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.plot_Ksn, args.sc, 
+                                       args.mainstem_only, args.minimum_traces, 
+                                       args.common_max_Es, args.common_max_Ksn)
  
     # SMM 
     if args.plot_Ksn_vs_Es_Rs_by_basin:
