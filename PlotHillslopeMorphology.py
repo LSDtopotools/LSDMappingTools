@@ -191,8 +191,11 @@ def main(argv):
     # SMM: This has been tested
     if args.profile_plots:
         print("Hello, I will print plots of things like L_H and other stuff as a function of position. This plots things in profile.")
-        print("All tributaries can be plotted.")
-        HS.PlotChiProfileHillslopeData(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.plot_Ksn, args.sc)
+        if args.mainstem_only:
+            print("I am only going to print data from the main stem.")
+        else:
+            print("All tributaries can be plotted.")
+        HS.PlotChiProfileHillslopeData(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.plot_Ksn, args.sc, args.mainstem_only, args.minimum_traces)
  
     # SMM 
     if args.plot_Ksn_vs_Es_Rs_by_basin:
@@ -201,7 +204,7 @@ def main(argv):
             print("I am only going to print data from the main stem.")
         else:
             print("All tributaries can be plotted.")
-        HS.PlotCatchmentKsnEsRs(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.sc, args.mainstem_only)
+        HS.PlotCatchmentKsnEsRs(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.sc, args.mainstem_only, args.minimum_traces)
         
         
     # SMM: This has been tested
