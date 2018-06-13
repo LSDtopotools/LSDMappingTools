@@ -137,32 +137,43 @@ def main(argv):
 
     if not os.path.isdir(PlotDirectory):
         os.makedirs(PlotDirectory)
-
+    
+    # SMM: This has been tested
     if args.plot_mchi:
         print("Hello. I am going to plot chi--elevation and distance--elevation plots by basin.")
         for basin_key in these_basin_keys:
             HS.PlotChiElevationMChi(this_dir, args.fname_prefix, PlotDirectory, basin_key)
             HS.PlotLongProfileMChi(this_dir, args.fname_prefix, PlotDirectory, basin_key)
-    if args.plot_CHT:
-        for basin_key in these_basin_keys:
-            HS.PlotCHTAgainstChannelData(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+    
+    # SMM: This has been tested
     if args.plot_segments:
         print("Hello. I am going to plot the segments in chi--elevation and distance--elevation plots by basin.")
         print("Note these are the segments linked to ridgetops and not the ones from the segementation algorithm")
         for basin_key in these_basin_keys:
             HS.PlotLongProfileSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
-            HS.PlotChiElevationSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+            HS.PlotChiElevationSegments(this_dir, args.fname_prefix, PlotDirectory, basin_key)   
     
+    # SMM this isn't working
+    if args.plot_CHT:
+        for basin_key in these_basin_keys:
+            HS.PlotCHTAgainstChannelData(this_dir, args.fname_prefix, PlotDirectory, basin_key)
+    
+
+    # SMM: This has been tested. Plots data along prfiles (i.e., L_H as a fxn of chi or flow distance)
     if args.plot_data_within_basin:
+        print("Hello, I will print plots of things like L_H and other stuff as a function of position. Only the mainstem is plotted.")
+        print("This plots by segment.")
         for basin_key in these_basin_keys:
             print "This basin key is: ", basin_key
             HS.PlotHillslopeDataVsDistance(this_dir, args.fname_prefix, PlotDirectory, basin_key, args.plot_chi_by_basin, args.minimum_traces)
-
+            
+    # SMM Not tested since it is hard coded for mendocino
     if args.plot_mean_basin_data:
         # NOTE this requires uplift data!!
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
         HS.PlotEStarRStarSubPlots(this_dir, args.fname_prefix, PlotDirectory, args.sc)
 
+    # SMM: again, this is hard coded for mendocino at the moment
     if args.plot_means_with_uplift:
         HS.PlotBasinDataAgainstUplift(this_dir, args.fname_prefix, PlotDirectory)
 
@@ -172,17 +183,24 @@ def main(argv):
       else:
         HS.PlotHillslopeTraces(this_dir, args.fname_prefix, PlotDirectory)
 
+    # This seems to be working but not extensively tested
     if args.determine_sc:
         HS.DetermineSc(this_dir, args.fname_prefix, PlotDirectory)
-        
+    
+    # SMM: This has been tested
     if args.profile_plots:
+        print("Hello, I will print plots of things like L_H and other stuff as a function of position. This plots things in profile.")
+        print("All tributaries can be plotted.")
         HS.PlotChiProfileHillslopeData(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.plot_Ksn, args.sc)
-        
+    
+    # SMM: This has been tested
     if args.plot_Es_Rs_by_basin:
         print("Let me print the E* R* plots")
+        print("It makes E* R* plots for each basin and colours the data points by things like k_sn or chi.")
         for basin_key in these_basin_keys:
             HS.PlotEStarRStarWithinBasin(this_dir, args.fname_prefix, PlotDirectory, basin_key,args.minimum_traces, args.sc, args.mainstem_only, args.EsRs_colour_by)
-
+        
+        
 #=============================================================================
 if __name__ == "__main__":
     main(sys.argv[1:])

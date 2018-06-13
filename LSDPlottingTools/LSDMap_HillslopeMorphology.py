@@ -668,6 +668,7 @@ def PlotEStarRStarTheoretical():
 #-------------------------------------------------------------------------------#
 # PLOTTING FUNCTIONS
 #-------------------------------------------------------------------------------#
+# SMM: Checked and working 13/06/2018
 def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
     This plots the chi--elevation prfile with the segments used in the hilltop analyses plotted in random colours.
@@ -718,6 +719,7 @@ def PlotChiElevationSegments(DataDirectory, FilenamePrefix, PlotDirectory, Basin
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevSeg.png", dpi=300)
     plt.close(Fig)
 
+# SMM: Checked and working 13/06/2018
 def PlotLongProfileSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
     This plots the chi--elevation prfile with the segments used in the hilltop analyses plotted in random colours.
@@ -770,7 +772,7 @@ def PlotLongProfileSegments(DataDirectory, FilenamePrefix, PlotDirectory, BasinI
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfSeg.png", dpi=300)
     plt.close(Fig)
     
-
+# SMM: Checked and working 13/06/2018
 def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
     This function reads the channel data file and plots the chi-elevation profile along with the segments extracted from the segmentation algorithm. 
@@ -849,6 +851,7 @@ def PlotChiElevationMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_ChiElevMChi.png", dpi=300)
     plt.close(Fig)
 
+# SMM: Checked and working 13/06/2018    
 def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     """
     This function reads the channel data file and plots the long profile along with the segments extracted from the segmentation algorithm. 
@@ -913,12 +916,16 @@ def PlotLongProfileMChi(DataDirectory, FilenamePrefix, PlotDirectory, BasinID):
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID) + "_LongProfMChi.png", dpi=300)
     plt.close(Fig)
 
+# SMM: Checked and working 13/06/2018
+# However it has a number of things that need to be revised: we should calculate E* R* directly (I think)
+# Also error measurements need to be in quartiles rather than means and standard deviations
 def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, BasinID, plot_vs_chi = False, minimum_traces = 50):
     """
     This function makes some composite plots of the hillslope data vs
     distance upstream from the outlet. 
     It requires the hillslope and channel data csv files.
     Note: It reads E* R* data from file so S_c is not tuned. It must be entered in the c++ code.
+    Note2: Uses standard deviation for errors so should be used with extreme caution
 
     Args:
         DataDirectory (str): the data directory
@@ -1066,11 +1073,12 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
     # close this figure to prevent stupid warnings
     plt.close(fig)
 
+# SMM: Checked and working 13/06/2018
+# I've modified this so I think it gives us all the stuff we need, using the correct statistics (medians and quartiles)
 def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, BasinID, minimum_traces = 50, Sc = 0.8, plot_mainstem_only = False, colour_by = "default"):
     """
     Makes a plot of E* against R* where the points are coloured by
-    their distance from the outlet of the basin
-    Note: It reads E* R* data from file so S_c is not tuned. It must be entered in the c++ code.
+    their distance from the outlet of the basin or k_sn or chi
 
     Args:
         DataDirectory (str): the data directory
@@ -1257,12 +1265,16 @@ def PlotEStarRStarWithinBasin(DataDirectory, FilenamePrefix, PlotDirectory, Basi
     print("total_data_points: "+ str(total_data_points))
     
     if total_data_points==0:
-        plt.text(0.2, 0.8, 'Basin'+str(BasinID)+", no data points.", horizontalalignment='left', verticalalignment='bottom', transform=Ax.transAxes)
+        plt.text(0.05, 0.95, 'Basin'+str(BasinID)+", no data points.", horizontalalignment='left', verticalalignment='top', transform=Ax.transAxes)
 
     plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(BasinID).zfill(3) + figappendstr, dpi=300)
     plt.clf()
     plt.close(Fig)
 
+    
+# This is only functional for Mendocino so not general
+# I don't think it would take too much effort, however, to look for the uplift file and just not plot uplift
+# if the file is missing. However that is a task for another day (SMM, 13/06/2018)
 def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     """
     Function to make plots of hillslope data vs basin id.
@@ -1428,13 +1440,15 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     csv_outname = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
     OutDF.to_csv(csv_outname,index=False)
 
+# SMM: Checked 13/06/2018 but not working since I do not know there the "_basin_hillslope_data.csv" comes from and don't have it. 
 def PlotKsnAgainstRStar(DataDirectory, FilenamePrefix, PlotDirectory):
     """
     Function to plot median Ksn against R* for a series of basins
 
     Author: FJC
     """
-
+    
+    # SMM: What generates this file?? I don't have it. 
     input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
     df = pd.read_csv(input_csv)
 
@@ -1468,6 +1482,9 @@ def PlotKsnAgainstRStar(DataDirectory, FilenamePrefix, PlotDirectory):
     plt.savefig(PlotDirectory+FilenamePrefix +"_ksn_vs_rstar.png", dpi=300)
     plt.clf()
 
+    
+# This seems to do the same as the PlotEStarRStarWithinBasin function!!!   
+# However it is not working since I don't have the _basin_hillslope_data.csv' file
 def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.8):
     """
     Function to make an E*R* plot for a series of drainage basins.
@@ -1482,6 +1499,8 @@ def PlotEStarRStarBasins(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.8)
         
     Author: FJC
     """
+    
+    # SMM: It is not clear where this file comes from
     input_csv = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
     df = pd.read_csv(input_csv)
 
@@ -1779,7 +1798,10 @@ def PlotEStarRStarProgression(Sc=0.71):
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.savefig(PlotDirectory+FilenamePrefix + "_EStarRStarProgression.png", dpi=300)
     plt.close(Fig)
-    
+
+# SMM Checked, revised and working 13/06/2018
+# This is now working and produces lots of nice profile plots. 
+# It could be revised so that it shows the main stem only
 def PlotChiProfileHillslopeData(DataDirectory, FilenamePrefix, PlotDirectory, Basins = [], PlotKsn = False, Sc = 0.71):
     """
     This plots the data by basin showing the E*, R* and either the chi profile or the K_sn data as a function of chi
