@@ -423,13 +423,13 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['Chi_MLE_points_min'] = UncertaintyDF['Min_MOverNs']
     OutDF['Chi_MLE_points_max'] = UncertaintyDF['Max_MOverNs']
 
-    print ("Now getting the m/n from the chi residuals")
-
+    # We don't do this any more since residuals don't work!!!
+    #print ("Now getting the m/n from the chi residuals")
     # get the best fit m/n from the chi residuals method
-    ResidualsDF = GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list, parallel=parallel)
-    OutDF['Chi_residuals'] = ResidualsDF['Median_MOverNs']
-    OutDF['Chi_residuals_min'] = ResidualsDF['FirstQ_MOverNs']
-    OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
+    #ResidualsDF = GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list, parallel=parallel)
+    #OutDF['Chi_residuals'] = ResidualsDF['Median_MOverNs']
+    #OutDF['Chi_residuals_min'] = ResidualsDF['FirstQ_MOverNs']
+    #OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
 
     print ("Getting the m/n from the SA data")
 
