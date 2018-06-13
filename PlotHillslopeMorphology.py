@@ -75,6 +75,7 @@ def main(argv):
     parser.add_argument("-determine_sc", "--determine_sc", type=bool, default=False, help="If this is true I will create some plots to determine what the correct critical slope value should be, based on Grieve et al. (2016, ESPL)")   
     parser.add_argument("-profile_plots", "--profile_plots", type=bool, default=False, help="If this is true I will plot E*, R*, and either Ksn or elevation against chi for each basin.")
     parser.add_argument("-EsRs_basin", "--plot_Es_Rs_by_basin", type=bool, default=False, help="This plots E* R* data for each basin.")
+    parser.add_argument("-Ksn_vs_EsRs_basin", "--plot_Ksn_vs_Es_Rs_by_basin", type=bool, default=False, help="This plots K_sn vs E* R* data for each basin.")
     
     
     
@@ -192,13 +193,22 @@ def main(argv):
         print("Hello, I will print plots of things like L_H and other stuff as a function of position. This plots things in profile.")
         print("All tributaries can be plotted.")
         HS.PlotChiProfileHillslopeData(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.plot_Ksn, args.sc)
-    
+ 
+    # SMM 
+    if args.plot_Ksn_vs_Es_Rs_by_basin:
+        print("Hello, I will print plots k_sn vs E* and R*.")
+        print("All tributaries can be plotted.")
+        HS.PlotCatchmentKsnEsRs(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.sc)
+        
+        
     # SMM: This has been tested
     if args.plot_Es_Rs_by_basin:
         print("Let me print the E* R* plots")
         print("It makes E* R* plots for each basin and colours the data points by things like k_sn or chi.")
         for basin_key in these_basin_keys:
             HS.PlotEStarRStarWithinBasin(this_dir, args.fname_prefix, PlotDirectory, basin_key,args.minimum_traces, args.sc, args.mainstem_only, args.EsRs_colour_by)
+            
+
         
         
 #=============================================================================
