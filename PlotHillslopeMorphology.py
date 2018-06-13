@@ -76,7 +76,7 @@ def main(argv):
     parser.add_argument("-profile_plots", "--profile_plots", type=bool, default=False, help="If this is true I will plot E*, R*, and either Ksn or elevation against chi for each basin.")
     parser.add_argument("-EsRs_basin", "--plot_Es_Rs_by_basin", type=bool, default=False, help="This plots E* R* data for each basin.")
     parser.add_argument("-Ksn_vs_EsRs_basin", "--plot_Ksn_vs_Es_Rs_by_basin", type=bool, default=False, help="This plots K_sn vs E* R* data for each basin.")
-    
+    parser.add_argument("-plot_stacked_Es_Rs_by_chi", "--plot_stacked_Es_Rs_by_chi", type=bool, default=False, help="TPlots stacked E* or R* as function of Chi.")
     
     
     # Parameters that are used within plotting functions
@@ -87,6 +87,9 @@ def main(argv):
     parser.add_argument("-min_traces", "--minimum_traces", type=int, default=50, help="The minimium number of traces to be used for plotting segment data.")
     parser.add_argument("-EsRs_colour_by", "--EsRs_colour_by", type=str, default="ksn", help="What to colour E* R* plots by.")
     parser.add_argument("-mainstem_only", "--mainstem_only", type=bool, default=False, help="If true, use only mainstem data for E* R* plots.")
+    
+    
+    
     
     parser.add_argument("-common_max_Ksn", "--common_max_Ksn", type=float, default=-99, help="If positive, use as common maximum Ksn for all plots")
     parser.add_argument("-common_max_Es", "--common_max_Es", type=float, default=-99, help="If positive, use as common maximum E star for all plots")
@@ -219,8 +222,11 @@ def main(argv):
         for basin_key in these_basin_keys:
             HS.PlotEStarRStarWithinBasin(this_dir, args.fname_prefix, PlotDirectory, basin_key,args.minimum_traces, args.sc, args.mainstem_only, args.EsRs_colour_by)
             
-
-        
+    # SMM: Working on this as of 13-6-2018
+    if args.plot_stacked_Es_Rs_by_chi:
+        print("Let me print a stacked plot of the median E* and R* values")
+        print("It makes E* R* plots for each basin and colours the data points by things like k_sn or chi.")
+        HS.PlotStackedEsReFxnChi(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.sc, args.mainstem_only)      
         
 #=============================================================================
 if __name__ == "__main__":

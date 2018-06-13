@@ -2267,3 +2267,119 @@ def PlotCatchmentKsnEsRs(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [
             
         plt.clf()
         plt.close()
+        
+# This has been taken from one of Martin's scripts
+# Tested and working as of 13-6-2018 (SMM)
+def PlotStackedEsReFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [], Sc = 0.71, mainstem_only = False):
+    """
+    This plots the E* and R* data as a function of where they are in chi space
+    """
+    
+    #Load hillslope metrics data
+    HillslopesDF = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    # Read in the raw channel data
+    ChannelsDF = ReadChannelData(DataDirectory, FilenamePrefix)   
+    
+    # Basins list and keys
+    BasinsDict = np.loadtxt(DataDirectory+FilenamePrefix+'_junctions.list',dtype=int)
+    
+    # loop through basins
+    #for key, Basin in np.ndenumerate(Basins):
+    for key in Basins:
+        # print basin to screen 
+        Basin = BasinsDict[key]
+        print(key, Basin)
+
+        # isolate basin data
+        BasinChannelData = ChannelsDF[ChannelsDF.basin_key == key]
+        MinimumChi = BasinChannelData.chi.min()        
+              
+        # how many segments are we dealing with?    
+        Segments = BasinChannelData.segment_number.unique()
+        
+        # setup the figure
+        Fig = CreateFigure(FigSizeFormat="EPSL")
+        ax1 = Fig.add_axes([0.1,0.1,0.8,0.5])
+        ax2 = Fig.add_axes([0.1,0.45,0.8,0.5])
+
+        #choose colormap
+        ColourMap = cm.viridis
+
+        # create new dataframe for plotting
+        PlotDF = pd.DataFrame(columns=['Chi','Ksn','EStarMedian','EStarLower',
+                    'EStarUpper','RStarMedian','RStarLower','RStarUpper','NTraces'])        
+        
+        
+        # try to figure out the source key
+        mainstem_source_key = BasinChannelData.source_key.iloc[0]
+        print("The mainstem source key is: " +str(mainstem_source_key))    
+    
+        # separate into main stem and trib data
+        MainStemChannelData = BasinChannelData[BasinChannelData.source_key == mainstem_source_key]
+        MainStemSegments = MainStemChannelData.segment_number.unique()
+ 
+        # Get the data columns for plotting
+        for i, Segment in np.ndenumerate(Segments):
+            
+            if mainstem_only:
+                print("I am not gonna do a thing.")
+            else:       
+                # get metrics to plot
+                Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
+                Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment].median()
+
+                #normalise chi by outlet chi
+                Chi = Chi-MinimumChi
+
+                # get hillslope data
+                SegmentHillslopeData = HillslopesDF[HillslopesDF.StreamID == Segment]
+                NTraces = len(SegmentHillslopeData)
+
+                if NTraces<0:
+                    continue
+
+                # Calculate E* R*
+                EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
+                RStar = SegmentHillslopeData.S/Sc
+
+                EStarMedian = EStar.median()
+                EStarLower = EStar.quantile(0.25)
+                EStarUpper = EStar.quantile(0.75)
+
+                RStarMedian = RStar.median()
+                RStarLower = RStar.quantile(0.25)
+                RStarUpper = RStar.quantile(0.75)
+
+                # add to plot dataframe
+                PlotDF.loc[i]  = [Chi,Ksn,EStarMedian,EStarLower, EStarUpper, RStarMedian, RStarLower, RStarUpper,NTraces]
+        
+        # reset indices
+        PlotDF = PlotDF.reset_index(drop=True)
+        
+        # Zip errors for plotting
+        Es_max_err = PlotDF.EStarUpper.values-PlotDF.EStarMedian
+        Es_min_err = PlotDF.EStarMedian-PlotDF.EStarLower.values
+        Es_errors = np.array(zip(Es_min_err, Es_max_err)).T
+        Rs_max_err = PlotDF.RStarUpper.values-PlotDF.RStarMedian
+        Rs_min_err = PlotDF.RStarMedian-PlotDF.RStarLower.values
+        Rs_errors = np.array(zip(Rs_min_err, Rs_max_err)).T
+
+        #Get colours for plotting from Chi
+        ChiArray = PlotDF.Chi.values.astype(float)
+        MinChi = PlotDF.Chi.min()
+        MaxChi = PlotDF.Chi.max()
+        Colours = (ChiArray-MinChi)/(MaxChi-MinChi) 
+        
+        # order the datafrom
+        PlotDF.sort_values(by=['Chi'])
+        
+        # Get the data as a numpy array
+        Data_array = PlotDF.as_matrix(columns=["Chi","EStarMedian"])
+        
+        sorted_data = np.sort(Data_array,axis = 0)
+        print("The chi coordinates are:")
+        print(sorted_data)
+        
+        #print("The EStarMedian values are:")
+        #print(EStarMedian)

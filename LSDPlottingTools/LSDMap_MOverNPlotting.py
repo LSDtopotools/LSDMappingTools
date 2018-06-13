@@ -220,6 +220,7 @@ def GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list=[0], para
     calculates the median best fit m/n along with the min and max from the
     first and third quartiles. These are returned as a pandas dataframe because
     I love pandas <3 <3
+    SMM Note: this isn't really used since the residual analysis doesn't work. 
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
