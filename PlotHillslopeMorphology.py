@@ -20,6 +20,43 @@ import os
 from LSDPlottingTools import LSDMap_HillslopeMorphology as HS
 from LSDMapFigure import PlottingHelpers as Helper
 
+
+#=============================================================================
+# This parses a list of lists separated string. Each list is separated by a colon
+#=============================================================================    
+def parse_list_of_list_from_string(a_string):
+    """
+    This parses a list of lists separated string. Each list is separated by a colon
+    
+    Args:
+        a_string (str): This creates a list of lists. Each sub list is separated by colons and the sub list items are separated by commas. So `1,2,3:4,5` would produce [ [1,2,3],[4,5]]
+        
+    Returns:
+        list_of_list (list): A list of lists
+        
+    Author: SMM
+    
+    Date: 11/01/2018
+    """
+    
+    if len(a_string) == 0:
+        print("No list of list found. I will return an empty list.")
+        list_of_list = []
+    else:
+        listified_entry = [item for item in a_string.split(':')]
+        list_of_list = []
+        
+        # now loop through these creating a dict
+        for entry in listified_entry:
+            split_entry = [int(item) for item in entry.split(',')]
+            list_of_list.append(split_entry)
+    
+    print("This list of lists is: ")
+    print(list_of_list)
+    
+    return list_of_list
+
+
 #=============================================================================
 # This is just a welcome screen that is displayed if no arguments are provided.
 #=============================================================================
@@ -62,6 +99,7 @@ def main(argv):
     parser.add_argument("-plotdir","--plot_directory",type=str, help="The directory to place output plots in. If it isn't defined I'll create a new folder inside --base-directory called \"plots\" and put them there.")
     # The basins you want to plot
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
+    parser.add_argument("-basin_lists", "--basin_lists",type=str,default = "", help = "This is a string that initiates a list of a list for grouping basins. The object becomes a list of a list but the syntax is comma seperated lists, and each one is separated by a colon. Default = no dict")
 
     # The analysis you want to do
     parser.add_argument("-Mchi", "--plot_mchi", type=bool, default=False, help="If this is true, I'll make some plots of the hillslope-channel data against Mchi")
@@ -76,7 +114,8 @@ def main(argv):
     parser.add_argument("-profile_plots", "--profile_plots", type=bool, default=False, help="If this is true I will plot E*, R*, and either Ksn or elevation against chi for each basin.")
     parser.add_argument("-EsRs_basin", "--plot_Es_Rs_by_basin", type=bool, default=False, help="This plots E* R* data for each basin.")
     parser.add_argument("-Ksn_vs_EsRs_basin", "--plot_Ksn_vs_Es_Rs_by_basin", type=bool, default=False, help="This plots K_sn vs E* R* data for each basin.")
-    parser.add_argument("-plot_stacked_Es_Rs_by_chi", "--plot_stacked_Es_Rs_by_chi", type=bool, default=False, help="TPlots stacked E* or R* as function of Chi.")
+    parser.add_argument("-plot_stacked_Es_Rs_by_chi", "--plot_stacked_Es_Rs_by_chi", type=bool, default=False, help="This plots stacked E* or R* as function of Chi.")
+    parser.add_argument("-plot_clustered_Es_Rs_by_chi", "--plot_clustered_Es_Rs_by_chi", type=bool, default=False, help="This plots clustered E* or R* as function of Chi.")
     
     
     # Parameters that are used within plotting functions
@@ -127,6 +166,9 @@ def main(argv):
         print(these_basin_keys)
 
 
+    # This is the basin stack
+    basin_stack_list = parse_list_of_list_from_string(args.basin_lists)        
+        
     # separate the data into basin csvs
     #HS.SaveHillslopeDataByBasin(this_dir, args.fname_prefix)
     #HS.SaveChannelDataByBasin(this_dir, args.fname_prefix)
@@ -222,11 +264,15 @@ def main(argv):
         for basin_key in these_basin_keys:
             HS.PlotEStarRStarWithinBasin(this_dir, args.fname_prefix, PlotDirectory, basin_key,args.minimum_traces, args.sc, args.mainstem_only, args.EsRs_colour_by)
             
-    # SMM: Working on this as of 13-6-2018
+    # SMM: Vaguely works 14-6-2018 but needs quite a bit of editing and options to be complete
     if args.plot_stacked_Es_Rs_by_chi:
         print("Let me print a stacked plot of the median E* and R* values")
-        print("It makes E* R* plots for each basin and colours the data points by things like k_sn or chi.")
-        HS.PlotStackedEsReFxnChi(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.sc, args.mainstem_only)      
+        HS.PlotStackedEsRsFxnChi(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.sc, args.mainstem_only)   
+        
+    # SMM: Working on this as of 14-6-2018
+    if args.plot_clustered_Es_Rs_by_chi:
+        print("Let me print a cluster plots of E* and R* values as function of chi")
+        HS.PlotClusteredEsRsFxnChi(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.sc, args.mainstem_only, BasinsCluster = basin_stack_list)          
         
 #=============================================================================
 if __name__ == "__main__":

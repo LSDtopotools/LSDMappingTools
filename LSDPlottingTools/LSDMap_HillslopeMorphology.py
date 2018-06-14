@@ -2270,7 +2270,7 @@ def PlotCatchmentKsnEsRs(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [
         
 # This has been taken from one of Martin's scripts
 # Tested and working as of 13-6-2018 (SMM)
-def PlotStackedEsReFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [], Sc = 0.71, mainstem_only = False):
+def PlotStackedEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [], Sc = 0.71, mainstem_only = False):
     """
     This plots the E* and R* data as a function of where they are in chi space
     """
@@ -2428,7 +2428,7 @@ def PlotStackedEsReFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = 
         #plt.plot(C,EE, color="k", alpha = 0.8)
         #plt.fill_between(C,F,EE, facecolor='red', interpolate=True, alpha = 0.5)
         plt.plot(C,RR, color="k", alpha = 0.8)
-        plt.fill_between(C,F,R, facecolor='red', interpolate=True, alpha = 0.5)
+        plt.fill_between(C,F,RR, facecolor='red', interpolate=True, alpha = 0.5)
         
         offset = offset+offsetter
         
@@ -2450,6 +2450,168 @@ def PlotStackedEsReFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = 
     ax1.set_xlim(0,60)
         
     plt.savefig(PlotDirectory+FilenamePrefix + "_Stack.png", dpi=300)
+            
+    plt.clf()
+    plt.close()    
+
+# This has been taken from one of Martin's scripts
+# Tested and working as of 13-6-2018 (SMM)
+def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [], Sc = 0.71, mainstem_only = False, BasinsCluster = []):
+    """
+    This plots the E* and R* data as a function of where they are in chi space
+    """
+    
+    #Load hillslope metrics data
+    HillslopesDF = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    # Read in the raw channel data
+    ChannelsDF = ReadChannelData(DataDirectory, FilenamePrefix)   
+    
+    # Basins list and keys
+    BasinsDict = np.loadtxt(DataDirectory+FilenamePrefix+'_junctions.list',dtype=int)
+    
+    # Create a dictionary for storing the plotting data
+    PlotDataDict = {}
+    counter = 0
+    for Basins in BasinsCluster:
+        # Each basin cluster has several basins in it
+        print("This cluster has the following basins:")
+        print(Basins)
+        
+        # For labelling
+        #StrBasins = str(Basins)
+        clusterstr = ",".join(str(i) for i in Basins)
+        
+        # setup the figure
+        Fig = CreateFigure(FigSizeFormat="EPSL")
+        ax1 = Fig.add_axes([0.1,0.1,0.8,0.6])
+
+        #choose colormap
+        ColourMap = cm.viridis        
+        
+        # create new dataframe for plotting
+        PlotDF = pd.DataFrame(columns=['Chi','Ksn','EStarMedian','EStarLower',
+                        'EStarUpper','RStarMedian','RStarLower','RStarUpper','NTraces'])   
+        
+        # loop through basins
+        #for key, Basin in np.ndenumerate(Basins):
+        for key in Basins:
+            # print basin to screen 
+            Basin = BasinsDict[key]
+            print(key, Basin)
+
+            # isolate basin data
+            BasinChannelData = ChannelsDF[ChannelsDF.basin_key == key]
+            MinimumChi = BasinChannelData.chi.min()        
+
+            # how many segments are we dealing with?    
+            Segments = BasinChannelData.segment_number.unique()
+     
+            # try to figure out the source key
+            mainstem_source_key = BasinChannelData.source_key.iloc[0]
+            print("The mainstem source key is: " +str(mainstem_source_key))    
+
+            # separate into main stem and trib data
+            MainStemChannelData = BasinChannelData[BasinChannelData.source_key == mainstem_source_key]
+            MainStemSegments = MainStemChannelData.segment_number.unique()
+
+            # Get the data columns for plotting
+            for i, Segment in np.ndenumerate(Segments):
+
+                if mainstem_only:
+                    print("I am not gonna do a thing.")
+                else:       
+
+
+                    # get hillslope data
+                    SegmentHillslopeData = HillslopesDF[HillslopesDF.StreamID == Segment]
+                    NTraces = len(SegmentHillslopeData)
+
+                    if NTraces>20:
+
+                        # get metrics to plot
+                        Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
+                        Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment].median()
+
+                        #normalise chi by outlet chi
+                        Chi = Chi-MinimumChi    
+
+                        # Calculate E* R*
+                        EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
+                        RStar = SegmentHillslopeData.S/Sc
+
+                        EStarMedian = EStar.median()
+                        EStarLower = EStar.quantile(0.25)
+                        EStarUpper = EStar.quantile(0.75)
+
+                        RStarMedian = RStar.median()
+                        RStarLower = RStar.quantile(0.25)
+                        RStarUpper = RStar.quantile(0.75)
+
+                        # add to plot dataframe
+                        PlotDF.loc[i]  = [Chi,Ksn,EStarMedian,EStarLower, EStarUpper, RStarMedian, RStarLower, RStarUpper,NTraces]
+
+        # reset indices
+        PlotDF = PlotDF.reset_index(drop=True)
+
+        # Zip errors for plotting
+        Es_max_err = PlotDF.EStarUpper.values-PlotDF.EStarMedian
+        Es_min_err = PlotDF.EStarMedian-PlotDF.EStarLower.values
+        Es_errors = np.array(zip(Es_min_err, Es_max_err)).T
+        Rs_max_err = PlotDF.RStarUpper.values-PlotDF.RStarMedian
+        Rs_min_err = PlotDF.RStarMedian-PlotDF.RStarLower.values
+        Rs_errors = np.array(zip(Rs_min_err, Rs_max_err)).T
+
+        #Get colours for plotting from Chi
+        #ChiArray = PlotDF.Chi.values.astype(float)
+        #MinChi = PlotDF.Chi.min()
+        #MaxChi = PlotDF.Chi.max()
+        #Colours = (ChiArray-MinChi)/(MaxChi-MinChi) 
+        
+        KsnArray = PlotDF.Ksn.values.astype(float)
+        MinKsn = PlotDF.Ksn.min()
+        MaxKsn = PlotDF.Ksn.max()
+        Colours = (KsnArray-MinKsn)/(MaxKsn-MinLsn) 
+
+        
+         #plot ksn vs EStar and Rstar, colouring by Chi        
+        for i, row in PlotDF.iterrows():
+            ax1.plot([row.Chi,row.Chi],[row.EStarLower, row.EStarUpper],'-',c=ColourMap(Colours[i]))
+            ax1.scatter(row.Chi, row.EStarMedian, marker='o', edgecolors='k',lw=0.5, facecolors=ColourMap(Colours[i]), s=15, zorder=200)
+
+        # Finalise the figure
+        ax1.set_xlabel(r"$\chi$)")
+        ax1.set_ylabel('Dimensionless $C_{\mathit{HT}}$')
+
+        #add colourbar
+        CAx = Fig.add_axes([0.02,0.9,0.2,0.02])
+        m = cm.ScalarMappable(cmap=ColourMap)
+        m.set_array(PlotDF.Chi)
+        plt.colorbar(m, cax=CAx,orientation='horizontal')
+        plt.xlabel('${k_{sn}}$ (m)',fontsize=8)
+        CAx.tick_params(axis='both', labelsize=8)
+
+        # turn off ax2 overlap and x axis for superimposed plots
+        ax1.patch.set_facecolor('none')
+        ax1.spines['right'].set_visible(False)
+        ax1.spines['top'].set_visible(False)
+        ax1.yaxis.set_ticks_position('left')
+        ax1.xaxis.set_ticks_position('bottom')
+
+
+        # fix axis limits
+        ax1.set_ylim(0,25)
+
+        #save output
+        plt.suptitle('Cluster number is ' + str(counter)+ "\nBasins are: "+ clusterstr)
+        
+        if mainstem_only:
+            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(counter).zfill(3) + "_cluster.png", dpi=300)
+        else:
+            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(counter).zfill(3) + "_cluster.png", dpi=300) 
+            
+        counter = counter+1
+
             
     plt.clf()
     plt.close()    
