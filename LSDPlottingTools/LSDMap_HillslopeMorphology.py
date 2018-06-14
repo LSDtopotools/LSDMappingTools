@@ -2284,6 +2284,9 @@ def PlotStackedEsReFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = 
     # Basins list and keys
     BasinsDict = np.loadtxt(DataDirectory+FilenamePrefix+'_junctions.list',dtype=int)
     
+    # Create a dictionary for storing the plotting data
+    PlotDataDict = {}
+    
     # loop through basins
     #for key, Basin in np.ndenumerate(Basins):
     for key in Basins:
@@ -2298,13 +2301,7 @@ def PlotStackedEsReFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = 
         # how many segments are we dealing with?    
         Segments = BasinChannelData.segment_number.unique()
         
-        # setup the figure
-        Fig = CreateFigure(FigSizeFormat="EPSL")
-        ax1 = Fig.add_axes([0.1,0.1,0.8,0.5])
-        ax2 = Fig.add_axes([0.1,0.45,0.8,0.5])
 
-        #choose colormap
-        ColourMap = cm.viridis
 
         # create new dataframe for plotting
         PlotDF = pd.DataFrame(columns=['Chi','Ksn','EStarMedian','EStarLower',
@@ -2325,37 +2322,38 @@ def PlotStackedEsReFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = 
             if mainstem_only:
                 print("I am not gonna do a thing.")
             else:       
-                # get metrics to plot
-                Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
-                Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment].median()
 
-                #normalise chi by outlet chi
-                Chi = Chi-MinimumChi
 
                 # get hillslope data
                 SegmentHillslopeData = HillslopesDF[HillslopesDF.StreamID == Segment]
                 NTraces = len(SegmentHillslopeData)
 
-                if NTraces<0:
-                    continue
+                if NTraces>0:
+                    
+                    # get metrics to plot
+                    Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
+                    Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment].median()
 
-                # Calculate E* R*
-                EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
-                RStar = SegmentHillslopeData.S/Sc
+                    #normalise chi by outlet chi
+                    Chi = Chi-MinimumChi    
 
-                EStarMedian = EStar.median()
-                EStarLower = EStar.quantile(0.25)
-                EStarUpper = EStar.quantile(0.75)
+                    # Calculate E* R*
+                    EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
+                    RStar = SegmentHillslopeData.S/Sc
 
-                RStarMedian = RStar.median()
-                RStarLower = RStar.quantile(0.25)
-                RStarUpper = RStar.quantile(0.75)
+                    EStarMedian = EStar.median()
+                    EStarLower = EStar.quantile(0.25)
+                    EStarUpper = EStar.quantile(0.75)
 
-                # add to plot dataframe
-                PlotDF.loc[i]  = [Chi,Ksn,EStarMedian,EStarLower, EStarUpper, RStarMedian, RStarLower, RStarUpper,NTraces]
+                    RStarMedian = RStar.median()
+                    RStarLower = RStar.quantile(0.25)
+                    RStarUpper = RStar.quantile(0.75)
+
+                    # add to plot dataframe
+                    PlotDF.loc[i]  = [Chi,Ksn,EStarMedian,EStarLower, EStarUpper, RStarMedian, RStarLower, RStarUpper,NTraces]
         
-        # reset indices
-        PlotDF = PlotDF.reset_index(drop=True)
+            # reset indices
+            PlotDF = PlotDF.reset_index(drop=True)
         
         # Zip errors for plotting
         Es_max_err = PlotDF.EStarUpper.values-PlotDF.EStarMedian
@@ -2371,15 +2369,88 @@ def PlotStackedEsReFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = 
         MaxChi = PlotDF.Chi.max()
         Colours = (ChiArray-MinChi)/(MaxChi-MinChi) 
         
-        # order the datafrom
-        PlotDF.sort_values(by=['Chi'])
+        # order the data by chi
+        Sorted_PlotDF = PlotDF.sort_values(by=['Chi'])
         
-        # Get the data as a numpy array
-        Data_array = PlotDF.as_matrix(columns=["Chi","EStarMedian"])
+        # Add to a dict of
+        PlotDataDict[key] = Sorted_PlotDF
         
-        sorted_data = np.sort(Data_array,axis = 0)
-        print("The chi coordinates are:")
-        print(sorted_data)
+    # Now we make the plot
+    
+    #choose colormap
+    ColourMap = cm.viridis    
+    
+    Fig = CreateFigure(FigSizeFormat="EPSL", AspectRatio = 0.6)
+    ax1 = Fig.add_axes([0.1,0.1,0.8,0.8])
+    
+    # Add an offset counter
+    offset = 0
+    offsetter = 0.8
+    
+    
+    for key in PlotDataDict:
+        ThisPlotDF = PlotDataDict[key]
+        Chi_data = ThisPlotDF.as_matrix(columns = ["Chi"])[:,0]
+        Es_data = ThisPlotDF.as_matrix(columns = ["EStarMedian"])[:,0]
+        Rs_data = ThisPlotDF.as_matrix(columns = ["RStarMedian"])[:,0]
         
-        #print("The EStarMedian values are:")
-        #print(EStarMedian)
+        chi = Chi_data.astype(float)
+        Es = Es_data.astype(float)
+        Rs = Rs_data.astype(float)
+        chi = chi.tolist()
+        Es = Es.tolist()
+        Rs = Rs.tolist()
+        #filler = np.asarray(chi)
+        #filler.fill(offset)
+        #Es = Es_data+offset
+        
+        # This fucking shit is required because of a fucking crazy error I about utypes I can only fix this way
+        c = []
+        e = []
+        f = []
+        r = []
+        for i in range(0,len(chi)):
+            c.append(float(chi[i]))
+            e.append(float(Es[i]))
+            r.append(float(Rs[i]))
+            f.append(float(offset))
+            
+        C = np.asarray(c)
+        E = np.asarray(e)
+        F = np.asarray(f)
+        R = np.asarray(r)
+        EE = E+offset
+        RR = R+offset
+        
+        max_Es =EE.max() 
+        max_Rs = RR.max()
+        
+        #plt.plot(C,EE, color="k", alpha = 0.8)
+        #plt.fill_between(C,F,EE, facecolor='red', interpolate=True, alpha = 0.5)
+        plt.plot(C,RR, color="k", alpha = 0.8)
+        plt.fill_between(C,F,R, facecolor='red', interpolate=True, alpha = 0.5)
+        
+        offset = offset+offsetter
+        
+    # Finalise the figure
+    ax1.set_xlabel(r"$\chi$ (m)")
+    #ax1.set_ylabel('Dimensionless $C_{\mathit{HT}}$')
+    ax1.set_ylabel('Dimensionless Relief')
+
+    # turn off ax2 overlap and x axis for superimposed plots
+    ax1.patch.set_facecolor('none')
+    ax1.spines['right'].set_visible(False)
+    ax1.spines['top'].set_visible(False)
+    ax1.yaxis.set_ticks_position('left')
+    ax1.xaxis.set_ticks_position('bottom')
+
+    # fix axis limits
+    #ax1.set_ylim(0,max_Es)
+    ax1.set_ylim(0,max_Rs)
+    ax1.set_xlim(0,60)
+        
+    plt.savefig(PlotDirectory+FilenamePrefix + "_Stack.png", dpi=300)
+            
+    plt.clf()
+    plt.close()    
+
