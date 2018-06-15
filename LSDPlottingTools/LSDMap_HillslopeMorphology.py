@@ -2627,9 +2627,13 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.
         clusterstr = ",".join(str(i) for i in Basins)
         
         # setup the figure
-        Fig = CreateFigure(FigSizeFormat="EPSL")
-        ax1 = Fig.add_axes([0.1,0.1,0.8,0.6])
+        Fig1 = CreateFigure(FigSizeFormat="EPSL")
+        ax1 = Fig1.add_axes([0.1,0.1,0.8,0.7])
 
+        # setup the figure
+        Fig2 = CreateFigure(FigSizeFormat="EPSL")
+        ax2 = Fig2.add_axes([0.1,0.1,0.8,0.7])        
+        
         #choose colormap
         ColourMap = cm.viridis        
         
@@ -2638,29 +2642,44 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.
         
         # Get the colourmap
         KsnArray = PlotDF.Ksn.values.astype(float)
-        #MinKsn = PlotDF.Ksn.min()
-        #MaxKsn = PlotDF.Ksn.max()
-        MinKsn = 0
-        MaxKsn = 20
-        Colours = (KsnArray-MinKsn)/(MaxKsn-MinKsn) 
+        MinKsn = PlotDF.Ksn.min()
+        MaxKsn = PlotDF.Ksn.max()
+        #MinKsn = 0
+        #MaxKsn = 20
+        Colours1 = (KsnArray-MinKsn)/(MaxKsn-MinKsn) 
 
         
          #plot ksn vs EStar and Rstar, colouring by Chi        
         for i, row in PlotDF.iterrows():
-            ax1.plot([row.Chi,row.Chi],[row.EStarLower, row.EStarUpper],'-',c=ColourMap(Colours[i]))
-            ax1.scatter(row.Chi, row.EStarMedian, marker='o', edgecolors='k',lw=0.5, facecolors=ColourMap(Colours[i]), s=15, zorder=200)
+            ax1.plot([row.Chi,row.Chi],[row.EStarLower, row.EStarUpper],'-',c=ColourMap(Colours1[i]))
+            ax1.scatter(row.Chi, row.EStarMedian, marker='o', edgecolors='k',lw=0.5, facecolors=ColourMap(Colours1[i]), s=15, zorder=200)
+            
+            ax2.plot([row.Chi,row.Chi],[row.RStarLower, row.RStarUpper],'-',c=ColourMap(Colours1[i]))
+            ax2.scatter(row.Chi, row.RStarMedian, marker='o', edgecolors='k',lw=0.5, facecolors=ColourMap(Colours1[i]), s=15, zorder=200)
 
         # Finalise the figure
-        ax1.set_xlabel(r"$\chi$)")
+        ax1.set_xlabel(r"$\chi$ (m)")
         ax1.set_ylabel('Dimensionless $C_{\mathit{HT}}$')
+        
+        # Finalise the figure
+        ax2.set_xlabel(r"$\chi$ (m)")
+        ax2.set_ylabel('Dimensionless relief')
 
         #add colourbar
-        CAx = Fig.add_axes([0.02,0.9,0.2,0.02])
+        CAx = Fig1.add_axes([0.02,0.9,0.2,0.02])
         m = cm.ScalarMappable(cmap=ColourMap)
-        m.set_array(PlotDF.Chi)
+        m.set_array(PlotDF.Ksn)
         plt.colorbar(m, cax=CAx,orientation='horizontal')
-        plt.xlabel('${k_{sn}}$ (m)',fontsize=8)
+        CAx.set_xlabel('${k_{sn}}$ (m)',fontsize=8)
         CAx.tick_params(axis='both', labelsize=8)
+        
+        #add colourbar
+        CAx2 = Fig2.add_axes([0.02,0.9,0.2,0.02])
+        m2 = cm.ScalarMappable(cmap=ColourMap)
+        m2.set_array(PlotDF.Ksn)
+        plt.colorbar(m2, cax=CAx2,orientation='horizontal')
+        CAx2.set_xlabel('${k_{sn}}$ (m)',fontsize=8)
+        CAx2.tick_params(axis='both', labelsize=8)
 
         # turn off ax2 overlap and x axis for superimposed plots
         ax1.patch.set_facecolor('none')
@@ -2668,18 +2687,29 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.
         ax1.spines['top'].set_visible(False)
         ax1.yaxis.set_ticks_position('left')
         ax1.xaxis.set_ticks_position('bottom')
+        
+        # turn off ax2 overlap and x axis for superimposed plots
+        ax2.patch.set_facecolor('none')
+        ax2.spines['right'].set_visible(False)
+        ax2.spines['top'].set_visible(False)
+        ax2.yaxis.set_ticks_position('left')
+        ax2.xaxis.set_ticks_position('bottom')
 
 
         # fix axis limits
         ax1.set_ylim(0,25)
+        ax2.set_ylim(0,1)
 
         #save output
-        plt.suptitle('Cluster number is ' + str(key)+ "\nBasins are: "+ clusterstr)
+        Fig1.suptitle('Cluster number is ' + str(key)+ "\nBasins are: "+ clusterstr)
+        Fig2.suptitle('Cluster number is ' + str(key)+ "\nBasins are: "+ clusterstr)
         
         if mainstem_only:
-            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_cluster_ms.png", dpi=300)
+            Fig1.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_Es_cluster_ms.png", dpi=300)
+            Fig2.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_Rs_cluster_ms.png", dpi=300)
         else:
-            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_cluster.png", dpi=300) 
+            Fig1.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_Es_cluster.png", dpi=300)
+            Fig2.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_Rs_cluster_ms.png", dpi=300)
 
             
         plt.clf()
