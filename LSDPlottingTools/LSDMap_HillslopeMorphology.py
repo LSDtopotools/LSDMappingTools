@@ -2482,6 +2482,18 @@ def GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc = 0.71, mainstem_
     Author: SMM
     """
     
+    seq = range(0:15)
+    
+    # Make a sequantial cluster
+    combined_list = []
+    for i in range(3,6):
+        this_list = chunkIt(seq, i)
+        combined_list.append(this_list)
+        
+    print("Combined list is:")
+    print(combined_list)
+
+    
     #Load hillslope metrics data
     HillslopesDF = ReadHillslopeData(DataDirectory, FilenamePrefix)
 
@@ -2714,3 +2726,29 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.
             
         plt.clf()
         plt.close()    
+        
+def chunkIt(seq, num):
+    """
+    This comes from https://stackoverflow.com/questions/2130016/splitting-a-list-into-n-parts-of-approximately-equal-length
+    I will use it to create a bunch of lists for sequential clustering
+    
+    Args: 
+        seq: The initial list for chunking
+        num: The number of items in each chunk
+        
+    Return:
+        A chunked list with roughly equal numbers of elements
+    
+    Author: Max Shawabkeh
+    
+    
+    """
+    avg = len(seq) / float(num)
+    out = []
+    last = 0.0
+
+    while last < len(seq):
+        out.append(seq[int(last):int(last + avg)])
+        last += avg
+
+    return out
