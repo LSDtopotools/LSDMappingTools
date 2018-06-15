@@ -272,7 +272,7 @@ def main(argv):
     # SMM: Working on this as of 14-6-2018
     if args.plot_clustered_Es_Rs_by_chi:
         print("Let me print a cluster plots of E* and R* values as function of chi")
-        HS.PlotClusteredEsRsFxnChi(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, args.sc, args.mainstem_only, BasinsCluster = basin_stack_list)          
+        HS.PlotClusteredEsRsFxnChi(this_dir, args.fname_prefix, PlotDirectory, args.sc, args.mainstem_only, BasinsCluster = basin_stack_list)          
         
 #=============================================================================
 if __name__ == "__main__":

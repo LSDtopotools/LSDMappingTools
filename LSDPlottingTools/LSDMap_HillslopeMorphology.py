@@ -2079,7 +2079,6 @@ def PlotCatchmentKsnEsRs(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [
     This prints plots of k_sn vs E* and R* for each basin. It colours points by the chi coordinate/
        
     Args:
-        Sc (float)@ The critical slope
         DataDirectory (str): the data directory
         FilenamePrefix (str): the file name prefix
         PlotDirectory (str): The directory into which the plots are saved 
@@ -2273,6 +2272,20 @@ def PlotCatchmentKsnEsRs(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [
 def PlotStackedEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [], Sc = 0.71, mainstem_only = False):
     """
     This plots the E* and R* data as a function of where they are in chi space
+    
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved 
+        Basins (int list): A list of the basin numbers to plot
+        Sc (float): The critical slope
+        mainstem_only (bool): If true, only plot the data from the main stem
+
+
+    Author: SMM
+    
+    Date: 15-Jun-2018
+    
     """
     
     #Load hillslope metrics data
@@ -2454,11 +2467,19 @@ def PlotStackedEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = 
     plt.clf()
     plt.close()    
 
-# This has been taken from one of Martin's scripts
-# Tested and working as of 13-6-2018 (SMM)
-def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins = [], Sc = 0.71, mainstem_only = False, BasinsCluster = []):
+
+def GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc = 0.71, mainstem_only = False, BasinsCluster = []):
     """
-    This plots the E* and R* data as a function of where they are in chi space
+    This function reads the hillslope and channel data and returns a data dict that can be used for plotting
+    
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        Sc (float): The critical slope
+        mainstem_only (bool): If true, only plot the data from the main stem
+        BasinsCluster (list of int lists): This is a list of lists that has the basin numbers for clustering 
+    
+    Author: SMM
     """
     
     #Load hillslope metrics data
@@ -2472,22 +2493,10 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins 
     
     # Create a dictionary for storing the plotting data
     PlotDataDict = {}
-    counter = 0
-    for Basins in BasinsCluster:
+    for cluster_index,Basins in enumerate(BasinsCluster):
         # Each basin cluster has several basins in it
         print("This cluster has the following basins:")
         print(Basins)
-        
-        # For labelling
-        #StrBasins = str(Basins)
-        clusterstr = ",".join(str(i) for i in Basins)
-        
-        # setup the figure
-        Fig = CreateFigure(FigSizeFormat="EPSL")
-        ax1 = Fig.add_axes([0.1,0.1,0.8,0.6])
-
-        #choose colormap
-        ColourMap = cm.viridis        
         
         # create new dataframe for plotting
         PlotDF = pd.DataFrame(columns=['Chi','Ksn','EStarMedian','EStarLower',
@@ -2519,9 +2528,35 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins 
             for i, Segment in np.ndenumerate(Segments):
 
                 if mainstem_only:
-                    print("I am not gonna do a thing.")
-                else:       
+                    if Segment in MainStemSegments:
+                        # get hillslope data
+                        SegmentHillslopeData = HillslopesDF[HillslopesDF.StreamID == Segment]
+                        NTraces = len(SegmentHillslopeData)
 
+                        if NTraces>20:
+
+                            # get metrics to plot
+                            Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
+                            Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment].median()
+
+                            #normalise chi by outlet chi
+                            Chi = Chi-MinimumChi    
+
+                            # Calculate E* R*
+                            EStar = -2*SegmentHillslopeData.Cht*SegmentHillslopeData.Lh/Sc
+                            RStar = SegmentHillslopeData.S/Sc
+
+                            EStarMedian = EStar.median()
+                            EStarLower = EStar.quantile(0.25)
+                            EStarUpper = EStar.quantile(0.75)
+
+                            RStarMedian = RStar.median()
+                            RStarLower = RStar.quantile(0.25)
+                            RStarUpper = RStar.quantile(0.75)
+
+                            # add to plot dataframe
+                            PlotDF.loc[i]  = [Chi,Ksn,EStarMedian,EStarLower, EStarUpper, RStarMedian, RStarLower, RStarUpper,NTraces]
+                else:       
 
                     # get hillslope data
                     SegmentHillslopeData = HillslopesDF[HillslopesDF.StreamID == Segment]
@@ -2554,24 +2589,60 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins 
         # reset indices
         PlotDF = PlotDF.reset_index(drop=True)
 
-        # Zip errors for plotting
-        Es_max_err = PlotDF.EStarUpper.values-PlotDF.EStarMedian
-        Es_min_err = PlotDF.EStarMedian-PlotDF.EStarLower.values
-        Es_errors = np.array(zip(Es_min_err, Es_max_err)).T
-        Rs_max_err = PlotDF.RStarUpper.values-PlotDF.RStarMedian
-        Rs_min_err = PlotDF.RStarMedian-PlotDF.RStarLower.values
-        Rs_errors = np.array(zip(Rs_min_err, Rs_max_err)).T
-
-        #Get colours for plotting from Chi
-        #ChiArray = PlotDF.Chi.values.astype(float)
-        #MinChi = PlotDF.Chi.min()
-        #MaxChi = PlotDF.Chi.max()
-        #Colours = (ChiArray-MinChi)/(MaxChi-MinChi) 
+        print("The cluster index is: "+str(cluster_index))
+        PlotDataDict[cluster_index] = PlotDF
         
+    return PlotDataDict
+
+# This has been taken from one of Martin's scripts
+# Tested and working as of 13-6-2018 (SMM)
+def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.71, mainstem_only = False, BasinsCluster = []):
+    """
+    This plots the E* and R* data as a function of where they are in chi space
+
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved 
+        Sc (float): The critical slope
+        mainstem_only (bool): If true, only plot the data from the main stem
+        BasinsCluster (list of int lists): This is a list of lists that has the basin numbers for clustering 
+
+    Author: SMM
+    
+    Date: 15-Jun-2018
+    """
+    
+    PlotDataDict = GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc, mainstem_only, BasinsCluster)
+    
+    for key in PlotDataDict:
+        
+        # Each basin cluster has several basins in it
+        Basins = BasinsCluster[key]
+        print("This cluster has the following basins:")
+        print(Basins)
+        
+        # For labelling
+        #StrBasins = str(Basins)
+        clusterstr = ",".join(str(i) for i in Basins)
+        
+        # setup the figure
+        Fig = CreateFigure(FigSizeFormat="EPSL")
+        ax1 = Fig.add_axes([0.1,0.1,0.8,0.6])
+
+        #choose colormap
+        ColourMap = cm.viridis        
+        
+        # create new dataframe for plotting
+        PlotDF = PlotDataDict[key]
+        
+        # Get the colourmap
         KsnArray = PlotDF.Ksn.values.astype(float)
-        MinKsn = PlotDF.Ksn.min()
-        MaxKsn = PlotDF.Ksn.max()
-        Colours = (KsnArray-MinKsn)/(MaxKsn-MinLsn) 
+        #MinKsn = PlotDF.Ksn.min()
+        #MaxKsn = PlotDF.Ksn.max()
+        MinKsn = 0
+        MaxKsn = 20
+        Colours = (KsnArray-MinKsn)/(MaxKsn-MinKsn) 
 
         
          #plot ksn vs EStar and Rstar, colouring by Chi        
@@ -2603,16 +2674,13 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Basins 
         ax1.set_ylim(0,25)
 
         #save output
-        plt.suptitle('Cluster number is ' + str(counter)+ "\nBasins are: "+ clusterstr)
+        plt.suptitle('Cluster number is ' + str(key)+ "\nBasins are: "+ clusterstr)
         
         if mainstem_only:
-            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(counter).zfill(3) + "_cluster.png", dpi=300)
+            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_cluster_ms.png", dpi=300)
         else:
-            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(counter).zfill(3) + "_cluster.png", dpi=300) 
-            
-        counter = counter+1
+            plt.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_cluster.png", dpi=300) 
 
             
-    plt.clf()
-    plt.close()    
-
+        plt.clf()
+        plt.close()    
