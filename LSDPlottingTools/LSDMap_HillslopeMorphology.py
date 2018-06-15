@@ -2501,7 +2501,7 @@ def GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc = 0.71, mainstem_
 
         # Make a sequantial cluster
         combined_list = []
-        for i in range(3,8):
+        for i in range(6,8):
             this_listlist = chunkIt(seq, i)
             for a_list in this_listlist:
                 combined_list.append(a_list)
@@ -2565,6 +2565,7 @@ def GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc = 0.71, mainstem_
                             # get metrics to plot
                             Ksn = BasinChannelData.m_chi[BasinChannelData.segment_number == Segment].unique()[0]
                             Chi = BasinChannelData.chi[BasinChannelData.segment_number == Segment].median()
+                            BasinKey = BasinChannelData.basin_key[BasinChannelData.segment_number == Segment].median()
 
                             #normalise chi by outlet chi
                             Chi = Chi-MinimumChi    
@@ -2732,15 +2733,17 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.
         Fig2.suptitle('Cluster number is ' + str(key)+ "\nBasins are: "+ clusterstr)
         
         if mainstem_only:
-            Fig1.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_Es_cluster_ms.png", dpi=300)
-            Fig2.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_Rs_cluster_ms.png", dpi=300)
+            Fig1.savefig(PlotDirectory+"Es_cluster_ms_"+FilenamePrefix + "_" + str(key).zfill(2) + ".png", dpi=300)
+            Fig2.savefig(PlotDirectory+"Rs_cluster_ms_"+FilenamePrefix + "_" + str(key).zfill(2) + ".png", dpi=300)
         else:
-            Fig1.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_Es_cluster.png", dpi=300)
-            Fig2.savefig(PlotDirectory+FilenamePrefix + "_" + str(key).zfill(2) + "_Rs_cluster_ms.png", dpi=300)
+            Fig1.savefig(PlotDirectory+"Es_cluster_"+FilenamePrefix + "_" + str(key).zfill(2) + ".png", dpi=300)
+            Fig2.savefig(PlotDirectory+"Rs_cluster_"+FilenamePrefix + "_" + str(key).zfill(2) + ".png", dpi=300)
 
-            
-        plt.clf()
-        plt.close()    
+        # Clean up    
+        Fig1.clf()
+        plt.close(Fig1)    
+        Fig2.clf()
+        plt.close(Fig2)   
         
 def chunkIt(seq, num):
     """
