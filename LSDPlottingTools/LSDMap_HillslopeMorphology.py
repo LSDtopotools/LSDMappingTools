@@ -2480,18 +2480,35 @@ def GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc = 0.71, mainstem_
         BasinsCluster (list of int lists): This is a list of lists that has the basin numbers for clustering 
     
     Author: SMM
+    
+    Returns:
+        BasinCluster (list): A list of integer lists. 
     """
     
-    seq = range(0:15)
     
-    # Make a sequantial cluster
-    combined_list = []
-    for i in range(3,6):
-        this_list = chunkIt(seq, i)
-        combined_list.append(this_list)
-        
-    print("Combined list is:")
-    print(combined_list)
+    # Basins list and keys
+    BasinsDict = np.loadtxt(DataDirectory+FilenamePrefix+'_junctions.list',dtype=int) 
+    print("The basins dict is: ")
+    print(BasinsDict)
+    
+    Sorted = range(0,len(BasinsDict))
+    #Sorted =  range(0,6)
+
+    if len(BasinsCluster) == 0:
+        print("You haven't supplied me with a list of basins so I am going to create a series of sequential lists")
+        print("These will be of different sizes")
+        seq = Sorted
+
+        # Make a sequantial cluster
+        combined_list = []
+        for i in range(3,8):
+            this_listlist = chunkIt(seq, i)
+            for a_list in this_listlist:
+                combined_list.append(a_list)
+
+        print("Combined list is:")
+        print(combined_list)
+        BasinsCluster = combined_list
 
     
     #Load hillslope metrics data
@@ -2499,9 +2516,7 @@ def GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc = 0.71, mainstem_
 
     # Read in the raw channel data
     ChannelsDF = ReadChannelData(DataDirectory, FilenamePrefix)   
-    
-    # Basins list and keys
-    BasinsDict = np.loadtxt(DataDirectory+FilenamePrefix+'_junctions.list',dtype=int)
+
     
     # Create a dictionary for storing the plotting data
     PlotDataDict = {}
@@ -2519,7 +2534,7 @@ def GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc = 0.71, mainstem_
         for key in Basins:
             # print basin to screen 
             Basin = BasinsDict[key]
-            print(key, Basin)
+            #print(key, Basin)
 
             # isolate basin data
             BasinChannelData = ChannelsDF[ChannelsDF.basin_key == key]
@@ -2530,7 +2545,7 @@ def GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc = 0.71, mainstem_
      
             # try to figure out the source key
             mainstem_source_key = BasinChannelData.source_key.iloc[0]
-            print("The mainstem source key is: " +str(mainstem_source_key))    
+            #print("The mainstem source key is: " +str(mainstem_source_key))    
 
             # separate into main stem and trib data
             MainStemChannelData = BasinChannelData[BasinChannelData.source_key == mainstem_source_key]
@@ -2604,7 +2619,7 @@ def GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc = 0.71, mainstem_
         print("The cluster index is: "+str(cluster_index))
         PlotDataDict[cluster_index] = PlotDF
         
-    return PlotDataDict
+    return BasinsCluster,PlotDataDict
 
 # This has been taken from one of Martin's scripts
 # Tested and working as of 13-6-2018 (SMM)
@@ -2625,7 +2640,7 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.
     Date: 15-Jun-2018
     """
     
-    PlotDataDict = GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc, mainstem_only, BasinsCluster)
+    BasinsCluster,PlotDataDict = GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc, mainstem_only, BasinsCluster)
     
     for key in PlotDataDict:
         
