@@ -116,7 +116,8 @@ def main(argv):
     parser.add_argument("-Ksn_vs_EsRs_basin", "--plot_Ksn_vs_Es_Rs_by_basin", type=bool, default=False, help="This plots K_sn vs E* R* data for each basin.")
     parser.add_argument("-plot_stacked_Es_Rs_by_chi", "--plot_stacked_Es_Rs_by_chi", type=bool, default=False, help="This plots stacked E* or R* as function of Chi.")
     parser.add_argument("-plot_clustered_Es_Rs_by_chi", "--plot_clustered_Es_Rs_by_chi", type=bool, default=False, help="This plots clustered E* or R* as function of Chi.")
-    
+    parser.add_argument("-plot_clustered_Es_Rs_plus_theoretical", "--plot_clustered_Es_Rs_plus_theoretical", type=bool, default=False, help="This plots clustered E* or R* plots that have been clustered.")
+
     
     # Parameters that are used within plotting functions
     parser.add_argument("-sc", "--sc", type=float, default=0.8, help="Critical slope for E*R* calculations. Default = 0.8")
@@ -272,7 +273,12 @@ def main(argv):
     # SMM: Working on this as of 14-6-2018
     if args.plot_clustered_Es_Rs_by_chi:
         print("Let me print a cluster plots of E* and R* values as function of chi")
-        HS.PlotClusteredEsRsFxnChi(this_dir, args.fname_prefix, PlotDirectory, args.sc, args.mainstem_only, BasinsCluster = basin_stack_list)          
+        HS.PlotClusteredEsRsFxnChi(this_dir, args.fname_prefix, PlotDirectory, args.sc, args.mainstem_only, basin_stack_list)      
+        
+    # SMM: Working on this as of 14-6-2018
+    if args.plot_clustered_Es_Rs_plus_theoretical:
+        print("Let me print a cluster plots of E* and R* values as function of chi")
+        HS.PlotClusteredEsRs(this_dir, args.fname_prefix, PlotDirectory, args.sc, args.mainstem_only, basin_stack_list, args.EsRs_colour_by)    
         
 #=============================================================================
 if __name__ == "__main__":

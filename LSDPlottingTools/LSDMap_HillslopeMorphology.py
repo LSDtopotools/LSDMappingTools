@@ -653,6 +653,7 @@ def CalculateRStar(EStar):
 def PlotEStarRStarTheoretical():
     """
     This makes the theoretical E* vs R* plot. It prints to the current open figure. 
+    SMM Note: This would be better if it used a supploed figure. Can the default be get_clf()?
     
     MDH
 
@@ -2622,8 +2623,7 @@ def GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc = 0.71, mainstem_
         
     return BasinsCluster,PlotDataDict
 
-# This has been taken from one of Martin's scripts
-# Tested and working as of 13-6-2018 (SMM)
+# Tested and working as of 15-6-2018 (SMM)
 def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.71, mainstem_only = False, BasinsCluster = []):
     """
     This plots the E* and R* data as a function of where they are in chi space
@@ -2744,7 +2744,160 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.
         plt.close(Fig1)    
         Fig2.clf()
         plt.close(Fig2)   
+
+# Working on this 15-06-2018
+def PlotClusteredEsRs(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.71, mainstem_only = False, BasinsCluster = [], colour_by = "chi"):
+    """
+    This plots the E* and R* data coloured by chi and ksn in clusters
+
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved 
+        Sc (float): The critical slope
+        mainstem_only (bool): If true, only plot the data from the main stem
+        BasinsCluster (list of int lists): This is a list of lists that has the basin numbers for clustering 
+
+    Author: SMM
+    
+    Date: 15-Jun-2018
+    """
+    
+    BasinsCluster,PlotDataDict = GetClusteredDataPlotDict(DataDirectory, FilenamePrefix, Sc, mainstem_only, BasinsCluster)
+    
+    for key in PlotDataDict:
         
+        # Each basin cluster has several basins in it
+        Basins = BasinsCluster[key]
+        print("This cluster has the following basins:")
+        print(Basins)
+        
+        # For labelling
+        #StrBasins = str(Basins)
+        clusterstr = ",".join(str(i) for i in Basins)
+
+        # setup the figure
+        Fig1 = CreateFigure(FigSizeFormat="EPSL")
+        ax1 = Fig1.add_axes([0.1,0.1,0.8,0.7])
+        
+        plt.loglog()
+        PlotEStarRStarTheoretical()
+      
+        #choose colormap
+        ColourMap = cm.viridis        
+        
+        # create new dataframe for plotting
+        PlotDF = PlotDataDict[key]
+        
+        # Get the colourmap
+        KsnArray = PlotDF.Ksn.values.astype(float)
+        MinKsn = PlotDF.Ksn.min()
+        MaxKsn = PlotDF.Ksn.max()
+        #MinKsn = 0
+        #MaxKsn = 20
+        Colours1 = (KsnArray-MinKsn)/(MaxKsn-MinKsn) 
+        
+        ChiArray = PlotDF.Chi.values.astype(float)
+        MinChi = PlotDF.Chi.min()
+        MaxChi = PlotDF.Chi.max()
+        #MinKsn = 0
+        #MaxKsn = 20
+        Colours2 = (ChiArray-MinChi)/(MaxChi-MinChi)
+        
+
+        EsArray = PlotDF.EStarMedian.values.astype(float)
+        EsLArray = PlotDF.EStarLower.values.astype(float)
+        EsLowErr = EsArray-EsLArray
+        EsUArray = PlotDF.EStarUpper.values.astype(float)
+        EsUpErr = EsUArray-EsArray
+        
+        RsArray = PlotDF.RStarMedian.values.astype(float)
+        RsLArray = PlotDF.RStarLower.values.astype(float)
+        RsLowErr = RsArray-RsLArray
+        RsUArray = PlotDF.RStarUpper.values.astype(float)
+        RsUpErr = RsUArray-RsArray
+        
+        #plot ksn vs EStar and Rstar, colouring by Chi        
+        ax1.errorbar(EsArray,RsArray,xerr=[EsLowErr, EsUpErr], yerr=[RsLowErr,RsUpErr],fmt='.', ecolor='k',markersize=2,mec='k',mfc='k',zorder = 10, linewidth = 1, alpha = 0.5)
+        #ax2.errorbar(EsArray,RsArray,xerr=[EsLowErr, EsUpErr], yerr=[RsLowErr,RsUpErr],fmt='.', ecolor='k',markersize=2,mec='k',mfc='k',zorder = 10, linewidth = 1, alpha = 0.5)
+
+        
+       
+        if colour_by == "chi":
+            ax1.scatter(EsArray,RsArray,c=ChiArray,s=10, edgecolors='k', lw=0.1,cmap=ColourMap,zorder = 20)
+        else:
+            ax1.scatter(EsArray,RsArray,c=KsnArray,s=10, edgecolors='k', lw=0.1,cmap=ColourMap,zorder = 20)  
+        
+        #add colourbar
+        CAx = Fig1.add_axes([0.02,0.9,0.2,0.02])
+        if colour_by == "chi":
+            m = cm.ScalarMappable(cmap=ColourMap)
+            m.set_array(PlotDF.Chi)
+            plt.colorbar(m, cax=CAx,orientation='horizontal')
+            CAx.set_xlabel('$\chi$ (m)',fontsize=8)
+        else:
+            m = cm.ScalarMappable(cmap=ColourMap)
+            m.set_array(PlotDF.Ksn)
+            plt.colorbar(m, cax=CAx,orientation='horizontal')
+            CAx.set_xlabel('${k_{sn}}$ (m)',fontsize=8)           
+        
+        CAx.tick_params(axis='both', labelsize=8)             
+
+        # Finalise the figure
+        ax1.set_xlabel(r"Dimensionless $C_{\mathit{HT}}$")
+        ax1.set_ylabel('Dimensionless Relief')
+        
+        # Finalise the figure
+        #ax2.set_xlabel(r"$\chi$ (m)")
+        #ax2.set_ylabel('Dimensionless relief')
+
+
+        
+        #add colourbar
+        #CAx2 = Fig2.add_axes([0.02,0.9,0.2,0.02])
+        #m2 = cm.ScalarMappable(cmap=ColourMap)
+        #m2.set_array(PlotDF.Ksn)
+        #plt.colorbar(m2, cax=CAx2,orientation='horizontal')
+        #CAx2.set_xlabel('${k_{sn}}$ (m)',fontsize=8)
+        #CAx2.tick_params(axis='both', labelsize=8)
+
+        # turn off ax2 overlap and x axis for superimposed plots
+        ax1.patch.set_facecolor('none')
+        ax1.spines['right'].set_visible(False)
+        ax1.spines['top'].set_visible(False)
+        ax1.yaxis.set_ticks_position('left')
+        ax1.xaxis.set_ticks_position('bottom')
+        
+        # turn off ax2 overlap and x axis for superimposed plots
+        #ax2.patch.set_facecolor('none')
+        #ax2.spines['right'].set_visible(False)
+        #ax2.spines['top'].set_visible(False)
+        #ax2.yaxis.set_ticks_position('left')
+        #ax2.xaxis.set_ticks_position('bottom')
+
+
+        # fix axis limits
+        #ax1.set_ylim(0,25)
+        #ax2.set_ylim(0,1)
+
+        #save output
+        Fig1.suptitle('Cluster number is ' + str(key)+ "\nBasins are: "+ clusterstr)
+        #Fig2.suptitle('Cluster number is ' + str(key)+ "\nBasins are: "+ clusterstr)
+        
+        if mainstem_only:
+            Fig1.savefig(PlotDirectory+"Es_Rs_cluster_ms_"+FilenamePrefix + "_" + str(key).zfill(2) + ".png", dpi=300)
+            #Fig2.savefig(PlotDirectory+"Rs_cluster_ms_"+FilenamePrefix + "_" + str(key).zfill(2) + ".png", dpi=300)
+        else:
+            Fig1.savefig(PlotDirectory+"Es_Rs_cluster_"+FilenamePrefix + "_" + str(key).zfill(2) + ".png", dpi=300)
+            #Fig2.savefig(PlotDirectory+"Rs_cluster_"+FilenamePrefix + "_" + str(key).zfill(2) + ".png", dpi=300)
+
+        # Clean up    
+        Fig1.clf()
+        plt.close(Fig1)    
+        #Fig2.clf()
+        #plt.close(Fig2)   
+
+
 def chunkIt(seq, num):
     """
     This comes from https://stackoverflow.com/questions/2130016/splitting-a-list-into-n-parts-of-approximately-equal-length
