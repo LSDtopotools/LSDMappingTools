@@ -2052,7 +2052,7 @@ def map_Mchi_standard(DataDirectory, fname_prefix, size_format='ESURF', FigForma
         knickpoint = "normal"
     ChannelDF = Helper.ReadMChiSegCSV(DataDirectory,fname_prefix, type = knickpoint)
     ChannelPoints = LSDP.LSDMap_PointData(ChannelDF, data_type = "pandas", PANDEX = True)
-    MF.add_point_data(ChannelPoints,this_colourmap = "RdBu_r", column_for_plotting = "m_chi",show_colourbar = True, colour_manual_scale = colmanscal, scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.4,max_point_size = 4,min_point_size = 1,zorder=100)
+    MF.add_point_data(ChannelPoints,this_colourmap = "RdBu_r", column_for_plotting = "m_chi",show_colourbar = True, colour_manual_scale = colmanscal, scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.4,max_point_size = 2.23,min_point_size = 0.2,zorder=100)
 
     # add the knickpoints plots
     if bkbg:
