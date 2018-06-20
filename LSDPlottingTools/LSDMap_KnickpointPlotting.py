@@ -168,11 +168,11 @@ class KP_plotting(object):
         # By default I am setting the minimum size to the 1st quartile and the maximum to the 3rd quartile
         
         if(len(size_kp)!= 4):
-            size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.25))
-            size_kp.append(5)
-            size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.75))
-            size_kp.append(40)
-
+            size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.25)) # min val for sizing dksn kps = every knickpoints below this value will have the same (minimum) size
+            size_kp.append(5) # MIN VALUE FOR STEPPED KNICKPOINT IS IGNORED AT THE MOMENT BECAUSE NOT SIZED YET AND PROBABLY NEVER
+            size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.75)) # max val for sizing dksn kps = every knickpoints below this value will have the same (maximum) size
+            size_kp.append(40) # MAX VALUE FOR STEPPED KNICKPOINT IS IGNORED AT THE MOMENT BECAUSE NOT SIZED YET AND PROBABLY NEVER
+            print("SIZE GLOBAL WARNING :Automatically sizing your knickpoint range: all knikcpoints below %s will have the minimum size and all knickpoints above %s the maximum in absolute values." %(size_kp[0],size_kp[2]))
 
 
         # applying the size column
@@ -517,7 +517,7 @@ class KP_plotting(object):
 
             # Dealing with the knickpoint offset
 
-            up_set = (this_df_river["elevation"].max() - this_df_river["elevation"].min())*0.1
+            up_set = (this_df_river["elevation"].max() - this_df_river["elevation"].min())*0.05
 
             if(this_df_kp_ksn.shape[0]> 0 or this_df_dsegelev_pos.shape[0] > 0):
                 # Create a figure with required dimensions
@@ -612,7 +612,7 @@ class KP_plotting(object):
 
 
     def print_map_of_kp(self,size = "big", format = "png", black_bg = False, scale_points = True, label_size = 8, size_kp = 20, return_fig = False, 
-        extent_cmap = [], kalib = False,lith_raster = False,cml = None, unicolor_kp = None, size_stepped_kp_map = 5):
+        extent_cmap = [], kalib = False,lith_raster = False,cml = None, unicolor_kp = None, size_stepped_kp_map = 1.8):
 
             # check if a directory exists for the chi plots. If not then make it.
         raster_directory = self.fpath+'raster_plots/'
@@ -702,7 +702,7 @@ class KP_plotting(object):
             MF.add_point_data(kp_neg, unicolor = unicolor_kp, marker ="v", scale_points = scale_points, alpha=1, max_point_size = 15, min_point_size = 1,zorder=200,manual_size = size_kp)
 
 
-        MF.add_point_data(kp_step,unicolor = "#F2BE1F",marker ="s", column_for_plotting = "none", alpha=1,zorder=200,manual_size = size_stepped_kp_map)
+        MF.add_point_data(kp_step,unicolor = "#F2BE1F",marker ="|", column_for_plotting = "none", alpha=1,zorder=200,manual_size = size_stepped_kp_map)
 
         if(black_bg):
             suffix = "dark"

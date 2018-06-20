@@ -72,8 +72,8 @@ def main(argv):
     # Mchi_related
     parser.add_argument("-mcstd", "--mchi_map_std", type=bool, default = False, help="Turn to True to plot a standart M_chi map on an HS. Small reminder, Mchi = Ksn if calculated with A0 = 1.")
     parser.add_argument("-mcbk", "--mchi_map_black", type=bool, default = False, help="Turn to True to plot a standart M_chi map on Black background. Small reminder, Mchi = Ksn if calculated with A0 = 1.")
-    parser.add_argument("-minmc", "--min_mchi_map", type=int, default = 0, help="mininum value for the scale of your m_chi maps, default 0")
-    parser.add_argument("-maxmc", "--max_mchi_map", type=int, default = 0, help="maximum value for the scale of your m_chi maps, default auto")
+    parser.add_argument("-minmc", "--min_mchi_map", type=float, default = 0, help="mininum value for the scale of your m_chi maps, default 0")
+    parser.add_argument("-maxmc", "--max_mchi_map", type=float, default = 0, help="maximum value for the scale of your m_chi maps, default auto")
     parser.add_argument("-almc", "--alpha_mchi", type=float, default = 0, help="alpha_value for the background mchi raster")
 
 
@@ -188,7 +188,7 @@ def main(argv):
 
     # Processing the size choice
     try:
-        size = [int(item) for item in args.size_format.split(',')]
+        size = [float(item) for item in args.size_format.split(',')]
     except ValueError:
         size = args.size_format
 
@@ -264,9 +264,9 @@ def main(argv):
 
     if (args.basin_plot):
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", 
-            kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+            kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river, up_set = 15)
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", 
-            kalib = args.kalib, print_seg_elev = args.print_segmented_elevation)
+            kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river, up_set = 15)
 
 
 
@@ -313,12 +313,12 @@ def main(argv):
 
     if args.mchi_map_std:
         
-        CP.map_Mchi_standard(this_dir, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, 
+        CP.map_Mchi_standard(this_dir, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat,source_list = these_source_keys, basin_list = these_basin_keys, log = False, 
             colmanscal = colo, knickpoint = True, alpha_background = args.alpha_mchi)
 
     if args.mchi_map_black:
         
-        CP.map_Mchi_standard(this_dir, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat, basin_list = these_basin_keys, log = False, 
+        CP.map_Mchi_standard(this_dir, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat,source_list = these_source_keys, basin_list = these_basin_keys, log = False, 
             colmanscal = colo, bkbg = True, knickpoint = True, alpha_background = args.alpha_mchi)
 
 
