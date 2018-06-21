@@ -14,6 +14,7 @@ matplotlib.use('Agg')
 #from __future__ import print_function
 import sys
 import os
+import datetime
 from LSDPlottingTools import LSDMap_BasicMaps as BP
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDPlottingTools import LSDMap_KnickpointPlotting as KP
@@ -321,6 +322,26 @@ def main(argv):
         CP.map_Mchi_standard(this_dir, args.fname_prefix, size_format=args.size_format, FigFormat=args.FigFormat,source_list = these_source_keys, basin_list = these_basin_keys, log = False, 
             colmanscal = colo, bkbg = True, knickpoint = True, alpha_background = args.alpha_mchi)
 
+
+    # This part saves the different parameters you used, in case you want to reproduce your results and do not remember what you've used.
+    print("log of your parameters into the file %s" %(this_dir+"log_PlotKnickpoint_Analysis.txt"))
+    f=open(this_dir+"log_PlotKnickpoint_Analysis.txt", "a+")
+    f.write("#########################################################################")
+    f.write(os.linesep)
+    f.write(os.linesep)
+    f.write("Ran on the %s " %(datetime.datetime.now()) )
+    f.write(os.linesep)
+    for arg in vars(args):
+        f.write("%s : %s " %(arg, getattr(args, arg)))
+        f.write(os.linesep)
+    f.write(os.linesep)
+    f.write(os.linesep)
+    f.write(os.linesep)
+    f.close()
+    print("Done!")
+    
+    if os.name == 'nt':
+        print("You're running this on windows, note that (i) Linux is increadibly faster and (ii) native windows text editor will misread your log text file, open it with another software (e.g. Brackets or SublimeText)")
 
 #=============================================================================
 if __name__ == "__main__":
