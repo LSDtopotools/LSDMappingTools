@@ -320,6 +320,15 @@ def GetUTMEPSG(FileName):
                 second_split = first_half.split(' ')
                 zone = second_split[2]
 
+            elif "_Hemisphere" in proj_str:
+                if "Southern" in proj_str:
+                    N_or_S = "S"
+                else:
+                    N_or_S = "N"
+                proj_split = proj_str.split('_')
+                zone = proj_split[2]
+                
+            
             else:
 
                 proj_split = proj_str.split('_')
