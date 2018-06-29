@@ -182,7 +182,7 @@ class KP_plotting(object):
         self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() <= size_kp[0]] = 0
         self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() >= size_kp[2]] = 1
         ## Applying a coeff
-        self.df_kp_ksn["size_kp"] += 0.2
+        self.df_kp_ksn["size_kp"] += 0.1
         self.df_kp_ksn["size_kp"] *= coeff_size
 
         # Same the general dataset
@@ -191,6 +191,23 @@ class KP_plotting(object):
         self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() >= size_kp[2]] = 1
         self.df_kp["size_kp"] += 0.2
         self.df_kp["size_kp"] *= coeff_size
+
+        # applying the size column to the step
+        ## I Normalize the size
+        self.df_kp_stepped["size_kp_step"] = pd.Series(data = self.df_kp_stepped["delta_segelev"].abs()/self.df_kp_stepped["delta_segelev"].abs().max(), index = self.df_kp_stepped.index)
+        ## Recasting the knickpoints into a range (everything below a threshold will have the same minimum value and above another thrshold another maximum value)
+        self.df_kp_stepped["size_kp_step"][self.df_kp_stepped["delta_segelev"].abs() <= size_kp[1]] = 0
+        self.df_kp_stepped["size_kp_step"][self.df_kp_stepped["delta_segelev"].abs() >= size_kp[3]] = 1
+        ## Applying a coeff
+        self.df_kp_stepped["size_kp_step"] += 0.1
+        self.df_kp_stepped["size_kp_step"] *= coeff_size
+
+        # Same the general dataset
+        self.df_kp["size_kp_step"] = pd.Series(data = self.df_kp["delta_segelev"].abs()/self.df_kp["delta_segelev"].abs().max(), index = self.df_kp.index)
+        self.df_kp["size_kp_step"][self.df_kp["delta_segelev"].abs() <= size_kp[1]] = 0
+        self.df_kp["size_kp_step"][self.df_kp["delta_segelev"].abs() >= size_kp[3]] = 1
+        self.df_kp["size_kp_step"] += 0.2
+        self.df_kp["size_kp_step"] *= coeff_size
         
 
         # print(self.df_kp["size_kp"].unique())
@@ -520,7 +537,7 @@ class KP_plotting(object):
 
             # Dealing with the knickpoint offset
 
-            up_set = (this_df_river["elevation"].max() - this_df_river["elevation"].min())*0.05
+            up_set = (this_df_river["elevation"].max() - this_df_river["elevation"].min())*0.1
 
             if(this_df_kp_ksn.shape[0]> 0 or this_df_dsegelev_pos.shape[0] > 0):
                 # Create a figure with required dimensions
@@ -565,9 +582,9 @@ class KP_plotting(object):
                     print("No ksn knickpoint on source " + str(sources))
                 # Plot the dksn knickpionts
                 ## First normalized the size
-                size_pos = this_df_dsegelev_pos["delta_segelev"]/this_df_kp_stepped["delta_segelev"].max()*3
+                # size_pos = this_df_dsegelev_pos["delta_segelev"]/this_df_kp_stepped["delta_segelev"].max()*3
                 ##plt the bars
-                ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, s = size_pos, lw = 1, marker = "|", c = "#F2BE1F", alpha = 0.95, zorder = 5)
+                ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, s = this_df_dsegelev_pos["size_kp_step"], lw = 1.5, marker = "|", c = "#CB9A00", alpha = 0.95, zorder = 5)
                 #Plot vertical bars in beetween
                 ax1.vlines(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"], this_df_dksn_neg["elevation"] + up_set, zorder = 1, lw = 0.15 )
                 ax1.vlines(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"], this_df_dksn_pos["elevation"] + up_set, zorder = 1, lw = 0.15 )
@@ -701,11 +718,11 @@ class KP_plotting(object):
             MF.add_point_data(kp_neg,unicolor = "b", marker ="v", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'size_kp', scale_in_absolute = True , alpha=1, max_point_size = 15, min_point_size = 4, zorder=200)
         
         else:
-            MF.add_point_data(kp_pos, unicolor = unicolor_kp, marker ="^", scale_points = scale_points, alpha=1, max_point_size = 15, min_point_size = 1,zorder=200,manual_size = size_kp)
-            MF.add_point_data(kp_neg, unicolor = unicolor_kp, marker ="v", scale_points = scale_points, alpha=1, max_point_size = 15, min_point_size = 1,zorder=200,manual_size = size_kp)
+            MF.add_point_data(kp_pos, unicolor = unicolor_kp, marker ="^", scale_points = scale_points, alpha=1, max_point_size = kp_pos["size_kp"].max(), min_point_size = kp_pos["size_kp"].min(),zorder=200,manual_size = size_kp)
+            MF.add_point_data(kp_neg, unicolor = unicolor_kp, marker ="v", scale_points = scale_points, alpha=1, max_point_size = kp_neg["size_kp"].max(), min_point_size = kp_neg["size_kp"].min(),zorder=200,manual_size = size_kp)
 
 
-        MF.add_point_data(kp_step,unicolor = "#F2BE1F",marker ="|", column_for_plotting = "none", alpha=1,zorder=200,manual_size = size_stepped_kp_map)
+        MF.add_point_data(kp_step,unicolor = "#CB9A00",marker ="|", column_for_plotting = "size_kp_step", max_point_size = kp_step["size_kp"].max(), min_point_size = kp_step["size_kp"].min(), alpha=1,zorder=200,)
 
         if(black_bg):
             suffix = "dark"
