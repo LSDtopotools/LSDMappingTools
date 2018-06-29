@@ -718,11 +718,11 @@ class KP_plotting(object):
             MF.add_point_data(kp_neg,unicolor = "b", marker ="v", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'size_kp', scale_in_absolute = True , alpha=1, max_point_size = 15, min_point_size = 4, zorder=200)
         
         else:
-            MF.add_point_data(kp_pos, unicolor = unicolor_kp, marker ="^", scale_points = scale_points, alpha=1, max_point_size = kp_pos["size_kp"].max(), min_point_size = kp_pos["size_kp"].min(),zorder=200,manual_size = size_kp)
-            MF.add_point_data(kp_neg, unicolor = unicolor_kp, marker ="v", scale_points = scale_points, alpha=1, max_point_size = kp_neg["size_kp"].max(), min_point_size = kp_neg["size_kp"].min(),zorder=200,manual_size = size_kp)
+            MF.add_point_data(kp_pos, unicolor = unicolor_kp, marker ="^", scale_points = scale_points, alpha=1, max_point_size = self.df_kp[self.df_kp["sign"] == 1]["size_kp"].max(), min_point_size = self.df_kp[self.df_kp["sign"] == 1]["size_kp"].min(),zorder=200,manual_size = size_kp)
+            MF.add_point_data(kp_neg, unicolor = unicolor_kp, marker ="v", scale_points = scale_points, alpha=1, max_point_size = self.df_kp[self.df_kp["sign"] == -1]["size_kp"].max(), min_point_size = self.df_kp[self.df_kp["sign"] == -1].min(),zorder=200,manual_size = size_kp)
 
 
-        MF.add_point_data(kp_step,unicolor = "#CB9A00",marker ="|", column_for_plotting = "size_kp_step", max_point_size = kp_step["size_kp"].max(), min_point_size = kp_step["size_kp"].min(), alpha=1,zorder=200,)
+        MF.add_point_data(kp_step,unicolor = "#CB9A00",marker ="s", column_for_plotting = "size_kp_step", max_point_size = self.df_kp_stepped[self.df_kp_stepped["delta_segelev"] > 0]["size_kp_step"].max(), min_point_size = self.df_kp_stepped[self.df_kp_stepped["delta_segelev"] > 0]["size_kp_step"].min(), alpha=1,zorder=200,)
 
         if(black_bg):
             suffix = "dark"
