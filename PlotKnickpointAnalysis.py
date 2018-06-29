@@ -215,7 +215,7 @@ def main(argv):
     print("Loading the dataset:")
 
     KI = KP.KP_plotting(this_dir,args.fname_prefix, basin_key = these_basin_keys, source_key = these_source_keys, min_length = args.min_source_length, 
-        cut_off_val = covfefe, main_stem = args.isolate_main_stem, normalisation = normalisation, size_kp = general_size_kp)
+        cut_off_val = covfefe, main_stem = args.isolate_main_stem, normalisation = normalisation, size_kp = general_size_kp, coeff_size = args.kp_coeff_size)
 
     
     if(args.AllAnalysisDebug):
@@ -257,17 +257,17 @@ def main(argv):
     if(args.river_profile):
         print("Printing river profiles in chi spaces")
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib,
-         print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river)
+         print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river)
         print("Printing river profiles in flow distance")
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', kalib = args.kalib,
-         print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river)
+         print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river)
         print("Printing river profiles for the entire basins")
 
     if (args.basin_plot):
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", 
-            kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river, up_set = 15)
+            kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, up_set = 15)
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", 
-            kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, coeff_size = args.kp_coeff_size, size_recasting = min_max_kp_river, up_set = 15)
+            kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, up_set = 15)
 
 
 

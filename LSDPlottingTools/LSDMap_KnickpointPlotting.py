@@ -41,7 +41,7 @@ class KP_plotting(object):
     """
 
 
-    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0, cut_off_val = [0,0,0,0], main_stem = False, normalisation = None, size_kp = []):
+    def __init__(self, fpath,fprefix, basin_key = [], source_key = [], min_length = 0, cut_off_val = [0,0,0,0], main_stem = False, normalisation = None, size_kp = [],coeff_size = 1):
         """
             This creates a knickpoint object to help with plotting. One object helps you to select certain river and or basins; provide some tool to pre-sort the dataset, and generate
             stats figures, profiles and map. It requires the output of LSDTopoTools.
@@ -169,34 +169,37 @@ class KP_plotting(object):
         
         if(len(size_kp)!= 4):
             size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.25)) # min val for sizing dksn kps = every knickpoints below this value will have the same (minimum) size
-            size_kp.append(5) # MIN VALUE FOR STEPPED KNICKPOINT IS IGNORED AT THE MOMENT BECAUSE NOT SIZED YET AND PROBABLY NEVER
+            size_kp.append(self.df_kp_ksn["delta_segelev"].abs().quantile(0.25)) # MIN VALUE FOR STEPPED KNICKPOINT IS under work
             size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.75)) # max val for sizing dksn kps = every knickpoints below this value will have the same (maximum) size
-            size_kp.append(40) # MAX VALUE FOR STEPPED KNICKPOINT IS IGNORED AT THE MOMENT BECAUSE NOT SIZED YET AND PROBABLY NEVER
+            size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.75)) # MAX VALUE FOR STEPPED KNICKPOINT IS under work
             print("SIZE GLOBAL WARNING :Automatically sizing your knickpoint range: all knikcpoints below %s will have the minimum size and all knickpoints above %s the maximum in absolute values." %(size_kp[0],size_kp[2]))
 
 
-        # applying the size column
-        self.df_kp_ksn["size_kp"] = pd.Series(data = 0, index = self.df_kp_ksn.index)
-        self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() <= size_kp[0]] = size_kp[0]
-        self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() >= size_kp[2]] = size_kp[2]
-        self.df_kp_ksn["size_kp"][(self.df_kp_ksn["delta_ksn"].abs() > size_kp[0]) & (self.df_kp_ksn["delta_ksn"].abs() < size_kp[2])] = self.df_kp_ksn["delta_ksn"].abs()[(self.df_kp_ksn["delta_ksn"].abs() > size_kp[0]) & (self.df_kp_ksn["delta_ksn"].abs() < size_kp[2])]
-        self.df_kp_ksn["size_kp"] = (self.df_kp_ksn["size_kp"]/size_kp[2])*size_kp[3]+size_kp[1]
-        self.df_kp_ksn[self.df_kp_ksn["delta_ksn"]== 0] = 0
+        # applying the size column 
+        ## I Normalize the size
+        self.df_kp_ksn["size_kp"] = pd.Series(data = self.df_kp_ksn["delta_ksn"].abs()/self.df_kp_ksn["delta_ksn"].abs().max(), index = self.df_kp_ksn.index)
+        ## Recasting the knickpoints into a range (everything below a threshold will have the same minimum value and above another thrshold another maximum value)
+        self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() <= size_kp[0]] = 0
+        self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() >= size_kp[2]] = 1
+        ## Applying a coeff
+        self.df_kp_ksn["size_kp"] += 0.2
+        self.df_kp_ksn["size_kp"] *= coeff_size
 
-        ###########################################################
-        self.df_kp["size_kp"] = pd.Series(data = 0, index = self.df_kp.index)
-        self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() <= size_kp[0]] = size_kp[0]
-        self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() >= size_kp[2]] = size_kp[2]
-        self.df_kp["size_kp"][(self.df_kp["delta_ksn"].abs() > size_kp[0]) & (self.df_kp["delta_ksn"].abs() < size_kp[2])] = self.df_kp["delta_ksn"].abs()[(self.df_kp["delta_ksn"].abs() > size_kp[0]) & (self.df_kp["delta_ksn"].abs() < size_kp[2])]
-        self.df_kp["size_kp"] = (self.df_kp["size_kp"]/size_kp[2])*size_kp[3]+size_kp[1]
-        self.df_kp[self.df_kp["delta_ksn"]== 0] = 0
+        # Same the general dataset
+        self.df_kp["size_kp"] = pd.Series(data = self.df_kp["delta_ksn"].abs()/self.df_kp["delta_ksn"].abs().max(), index = self.df_kp.index)
+        self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() <= size_kp[0]] = 0
+        self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() >= size_kp[2]] = 1
+        self.df_kp["size_kp"] += 0.2
+        self.df_kp["size_kp"] *= coeff_size
+        
 
         # print(self.df_kp["size_kp"].unique())
         # quit()
 
         # Just getting rid of few NoData
         self.df_river["m_chi"][self.df_river["m_chi"] == -9999] = 0
-
+        print("Min dksn: %s - max dksn: %s - min dseg: %s - max dseg: %s" %(self.df_kp["delta_ksn"].min(),self.df_kp["delta_ksn"].max(),self.df_kp["delta_segelev"].min(), self.df_kp["delta_segelev"].max()))
+        print("After all the thinning process, it remains %s dksn knickpoints, and %s dsegelev knickpoints" %(self.df_kp_ksn.shape[0],self.df_kp_stepped.shape[0]))
         print("Done now")
 
     ######################################################################################################################
@@ -484,7 +487,7 @@ class KP_plotting(object):
         # End of this function
 
     def print_river_profile(self,size = "big", format = "png", x_axis = "chi", knickpoint = True, title = "none", label_size = 8, facecolor = 'white',
-        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, coeff_size = 30, kalib = False, binning = "source_key", print_seg_elev = False, size_recasting = []):
+        size_of_river = 0.5, legend = True, size_of_TVD_ksn = 3, up_set = 40, kalib = False, binning = "source_key", print_seg_elev = False, size_recasting = []):
 
         """
         """
@@ -552,17 +555,17 @@ class KP_plotting(object):
                     # sizing = sizing * coeff_size
 
                     ## plot the triangles
-                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = this_df_dksn_pos["size_kp"]*coeff_size, lw = 0, marker = "^", c = "r", alpha = 0.95, zorder = 5)
-                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = this_df_dksn_neg["size_kp"]*coeff_size, lw = 0, marker = "v", c = "b", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = this_df_dksn_pos["size_kp"], lw = 0, marker = "^", c = "r", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = this_df_dksn_neg["size_kp"], lw = 0, marker = "v", c = "b", alpha = 0.95, zorder = 5)
                     ## plot the contours
-                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = this_df_dksn_pos["size_kp"]*coeff_size, lw = 0.5, marker = "^", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
-                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = this_df_dksn_neg["size_kp"]*coeff_size, lw = 0.5, marker = "v", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"] + up_set, s = this_df_dksn_pos["size_kp"], lw = 0.5, marker = "^", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
+                    ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"] + up_set, s = this_df_dksn_neg["size_kp"], lw = 0.5, marker = "v", facecolor = "none", edgecolor = "k", alpha = 0.95, zorder = 5)
 
                 except ValueError:
                     print("No ksn knickpoint on source " + str(sources))
                 # Plot the dksn knickpionts
                 ## First normalized the size
-                size_pos = this_df_dsegelev_pos["delta_segelev"]/this_df_kp_stepped["delta_segelev"].max()*coeff_size*3
+                size_pos = this_df_dsegelev_pos["delta_segelev"]/this_df_kp_stepped["delta_segelev"].max()*3
                 ##plt the bars
                 ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, s = size_pos, lw = 1, marker = "|", c = "#F2BE1F", alpha = 0.95, zorder = 5)
                 #Plot vertical bars in beetween
