@@ -1114,7 +1114,7 @@ class MapFigure(object):
                        max_point_size = 5, min_point_size = 0.5,
                        colour_log = False, colour_manual_scale = [],
                        manual_size = 0.5, alpha = 1, minimum_log_scale_cut_off = -10, label_field = "None",
-                       font_size = 6, offset = 100, zorder=1, marker = "o", discrete_colours = False, NColours = 10,scale_in_absolute = False, color_abs =False, unicolor = "blue",
+                       font_size = 6, offset = 100, zorder=1, marker = "o", black_contours = False, discrete_colours = False, NColours = 10,scale_in_absolute = False, color_abs =False, unicolor = "blue",
                        recast_scale_min_max = [], scale_in_abs_after_recasting = False, legend=False, label=""):
 
         """
@@ -1258,6 +1258,9 @@ class MapFigure(object):
             print("I am only plotting the points.")
             unicolor = unicolor
             sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c= unicolor,cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
+            if(black_contours):
+                self.ax_list[0].scatter(easting,northing,s=point_scale,lw = 0.3, edgecolors='k',facecolor = "none", alpha = alpha,zorder=zorder, marker = marker)
+
         else:
             print("I will colour by the points")
             if(colour_manual_scale != []):
@@ -1270,6 +1273,9 @@ class MapFigure(object):
                     #this_colourmap = scalarMap
                     #sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none', alpha = alpha)
                     sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,norm=cNorm,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
+                    if(black_contours):
+                        
+                        self.ax_list[0].scatter(easting,northing,s=point_scale,lw = 0.3,edgecolors='k',facecolor = "none",norm=cNorm, alpha = alpha,zorder=zorder, marker = marker)
 
                 else:
                     print("Your colour_log_manual_scale should be something like [min,max], aborting")
@@ -1285,13 +1291,19 @@ class MapFigure(object):
                     plt.cm.ScalarMappable(norm=cNorm, cmap=this_colourmap)
                     channel_data = [x % NUM_COLORS for x in this_data]
 
-                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=channel_data,cmap=this_colourmap,norm=cNorm,edgecolors='none', alpha = alpha,zorder=zorder)
+                    sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=channel_data,cmap=this_colourmap, norm=cNorm, alpha = alpha,zorder=zorder)
+                    if(black_contours):
+                        sc = self.ax_list[0].scatter(easting,northing,s=point_scale,lw = 0.3, edgecolors = "k", facecolor = "none", norm=cNorm, alpha = alpha,zorder=zorder)
+
                 else:
                     sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
+                    if(black_contours):
+                        sc = self.ax_list[0].scatter(easting,northing,s=point_scale,lw = 0.3, edgecolors='k',facecolor = "none", alpha = alpha,zorder=zorder, marker = marker)
+
 
         # Setting the labelling
         if(label_field != "None"):
-            print("labelling from this tool is not available yet, Boris is working on it")
+            # print("labelling from this tool is not available yet, Boris is working on it")
             tg = thisPointData.QueryData(label_field)
             print(tg)
             for i in range(len(easting)):

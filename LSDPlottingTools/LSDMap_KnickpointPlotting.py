@@ -177,14 +177,18 @@ class KP_plotting(object):
 
         # applying the size column 
         ## I Normalize the size
-        self.df_kp_ksn["size_kp"] = pd.Series(data = self.df_kp_ksn["delta_ksn"].abs()/self.df_kp_ksn["delta_ksn"].abs().max(), index = self.df_kp_ksn.index)
+        minsize = 0.01
+
+        self.df_kp_ksn["size_kp"] = pd.Series(data = self.df_kp_ksn["delta_ksn"].abs(), index = self.df_kp_ksn.index)
 
         ## Recasting the knickpoints into a range (everything below a threshold will have the same minimum value and above another thrshold another maximum value)
-        self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() <= size_kp[0]] = 0
-        self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() >= size_kp[2]] = 1
+        self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() <= size_kp[0]] = size_kp[0]
+        self.df_kp_ksn["size_kp"][self.df_kp_ksn["delta_ksn"].abs() >= size_kp[2]] = size_kp[2]
 
         ## Applying a coeff
-        self.df_kp_ksn["size_kp"] += 0.05
+        # self.df_kp_ksn["size_kp"] += 0.01
+        self.df_kp_ksn["size_kp"] = self.df_kp_ksn["size_kp"] /self.df_kp_ksn["size_kp"].max() 
+        self.df_kp_ksn["size_kp"] = self.df_kp_ksn["size_kp"] - self.df_kp_ksn["size_kp"].min() + minsize
         self.df_kp_ksn["size_kp"] *= coeff_size
 
         # plt.hist(self.df_kp_ksn["size_kp"].values, bins = 35)
@@ -193,32 +197,37 @@ class KP_plotting(object):
 
 
         # Same the general dataset
-        self.df_kp["size_kp"] = pd.Series(data = self.df_kp["delta_ksn"].abs()/self.df_kp["delta_ksn"].abs().max(), index = self.df_kp.index)
-        self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() <= size_kp[0]] = 0
-        self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() >= size_kp[2]] = 1
-        self.df_kp["size_kp"] += 0.05
+        self.df_kp["size_kp"] = pd.Series(data = self.df_kp["delta_ksn"].abs(), index = self.df_kp.index)
+        self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() <= size_kp[0]] = size_kp[0]
+        self.df_kp["size_kp"][self.df_kp["delta_ksn"].abs() >= size_kp[2]] = size_kp[2]
+        # self.df_kp["size_kp"] += 0.01
+        self.df_kp["size_kp"] = self.df_kp["size_kp"]/self.df_kp["size_kp"].max()
+        self.df_kp["size_kp"] = self.df_kp["size_kp"] - self.df_kp["size_kp"].min() +minsize
         self.df_kp["size_kp"] *= coeff_size
 
         # applying the size column to the step
         ## I Normalize the size
-        self.df_kp_stepped["size_kp_step"] = pd.Series(data = self.df_kp_stepped["delta_segelev"].abs()/self.df_kp_stepped["delta_segelev"].abs().max(), index = self.df_kp_stepped.index)
+        self.df_kp_stepped["size_kp_step"] = pd.Series(data = self.df_kp_stepped["delta_segelev"].abs(), index = self.df_kp_stepped.index)
+
         ## Recasting the knickpoints into a range (everything below a threshold will have the same minimum value and above another thrshold another maximum value)
-        self.df_kp_stepped["size_kp_step"][self.df_kp_stepped["delta_segelev"].abs() <= size_kp[1]] = 0
-        self.df_kp_stepped["size_kp_step"][self.df_kp_stepped["delta_segelev"].abs() >= size_kp[3]] = 1
+        self.df_kp_stepped["size_kp_step"][self.df_kp_stepped["delta_segelev"].abs() <= size_kp[1]] = size_kp[1]
+        self.df_kp_stepped["size_kp_step"][self.df_kp_stepped["delta_segelev"].abs() >= size_kp[3]] = size_kp[3]
         ## Applying a coeff
-        self.df_kp_stepped["size_kp_step"] += 0.05
+        # self.df_kp_stepped["size_kp_step"] += 0.01
+        self.df_kp_stepped["size_kp_step"] = self.df_kp_stepped["size_kp_step"]/self.df_kp_stepped["size_kp_step"].max()
+        self.df_kp_stepped["size_kp_step"] = self.df_kp_stepped["size_kp_step"] - self.df_kp_stepped["size_kp_step"].min() + minsize
         self.df_kp_stepped["size_kp_step"] *= coeff_size
 
         # Same the general dataset
-        self.df_kp["size_kp_step"] = pd.Series(data = self.df_kp["delta_segelev"].abs()/self.df_kp["delta_segelev"].abs().max(), index = self.df_kp.index)
-        self.df_kp["size_kp_step"][self.df_kp["delta_segelev"].abs() <= size_kp[1]] = 0
-        self.df_kp["size_kp_step"][self.df_kp["delta_segelev"].abs() >= size_kp[3]] = 1
-        self.df_kp["size_kp_step"] += 0.05
+        self.df_kp["size_kp_step"] = pd.Series(data = self.df_kp["delta_segelev"].abs(), index = self.df_kp.index)
+        self.df_kp["size_kp_step"][self.df_kp["delta_segelev"].abs() <= size_kp[1]] = size_kp[1]
+        self.df_kp["size_kp_step"][self.df_kp["delta_segelev"].abs() >= size_kp[3]] = size_kp[3]
+        # self.df_kp["size_kp_step"] += 0.01
+        self.df_kp["size_kp_step"] =self.df_kp["size_kp_step"]/self.df_kp["size_kp_step"].max()
+        self.df_kp["size_kp_step"] = self.df_kp["size_kp_step"] - self.df_kp["size_kp_step"].min() + minsize
         self.df_kp["size_kp_step"] *= coeff_size
         
 
-        # print(self.df_kp["size_kp"].unique())
-        # quit()
 
         # Just getting rid of few NoData
         self.df_river["m_chi"][self.df_river["m_chi"] == -9999] = 0
@@ -555,7 +564,7 @@ class KP_plotting(object):
                 ax1 = fig.add_subplot(gs[0:100,0:100], facecolor = "None")
 
                 #plot the long/Chi profile
-                ax1.scatter(this_df_river[x_axis], this_df_river["elevation"], lw =0 , s = size_of_river, c = "#00DBE5" , zorder = 3)
+                ax1.scatter(this_df_river[x_axis], this_df_river["elevation"], lw =0 , s = size_of_river, c = "#174D9C" , zorder = 3)
                 # Plotting the river noes that does contain knickpoint to check combining
                 ax1.scatter(this_df_river[x_axis][this_df_river["ksnkp"]!=0], this_df_river["elevation"][this_df_river["ksnkp"]!=0], lw =0 , s = size_of_river, c = this_df_river["ksnkp"][this_df_river["ksnkp"]!=0], cmap = "RdBu_r" , zorder = 4)
 
@@ -676,19 +685,19 @@ class KP_plotting(object):
                 ax1 = fig.add_subplot(gs[0:100,0:100], facecolor = "None")
 
                 #plot the long/Chi profile
-                ax1.scatter(this_df_river[x_axis], this_df_river["elevation"], lw =0 , s = size_of_river, c = "#00DBE5" , zorder = 3)
+                ax1.scatter(this_df_river[x_axis], this_df_river["elevation"], lw =0 , s = size_of_river, c = "#174D9C" , zorder = 3, label = "")
                 # Plotting the river noes that does contain knickpoint to check combining
                 # ax1.scatter(this_df_river[x_axis][this_df_river["ksnkp"]!=0], this_df_river["elevation"][this_df_river["ksnkp"]!=0], lw =0 , s = size_of_river, c = this_df_river["ksnkp"][this_df_river["ksnkp"]!=0], cmap = "RdBu_r" , zorder = 4)
 
                 # this can be printed to adapt the ksn extraction parameters from Mudd et al. 2014
                 if (print_seg_elev):    
-                    cb1 = ax1.scatter(this_df_river[x_axis], this_df_river["segmented_elevation"], lw =0 , s = size_of_river/2, c = "k", alpha = 0.5, zorder = 3)
+                    cb1 = ax1.scatter(this_df_river[x_axis], this_df_river["segmented_elevation"], lw =0 , s = size_of_river/2, c = "k", alpha = 0.5, zorder = 3, label = "")
 
                 try:
 
                     ## plot the triangles
                     if(neg):
-                        ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"], s = this_df_dksn_neg["size_kp"], lw = 0, marker = "o", c = "pink", alpha = 0.95, zorder = 5, label = r"-$\Delta k_{sn}$")
+                        ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"], s = this_df_dksn_neg["size_kp"], lw = 0, marker = "o", c = "#00F1EA", alpha = 0.95, zorder = 5, label = r"-$\Delta k_{sn}$")
                         ax1.scatter(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"], s = this_df_dksn_neg["size_kp"], lw = 0.5, marker = "o", facecolor = "none", edgecolor = "k", alpha = 0.90, zorder = 5, label = "")
                         
                     ## plot the contours
@@ -709,7 +718,7 @@ class KP_plotting(object):
                     colaray = kal["type"].values
                     colaray[colaray == "bases"] = "#A002D3"
                     colaray[colaray == "lips"] = "#57B300"
-                    ax1.scatter(kal[x_axis],kal["elevation"], marker = "x", s = 7, lw = 0.4, zorder = 2, c = colaray)    
+                    ax1.scatter(kal[x_axis],kal["elevation"], marker = "x", s = 7, lw = 0.4, c = colaray, label = "", zorder = 250)    
 
                 # Cleaning the legend
                 handles, labels = ax1.get_legend_handles_labels()
@@ -743,7 +752,126 @@ class KP_plotting(object):
             # switching to the next figure
 
 
+    def print_classic_map(self,size = "big", format = "png", black_bg = False, scale_points = True, label_size = 8, size_kp = 20, return_fig = False, 
+        extent_cmap = [], kalib = False,lith_raster = False,cml = None, unicolor_kp = None, size_stepped_kp_map = 1.8, neg = True, pos = False, step = False):
 
+            # check if a directory exists for the chi plots. If not then make it.
+        raster_directory = self.fpath+'raster_plots/'
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+
+        # Set up fonts for plots
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['Liberation Sans'] # Liberation Sans is a free alternative to Arial. Albeit being quite universal, Arial is propietary. #PRAISE_FREE_AND_OPENSOURCE
+        rcParams['font.size'] = label_size
+
+        # set figure sizes based on format
+        fig_width_inches = self.get_figwidth_right_size(size = size)
+
+        # get the rasters
+        raster_ext = '.bil'
+        BackgroundRasterName = self.fprefix+raster_ext
+        HillshadeName = self.fprefix+'_hs'+raster_ext
+        BasinsName = self.fprefix+'_AllBasins'+raster_ext
+
+        
+        # create the map figure
+        MF = MapFigure(HillshadeName, self.fpath, coord_type="UTM_km", alpha = 0.7)
+        if(black_bg):
+            MF.add_drape_image(HillshadeName,self.fpath,colourmap = "gray",alpha=1,colour_min_max = [10000,10001],modify_raster_values=False,old_values=[], new_values=[],NFF_opti = True)
+
+        if(lith_raster and cml != None):
+            color_map_litho  = cml
+            df_litho_size = pd.read_csv(self.fpath+self.fprefix+"_lithokey.csv")
+            LithoMap = self.fprefix+"_LITHRAST.bil"
+
+            MF.add_drape_image(LithoMap,self.fpath,colourmap = color_map_litho,
+                                alpha=0.6,
+                                show_colourbar = False,
+                                colorbarlabel = "Colourbar", discrete_cmap=False, 
+                                norm = "None",
+                                colour_min_max = [0,df_litho_size["rocktype"].max()-1],
+                                modify_raster_values=False,
+                                old_values=[], new_values=[], cbar_type=int,
+                                NFF_opti = True, custom_min_max = [])
+        
+        # plot the basin outlines
+        Basins = LSDP.GetBasinOutlines(self.fpath, BasinsName)
+        MF.plot_polygon_outlines(Basins, linewidth = 0.5)
+
+        # add the channel network without color
+        ## First calibration of the points: I calculated a ratio of niceness from different tests - Probably need more work to adapt it to different figure styles
+        min_corrected = size_kp*0.4/20
+        max_corrected = size_kp*1.5/20
+        raw_min_corrected = size_kp*0.1/20
+        raw_max_corrected = size_kp*0.4/20
+
+        rivnet = LSDP.LSDMap_PointData(self.df_river, data_type = "pandas", PANDEX = True)
+        rawriv = LSDP.LSDMap_PointData(self.df_rivraw, data_type = "pandas", PANDEX = True)
+        MF.add_point_data(rawriv, show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = raw_max_corrected,min_point_size = raw_min_corrected,zorder=195)
+        MF.add_point_data(rivnet, column_for_plotting = "m_chi", show_colourbar="False", scale_points=True,scaled_data_in_log= True, column_for_scaling='drainage_area',alpha=0.1,max_point_size = max_corrected,min_point_size = min_corrected,zorder=195)
+
+        # add the knickpoints plots
+
+        kp_pos = LSDP.LSDMap_PointData(self.df_kp[self.df_kp["sign"] == 1], data_type = "pandas", PANDEX = True)
+        kp_neg = LSDP.LSDMap_PointData(self.df_kp[self.df_kp["sign"] == -1], data_type = "pandas", PANDEX = True)
+        kp_step = LSDP.LSDMap_PointData(self.df_kp_stepped[self.df_kp_stepped["delta_segelev"] > 0], data_type = "pandas", PANDEX = True)
+
+        # Dealing with the legend that you can manually change
+        if(len(extent_cmap) != 2):
+            extent_cmap = [0,self.df_kp["delta_ksn"].abs().max()]
+
+
+        # Ignore that, that is for paper purposes
+        if(kalib):
+
+            kal = pd.read_csv("/home/s1675537/PhD/LSDTopoData/knickpoint/test_location_paper/Smugglers_SC/field_kp/calib_jointed.csv")
+            colaray = kal["type"].values
+            colaray[colaray == "bases"] = "#A002D3"
+            colaray[colaray == "lips"] = "#57B300"
+            kal["van_gogh"] = pd.Series(data = colaray, index = kal.index )
+            kalpoint = LSDP.LSDMap_PointData(kal, data_type = "pandas", PANDEX = True)
+            MF.add_point_data(kalpoint, marker ="*", column_for_plotting = "van_gogh", alpha=1, manual_size = 20, zorder = 250, unicolor = kal["van_gogh"].values )
+
+
+        if(unicolor_kp == None):
+            if(pos):
+                MF.add_point_data(kp_pos,unicolor = "red", black_contours = True, marker ="o", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'size_kp', scale_in_absolute = True , alpha=1, max_point_size = 12, min_point_size = 2, zorder=200)
+            if(neg):
+                MF.add_point_data(kp_neg,unicolor = "#00F1EA", black_contours = True, marker ="o", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'size_kp', scale_in_absolute = True , alpha=1, max_point_size = 12, min_point_size = 2, zorder=200)
+        
+        else:
+            if(pos):
+                MF.add_point_data(kp_pos, unicolor = unicolor_kp, black_contours = True, marker ="o", scale_points = scale_points, alpha=1, max_point_size = self.df_kp[self.df_kp["sign"] == 1]["size_kp"].max(), min_point_size = self.df_kp[self.df_kp["sign"] == 1]["size_kp"].min(),zorder=200,manual_size = size_kp)
+            if(neg):
+                MF.add_point_data(kp_neg, unicolor = unicolor_kp, black_contours = True, marker ="o", scale_points = scale_points, alpha=1, max_point_size = self.df_kp[self.df_kp["sign"] == -1]["size_kp"].max(), min_point_size = self.df_kp[self.df_kp["sign"] == -1].min(),zorder=200,manual_size = size_kp)
+
+        if(step):
+            MF.add_point_data(kp_step,unicolor = "#CB9A00",marker ="o", black_contours = True,scale_points = True,scaled_data_in_log = False, column_for_scaling = "size_kp_step", scale_in_absolute = True, max_point_size = 12, min_point_size = 5, alpha=1,zorder=200,)
+
+        if(black_bg):
+            suffix = "dark"
+        elif (lith_raster == True and cml != None):
+            suffix = "lith"
+        else:
+            suffix = "hs"
+
+        if(neg):
+            suffix += "_drop"
+        if(pos):
+            suffix += "_raise"
+        if(step):
+            suffix += "_step" 
+
+        ImageName = raster_directory+self.fprefix+"_ksnkp_map_%s."%(suffix) + format
+        
+
+        if(return_fig):
+            return plt.gcf()
+
+        else:
+            MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat = format, Fig_dpi = 500) # Save the figure
+            plt.clf()
 
 
 
