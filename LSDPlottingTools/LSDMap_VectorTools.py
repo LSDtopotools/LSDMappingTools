@@ -244,7 +244,7 @@ def readFile(filename):
 
 def writeFile(filename,geotransform,geoprojection,data):
 	(x,y) = data.shape
-	format = "GTiff".encode('utf-8')
+	format = "GTiff"
 	noDataValue = -9999
 	driver = gdal.GetDriverByName(format)
 	# you can change the dataformat but be sure to be able to store negative values including -9999
@@ -368,7 +368,7 @@ def Rasterize_geologic_maps_pythonic(shapefile_name, raster_resolution = 400, ge
 
 	xRes = int((xMax - xMin) / inGridSize)
 	yRes = int((yMax - yMin) / inGridSize)
-	rasterDS =  gdal.GetDriverByName('GTiff'.encode('utf-8')).Create(outraster, xRes, yRes, 1,  gdal.GDT_Byte)
+	rasterDS =  gdal.GetDriverByName('GTiff').Create(outraster, xRes, yRes, 1,  gdal.GDT_Byte)
 
 	# Define spatial reference
 	NoDataVal = -9999
@@ -383,10 +383,10 @@ def Rasterize_geologic_maps_pythonic(shapefile_name, raster_resolution = 400, ge
 
 	# Make a key for the bedrock
 	geol_dict = dict()
-	geol_field = geol_field.encode('utf-8')
+	geol_field = geol_field
 	for feature in daLayer:
 		ID = feature.GetField(geol_field)
-		GEOL = feature.GetField("GEOL_CODE".encode('utf-8'))
+		GEOL = feature.GetField("GEOL_CODE")
 
 		if ID not in geol_dict:
 			print("I found a new rock type, ID: "+ str(ID)+ " and rock type: " + str(GEOL))
@@ -450,7 +450,7 @@ def geologic_maps_modify_shapefile(shapefile_name, geol_field = "xx"):
 	daLayer = dataSource.GetLayer(0)
 
 	# add a new field
-	new_field = ogr.FieldDefn("GEOL_CODE".encode('utf-8'), ogr.OFTInteger)
+	new_field = ogr.FieldDefn("GEOL_CODE", ogr.OFTInteger)
 	daLayer.CreateField(new_field)
 
 	# lets see what the layers are
@@ -463,7 +463,7 @@ def geologic_maps_modify_shapefile(shapefile_name, geol_field = "xx"):
 	# Make a key for the bedrock
 	geol_dict = dict()
 	geol_iterator = 0
-	geol_field = geol_field.encode('utf-8')
+	geol_field = geol_field #
 	for feature in daLayer:
 		GEOL = feature.GetField(geol_field)
 
@@ -475,7 +475,7 @@ def geologic_maps_modify_shapefile(shapefile_name, geol_field = "xx"):
 		# now get the geol code
 		this_geol_code = geol_dict[GEOL]
 		# set the feature
-		feature.SetField("GEOL_CODE".encode('utf-8'), this_geol_code)
+		feature.SetField("GEOL_CODE", this_geol_code)
 
 		# need to update the layer
 		daLayer.SetFeature(feature)
@@ -519,7 +519,7 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
 
 	# get the driver and create a new data source
 	cliffbaggu = "ESRI shapefile"
-	cliffbaggu = cliffbaggu.encode('utf-8')
+	# cliffbaggu = cliffbaggu
 	driver = ogr.GetDriverByName(cliffbaggu)
 	#src.Destroy()
 
@@ -528,7 +528,7 @@ def Copy_Shapefile(shapefile_name,new_shapefile_name):
 	out_ds = driver.CreateDataSource(new_shapefile_name)
 	# create the output layer
 	#out_lyr = out_ds.CreateLayer("yo",srs = daLayer.GetSpatialRef(),geom_type=ogr.wkbPolygon)
-	out_lyr = out_ds.CreateLayer("yo".encode('utf-8'),srs = daLayer.GetSpatialRef(),geom_type=geom_type)
+	out_lyr = out_ds.CreateLayer("yo",srs = daLayer.GetSpatialRef(),geom_type=geom_type)
 
 	# Add input Layer Fields to the output Layer if it is the one we want
 	for i in range(0, layerDefinition.GetFieldCount()):

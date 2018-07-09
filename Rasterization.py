@@ -80,6 +80,7 @@ def main(argv):
 			print("FATAL ERROR: You need to gives me the Field name you wanna rasterize. This field will give its value or a code value to the raster. The field name is in the attributary table of your shapefile.")
 			sys.exit()
 		#launching the rasterization
+		# fd_name_corr = args.field_name.encode('utf-8')
 		VT.rasterize_shapefile(args.directory + args.fname_prefix + ".shp", res = args.resolution, field = args.field_name)
 		#getting file names and prefix
 		rast_name = args.fname_prefix + "_new2.tif"
