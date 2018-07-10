@@ -87,7 +87,8 @@ def main(argv):
     parser.add_argument("-rasplot_ld", "--raster_plots_large_dataset", type = bool, default = False, help="Print raster plots with knickpoints on top of ksn in the folder .../raster_plots/")
     parser.add_argument("-statplot", "--statistical_plots", type = bool, default = False, help="Print a bunch of statistics about the knickpoints in the folder .../raster_plots/")
     parser.add_argument("-stradivarius", "--multi_violin_plots", type = bool, default = False, help="Print a bunch of statistical distribution against elevation, chi, ... for the selected knickpoints")
-    parser.add_argument("-clas","--classical_plot", type = bool, default = False, help = "print a classical basin-wide profile with only the knickpoints representing the switched from a concave to a convex profile")
+    parser.add_argument("-clas","--classical_plot", type = bool, default = False, help = "Automatically print a set of basin-wide river profile and maps of knickpoints in their different expressions.")
+    parser.add_argument("-clasriv","--classical_plot_per_river", type = bool, default = False, help = "Automatically print a set of river profiles with knickpoints in their different expressions. WARNINGS: can create a huge number of plot, you should sort your rivers before.")
 
     # Others
     parser.add_argument("-nbh", "--n_bin_hist", type = int, default = 0, help = "Customization of the number of bin you want for the general histogram. Default is an automatic in-built selection from numpy")
