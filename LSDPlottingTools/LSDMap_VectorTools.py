@@ -137,7 +137,7 @@ def GetPointWithinBasins(DataDirectory,basins_fname):
 
 	# get the centroids
 	PointDict = {}
-	for basin_key, basin in BasinDict.iteritems():
+	for basin_key, basin in BasinDict.items():
 		PointDict[basin_key] = Point(basin.representative_point())
 
 	return PointDict

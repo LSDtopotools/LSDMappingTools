@@ -99,8 +99,8 @@ def main(argv):
 
     args = parser.parse_args()
 
-    print argv
-    print args
+    print(argv)
+    print(args)
 
     if not args.fname_prefix:
         if not args.parallel:
