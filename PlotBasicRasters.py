@@ -74,9 +74,15 @@ def parse_list_from_string(a_string):
     
     Date: 10/01/2018
     """
+    print("Hey pardner, I'm a gonna parse a string into a list. Yeehaw.")
     if len(a_string) == 0:
         print("No items found, I am returning and empty list.")
         return_list = []
+    elif "." in a_string:
+        print("I found a decimal in your string. I am going to assume these are floats")
+        return_list = [float(item) for item in a_string.split(',')]
+        print("The parsed string is:")
+        print(return_list)
     else:
         return_list = [int(item) for item in a_string.split(',')]
         print("The parsed string is:")
