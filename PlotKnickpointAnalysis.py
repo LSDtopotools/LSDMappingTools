@@ -306,6 +306,34 @@ def main(argv):
         KI.print_classic_map(unicolor_kp = args.unicolor_for_knickpoint_map,size = size, format = args.FigFormat, black_bg = False, scale_points = True, label_size = 6,
             size_kp = args.size_kp_map, extent_cmap = manual_cmap_extent_raster_plot, kalib = args.kalib, neg = True, pos = True, step = True)
 
+
+    if(args.classical_plot_per_river):
+        KI.print_classic_basin_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, label_size = 8, facecolor = 'white', kalib = args.kalib,
+        binning = "source_key", print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, neg = True, pos = False, step = False)
+        KI.print_classic_basin_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, label_size = 8, facecolor = 'white', kalib = args.kalib,
+        binning = "source_key", print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, neg = True, pos = False, step = False)
+
+        KI.print_classic_basin_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, label_size = 8, facecolor = 'white', kalib = args.kalib,
+        binning = "source_key", print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, neg = False, pos = True, step = False)
+        KI.print_classic_basin_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, label_size = 8, facecolor = 'white', kalib = args.kalib,
+        binning = "source_key", print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, neg = False, pos = True, step = False)
+        
+        KI.print_classic_basin_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, label_size = 8, facecolor = 'white', kalib = args.kalib,
+        binning = "source_key", print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, neg = False, pos = False, step = True)
+        KI.print_classic_basin_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, label_size = 8, facecolor = 'white', kalib = args.kalib,
+        binning = "source_key", print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, neg = False, pos = False, step = True)
+
+        KI.print_classic_basin_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, label_size = 8, facecolor = 'white', kalib = args.kalib,
+        binning = "source_key", print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, neg = True, pos = True, step = True)
+        KI.print_classic_basin_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, label_size = 8, facecolor = 'white', kalib = args.kalib,
+        binning = "source_key", print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, neg = True, pos = True, step = True)
+        
+        KI.print_classic_basin_profile(size = size, format = args.FigFormat, x_axis = "chi", knickpoint = True, label_size = 8, facecolor = 'white', kalib = args.kalib,
+        binning = "source_key", print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, neg = True, pos = True, step = False)
+        KI.print_classic_basin_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, label_size = 8, facecolor = 'white', kalib = args.kalib,
+        binning = "source_key", print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, neg = True, pos = True, step = False)
+
+
     if (args.basin_plot):
         KI.print_river_profile(size = size, format = args.FigFormat, x_axis = "flow_distance", knickpoint = True, title = "auto", label_size = 8, facecolor = 'white', binning = "basin_key", 
             kalib = args.kalib, print_seg_elev = args.print_segmented_elevation, size_recasting = min_max_kp_river, up_set = 15)

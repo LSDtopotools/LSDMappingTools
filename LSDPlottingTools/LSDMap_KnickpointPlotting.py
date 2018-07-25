@@ -171,13 +171,13 @@ class KP_plotting(object):
             size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.25)) # min val for sizing dksn kps = every knickpoints below this value will have the same (minimum) size
             size_kp.append(self.df_kp_ksn["delta_segelev"].abs().quantile(0.25)) # MIN VALUE FOR STEPPED KNICKPOINT IS under work
             size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.75)) # max val for sizing dksn kps = every knickpoints below this value will have the same (maximum) size
-            size_kp.append(self.df_kp_ksn["delta_ksn"].abs().quantile(0.75)) # MAX VALUE FOR STEPPED KNICKPOINT IS under work
+            size_kp.append(self.df_kp_ksn["delta_segelev"].abs().quantile(0.75)) # MAX VALUE FOR STEPPED KNICKPOINT IS under work
             print("SIZE GLOBAL WARNING :Automatically sizing your knickpoint range: all knikcpoints below %s will have the minimum size and all knickpoints above %s the maximum in absolute values." %(size_kp[0],size_kp[2]))
 
 
         # applying the size column 
         ## I Normalize the size
-        minsize = 0.01
+        minsize = 0.2
 
         self.df_kp_ksn["size_kp"] = pd.Series(data = self.df_kp_ksn["delta_ksn"].abs(), index = self.df_kp_ksn.index)
 
