@@ -1276,6 +1276,10 @@ class KP_plotting(object):
         print("I am saving the selected knickpoints in a new csv file")
         self.df_kp_ksn.to_csv(self.fpath+self.fprefix+"_output_ksn.csv", index = False)
         self.df_kp_stepped.to_csv(self.fpath+self.fprefix+"_output_stepped.csv", index = False)
+        for i in self.df_kp_ksn['basin_key'].unique():
+            tdf = self.df_kp_ksn[self.df_kp_ksn['basin_key'] == i]
+            tdf.to_csv(self.fpath+self.fprefix+"_output_ksn_basin_%s.csv"%(i), index = False)
+
 
 
 
