@@ -431,10 +431,13 @@ def main(argv):
 
         # Then the chi plot for the rasters. Only call this if the masked raster exists
         masked_fname = this_dir+args.fname_prefix+"_MaskedChi.bil"
-        print("The filename of the chi raster is: "+masked_fname+ " I am checking if it exists.")
-        import os.path
-        if os.path.isfile(masked_fname): 
+        print("\n\n\nThe filename of the chi raster is: "+masked_fname+ " I am checking if it exists.")
+        import os.path as osp
+        if osp.isfile(masked_fname):
+            print("The chi raster exists. I'll drape the channels over the chi raster")
             LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = False, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_CC_raster", plot_chi_raster = True)
+        else:
+            print("The chi raster doesn't exist, I am skpping to the channel chi plots.")
 
         LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = False, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_CC_channels", plot_chi_raster = False)
 

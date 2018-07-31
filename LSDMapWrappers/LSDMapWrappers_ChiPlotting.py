@@ -277,8 +277,9 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
     chi_csv_fname = DataDirectory+ChannelFileName
 
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
-
-    #thisPointData.ThinDataSelection("basin_key",[10])
+    
+    # Remove data that has nodata values
+    thisPointData.selectValue(plotting_column,value = -9999, operator = "!=")
 
     thisPointData.selectValue("basin_key",value = Basin_remove_list, operator = "!=")
     #print("The new point data is:")

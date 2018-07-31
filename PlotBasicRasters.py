@@ -593,27 +593,37 @@ def main(argv):
         print("Hey, I am afraid my masters have not finished programming this bit.")
             
         
-    # This plots the chi coordinates. You need to have chi rasters for this
+    # This plots the chi coordinate. It plots three different versions. 
+    # extension _CC_basins are the absins used in the chi plot
+    # extension _CC_raster plots the chi raster
+    # extension _CC_channels plots the channels
     if args.plot_chi_coord:
-        print("I am going to plot the chi coordinate.")
-        
+        print("I am only going to print basins.")
+
         # check if a raster directory exists. If not then make it.
         raster_directory = this_dir+'raster_plots/'
         if not os.path.isdir(raster_directory):
             os.makedirs(raster_directory)
-          
+
         # Get the names of the relevant files
         ChannelFname = args.fname_prefix+"_chi_data_map.csv"
-        
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix      
+
+        raster_out_prefix = "/raster_plots/"+args.fname_prefix
         # Now for raster plots
         # First the basins, labeled:
-        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
-        
-        # Then the chi plot
-        LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = False, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_raster", plot_chi_raster = True)  
-        
-        LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = False, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_channels", plot_chi_raster = False)  
+        LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_CC_basins")
+
+        # Then the chi plot for the rasters. Only call this if the masked raster exists
+        masked_fname = this_dir+args.fname_prefix+"_MaskedChi.bil"
+        print("\n\n\nThe filename of the chi raster is: "+masked_fname+ " I am checking if it exists.")
+        import os.path as osp
+        if osp.isfile(masked_fname):
+            print("The chi raster exists. I'll drape the channels over the chi raster")
+            LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = False, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_CC_raster", plot_chi_raster = True)
+        else:
+            print("The chi raster doesn't exist, I am skpping to the channel chi plots.")
+
+        LSDMW.PrintChiCoordChannelsAndBasins(this_dir,args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "cubehelix", cbar_loc = "top", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column = "chi", colour_log = False, colorbarlabel = "$\chi$", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict , value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_CC_channels", plot_chi_raster = False)
         
     # This bundles a number of different analyses    
     if args.all_chi_plots:
