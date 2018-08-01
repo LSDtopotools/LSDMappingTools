@@ -142,7 +142,7 @@ def SimpleDrape(DataDirectory,Base_file, Drape_prefix, cmap = "jet", cbar_loc = 
 def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc = "right",
                                 size_format = "ESURF", fig_format = "png",
                                 dpi = 250, imgnumber = 0, full_basefile = [],
-                                custom_cbar_min_max = [], out_fname_prefix = ""):
+                                custom_cbar_min_max = [], out_fname_prefix = "", coord_type="UTM_km", hide_ticklabels=False):
     """
     This function make a hillshade image that is optimised for creating
     an animation. Used with the MuddPILE model
@@ -160,6 +160,8 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
         full_basefile (str): The root name of the figures you want. If empty, it uses the data_directory+base_file
         custom_min_max (list of int/float): if it contains two elements, recast the raster to [min,max] values for display.
         out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
+        coord_type (str): either UTM or UTM_km
+        hide_ticklabels (bool): if true, hide the tick labels from the plot
 
     Returns:
         Shaded relief plot. The elevation is also included in the plot.
@@ -184,7 +186,7 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
     plt.clf()
 
     # set up the base image and the map
-    MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
+    MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type=coord_type,colourbar_location = cbar_loc)
     MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = "Elevation (m)",colour_min_max = custom_cbar_min_max)
 
     # Save the image
@@ -197,7 +199,7 @@ def SimpleHillshadeForAnimation(DataDirectory,Base_file, cmap = "jet", cbar_loc 
         ImageName = full_basefile+"_img"+"%004d" % (imgnumber)+"."+fig_format
 
     MF.save_fig(fig_width_inches = fig_size_inches, FigFileName = ImageName, axis_style = ax_style, FigFormat=fig_format, Fig_dpi = dpi, adjust_cbar_characters=False,
-                 fixed_cbar_characters=4)
+                 fixed_cbar_characters=4, hide_ticklabels=hide_ticklabels)
 
 
 def PrintAllChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):

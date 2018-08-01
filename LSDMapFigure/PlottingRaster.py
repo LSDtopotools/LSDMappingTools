@@ -282,7 +282,7 @@ class MapFigure(object):
         self.FigFileName = self._Directory+"TestFig.png"
         self.FigFormat = "png"
 
-        
+
 
         # The way this is going to work is that you can have many rasters in the
         # plot that get appended into a list. Each one has its own colourmap
@@ -316,7 +316,7 @@ class MapFigure(object):
 
         # A title if needed
         self.title = plot_title
-        
+
         # set up a list of legend handles for building the legend if needed
         self.legend_handles_list = []
 
@@ -873,15 +873,15 @@ class MapFigure(object):
                 print("CBAR TYPE IS", cbar_type)
                 this_cbar_type = cbar_type
                 this_cbarlabel = colorbarlabel
-                
+
                 print("\n\n")
                 print(min_value)
                 print(max_value)
                 print(n_colours)
                 print("\n\n")
-                
+
                 self.ax_list = self.add_objectless_colourbar(self.ax_list,
-                                                         min_value, max_value, thinningfactor=colorbartickthinfactor, 
+                                                         min_value, max_value, thinningfactor=colorbartickthinfactor,
                                                          cmap = this_cmap,colorbarlabel = this_cbarlabel,
                                                          discrete=discrete_cmap, n_colours=n_colours, cbar_type=this_cbar_type)
 
@@ -1007,11 +1007,11 @@ class MapFigure(object):
         #get list of tick locations
         tick_locs = np.arange(new_vmin, new_vmax, step=tick_spacing)
         tick_locs = tick_locs[::thinningfactor]-1
-        
+
         # update ticks
         tick_locator = ticker.FixedLocator(tick_locs)
         print(tick_locator)
-        
+
         cbar.locator = tick_locator
         cbar.update_ticks()
 
@@ -1026,7 +1026,7 @@ class MapFigure(object):
         print(tick_labels)
 
         tick_labels = tick_labels[::thinningfactor]
-        
+
         if self.colourbar_orientation == "horizontal":
             cbar.ax.set_xticklabels(tick_labels, rotation=cbar_label_rotation)
         else:
@@ -1274,7 +1274,7 @@ class MapFigure(object):
                     #sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=tps_color,cmap=this_colourmap,edgecolors='none', alpha = alpha)
                     sc = self.ax_list[0].scatter(easting,northing,s=point_scale, c=this_data,cmap=this_colourmap,norm=cNorm,edgecolors='none', alpha = alpha,zorder=zorder, marker = marker)
                     if(black_contours):
-                        
+
                         self.ax_list[0].scatter(easting,northing,s=point_scale,lw = 0.3,edgecolors='k',facecolor = "none",norm=cNorm, alpha = alpha,zorder=zorder, marker = marker)
 
                 else:
@@ -1333,7 +1333,7 @@ class MapFigure(object):
             print("Trying to update legend!")
             legend_line = mlines.Line2D([],[], color=unicolor, lw=min_point_size, label=label)
             self.legend_handles_list.append(legend_line)
-          
+
     def add_line_data(self, ThisLineFile, linestyle = '-', edgecolour = "k", linewidth=0.5, zorder = 1, alpha=1, legend=False, label=""):
         """
         This adds line data from a named shapefile to the map.
@@ -1376,7 +1376,7 @@ class MapFigure(object):
             print("Trying to update legend!")
             legend_line = mlines.Line2D([],[], color=edgecolour, lw=linewidth, label=label)
             self.legend_handles_list.append(legend_line)
-        
+
     def plot_segment_of_knickzone(self, thisPointData, color = "k", lw = 1):
         # Get the axis limits to assert after
         this_xlim = self.ax_list[0].get_xlim()
@@ -1708,12 +1708,12 @@ class MapFigure(object):
                 for singlepoly in poly:
                     x,y = singlepoly.exterior.xy
                     self.ax_list[0].plot(x,y, c=colour, lw = linewidth, alpha = alpha)
-        
+
         # get legend handles
         if legend:
             print("Trying to update legend!")
             legend_line = mlines.Line2D([],[], color=colour, lw=linewidth, label=label)
-            self.legend_handles_list.append(legend_line)              
+            self.legend_handles_list.append(legend_line)
 
     def plot_filled_polygons(self,polygons, facecolour='green', edgecolour='black', linewidth=1, alpha=0.5):
         """
@@ -1774,7 +1774,7 @@ class MapFigure(object):
                  FigFormat = 'png',Fig_dpi = 100,
                  axis_style = "Normal", transparent=False,
                  adjust_cbar_characters=True,
-                 fixed_cbar_characters=4, return_fig = False):
+                 fixed_cbar_characters=4, return_fig = False, hide_ticklabels=False):
         """
         This saves the figure to file.
 
@@ -1788,6 +1788,7 @@ class MapFigure(object):
             adjust_cbar_characters (bool): If true, adjust the spacing of the colourbar to account for the characters in the cbar label
             fixed_cbar_characters (int): ONLY used if adjust_cbar_characters=False. The number of characters to pad the cbar for.
             return_fig (bool): return the figure rather than saving a plot. In case you want some personnalisation. CAreful, if your personalisation may be useful for everyone, just code it for everyone.
+            hide_ticklabels (bool): if true, hide the tick labels
 
         Author: SMM
         """
@@ -1862,6 +1863,12 @@ class MapFigure(object):
         # if cbar_axes != None:
         #     self.ax_list[-1].set_position(cbar_axes)
 
+        if hide_ticklabels:
+            self.ax_list[0].get_xaxis().set_ticks([])
+            self.ax_list[0].get_yaxis().set_ticks([])
+            self.ax_list[0].set_xlabel("")
+            self.ax_list[0].set_ylabel("")
+
         # I am returning the figure if wanted, otherwise I am saving the figure and clearing it
         if(return_fig):
             return fig
@@ -1886,18 +1893,18 @@ class MapFigure(object):
         rcParams['font.sans-serif'] = ['arial']
         rcParams['font.size'] = label_size
         rcParams['lines.linewidth']  = 1.5
-        
+
     def add_legend(self,location="best", handlelength=1):
         """
         This intiates the legend and sets some RCParams
-        
+
         Args:
             location: position of the legend, defaults to best position
-        
+
         MDH
-        
+
         """
-        
+
         #handles, labels = self.ax_list[0].get_legend_handle_labels()
         #print(handles)
         #print(labels)

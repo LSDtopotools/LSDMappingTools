@@ -25,23 +25,20 @@ import LSDMapWrappers as MW
 import os
 from sys import platform
 import sys
+from glob import glob
 
 
 def get_filenames(root):
     # Create and empty list for the filenames
-
-    print("The root is: "+root)
-
     these_filenames = []
-    n = 0
-    while 1:
-        filename = "%s%d.bil" % (root, n+1)
-        print("The filename is: "+filename)
-        if os.path.isfile(filename):
-             n += 1
-             these_filenames.append(filename)
-        else:
-            return these_filenames
+    for filename in glob(root+'*.bil'):
+        if not 'hs' in filename:
+            if not 'Raster' in filename:
+                these_filenames.append(filename)
+
+    these_filenames.sort()
+    print these_filenames
+    return these_filenames
 
 def run_plots(DataDirectory,Base_file, cbar_min_max = [0,400]):
 
@@ -63,7 +60,7 @@ def run_plots(DataDirectory,Base_file, cbar_min_max = [0,400]):
         print("This base file is: "+ this_base_file)
 
         print("I am getting figures for the animation.")
-        MW.SimpleHillshadeForAnimation(DataDirectory,this_base_file,cmap = "terrain", dpi = 250, imgnumber=counter, full_basefile = root,custom_cbar_min_max = cbar_min_max)
+        MW.SimpleHillshadeForAnimation(DataDirectory,this_base_file,cmap = "terrain", dpi = 250, imgnumber=counter, full_basefile = root,custom_cbar_min_max = cbar_min_max,coord_type='UTM_km', hide_ticklabels=True)
 
 def animate_plots(base_directory, fname_prefix):
     """
@@ -128,7 +125,7 @@ def main(argv):
     args = parser.parse_args()
 
     cbar_min_max = [0,args.maximum_elevation_for_plotting]
-    
+
     run_plots(args.base_directory,args.fname_prefix,cbar_min_max)
 
     if (args.animate):
