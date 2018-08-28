@@ -153,7 +153,7 @@ def PrintChiChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, add_b
     basin_junctions = [float(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
-    print basin_keys
+    print (basin_keys)
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -259,7 +259,7 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
     basin_junctions = [float(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
-    print basin_keys
+    print (basin_keys)
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -371,7 +371,7 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
     basin_junctions = [float(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
-    print basin_keys
+    print (basin_keys)
 
 
     chi_csv_fname = DataDirectory+ChannelFileName
