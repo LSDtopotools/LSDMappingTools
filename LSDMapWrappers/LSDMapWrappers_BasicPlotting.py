@@ -370,7 +370,7 @@ def PrintChannelsAndBasins(DataDirectory,fname_prefix, add_basin_labels = True, 
     basin_junctions = [float(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
-    print basin_keys
+    print (basin_keys)
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -464,7 +464,7 @@ def PrintBasins(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet
     basin_junctions = [float(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
-    print basin_keys
+    print (basin_keys)
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
@@ -562,7 +562,7 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
     basin_junctions = [float(x) for x in basin_junctions]
 
     print ('Basin keys are: ')
-    print basin_keys
+    print (basin_keys)
 
     # going to make the basin plots - need to have bil extensions.
     print("I'm going to make the basin plots. Your topographic data must be in ENVI bil format or I'll break!!")
