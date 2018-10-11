@@ -1299,7 +1299,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
 
     basin_dict = MapBasinKeysToJunctions(DataDirectory,FilenamePrefix)
-    basin_keys = basin_dict.keys()
+    basin_keys = list(basin_dict.keys())
 
     median_cht = []
     cht_lower_err = []
@@ -1436,6 +1436,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
                    ('uplift_rate_new', uplift_rate_new),
                    ('Erosion_rate_Be', be_erosion),
                    ('Erosion_rate_Al', al_erosion),
+                   ('Erosion_rate_Al_min', al_min_erosion),
                    ('Lh_median', median_Lh),
                    ('Lh_lower_err', Lh_lower_err),
                    ('Lh_upper_err', Lh_upper_err),
@@ -1597,11 +1598,12 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     # get the basins
     basins = df['basin_keys'].unique()
     NoBasins = len(basins)
+    print(basins)
 
-    sc = ax[0].scatter(df.Estar_median,df.Rstar_median,c=df.basin_keys,s=50, edgecolors='k', zorder=100)
+    sc = ax[0].scatter(df.Estar_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100)
     ax[0].errorbar(df.Estar_median,df.Rstar_median,xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
-    sc = ax[1].scatter(df.mchi_median,df.Rstar_median,c=df.basin_keys,s=50, edgecolors='k', zorder=100)
+    sc = ax[1].scatter(df.mchi_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100)
     ax[1].errorbar(df.mchi_median,df.Rstar_median,xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
     # plot the theoretical relationships for each one
@@ -1642,6 +1644,67 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     plt.savefig(PlotDirectory+FilenamePrefix +"_estar_rstar_subplots.png", dpi=300)
     plt.clf()
 
+def PlotDataAgainstErosionRate(DataDirectory, FilenamePrefix, PlotDirectory):
+    """
+    Make plots of the data against erosion rate. This only works if you have
+    used the function PlotHillslopeDataWithBasins to generate the correct csv
+    file first. I wrote it for the MTJ analysis
+
+    FJC 11/10/18
+    """
+    df = pd.read_csv(PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv')
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(12,5))
+    #ax = ax.ravel()
+
+    #choose colormap
+    ColourMap = cm.viridis
+
+    # get the basins
+    basins = df['basin_keys'].unique()
+    NoBasins = len(basins)
+    print(basins)
+
+    norm = colors.Normalize(vmin=basins.min(), vmax=basins.max())
+
+    #sc = ax[0].scatter(df.Erosion_rate_Be,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100)
+    sc = ax[0].scatter(df.Erosion_rate_Al,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+    sc = ax[0].scatter(df.Erosion_rate_Al_min,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+    #ax[0].errorbar(df.Estar_median,df.Rstar_median,xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+
+    sc = ax[1].scatter(df.Erosion_rate_Al,df.Estar_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+    sc = ax[1].scatter(df.Erosion_rate_Al_min,df.Estar_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+
+    sc = ax[2].scatter(df.Erosion_rate_Al,df.cht_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+    sc = ax[2].scatter(df.Erosion_rate_Al_min,df.cht_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+
+    # Finalise the figure
+    ax[0].set_xlabel('Erosion rate (mm/yr)')
+    ax[0].set_ylabel('$R^*=S/S_C$')
+
+    ax[1].set_ylabel('$E^*={{-2\:C_{HT}\:L_H}/{S_C}}$')
+    ax[1].set_xlabel('Erosion rate (mm/yr)')
+
+    ax[2].set_ylabel('$C_{HT}$')
+    ax[2].set_xlabel('Erosion rate (mm/yr)')
+    ax[2].set_ylim(0.005,0.0225)
+
+    # add colour bar
+    m = cm.ScalarMappable(cmap=ColourMap)
+    m.set_array(basins)
+    cax = fig.add_axes([0.91,0.1,0.02,0.8])
+    cbar = fig.colorbar(m, cax=cax)
+    tick_locator = ticker.MaxNLocator(nbins=5)
+    cbar.locator = tick_locator
+    cbar.update_ticks()
+    cbar.set_label('Basin ID')
+    #plt.tight_layout()
+    plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.3)
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_hs_data_erosion_rate.png", dpi=300)
+    plt.clf()
 
 def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExtent=[-9999],FigSizeFormat="epsl"):
     """

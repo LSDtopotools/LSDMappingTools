@@ -222,6 +222,7 @@ def main(argv):
         # NOTE this requires uplift data!!
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
         HS.PlotEStarRStarSubPlots(this_dir, args.fname_prefix, PlotDirectory, args.sc)
+        HS.PlotDataAgainstErosionRate(this_dir, args.fname_prefix, PlotDirectory)
 
     # SMM: again, this is hard coded for mendocino at the moment
     if args.plot_means_with_uplift:
