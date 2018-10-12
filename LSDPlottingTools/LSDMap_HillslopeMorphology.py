@@ -21,6 +21,9 @@ from scipy import stats
 import os.path, sys
 import math
 
+# 3d projection
+from mpl_toolkits.mplot3d import Axes3D
+
 # import the basemap library
 from mpl_toolkits.basemap import Basemap
 from osgeo import gdal
@@ -1415,8 +1418,10 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     be_erosion = uplift_df['Erosion_rate_Be']
     al_erosion = uplift_df['Erosion_rate_Al']
     al_min_erosion = uplift_df['Al_min']
-    ax[7].scatter(basin_keys, be_erosion, c='k', label='Be')
-    ax[7].scatter(basin_keys, al_erosion, c='None', edgecolors='k', marker='D', label='Al')
+    # ax[7].scatter(basin_keys, be_erosion, c='k', label='Be')
+    ax[7].errorbar(basin_keys, be_erosion, xerr=None, yerr=uplift_df['Be_error'], fmt='o', ecolor='0.5',markersize=6,mec='k', mfc='k', label='Be')
+    # ax[7].scatter(basin_keys, al_erosion, c='None', edgecolors='k', marker='D', label='Al')
+    ax[7].errorbar(basin_keys, al_erosion, xerr=None, yerr=uplift_df['Al_error'], fmt='D', ecolor='0.5', markersize=6, mec='k', mfc='white', label='Al')
     ax[7].scatter(basin_keys, al_min_erosion, c='None', edgecolors='k', marker='^', label='Al (min)')
     ax[7].set_ylabel('Erosion rate (mm/yr)')
     ax[7].legend(loc='upper right')
@@ -1435,7 +1440,9 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
                    ('uplift_rate_old', uplift_rate_old),
                    ('uplift_rate_new', uplift_rate_new),
                    ('Erosion_rate_Be', be_erosion),
+                   ('Be_error', uplift_df['Be_error']),
                    ('Erosion_rate_Al', al_erosion),
+                   ('Al_error', uplift_df['Al_error']),
                    ('Erosion_rate_Al_min', al_min_erosion),
                    ('Lh_median', median_Lh),
                    ('Lh_lower_err', Lh_lower_err),
@@ -1657,6 +1664,10 @@ def PlotDataAgainstErosionRate(DataDirectory, FilenamePrefix, PlotDirectory):
     # set up the figure
     fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(12,5))
     #ax = ax.ravel()
+    # make a big subplot to allow sharing of axis labels
+    fig.add_subplot(111, frameon=False)
+    # hide tick and tick label of the big axes
+    plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
 
     #choose colormap
     ColourMap = cm.viridis
@@ -1671,24 +1682,42 @@ def PlotDataAgainstErosionRate(DataDirectory, FilenamePrefix, PlotDirectory):
     #sc = ax[0].scatter(df.Erosion_rate_Be,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100)
     sc = ax[0].scatter(df.Erosion_rate_Al,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
     sc = ax[0].scatter(df.Erosion_rate_Al_min,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+    ax[0].errorbar(df.Erosion_rate_Al,df.Rstar_median,xerr=df['Al_error'], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+    ax[0].errorbar(df.Erosion_rate_Al_min, df.Rstar_median, yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
     #ax[0].errorbar(df.Estar_median,df.Rstar_median,xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
     sc = ax[1].scatter(df.Erosion_rate_Al,df.Estar_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
     sc = ax[1].scatter(df.Erosion_rate_Al_min,df.Estar_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+    ax[1].errorbar(df.Erosion_rate_Al,df.Estar_median,xerr=df['Al_error'], yerr=[df['Estar_lower_err'], df['Estar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+    ax[1].errorbar(df.Erosion_rate_Al_min, df.Estar_median, yerr=[df['Estar_lower_err'], df['Estar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
-    sc = ax[2].scatter(df.Erosion_rate_Al,df.cht_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
-    sc = ax[2].scatter(df.Erosion_rate_Al_min,df.cht_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+    new_df = df[np.isnan(df.Erosion_rate_Al) == False]
+    newbasins = new_df.basin_keys.unique()
+    print(new_df.Erosion_rate_Al)
+
+    sc = ax[2].scatter(new_df.Estar_median,new_df.Rstar_median,c=newbasins,s=50, edgecolors='k', zorder=100, norm=norm)
+    #sc = ax[2].scatter(df.Erosion_rate_Al_min,df.cht_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+    #ax[2].errorbar(df.Erosion_rate_Al,df.cht_median,xerr=df['Al_error'], yerr=[df['cht_lower_err'], df['cht_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+    ax[2].errorbar(new_df.Estar_median, new_df.Rstar_median, xerr=[new_df['Estar_lower_err'], new_df['Estar_upper_err']], yerr=[new_df['Rstar_lower_err'], new_df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+
+    new_df = df[np.isnan(df.Erosion_rate_Al_min) == False]
+    newbasins = new_df.basin_keys.unique()
+
+    sc = ax[2].scatter(new_df.Estar_median,new_df.Rstar_median,c=newbasins,s=50, edgecolors='k', zorder=100, norm=norm)
+    #sc = ax[2].scatter(df.Erosion_rate_Al_min,df.cht_median,c=basins,s=50, edgecolors='k', zorder=100, norm=norm)
+    #ax[2].errorbar(df.Erosion_rate_Al,df.cht_median,xerr=df['Al_error'], yerr=[df['cht_lower_err'], df['cht_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+    ax[2].errorbar(new_df.Estar_median, new_df.Rstar_median, xerr=[new_df['Estar_lower_err'], new_df['Estar_upper_err']], yerr=[new_df['Rstar_lower_err'], new_df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
     # Finalise the figure
     ax[0].set_xlabel('Erosion rate (mm/yr)')
     ax[0].set_ylabel('$R^*=S/S_C$')
 
-    ax[1].set_ylabel('$E^*={{-2\:C_{HT}\:L_H}/{S_C}}$')
     ax[1].set_xlabel('Erosion rate (mm/yr)')
+    ax[1].set_ylabel('$E^*={{-2\:C_{HT}\:L_H}/{S_C}}$')
 
-    ax[2].set_ylabel('$C_{HT}$')
-    ax[2].set_xlabel('Erosion rate (mm/yr)')
-    ax[2].set_ylim(0.005,0.0225)
+    ax[2].set_xlabel('$E^*={{-2\:C_{HT}\:L_H}/{S_C}}$')
+    ax[2].set_ylabel('$R^*=S/S_C$')
+    #ax[2].set_ylim(0.005,0.0225)
 
     # add colour bar
     m = cm.ScalarMappable(cmap=ColourMap)
@@ -1705,6 +1734,98 @@ def PlotDataAgainstErosionRate(DataDirectory, FilenamePrefix, PlotDirectory):
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix +"_hs_data_erosion_rate.png", dpi=300)
     plt.clf()
+
+def Make3DHillslopePlot(DataDirectory, FilenamePrefix, PlotDirectory):
+    """
+    Function to make a 3d plot of E, R* and E* for a series of basins
+    """
+    df = pd.read_csv(PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv')
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    #choose colormap
+    ColourMap = cm.viridis
+
+    # get the basins
+    basins = df['basin_keys'].unique()
+    NoBasins = len(basins)
+    print(basins)
+
+    norm = colors.Normalize(vmin=basins.min(), vmax=basins.max())
+
+    # plot the errorbars. this is annoying in 3d
+    for i in range(len(df.Erosion_rate_Al)):
+        # x error
+        ax.plot([df.Erosion_rate_Al[i] + df.Al_error[i], df.Erosion_rate_Al[i] - df.Al_error[i]], [df.Estar_median[i], df.Estar_median[i]], [df.Rstar_median[i], df.Rstar_median[i]], c='0.4', zorder=-1)
+        # y error
+        ax.plot([df.Erosion_rate_Al[i], df.Erosion_rate_Al[i]], [df.Estar_median[i]+df.Estar_upper_err[i], df.Estar_median[i]-df.Estar_lower_err[i]], [df.Rstar_median[i], df.Rstar_median[i]], c='0.4', zorder=-1)
+        # z error
+        ax.plot([df.Erosion_rate_Al[i], df.Erosion_rate_Al[i]], [df.Estar_median[i], df.Estar_median[i]], [df.Rstar_median[i]+df.Rstar_upper_err[i], df.Rstar_median[i]-df.Rstar_lower_err[i]], c='0.4', zorder=-1)
+
+    for i in range(len(df.Erosion_rate_Al_min)):
+        # y error
+        ax.plot([df.Erosion_rate_Al_min[i], df.Erosion_rate_Al_min[i]], [df.Estar_median[i]+df.Estar_upper_err[i], df.Estar_median[i]-df.Estar_lower_err[i]], [df.Rstar_median[i], df.Rstar_median[i]], c='0.4', zorder=-1)
+        # z error
+        ax.plot([df.Erosion_rate_Al_min[i], df.Erosion_rate_Al_min[i]], [df.Estar_median[i], df.Estar_median[i]], [df.Rstar_median[i]+df.Rstar_upper_err[i], df.Rstar_median[i]-df.Rstar_lower_err[i]], c='0.4', zorder=-1)
+
+    # plot the data
+    ax.scatter(df.Erosion_rate_Al, df.Estar_median, df.Rstar_median, c=basins, alpha=1, edgecolors='k', s=50, zorder=1, norm=norm)
+    ax.scatter(df.Erosion_rate_Al_min, df.Estar_median, df.Rstar_median, c=basins, alpha=1, edgecolors='k', s=50, zorder=1, norm=norm)
+
+    yflat = np.full_like(df.Estar_median, max(ax.get_ylim()))
+    zflat = np.full_like(df.Rstar_median, min(ax.get_zlim()))
+
+    new_df = df[np.isnan(df.Erosion_rate_Al) == False]
+    newbasins = new_df.basin_keys.unique()
+    xflat = np.full_like(new_df.Erosion_rate_Al, min(ax.get_xlim()))
+    ax.scatter(xflat, new_df.Estar_median, new_df.Rstar_median,c=newbasins, alpha=0.2, edgecolors='k', s=50, zorder=1, norm=norm)
+
+    new_df = df[np.isnan(df.Erosion_rate_Al_min) == False]
+    newbasins = new_df.basin_keys.unique()
+    xflat = np.full_like(new_df.Erosion_rate_Al_min, min(ax.get_xlim()))
+    ax.scatter(xflat, new_df.Estar_median, new_df.Rstar_median,c=newbasins, alpha=0.2, edgecolors='k', s=50, zorder=-2, norm=norm)
+    #ax.scatter(x2flat, df.Estar_median, df.Rstar_median,c=basins, alpha=0.5, edgecolors='k', s=50, zorder=1, norm=norm)
+    ax.scatter(df.Erosion_rate_Al, yflat, df.Rstar_median,c=basins, alpha=0.2, edgecolors='k', s=50, zorder=-2, norm=norm)
+    ax.scatter(df.Erosion_rate_Al, df.Estar_median, zflat,c=basins, alpha=0.2, edgecolors='k', s=50, zorder=-2, norm=norm)
+    ax.scatter(df.Erosion_rate_Al_min, yflat, df.Rstar_median,c=basins, alpha=0.2, edgecolors='k', s=50, zorder=-2, norm=norm)
+    ax.scatter(df.Erosion_rate_Al_min, df.Estar_median, zflat,c=basins, alpha=0.2, edgecolors='k', s=50, zorder=-2, norm=norm)
+
+
+   # ax.plot([fx[i]+xerror[i], fx[i]-xerror[i]], [fy[i], fy[i]], [fz[i], fz[i]], marker="_")
+   #  ax.plot([fx[i], fx[i]], [fy[i]+yerror[i], fy[i]-yerror[i]], [fz[i], fz[i]], marker="_")
+   #  ax.plot([fx[i], fx[i]], [fy[i], fy[i]], [fz[i]+zerror[i], fz[i]-zerror[i]], marker="_")
+
+
+    # ax.errorbar(df.Erosion_rate_Al, df.Rstar_median, df.Estar_median, xerr=df['Al_error'], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']], zerr=[df['Estar_lower_err'], df['Estar_upper_err']], fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+
+    # add colour bar
+    m = cm.ScalarMappable(cmap=ColourMap)
+    m.set_array(basins)
+    cax = fig.add_axes([0.85,0.15,0.02,0.65])
+    cbar = fig.colorbar(m, cax=cax)
+    tick_locator = ticker.MaxNLocator(nbins=5)
+    cbar.locator = tick_locator
+    cbar.update_ticks()
+    cbar.set_label('Basin ID')
+
+    ax.set_xlabel('Erosion rate (mm/yr)')
+    ax.set_ylabel('$E*$')
+    ax.set_zlabel('$R*$')
+    zed = [tick.label.set_fontsize(8) for tick in ax.xaxis.get_major_ticks()]
+    zed = [tick.label.set_fontsize(8) for tick in ax.yaxis.get_major_ticks()]
+    zed = [tick.label.set_fontsize(8) for tick in ax.zaxis.get_major_ticks()]
+    plt.subplots_adjust(left=0.05, right=0.8, bottom=0.1, top=0.9)
+
+    # make the grid lines dashed
+    ax.xaxis._axinfo["grid"]['linestyle'] = ":"
+    ax.yaxis._axinfo["grid"]['linestyle'] = ":"
+    ax.zaxis._axinfo["grid"]['linestyle'] = ":"
+
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_hs_data_3d.png", dpi=300)
+    plt.clf()
+
 
 def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExtent=[-9999],FigSizeFormat="epsl"):
     """
