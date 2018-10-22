@@ -62,7 +62,7 @@ def parse_list_from_string(a_string):
         print("I found a decimal in your string. I am going to assume these are floats")
         return_list = [float(item) for item in a_string.split(',')]
         print("The parsed string is:")
-        print(return_list)    
+        print(return_list)
     else:
         return_list = [int(item) for item in a_string.split(',')]
         print("The parsed string is:")
@@ -409,7 +409,7 @@ def main(argv):
         # First the basins, labeled:
         LSDMW.PrintBasins_Complex(this_dir,args.fname_prefix,use_keys_not_junctions = True, show_colourbar = False,Remove_Basins = Mask_basin_keys, Rename_Basins = this_rename_dict,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_basins")
 
-    # This plots the chi coordinate. It plots three different versions. 
+    # This plots the chi coordinate. It plots three different versions.
     # extension _CC_basins are the absins used in the chi plot
     # extension _CC_raster plots the chi raster
     # extension _CC_channels plots the channels
@@ -491,7 +491,7 @@ def main(argv):
         print("I am going to plot some chi stacks for you.")
         cbl = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"
         i = 0
-        print basin_stack_list
+        print(basin_stack_list)
         for little_list in basin_stack_list:
             i = i+1
             this_prefix = "chi_profile_plots/Stacked_"+str(i)
