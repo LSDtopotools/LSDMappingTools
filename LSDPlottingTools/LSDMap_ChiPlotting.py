@@ -2042,6 +2042,7 @@ def map_Mchi_standard(DataDirectory, fname_prefix, size_format='ESURF', FigForma
         MF.plot_polygon_outlines(Basins, linewidth=0.5, colour = "white")
     else:
         # plot the basin outlines
+        MF.add_drape_image(HillshadeName,DataDirectory,colourmap = "gray",colour_min_max = [10,240],modify_raster_values=False,old_values=[], new_values=[],NFF_opti = True, alpha =1)
         Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
         MF.plot_polygon_outlines(Basins, linewidth=0.5)
 
