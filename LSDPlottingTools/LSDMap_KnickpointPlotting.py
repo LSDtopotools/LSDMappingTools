@@ -210,7 +210,7 @@ class KP_plotting(object):
         self.df_kp_stepped["size_kp_step"] = pd.Series(data = self.df_kp_stepped["delta_segelev"].abs(), index = self.df_kp_stepped.index)
 
         ## Recasting the knickpoints into a range (everything below a threshold will have the same minimum value and above another thrshold another maximum value)
-        self.df_kp_stepped["size_kp_step"][self.df_kp_stepped["delta_segelev"].abs() <= size_kp[1]] = size_kp[1]
+        # self.df_kp_stepped["size_kp_step"][self.df_kp_stepped["delta_segelev"].abs() <= size_kp[1]] = size_kp[1]
         self.df_kp_stepped["size_kp_step"][self.df_kp_stepped["delta_segelev"].abs() >= size_kp[3]] = size_kp[3]
         ## Applying a coeff
         # self.df_kp_stepped["size_kp_step"] += 0.01
@@ -220,7 +220,7 @@ class KP_plotting(object):
 
         # Same the general dataset
         self.df_kp["size_kp_step"] = pd.Series(data = self.df_kp["delta_segelev"].abs(), index = self.df_kp.index)
-        self.df_kp["size_kp_step"][self.df_kp["delta_segelev"].abs() <= size_kp[1]] = size_kp[1]
+        # self.df_kp["size_kp_step"][self.df_kp["delta_segelev"].abs() <= size_kp[1]] = size_kp[1]
         self.df_kp["size_kp_step"][self.df_kp["delta_segelev"].abs() >= size_kp[3]] = size_kp[3]
         # self.df_kp["size_kp_step"] += 0.01
         self.df_kp["size_kp_step"] =self.df_kp["size_kp_step"]/self.df_kp["size_kp_step"].max()
@@ -600,7 +600,7 @@ class KP_plotting(object):
                 ## First normalized the size
                 # size_pos = this_df_dsegelev_pos["delta_segelev"]/this_df_kp_stepped["delta_segelev"].max()*3
                 ##plt the bars
-                ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, s = this_df_dsegelev_pos["size_kp_step"], lw = 1.5, marker = "|", c = "#CB9A00", alpha = 0.95, zorder = 5)
+                ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"] - up_set, s = 10, lw = 1.5, marker = "|", c = "#CB9A00", alpha = 0.95, zorder = 5)
                 #Plot vertical bars in beetween
                 ax1.vlines(this_df_dksn_neg[x_axis], this_df_dksn_neg["elevation"], this_df_dksn_neg["elevation"] + up_set, zorder = 1, lw = 0.15 )
                 ax1.vlines(this_df_dksn_pos[x_axis], this_df_dksn_pos["elevation"], this_df_dksn_pos["elevation"] + up_set, zorder = 1, lw = 0.15 )
@@ -654,13 +654,11 @@ class KP_plotting(object):
         if not os.path.isdir(out_directory):
             print("I am creating the river_plot/ directory to save your figures")
             os.makedirs(out_directory)
-
         
         # Set up fonts for plots
         rcParams['font.family'] = 'sans-serif'
         rcParams['font.sans-serif'] = ['Liberation Sans'] # Liberation Sans is a free alternative to Arial. Albeit being quite universal, Arial is propietary. #PRAISE_FREE_AND_OPENSOURCE
         rcParams['font.size'] = label_size
-
 
         for sources in self.df_SK[binning].unique():
 
@@ -708,8 +706,8 @@ class KP_plotting(object):
                 except ValueError:
                     print("No ksn knickpoint on source " + str(sources))
                 if(step):
-                    ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"], s = this_df_dsegelev_pos["size_kp_step"], lw = 0, marker = "s", c = "yellow", alpha = 0.95, zorder = 4.5, label = "Step")
-                    ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"], s = this_df_dsegelev_pos["size_kp_step"], lw = 0.5, marker = "s", edgecolor = "k",facecolor = "none", alpha = 0.95, zorder = 4.5, label = "")
+                    ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"], s = 50, lw = 0, marker = "s", c = "yellow", alpha = 0.95, zorder = 4.5, label = "Step")
+                    ax1.scatter(this_df_dsegelev_pos[x_axis], this_df_dsegelev_pos["elevation"], s = 50, lw = 0.5, marker = "s", edgecolor = "k",facecolor = "none", alpha = 0.95, zorder = 4.5, label = "")
 
                 if(kalib):
 
@@ -746,7 +744,7 @@ class KP_plotting(object):
                     particule+= "_raise"
                 if(step):
                     particule+= "_step"                
-                
+
                 plt.savefig(out_directory + self.fprefix+particule + ".%s"%(format), dpi = 500)
                 plt.clf()
             # switching to the next figure
@@ -836,9 +834,9 @@ class KP_plotting(object):
 
         if(unicolor_kp == None):
             if(pos):
-                MF.add_point_data(kp_pos,unicolor = "red", black_contours = True, marker ="o", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'size_kp', scale_in_absolute = True , alpha=1, max_point_size = 12, min_point_size = 2, zorder=200)
+                MF.add_point_data(kp_pos,unicolor = "red", black_contours = True, marker ="o", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'size_kp', scale_in_absolute = True , alpha=1, max_point_size = 50, min_point_size = 4, zorder=200)
             if(neg):
-                MF.add_point_data(kp_neg,unicolor = "#00F1EA", black_contours = True, marker ="o", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'size_kp', scale_in_absolute = True , alpha=1, max_point_size = 12, min_point_size = 2, zorder=200)
+                MF.add_point_data(kp_neg,unicolor = "#00F1EA", black_contours = True, marker ="o", scale_points = scale_points, scaled_data_in_log= False, column_for_scaling = 'size_kp', scale_in_absolute = True , alpha=1, max_point_size = 50, min_point_size = 4, zorder=200)
         
         else:
             if(pos):
@@ -847,7 +845,7 @@ class KP_plotting(object):
                 MF.add_point_data(kp_neg, unicolor = unicolor_kp, black_contours = True, marker ="o", scale_points = scale_points, alpha=1, max_point_size = self.df_kp[self.df_kp["sign"] == -1]["size_kp"].max(), min_point_size = self.df_kp[self.df_kp["sign"] == -1].min(),zorder=200,manual_size = size_kp)
 
         if(step):
-            MF.add_point_data(kp_step,unicolor = "#CB9A00",marker ="o", black_contours = True,scale_points = True,scaled_data_in_log = False, column_for_scaling = "size_kp_step", scale_in_absolute = True, max_point_size = 12, min_point_size = 5, alpha=1,zorder=200,)
+            MF.add_point_data(kp_step,unicolor = "#CB9A00",marker ="o", black_contours = True,scale_points = False,scaled_data_in_log = False, column_for_scaling = "none", scale_in_absolute = True, max_point_size = 50, min_point_size = 49, alpha=1,zorder=300,manual_size=50)
 
         if(black_bg):
             suffix = "dark"
@@ -967,7 +965,7 @@ class KP_plotting(object):
             MF.add_point_data(kp_neg, unicolor = unicolor_kp, marker ="v", scale_points = scale_points, alpha=1, max_point_size = self.df_kp[self.df_kp["sign"] == -1]["size_kp"].max(), min_point_size = self.df_kp[self.df_kp["sign"] == -1].min(),zorder=200,manual_size = size_kp)
 
 
-        MF.add_point_data(kp_step,unicolor = "#CB9A00",marker ="s", column_for_plotting = "size_kp_step", max_point_size = self.df_kp_stepped[self.df_kp_stepped["delta_segelev"] > 0]["size_kp_step"].max(), min_point_size = self.df_kp_stepped[self.df_kp_stepped["delta_segelev"] > 0]["size_kp_step"].min(), alpha=1,zorder=200,)
+        MF.add_point_data(kp_step,unicolor = "#CB9A00",marker ="s", column_for_plotting = "none", max_point_size = 50, min_point_size = 10, alpha=1,zorder=200,)
 
         if(black_bg):
             suffix = "dark"
