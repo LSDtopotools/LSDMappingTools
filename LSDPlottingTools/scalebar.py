@@ -1,6 +1,9 @@
 """
 A set of functions to create scalebars and other miscellany for maps.
 
+UPDATE 13/12/2018 SMM to fix depreciated cbook.is_string_like
+See: https://github.com/matplotlib/matplotlib/issues/7835
+
 Created on Thu Jan 12 14:33:21 2017
 
     Author: Adapted from Philippe Pinard's excellent scalebar module to
@@ -29,7 +32,7 @@ import imp
 
 # Third party modules.
 from matplotlib.artist import Artist
-from matplotlib.cbook import is_string_like
+#from matplotlib.cbook import is_string_like
 from matplotlib.font_manager import FontProperties
 from matplotlib.rcsetup import \
     (defaultParams, validate_float, validate_legend_loc, validate_bool,
@@ -200,7 +203,7 @@ class ScaleBar(Artist):
             font_properties = FontProperties()
         elif isinstance(font_properties, dict):
             font_properties = FontProperties(**font_properties)
-        elif is_string_like(font_properties):
+        elif isinstance(font_properties,six.string_types):
             font_properties = FontProperties(font_properties)
         else:
             raise TypeError("Unsupported type for `font_properties`. Pass "
@@ -241,7 +244,7 @@ class ScaleBar(Artist):
         length_fraction = _get_value('length_fraction', 0.2)
         height_fraction = _get_value('height_fraction', 0.01)
         location = _get_value('location', 'upper right')
-        if is_string_like(location):
+        if isinstance(location,six.string_types):
             location = self._LOCATIONS[location]
         pad = _get_value('pad', 0.2)
         border_pad = _get_value('border_pad', 0.1)
@@ -386,7 +389,7 @@ class ScaleBar(Artist):
         return self._location
 
     def set_location(self, loc):
-        if is_string_like(loc):
+        if isinstance(loc,six.string_types):
             if loc not in self._LOCATIONS:
                 raise ValueError('Unknown location code: %s' % loc)
             loc = self._LOCATIONS[loc]
