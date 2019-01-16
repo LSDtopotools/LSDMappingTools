@@ -12,6 +12,9 @@ from __future__ import absolute_import, division, print_function
 import matplotlib
 matplotlib.use('Agg')
 
+import cartopy
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 import LSDPlottingTools.LSDMap_GDALIO as LSDMGDAL
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt

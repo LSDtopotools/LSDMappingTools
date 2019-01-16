@@ -94,7 +94,7 @@ def main(argv):
     parser = argparse.ArgumentParser()
 
     # The location of the data files
-    parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the m/n analysis. If this isn't defined I'll assume it's the same as the current directory.")
+    parser.add_argument("-dir", "--base_directory", type=str, help="The base directory that contains your data files. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error (unless you're running the parallel plotting).")
     parser.add_argument("-plotdir","--plot_directory",type=str, help="The directory to place output plots in. If it isn't defined I'll create a new folder inside --base-directory called \"plots\" and put them there.")
     # The basins you want to plot
