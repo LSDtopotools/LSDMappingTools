@@ -462,6 +462,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
         OutDF['SA_tribs_min'] = SATribsDF['FirstQ_movern']
         OutDF['SA_tribs_max'] = SATribsDF['ThirdQ_movern']
     except ValueError:
+        print("Your Slope-area data is somehow empty or not conform... I am skipping it and data will be 0")
         OutDF['SA_tribs'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
         OutDF['SA_tribs_min'] =pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
         OutDF['SA_tribs_max'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
@@ -474,6 +475,7 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
         OutDF['SA_segments_min'] = SASegmentedDF['FirstQ_movern']
         OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
     except ValueError:
+        print("Your Slope-area data is somehow empty or not conform... I am skipping it and data will be 0")
         OutDF['SA_segments'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
         OutDF['SA_segments_min'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
         OutDF['SA_segments_max'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
