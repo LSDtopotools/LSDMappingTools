@@ -434,24 +434,49 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
 
     print ("Getting the m/n from the SA data")
 
+    # Updated on the 21/01/2019 by Boris: I added error management on that part. 
+    # Cedric Roerig from Giessen is having issue with plotting routines and the code complains data is empty raising ValueError
+    # This should sort it
+    # Data is replaced by zeros for SA
+    # Let me know if any issue appears because of that
+    # B.G.
+
     # get the best fit m/n from the raw SA data
-    RawSADF = SA.LinearRegressionRawData(DataDirectory,fname_prefix,basin_list)
-    OutDF['SA_raw'] = RawSADF['regression_slope']
-    OutDF['SA_raw_sterr'] = RawSADF['std_err']
-    OutDF['SA_raw_R2'] = RawSADF['R2']
-    OutDF['SA_raw_p'] = RawSADF['p_value']
+    try:
+        RawSADF = SA.LinearRegressionRawData(DataDirectory,fname_prefix,basin_list)
+        OutDF['SA_raw'] = RawSADF['regression_slope']
+        OutDF['SA_raw_sterr'] = RawSADF['std_err']
+        OutDF['SA_raw_R2'] = RawSADF['R2']
+        OutDF['SA_raw_p'] = RawSADF['p_value']
+    except ValueError:
+        print("Your Slope-area data is somehow empty or not conform... I am skipping it and data will be 0")
+        OutDF['SA_raw'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_raw_sterr'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_raw_R2'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_raw_p'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
 
     # get the SA tributary information
-    SATribsDF = SA.GetRangeMOverNRawDataByChannel(DataDirectory,fname_prefix,basin_list)
-    OutDF['SA_tribs'] = SATribsDF['median_movern']
-    OutDF['SA_tribs_min'] = SATribsDF['FirstQ_movern']
-    OutDF['SA_tribs_max'] = SATribsDF['ThirdQ_movern']
+    try:
+        SATribsDF = SA.GetRangeMOverNRawDataByChannel(DataDirectory,fname_prefix,basin_list)
+        OutDF['SA_tribs'] = SATribsDF['median_movern']
+        OutDF['SA_tribs_min'] = SATribsDF['FirstQ_movern']
+        OutDF['SA_tribs_max'] = SATribsDF['ThirdQ_movern']
+    except ValueError:
+        OutDF['SA_tribs'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_tribs_min'] =pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_tribs_max'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+
 
     # get the best fit m/n from the segmented SA data
-    SASegmentedDF = SA.GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list)
-    OutDF['SA_segments'] = SASegmentedDF['median_movern']
-    OutDF['SA_segments_min'] = SASegmentedDF['FirstQ_movern']
-    OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
+    try:
+        SASegmentedDF = SA.GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list)
+        OutDF['SA_segments'] = SASegmentedDF['median_movern']
+        OutDF['SA_segments_min'] = SASegmentedDF['FirstQ_movern']
+        OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
+    except ValueError:
+        OutDF['SA_segments'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_segments_min'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_segments_max'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
 
     if Chi_disorder:
         if not parallel:
