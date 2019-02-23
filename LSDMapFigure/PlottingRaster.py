@@ -349,6 +349,8 @@ class MapFigure(object):
         """
         This function makes the tick marks and the tick labels.
         It has been optimised so you get nice looking ticks, so you shouldn't have to mess with them after this is called.
+        
+        Update 23/02/2019 SMM I've added a "None" option for the ticks
 
         Author: SMM
         """
@@ -362,6 +364,11 @@ class MapFigure(object):
             n_hacked_digits = 3
             self.tick_x_labels = LSDP.TickLabelShortenizer(self.tick_x_labels,n_hacked_digits)
             self.tick_y_labels = LSDP.TickLabelShortenizer(self.tick_y_labels,n_hacked_digits)
+        elif self._coord_type == "None":
+            self.tick_x_labels = []
+            self.tick_y_labels = []
+            self.tick_xlocs = []
+            self.tick_ylocs = []
         else:
             raise ValueError("Sorry, the coordinate type: ", self._coord_type,
                              "is not yet supported")
@@ -1759,6 +1766,12 @@ class MapFigure(object):
             self._coord_type = "Kruskal–Szekeres"
             self._xaxis_label = "X"
             self._yaxis_label = "T"
+            
+        # Example, do not actually use...
+        elif coord_type == "None":
+            self._coord_type = "None"
+            self._xaxis_label = ""
+            self._yaxis_label = ""
 
         else:
             raise ValueError("Sorry, the coordinate type: ", coord_type,
