@@ -42,7 +42,7 @@ else:
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = ['arial']
 rcParams['font.size'] = 8
-rcParams['text.usetex'] = True
+rcParams['text.usetex'] = False
    
 # define filenames and relative workspace
 fname_prefix = "bolinas"

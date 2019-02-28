@@ -50,7 +50,7 @@ def makefigure(size_format = "EPSL", aspect_ratio=16./9.):
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
-    rcParams['text.usetex'] = True
+    rcParams['text.usetex'] = False
 
     # make the figure
     if type(size_format) is float:
@@ -164,7 +164,7 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
     # get the column names where the values are greater than the threshold for each basin
     TempDF['Range_MOverNs'] = TempDF.apply(lambda x: ','.join(x.index[x]),axis=1)
 
-    end_movern = start_movern+d_movern*(n_movern-1)
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
 
     # get the m/n values greater than the threshold to a list, then get the min and max
     Min_MOverNs = []
@@ -181,22 +181,27 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
             # and the max.
             Min_MOverN = min(movern_floats)
             Max_MOverN = max(movern_floats)
+            
+            
 
             # ok, for the minimum, get the previous m/n value
-            if Min_MOverN - d_movern < start_movern:
+            if float(Min_MOverN) - float(d_movern) < float(start_movern):
                 new_min_movern = Min_MOverN
             else:
-                movern_list = [Min_MOverN-d_movern, Min_MOverN]
-                mle_list = [ThirdQDF[str(Min_MOverN-d_movern)][i],ThirdQDF[str(Min_MOverN)][i]]
+                print("The minimum theta is: "+str(Min_MOverN))
+                this_key = round((float(Min_MOverN)-float(d_movern)),4)
+                print("The other theta is: "+str(this_key))
+                movern_list = [float(Min_MOverN)-float(d_movern), Min_MOverN]
+                mle_list = [ThirdQDF[str(this_key)][i],ThirdQDF[str(float(Min_MOverN))][i]]
                 slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
                 new_min_movern = (ThirdQDF['threshold'][i] - intercept)/slope
 
             # for the maximum get the next m/n value
-            if Max_MOverN + d_movern > end_movern:
+            if float(Max_MOverN) + float(d_movern) > float(end_movern):
                 new_max_movern = Max_MOverN
             else:
-                movern_list = [Max_MOverN, Max_MOverN+d_movern]
-                mle_list = [ThirdQDF[str(Max_MOverN)][i], ThirdQDF[(str(Max_MOverN+d_movern))][i]]
+                movern_list = [Max_MOverN, float(Max_MOverN)+float(d_movern)]
+                mle_list = [ThirdQDF[str(Max_MOverN)][i], ThirdQDF[(str(float(Max_MOverN)+float(d_movern)))][i]]
                 slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
                 new_max_movern = (ThirdQDF['threshold'][i] - intercept)/slope
 
@@ -549,7 +554,11 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     """
 
     # Get a vector of the m over n values
-    end_movern = start_movern+d_movern*(n_movern-1)
+    print("start theta is: "+str(start_movern))
+    print("d theta is: "+str(d_movern))
+    print("n theta is: "+str(n_movern))
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
+    print("end theta is: "+str(end_movern))                                                  
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
     movern_strs = []
     for movern in m_over_n_values:
@@ -766,7 +775,7 @@ def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, Dat
     # this is done by copying the MLE vector and then replacing
     # the offending channels with an MLE of 1
     # Get a vector of the m over n values
-    end_movern = start_movern+d_movern*(n_movern-1)
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
     # Now get the movern values
@@ -1185,7 +1194,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
         basin_list = basin_keys
 
     # loop through each m over n value
-    end_movern = start_movern+d_movern*(n_movern-1)
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
     # best fit moverns
@@ -1207,7 +1216,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
 
         # loop through all the basins in the basin list
         for basin_key in basin_list:
-            print("This basin key is %s") %str(basin_key)
+            print("This basin key is: "+str(basin_key))
 
             # mask the data frames for this basin
             ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_key]
@@ -2847,7 +2856,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
 
     # get moverns for cbar plotting. We always want a spacing of 0.1.
     min_max_str = ['min', 'max']
-    end_movern = start_movern+d_movern*(n_movern-1)
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
     all_moverns = np.linspace(start_movern,end_movern,n_movern)
     print ("END MOVERN:")
     print (end_movern)

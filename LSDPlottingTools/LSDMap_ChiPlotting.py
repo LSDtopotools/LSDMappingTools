@@ -197,7 +197,6 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
-    #plt.rc('text', usetex=True)
 
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
@@ -705,7 +704,6 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
-    #plt.rc('text', usetex=True)
 
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
@@ -871,7 +869,6 @@ def BasicChannelPlotByBasin(FileName, DrapeName, chi_csv_fname, thiscmap='gray',
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
-    #plt.rc('text', usetex=True)
 
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
