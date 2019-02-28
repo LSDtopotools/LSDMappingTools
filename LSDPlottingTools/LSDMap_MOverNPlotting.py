@@ -2163,20 +2163,25 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     df = df[df['basin_key'].isin(basin_keys)]
 
     # plot the full chi data
-    full_chi_keys = df['basin_key'].as_matrix()-0.2
+    full_chi_keys = df['basin_key'].values
+    full_chi_keys = full_chi_keys.astype(float) - 0.2
+    print("Full chi keys are: ")
+    print(full_chi_keys)
 
     if Chi_all:
         ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
 
     # plot the points data
-    median_movern = df['Chi_MLE_points'].as_matrix()
-    points_max_err = df['Chi_MLE_points_max'].as_matrix()
+    median_movern = df['Chi_MLE_points'].values
+    points_max_err = df['Chi_MLE_points_max'].values
     points_max_err = points_max_err-median_movern
-    points_min_err = df['Chi_MLE_points_min'].as_matrix()
+    points_min_err = df['Chi_MLE_points_min'].values
     points_min_err = median_movern-points_min_err
     errors = np.array(zip(points_min_err, points_max_err)).T
 
-    points_chi_keys = df['basin_key'].as_matrix()-0.1
+    print(df['basin_key'].values)
+    points_chi_keys = df['basin_key'].values
+    points_chi_keys = points_chi_keys.astype(float) - 0.1
 
     if Chi_bootstrap:
         ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors,
@@ -2186,21 +2191,22 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # plot the chi disorder data if you want it
     if Chi_disorder:
-        median_movern = df['Chi_disorder'].as_matrix()
-        points_max_err = df['Chi_disorder_max'].as_matrix()
+        median_movern = df['Chi_disorder'].values
+        points_max_err = df['Chi_disorder_max'].values
         points_max_err = points_max_err-median_movern
-        points_min_err = df['Chi_disorder_min'].as_matrix()
+        points_min_err = df['Chi_disorder_min'].values
         points_min_err = median_movern-points_min_err
         errors = np.array(zip(points_min_err, points_max_err)).T
 
-        disorder_chi_keys = df['basin_key'].as_matrix()-0.3
+        disorder_chi_keys = df['basin_key'].values
+        disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
         ax.errorbar(disorder_chi_keys, df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
         ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#F06292', s=15, zorder=100, label='Chi disorder')
 
 
     # plot the SA data
-    SA_keys = df['basin_key'].as_matrix()
-    SA_sterr = df['SA_raw_sterr'].as_matrix()
+    SA_keys = df['basin_key'].values
+    SA_sterr = df['SA_raw_sterr'].values
 
     if SA_raw:
         ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='#2b8cbe', elinewidth=1, fmt='none',label='_nolegend_')
@@ -2208,26 +2214,28 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     if SA_channels:
         # plot the SA data by tribs
-        median_movern = df['SA_tribs'].as_matrix()
-        points_max_err = df['SA_tribs_max'].as_matrix()
+        median_movern = df['SA_tribs'].values
+        points_max_err = df['SA_tribs_max'].values
         points_max_err = points_max_err-median_movern
-        points_min_err = df['SA_tribs_min'].as_matrix()
+        points_min_err = df['SA_tribs_min'].values
         points_min_err = median_movern-points_min_err
         errors = np.array(zip(points_min_err, points_max_err)).T
 
-        SA_tribs_keys = df['basin_key'].as_matrix()+0.1
+        SA_tribs_keys = df['basin_key'].values
+        SA_tribs_keys = SA_tribs_keys.astype(float)+0.1
         ax.errorbar(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', xerr=None, yerr=errors, edgecolors='r', fmt='none', elinewidth=1, linestyle = ":", ecolor='r',label='_nolegend_')
         ax.scatter(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', edgecolors='r', label='S-A by channel',zorder=100)
 
     # plot the segmented SA data
-    median_movern = df['SA_segments'].as_matrix()
-    points_max_err = df['SA_segments_max'].as_matrix()
+    median_movern = df['SA_segments'].values
+    points_max_err = df['SA_segments_max'].values
     points_max_err = points_max_err-median_movern
-    points_min_err = df['SA_segments_min'].as_matrix()
+    points_min_err = df['SA_segments_min'].values
     points_min_err = median_movern-points_min_err
     errors = np.array(zip(points_min_err, points_max_err)).T
 
-    SA_segment_keys = df['basin_key'].as_matrix()+0.2
+    SA_segment_keys = df['basin_key'].values
+    SA_segment_keys = SA_segment_keys.astype(float)+0.2
     if SA_segmented:
         ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', xerr=None, yerr=errors,
                 edgecolors='#a6bddb', fmt='none', elinewidth=1, linestyle = ":", ecolor='#a6bddb',label='_nolegend_')
@@ -2347,39 +2355,41 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
 
         # plot the full chi data
         if movern_method=='chi_all':
-            full_chi_keys = df['basin_key'].as_matrix()-0.2
+            full_chi_keys = df['basin_key'].values
+            full_chi_keys = full_chi_keys.astype(float)-0.2
             ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
 
         elif movern_method=='chi_points':
             # plot the points data
-            median_movern = df['Chi_MLE_points'].as_matrix()
-            points_max_err = df['Chi_MLE_points_max'].as_matrix()
+            median_movern = df['Chi_MLE_points'].values
+            points_max_err = df['Chi_MLE_points_max'].values
             points_max_err = points_max_err-median_movern
-            points_min_err = df['Chi_MLE_points_min'].as_matrix()
+            points_min_err = df['Chi_MLE_points_min'].values
             points_min_err = median_movern-points_min_err
             errors = np.array(zip(points_min_err, points_max_err)).T
 
-            points_chi_keys = df['basin_key'].as_matrix() # -0.1 I removed that to fix the movern plots - Boris
+            points_chi_keys = df['basin_key'].values # -0.1 I removed that to fix the movern plots - Boris
             ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
             ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi bootstrap',zorder=200)
 
             # plot the SA data
         elif movern_method=='SA_raw':
-                SA_keys = df['basin_key'].as_matrix()
-                SA_sterr = df['SA_raw_sterr'].as_matrix()
+                SA_keys = df['basin_key'].values
+                SA_sterr = df['SA_raw_sterr'].values
                 ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='#2b8cbe', elinewidth=1, fmt='none',label='_nolegend_')
                 ax.scatter(SA_keys, df['SA_raw'], s=15, c='#2b8cbe', edgecolors='k',lw=0.5, label='S-A all data', zorder=100)
 
         else:
             # plot the segmented SA data
-            median_movern = df['SA_segments'].as_matrix()
-            points_max_err = df['SA_segments_max'].as_matrix()
+            median_movern = df['SA_segments'].values
+            points_max_err = df['SA_segments_max'].values
             points_max_err = points_max_err-median_movern
-            points_min_err = df['SA_segments_min'].as_matrix()
+            points_min_err = df['SA_segments_min'].values
             points_min_err = median_movern-points_min_err
             errors = np.array(zip(points_min_err, points_max_err)).T
 
-            SA_segment_keys = df['basin_key'].as_matrix()+0.2
+            SA_segment_keys = df['basin_key'].values
+            SA_segment_keys=SA_segment_keys.astype(float)+0.2
             ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', xerr=None, yerr=errors, edgecolors='#a6bddb', fmt='none', elinewidth=1, linestyle = ":", ecolor='#a6bddb',label='_nolegend_')
             ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', edgecolors='k', lw=0.5, label='Segmented S-A', zorder=100)
 
