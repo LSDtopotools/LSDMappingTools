@@ -120,7 +120,7 @@ def main(argv):
         LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat=args.FigFormat, basins = False)
     
     if args.legend:
-        print "ongoing work on the legend"
+        print ("ongoing work on the legend")
 
     if args.movern:
         # get the range of moverns, needed for plotting
