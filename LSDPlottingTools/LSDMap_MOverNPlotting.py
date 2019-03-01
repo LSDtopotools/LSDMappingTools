@@ -2174,10 +2174,13 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     # plot the points data
     median_movern = df['Chi_MLE_points'].values
     points_max_err = df['Chi_MLE_points_max'].values
-    points_max_err = points_max_err-median_movern
+    points_max_err = points_max_err.astype(float)-median_movern.astype(float)
     points_min_err = df['Chi_MLE_points_min'].values
-    points_min_err = median_movern-points_min_err
-    errors = np.array(zip(points_min_err, points_max_err)).T
+    points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+    errors = np.array(list(zip(points_min_err, points_max_err))).T
+    
+    print("The errors or the point data are")
+    print(errors)
 
     print(df['basin_key'].values)
     points_chi_keys = df['basin_key'].values
@@ -2193,10 +2196,10 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     if Chi_disorder:
         median_movern = df['Chi_disorder'].values
         points_max_err = df['Chi_disorder_max'].values
-        points_max_err = points_max_err-median_movern
+        points_max_err = points_max_err.astype(float)-median_movern.astype(float)
         points_min_err = df['Chi_disorder_min'].values
-        points_min_err = median_movern-points_min_err
-        errors = np.array(zip(points_min_err, points_max_err)).T
+        points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+        errors = np.array(list(zip(points_min_err, points_max_err))).T
 
         disorder_chi_keys = df['basin_key'].values
         disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
@@ -2216,10 +2219,10 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         # plot the SA data by tribs
         median_movern = df['SA_tribs'].values
         points_max_err = df['SA_tribs_max'].values
-        points_max_err = points_max_err-median_movern
+        points_max_err = points_max_err.astype(float)-median_movern.astype(float)
         points_min_err = df['SA_tribs_min'].values
-        points_min_err = median_movern-points_min_err
-        errors = np.array(zip(points_min_err, points_max_err)).T
+        points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+        errors = np.array(list(zip(points_min_err, points_max_err))).T
 
         SA_tribs_keys = df['basin_key'].values
         SA_tribs_keys = SA_tribs_keys.astype(float)+0.1
@@ -2229,10 +2232,10 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     # plot the segmented SA data
     median_movern = df['SA_segments'].values
     points_max_err = df['SA_segments_max'].values
-    points_max_err = points_max_err-median_movern
+    points_max_err = points_max_err.astype(float)-median_movern.astype(float)
     points_min_err = df['SA_segments_min'].values
-    points_min_err = median_movern-points_min_err
-    errors = np.array(zip(points_min_err, points_max_err)).T
+    points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+    errors = np.array(list(zip(points_min_err, points_max_err))).T
 
     SA_segment_keys = df['basin_key'].values
     SA_segment_keys = SA_segment_keys.astype(float)+0.2
@@ -2250,7 +2253,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         print ("ADDING THE LEGEND")
         # sort both labels and handles by labels
         handles, labels = ax.get_legend_handles_labels()
-        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+        labels, handles = list(zip(*sorted(list(zip(labels, handles)), key=lambda t: t[0])))
         # add the legend
         ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.0,0.7),bbox_transform=plt.gcf().transFigure)
 
