@@ -1046,11 +1046,7 @@ def PlotHillslopeDataVsDistance(DataDirectory, FilenamePrefix, PlotDirectory, Ba
         # set the axes labels
         ax[3].set_xlabel('Chi (m)')
     else:
-<<<<<<< HEAD
-        print DistanceFromOutlet
-=======
         print(DistanceFromOutlet)
->>>>>>> 4df208ccac67147220fefac6b055e02904c8a1f1
 
         # plot the hillslope length
         ax[0].errorbar(DistanceFromOutlet,Lh,yerr=Lh_std,fmt='o', ecolor='0.5',markersize=5,mec='k')
@@ -1628,13 +1624,15 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     # calculate linear fit for Rstar ksn
     slope, intercept, r_value, p_value, std_err = stats.linregress(df.mchi_median, df.Rstar_median)
     print(slope, intercept, r_value, p_value)
-    x = np.linspace(0, 200, 100)
+    x = df.mchi_median.values
+    print(x)
     new_y = slope*x + intercept
     ax[1].plot(x, new_y, c='0.5', ls='--')
 
     # get the difference between the linear fit and the real R* for each basin and
     # print to csv for plotting
-    residual = y - new_y
+    residual = df.Rstar_median.values - new_y
+    print(residual)
     df['rstar_ksn_residual'] = residual
     OutputFilename = PlotDirectory+FilenamePrefix+'_basin_hillslope_data_residuals.csv'
     df.to_csv(OutputFilename, index=False)
@@ -2887,13 +2885,8 @@ def PlotClusteredEsRsFxnChi(DataDirectory, FilenamePrefix,PlotDirectory, Sc = 0.
         #MinKsn = 0
         #MaxKsn = 20
         Colours1 = (KsnArray-MinKsn)/(MaxKsn-MinKsn)
-<<<<<<< HEAD
 
 
-=======
-
-
->>>>>>> 4df208ccac67147220fefac6b055e02904c8a1f1
          #plot ksn vs EStar and Rstar, colouring by Chi
         for i, row in PlotDF.iterrows():
             ax1.plot([row.Chi,row.Chi],[row.EStarLower, row.EStarUpper],'-',c=ColourMap(Colours1[i]))
