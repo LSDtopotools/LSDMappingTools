@@ -202,19 +202,26 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
             else:
                 movern_list = [Max_MOverN, float(Max_MOverN)+float(d_movern)]
 
+                # Alright, In some apparently random cases depending on computer architecture, float to string conversion can be F***** up.
+                # Here is a way to deal with it: it first try the regular code that works for many cases
+                # And only correct the string if needed.
+                # Slightly hacky, it might not work in the extremely rare cases where you try to constrain you concavity at 0.001 precision AND you have the wrong cpu or motherboard or whatever decides to convert 0.75 to 0.7500000000000004.
                 try:
+                    # Regular case
                     mle_list = [ThirdQDF[str(Max_MOverN)][i], ThirdQDF[(str(float(Max_MOverN)+float(d_movern)))][i]]
                 except KeyError:
+                    # DID NOT WORK, fixing
                     # DEaling with annoying string issue. No time to look for clean solution so here is a hacky way:
                     str_max_movern = str(Max_MOverN)# converting
                     # if Conversion failed it screws the string into domething like 0.300000000000000004 instead of 0.3
                     if(len(str_max_movern)>4):
                         #Fixing the extra 0
                         str_max_movern = str_max_movern[0:4]
+                    # Code won't work if 0.70000000000004 is converted to 0.70 and need in these case to be reconverted to 0.7 AAAAAAAAAAAAAAAAAAAAAAAAAAAH
                     if(str_max_movern[-1] == "0"):
                         str_max_movern = str_max_movern[:-1]
 
-                    # Same procedure for string 2
+                    # Same procedure for string 2, like EXACTLY the same
                     dtrdiff = str(float(Max_MOverN)+float(d_movern))
                     if(len(dtrdiff)>4):
                         #Fixing the extra 0
@@ -222,8 +229,10 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
                     if(dtrdiff[-1] == "0"):
                         dtrdiff = dtrdiff[:-1]
 
+                    # Done. Correcting with the correct concavity.
                     mle_list = [ThirdQDF[str_max_movern][i], ThirdQDF[(dtrdiff)][i]]
 
+                # Out of the bug area
                 slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
                 new_max_movern = (ThirdQDF['threshold'][i] - intercept)/slope
 
