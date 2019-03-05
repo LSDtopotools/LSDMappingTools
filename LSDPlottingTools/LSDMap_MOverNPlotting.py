@@ -201,7 +201,29 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
                 new_max_movern = Max_MOverN
             else:
                 movern_list = [Max_MOverN, float(Max_MOverN)+float(d_movern)]
-                mle_list = [ThirdQDF[str(Max_MOverN)][i], ThirdQDF[(str(float(Max_MOverN)+float(d_movern)))][i]]
+
+                try:
+                    mle_list = [ThirdQDF[str(Max_MOverN)][i], ThirdQDF[(str(float(Max_MOverN)+float(d_movern)))][i]]
+                except KeyError:
+                    # DEaling with annoying string issue. No time to look for clean solution so here is a hacky way:
+                    str_max_movern = str(Max_MOverN)# converting
+                    # if Conversion failed it screws the string into domething like 0.300000000000000004 instead of 0.3
+                    if(len(str_max_movern)>4):
+                        #Fixing the extra 0
+                        str_max_movern = str_max_movern[0:4]
+                    if(str_max_movern[-1] == "0"):
+                        str_max_movern = str_max_movern[:-1]
+
+                    # Same procedure for string 2
+                    dtrdiff = str(float(Max_MOverN)+float(d_movern))
+                    if(len(dtrdiff)>4):
+                        #Fixing the extra 0
+                        dtrdiff = dtrdiff[0:4]
+                    if(dtrdiff[-1] == "0"):
+                        dtrdiff = dtrdiff[:-1]
+
+                    mle_list = [ThirdQDF[str_max_movern][i], ThirdQDF[(dtrdiff)][i]]
+
                 slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
                 new_max_movern = (ThirdQDF['threshold'][i] - intercept)/slope
 
