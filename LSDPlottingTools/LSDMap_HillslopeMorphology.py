@@ -1624,9 +1624,18 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     # calculate linear fit for Rstar ksn
     slope, intercept, r_value, p_value, std_err = stats.linregress(df.mchi_median, df.Rstar_median)
     print(slope, intercept, r_value, p_value)
-    x = np.linspace(0, 200, 100)
+    x = df.mchi_median.values
+    print(x)
     new_y = slope*x + intercept
     ax[1].plot(x, new_y, c='0.5', ls='--')
+
+    # get the difference between the linear fit and the real R* for each basin and
+    # print to csv for plotting
+    residual = df.Rstar_median.values - new_y
+    print(residual)
+    df['rstar_ksn_residual'] = residual
+    OutputFilename = PlotDirectory+FilenamePrefix+'_basin_hillslope_data_residuals.csv'
+    df.to_csv(OutputFilename, index=False)
 
     # Finalise the figure
     ax[0].set_xlabel('$E^*={{-2\:C_{HT}\:L_H}/{S_C}}$')
