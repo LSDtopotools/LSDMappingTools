@@ -1028,7 +1028,7 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
 
     mn_legends = []
     for mn in m_over_n_values:
-        mn_legends.append("m_over_n = "+str(mn))
+        mn_legends.append("m_over_n = "+str(round(mn,4)))
 
     print("The mn labels are: ")
     print(mn_legends)
