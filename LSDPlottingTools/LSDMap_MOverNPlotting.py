@@ -212,25 +212,28 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
                 except KeyError:
                     # DID NOT WORK, fixing
                     # DEaling with annoying string issue. No time to look for clean solution so here is a hacky way:
-                    str_max_movern = str(Max_MOverN)# converting
-                    # if Conversion failed it screws the string into domething like 0.300000000000000004 instead of 0.3
-                    if(len(str_max_movern)>4):
-                        #Fixing the extra 0
-                        str_max_movern = str_max_movern[0:4]
-                    # Code won't work if 0.70000000000004 is converted to 0.70 and need in these case to be reconverted to 0.7 AAAAAAAAAAAAAAAAAAAAAAAAAAAH
+                    str_max_movern = "%0.2f" % Max_MOverN #  str(Max_MOverN)# converting
+                    dtrdiff ="%0.2f" % (float(Max_MOverN)+float(d_movern)) # str(float(Max_MOverN)+float(d_movern))
+                    # # if Conversion failed it screws the string into domething like 0.300000000000000004 instead of 0.3
+                    # if(len(str_max_movern)>4):
+                    #     #Fixing the extra 0
+                    #     str_max_movern = str_max_movern[0:4]
+                    # # Code won't work if 0.70000000000004 is converted to 0.70 and need in these case to be reconverted to 0.7 AAAAAAAAAAAAAAAAAAAAAAAAAAAH
                     if(str_max_movern[-1] == "0"):
                         str_max_movern = str_max_movern[:-1]
 
-                    # Same procedure for string 2, like EXACTLY the same
-                    dtrdiff = str(float(Max_MOverN)+float(d_movern))
-                    if(len(dtrdiff)>4):
-                        #Fixing the extra 0
-                        dtrdiff = dtrdiff[0:4]
+                    # # Same procedure for string 2, like EXACTLY the same
+                    # dtrdiff = str(float(Max_MOverN)+float(d_movern))
+                    # if(len(dtrdiff)>4):
+                    #     #Fixing the extra 0
+                    #     dtrdiff = dtrdiff[0:4]
                     if(dtrdiff[-1] == "0"):
                         dtrdiff = dtrdiff[:-1]
 
-                    # Done. Correcting with the correct concavity.
+                    # # Done. Correcting with the correct concavity.
+                    # try:
                     mle_list = [ThirdQDF[str_max_movern][i], ThirdQDF[(dtrdiff)][i]]
+                    # except KeyError:
 
                 # Out of the bug area
                 slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
