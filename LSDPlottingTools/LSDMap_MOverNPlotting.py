@@ -50,7 +50,7 @@ def makefigure(size_format = "EPSL", aspect_ratio=16./9.):
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
-    rcParams['text.usetex'] = True
+    rcParams['text.usetex'] = False
 
     # make the figure
     if type(size_format) is float:
@@ -164,7 +164,7 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
     # get the column names where the values are greater than the threshold for each basin
     TempDF['Range_MOverNs'] = TempDF.apply(lambda x: ','.join(x.index[x]),axis=1)
 
-    end_movern = start_movern+d_movern*(n_movern-1)
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
 
     # get the m/n values greater than the threshold to a list, then get the min and max
     Min_MOverNs = []
@@ -181,22 +181,58 @@ def GetMOverNRangeMCPoints(BasinDF, start_movern=0.2, d_movern=0.1, n_movern=7):
             # and the max.
             Min_MOverN = min(movern_floats)
             Max_MOverN = max(movern_floats)
+            
+            
 
             # ok, for the minimum, get the previous m/n value
-            if Min_MOverN - d_movern < start_movern:
+            if float(Min_MOverN) - float(d_movern) < float(start_movern):
                 new_min_movern = Min_MOverN
             else:
-                movern_list = [Min_MOverN-d_movern, Min_MOverN]
-                mle_list = [ThirdQDF[str(Min_MOverN-d_movern)][i],ThirdQDF[str(Min_MOverN)][i]]
+                print("The minimum theta is: "+str(Min_MOverN))
+                this_key = round((float(Min_MOverN)-float(d_movern)),4)
+                print("The other theta is: "+str(this_key))
+                movern_list = [float(Min_MOverN)-float(d_movern), Min_MOverN]
+                mle_list = [ThirdQDF[str(this_key)][i],ThirdQDF[str(float(Min_MOverN))][i]]
                 slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
                 new_min_movern = (ThirdQDF['threshold'][i] - intercept)/slope
 
             # for the maximum get the next m/n value
-            if Max_MOverN + d_movern > end_movern:
+            if float(Max_MOverN) + float(d_movern) > float(end_movern):
                 new_max_movern = Max_MOverN
             else:
-                movern_list = [Max_MOverN, Max_MOverN+d_movern]
-                mle_list = [ThirdQDF[str(Max_MOverN)][i], ThirdQDF[(str(Max_MOverN+d_movern))][i]]
+                movern_list = [Max_MOverN, float(Max_MOverN)+float(d_movern)]
+
+                # Alright, In some apparently random cases depending on computer architecture, float to string conversion can be F***** up.
+                # Here is a way to deal with it: it first try the regular code that works for many cases
+                # And only correct the string if needed.
+                # Slightly hacky, it might not work in the extremely rare cases where you try to constrain you concavity at 0.001 precision AND you have the wrong cpu or motherboard or whatever decides to convert 0.75 to 0.7500000000000004.
+                try:
+                    # Regular case
+                    mle_list = [ThirdQDF[str(Max_MOverN)][i], ThirdQDF[(str(float(Max_MOverN)+float(d_movern)))][i]]
+                except KeyError:
+                    # DID NOT WORK, fixing
+                    # DEaling with annoying string issue. No time to look for clean solution so here is a hacky way:
+                    str_max_movern = str(Max_MOverN)# converting
+                    # if Conversion failed it screws the string into domething like 0.300000000000000004 instead of 0.3
+                    if(len(str_max_movern)>4):
+                        #Fixing the extra 0
+                        str_max_movern = str_max_movern[0:4]
+                    # Code won't work if 0.70000000000004 is converted to 0.70 and need in these case to be reconverted to 0.7 AAAAAAAAAAAAAAAAAAAAAAAAAAAH
+                    if(str_max_movern[-1] == "0"):
+                        str_max_movern = str_max_movern[:-1]
+
+                    # Same procedure for string 2, like EXACTLY the same
+                    dtrdiff = str(float(Max_MOverN)+float(d_movern))
+                    if(len(dtrdiff)>4):
+                        #Fixing the extra 0
+                        dtrdiff = dtrdiff[0:4]
+                    if(dtrdiff[-1] == "0"):
+                        dtrdiff = dtrdiff[:-1]
+
+                    # Done. Correcting with the correct concavity.
+                    mle_list = [ThirdQDF[str_max_movern][i], ThirdQDF[(dtrdiff)][i]]
+
+                # Out of the bug area
                 slope, intercept, r_value, p_value, std_err = stats.linregress(movern_list, mle_list)
                 new_max_movern = (ThirdQDF['threshold'][i] - intercept)/slope
 
@@ -434,24 +470,51 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
 
     print ("Getting the m/n from the SA data")
 
+    # Updated on the 21/01/2019 by Boris: I added error management on that part. 
+    # Cedric Roerig from Giessen is having issue with plotting routines and the code complains data is empty raising ValueError
+    # This should sort it
+    # Data is replaced by zeros for SA
+    # Let me know if any issue appears because of that
+    # B.G.
+
     # get the best fit m/n from the raw SA data
-    RawSADF = SA.LinearRegressionRawData(DataDirectory,fname_prefix,basin_list)
-    OutDF['SA_raw'] = RawSADF['regression_slope']
-    OutDF['SA_raw_sterr'] = RawSADF['std_err']
-    OutDF['SA_raw_R2'] = RawSADF['R2']
-    OutDF['SA_raw_p'] = RawSADF['p_value']
+    try:
+        RawSADF = SA.LinearRegressionRawData(DataDirectory,fname_prefix,basin_list)
+        OutDF['SA_raw'] = RawSADF['regression_slope']
+        OutDF['SA_raw_sterr'] = RawSADF['std_err']
+        OutDF['SA_raw_R2'] = RawSADF['R2']
+        OutDF['SA_raw_p'] = RawSADF['p_value']
+    except ValueError:
+        print("Your Slope-area data is somehow empty or not conform... I am skipping it and data will be 0")
+        OutDF['SA_raw'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_raw_sterr'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_raw_R2'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_raw_p'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
 
     # get the SA tributary information
-    SATribsDF = SA.GetRangeMOverNRawDataByChannel(DataDirectory,fname_prefix,basin_list)
-    OutDF['SA_tribs'] = SATribsDF['median_movern']
-    OutDF['SA_tribs_min'] = SATribsDF['FirstQ_movern']
-    OutDF['SA_tribs_max'] = SATribsDF['ThirdQ_movern']
+    try:
+        SATribsDF = SA.GetRangeMOverNRawDataByChannel(DataDirectory,fname_prefix,basin_list)
+        OutDF['SA_tribs'] = SATribsDF['median_movern']
+        OutDF['SA_tribs_min'] = SATribsDF['FirstQ_movern']
+        OutDF['SA_tribs_max'] = SATribsDF['ThirdQ_movern']
+    except ValueError:
+        print("Your Slope-area data is somehow empty or not conform... I am skipping it and data will be 0")
+        OutDF['SA_tribs'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_tribs_min'] =pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_tribs_max'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+
 
     # get the best fit m/n from the segmented SA data
-    SASegmentedDF = SA.GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list)
-    OutDF['SA_segments'] = SASegmentedDF['median_movern']
-    OutDF['SA_segments_min'] = SASegmentedDF['FirstQ_movern']
-    OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
+    try:
+        SASegmentedDF = SA.GetRangeMOverNSegmentedData(DataDirectory,fname_prefix,basin_list)
+        OutDF['SA_segments'] = SASegmentedDF['median_movern']
+        OutDF['SA_segments_min'] = SASegmentedDF['FirstQ_movern']
+        OutDF['SA_segments_max'] = SASegmentedDF['ThirdQ_movern']
+    except ValueError:
+        print("Your Slope-area data is somehow empty or not conform... I am skipping it and data will be 0")
+        OutDF['SA_segments'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_segments_min'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
+        OutDF['SA_segments_max'] = pd.Series(data = np.zeros(OutDF.shape[0]), index = OutDF.index)
 
     if Chi_disorder:
         if not parallel:
@@ -522,7 +585,11 @@ def CheckMLEOutliers(DataDirectory, fname_prefix, basin_list=[0], start_movern=0
     """
 
     # Get a vector of the m over n values
-    end_movern = start_movern+d_movern*(n_movern-1)
+    print("start theta is: "+str(start_movern))
+    print("d theta is: "+str(d_movern))
+    print("n theta is: "+str(n_movern))
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
+    print("end theta is: "+str(end_movern))                                                  
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
     movern_strs = []
     for movern in m_over_n_values:
@@ -739,7 +806,7 @@ def Iteratively_recalculate_MLE_removing_outliers_for_basin(Outlier_counter, Dat
     # this is done by copying the MLE vector and then replacing
     # the offending channels with an MLE of 1
     # Get a vector of the m over n values
-    end_movern = start_movern+d_movern*(n_movern-1)
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
     # Now get the movern values
@@ -1158,7 +1225,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
         basin_list = basin_keys
 
     # loop through each m over n value
-    end_movern = start_movern+d_movern*(n_movern-1)
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
     m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
 
     # best fit moverns
@@ -1180,7 +1247,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
 
         # loop through all the basins in the basin list
         for basin_key in basin_list:
-            print("This basin key is %s") %str(basin_key)
+            print("This basin key is: "+str(basin_key))
 
             # mask the data frames for this basin
             ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_key]
@@ -2127,20 +2194,28 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     df = df[df['basin_key'].isin(basin_keys)]
 
     # plot the full chi data
-    full_chi_keys = df['basin_key'].as_matrix()-0.2
+    full_chi_keys = df['basin_key'].values
+    full_chi_keys = full_chi_keys.astype(float) - 0.2
+    print("Full chi keys are: ")
+    print(full_chi_keys)
 
     if Chi_all:
         ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
 
     # plot the points data
-    median_movern = df['Chi_MLE_points'].as_matrix()
-    points_max_err = df['Chi_MLE_points_max'].as_matrix()
-    points_max_err = points_max_err-median_movern
-    points_min_err = df['Chi_MLE_points_min'].as_matrix()
-    points_min_err = median_movern-points_min_err
-    errors = np.array(zip(points_min_err, points_max_err)).T
+    median_movern = df['Chi_MLE_points'].values
+    points_max_err = df['Chi_MLE_points_max'].values
+    points_max_err = points_max_err.astype(float)-median_movern.astype(float)
+    points_min_err = df['Chi_MLE_points_min'].values
+    points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+    errors = np.array(list(zip(points_min_err, points_max_err))).T
+    
+    print("The errors or the point data are")
+    print(errors)
 
-    points_chi_keys = df['basin_key'].as_matrix()-0.1
+    print(df['basin_key'].values)
+    points_chi_keys = df['basin_key'].values
+    points_chi_keys = points_chi_keys.astype(float) - 0.1
 
     if Chi_bootstrap:
         ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors,
@@ -2150,21 +2225,22 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # plot the chi disorder data if you want it
     if Chi_disorder:
-        median_movern = df['Chi_disorder'].as_matrix()
-        points_max_err = df['Chi_disorder_max'].as_matrix()
-        points_max_err = points_max_err-median_movern
-        points_min_err = df['Chi_disorder_min'].as_matrix()
-        points_min_err = median_movern-points_min_err
-        errors = np.array(zip(points_min_err, points_max_err)).T
+        median_movern = df['Chi_disorder'].values
+        points_max_err = df['Chi_disorder_max'].values
+        points_max_err = points_max_err.astype(float)-median_movern.astype(float)
+        points_min_err = df['Chi_disorder_min'].values
+        points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+        errors = np.array(list(zip(points_min_err, points_max_err))).T
 
-        disorder_chi_keys = df['basin_key'].as_matrix()-0.3
+        disorder_chi_keys = df['basin_key'].values
+        disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
         ax.errorbar(disorder_chi_keys, df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
         ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#F06292', s=15, zorder=100, label='Chi disorder')
 
 
     # plot the SA data
-    SA_keys = df['basin_key'].as_matrix()
-    SA_sterr = df['SA_raw_sterr'].as_matrix()
+    SA_keys = df['basin_key'].values
+    SA_sterr = df['SA_raw_sterr'].values
 
     if SA_raw:
         ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='#2b8cbe', elinewidth=1, fmt='none',label='_nolegend_')
@@ -2172,26 +2248,28 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     if SA_channels:
         # plot the SA data by tribs
-        median_movern = df['SA_tribs'].as_matrix()
-        points_max_err = df['SA_tribs_max'].as_matrix()
-        points_max_err = points_max_err-median_movern
-        points_min_err = df['SA_tribs_min'].as_matrix()
-        points_min_err = median_movern-points_min_err
-        errors = np.array(zip(points_min_err, points_max_err)).T
+        median_movern = df['SA_tribs'].values
+        points_max_err = df['SA_tribs_max'].values
+        points_max_err = points_max_err.astype(float)-median_movern.astype(float)
+        points_min_err = df['SA_tribs_min'].values
+        points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+        errors = np.array(list(zip(points_min_err, points_max_err))).T
 
-        SA_tribs_keys = df['basin_key'].as_matrix()+0.1
+        SA_tribs_keys = df['basin_key'].values
+        SA_tribs_keys = SA_tribs_keys.astype(float)+0.1
         ax.errorbar(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', xerr=None, yerr=errors, edgecolors='r', fmt='none', elinewidth=1, linestyle = ":", ecolor='r',label='_nolegend_')
         ax.scatter(SA_tribs_keys, df['SA_tribs'], s=15, marker='D', facecolors='white', edgecolors='r', label='S-A by channel',zorder=100)
 
     # plot the segmented SA data
-    median_movern = df['SA_segments'].as_matrix()
-    points_max_err = df['SA_segments_max'].as_matrix()
-    points_max_err = points_max_err-median_movern
-    points_min_err = df['SA_segments_min'].as_matrix()
-    points_min_err = median_movern-points_min_err
-    errors = np.array(zip(points_min_err, points_max_err)).T
+    median_movern = df['SA_segments'].values
+    points_max_err = df['SA_segments_max'].values
+    points_max_err = points_max_err.astype(float)-median_movern.astype(float)
+    points_min_err = df['SA_segments_min'].values
+    points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+    errors = np.array(list(zip(points_min_err, points_max_err))).T
 
-    SA_segment_keys = df['basin_key'].as_matrix()+0.2
+    SA_segment_keys = df['basin_key'].values
+    SA_segment_keys = SA_segment_keys.astype(float)+0.2
     if SA_segmented:
         ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', xerr=None, yerr=errors,
                 edgecolors='#a6bddb', fmt='none', elinewidth=1, linestyle = ":", ecolor='#a6bddb',label='_nolegend_')
@@ -2206,7 +2284,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
         print ("ADDING THE LEGEND")
         # sort both labels and handles by labels
         handles, labels = ax.get_legend_handles_labels()
-        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+        labels, handles = list(zip(*sorted(list(zip(labels, handles)), key=lambda t: t[0])))
         # add the legend
         ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.0,0.7),bbox_transform=plt.gcf().transFigure)
 
@@ -2311,39 +2389,41 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
 
         # plot the full chi data
         if movern_method=='chi_all':
-            full_chi_keys = df['basin_key'].as_matrix()-0.2
+            full_chi_keys = df['basin_key'].values
+            full_chi_keys = full_chi_keys.astype(float)-0.2
             ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
 
         elif movern_method=='chi_points':
             # plot the points data
-            median_movern = df['Chi_MLE_points'].as_matrix()
-            points_max_err = df['Chi_MLE_points_max'].as_matrix()
+            median_movern = df['Chi_MLE_points'].values
+            points_max_err = df['Chi_MLE_points_max'].values
             points_max_err = points_max_err-median_movern
-            points_min_err = df['Chi_MLE_points_min'].as_matrix()
+            points_min_err = df['Chi_MLE_points_min'].values
             points_min_err = median_movern-points_min_err
             errors = np.array(zip(points_min_err, points_max_err)).T
 
-            points_chi_keys = df['basin_key'].as_matrix() # -0.1 I removed that to fix the movern plots - Boris
+            points_chi_keys = df['basin_key'].values # -0.1 I removed that to fix the movern plots - Boris
             ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
             ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k', lw=0.5,facecolors='#fdbb84', label='Chi bootstrap',zorder=200)
 
             # plot the SA data
         elif movern_method=='SA_raw':
-                SA_keys = df['basin_key'].as_matrix()
-                SA_sterr = df['SA_raw_sterr'].as_matrix()
+                SA_keys = df['basin_key'].values
+                SA_sterr = df['SA_raw_sterr'].values
                 ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='#2b8cbe', elinewidth=1, fmt='none',label='_nolegend_')
                 ax.scatter(SA_keys, df['SA_raw'], s=15, c='#2b8cbe', edgecolors='k',lw=0.5, label='S-A all data', zorder=100)
 
         else:
             # plot the segmented SA data
-            median_movern = df['SA_segments'].as_matrix()
-            points_max_err = df['SA_segments_max'].as_matrix()
+            median_movern = df['SA_segments'].values
+            points_max_err = df['SA_segments_max'].values
             points_max_err = points_max_err-median_movern
-            points_min_err = df['SA_segments_min'].as_matrix()
+            points_min_err = df['SA_segments_min'].values
             points_min_err = median_movern-points_min_err
             errors = np.array(zip(points_min_err, points_max_err)).T
 
-            SA_segment_keys = df['basin_key'].as_matrix()+0.2
+            SA_segment_keys = df['basin_key'].values
+            SA_segment_keys=SA_segment_keys.astype(float)+0.2
             ax.errorbar(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', xerr=None, yerr=errors, edgecolors='#a6bddb', fmt='none', elinewidth=1, linestyle = ":", ecolor='#a6bddb',label='_nolegend_')
             ax.scatter(SA_segment_keys, df['SA_segments'], s=15, marker='o', facecolors='#a6bddb', edgecolors='k', lw=0.5, label='Segmented S-A', zorder=100)
 
@@ -2820,7 +2900,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
 
     # get moverns for cbar plotting. We always want a spacing of 0.1.
     min_max_str = ['min', 'max']
-    end_movern = start_movern+d_movern*(n_movern-1)
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
     all_moverns = np.linspace(start_movern,end_movern,n_movern)
     print ("END MOVERN:")
     print (end_movern)

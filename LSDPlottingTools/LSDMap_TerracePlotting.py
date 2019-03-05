@@ -60,7 +60,6 @@ def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = 10
-    #rcParams['text.usetex'] = True
 
     Fig = plt.figure(figsize=(FigWidth_Inches,FigWidth_Inches/AspectRatio))
 

@@ -56,7 +56,7 @@ def main(argv):
     import argparse
     parser = argparse.ArgumentParser()
     # The location of the data files
-    parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the m/n analysis. If this isn't defined I'll assume it's the same as the current directory.")
+    parser.add_argument("-dir", "--base_directory", type=str, help="The base directory that contains your data files. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error.")
 
     # Basin selection stuffs
@@ -120,7 +120,7 @@ def main(argv):
         LP.MakeRasterLithoBasinMap(this_dir, args.fname_prefix, args.fname_prefix+"_LITHRAST", dict_file["lithodict"], size_format='ESURF', FigFormat=args.FigFormat, basins = False)
     
     if args.legend:
-        print "ongoing work on the legend"
+        print ("ongoing work on the legend")
 
     if args.movern:
         # get the range of moverns, needed for plotting

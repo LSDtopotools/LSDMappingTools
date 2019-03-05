@@ -358,7 +358,7 @@ def Rasterize_geologic_maps_pythonic(shapefile_name, raster_resolution = 400, ge
 
 	# The raster file to be created and receive the rasterized shapefile
 	outrastername = shapefileshortname + '.tif'
-	outraster = shapefilefilepath+os.sep+ outrastername
+	outraster = str(shapefilefilepath+os.sep+ outrastername)
 	outcsv = shapefilefilepath+os.sep+shapefileshortname+'_lithokey.csv'
 	print("Full name of out raster is: "+outraster)
 
@@ -368,7 +368,8 @@ def Rasterize_geologic_maps_pythonic(shapefile_name, raster_resolution = 400, ge
 
 	xRes = int((xMax - xMin) / inGridSize)
 	yRes = int((yMax - yMin) / inGridSize)
-	rasterDS =  gdal.GetDriverByName('GTiff').Create(outraster, xRes, yRes, 1,  gdal.GDT_Byte)
+	print("HELLO")
+	rasterDS =  gdal.GetDriverByName("GTiff").Create(outraster, xRes, yRes, 1,  gdal.GDT_Byte)
 
 	# Define spatial reference
 	NoDataVal = -9999

@@ -197,7 +197,6 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
-    #plt.rc('text', usetex=True)
 
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
@@ -705,7 +704,6 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
-    #plt.rc('text', usetex=True)
 
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
@@ -871,7 +869,6 @@ def BasicChannelPlotByBasin(FileName, DrapeName, chi_csv_fname, thiscmap='gray',
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['arial']
     rcParams['font.size'] = label_size
-    #plt.rc('text', usetex=True)
 
     # get the data
     raster = LSDMap_IO.ReadRasterArrayBlocks(FileName)
@@ -2042,6 +2039,7 @@ def map_Mchi_standard(DataDirectory, fname_prefix, size_format='ESURF', FigForma
         MF.plot_polygon_outlines(Basins, linewidth=0.5, colour = "white")
     else:
         # plot the basin outlines
+        MF.add_drape_image(HillshadeName,DataDirectory,colourmap = "gray",colour_min_max = [10,240],modify_raster_values=False,old_values=[], new_values=[],NFF_opti = True, alpha =1)
         Basins = LSDP.GetBasinOutlines(DataDirectory, BasinsName)
         MF.plot_polygon_outlines(Basins, linewidth=0.5)
 

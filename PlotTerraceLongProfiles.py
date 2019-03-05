@@ -22,7 +22,7 @@ def main(argv):
     parser = argparse.ArgumentParser()
 
     # The location of the data files
-    parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the terrace analysis. If this isn't defined I'll assume it's the same as the current directory.")
+    parser.add_argument("-dir", "--base_directory", type=str, help="The base directory that contains your data files. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error.")
     parser.add_argument("-basin_jns", "--junction_list", type=str, default="", help="If you want, you can pass in a list of junction numbers which I will use to plot the terraces. Useful if you ran the terrace code in parallel. Needs to be a comma separated string!")
     parser.add_argument("-ages", "--ages", type=str, default="", help="If this is passed then I will add labels with calculated terrace ages to the profile. Need to pass the name of the csv file with the ages.")

@@ -12,8 +12,15 @@ from __future__ import absolute_import, division, print_function
 import matplotlib
 matplotlib.use('Agg')
 
+import cartopy
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+#from cartopy.io.shapereader import Reader
+from cartopy.feature import ShapelyFeature
+import cartopy.io.shapereader as shpreader
+
 import LSDPlottingTools.LSDMap_GDALIO as LSDMGDAL
-from mpl_toolkits.basemap import Basemap
+#from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -106,6 +113,7 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     Raster_prefix = RasterSplit[0]
     Shape_name = DataDirectory+Raster_prefix+"_footprint"
     SName = "Shape"
+    Full_Shape_name = Shape_name+".shp"
 
     # Get the name of the image
     if len(out_fname_prefix) == 0:
@@ -116,30 +124,33 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     
     # Now for the basemap 
     # setup Lambert Conformal basemap.
-    m = Basemap(width=bm_width,height=bm_width,projection=projection,
-                resolution=resolution,lat_1=lat_1 ,lat_2=lat_2,lat_0=lat_0,lon_0=lon_0, satellite_height = satellite_height, area_thresh = 100000)    
+    #m = Basemap(width=bm_width,height=bm_width,projection=projection,
+    #            resolution=resolution,lat_1=lat_1 ,lat_2=lat_2,lat_0=lat_0,lon_0=lon_0, satellite_height = satellite_height, area_thresh = 100000)    
  
     # create the shapefile
     LSDMGDAL.CreateShapefileOfRasterFootprint(DataDirectory, RasterFile)
-    m.readshapefile(Shape_name, "footprint")
+    
+    
+    #shape_feature = ShapelyFeature(Reader(fname).geometries(),ccrs.PlateCarree(), facecolor='none')
+    #ax.add_feature(shape_feature)
 
     # draw coastlines.
-    m.drawcoastlines(linewidth = 0.5)
+    #m.drawcoastlines(linewidth = 0.5)
     # draw a boundary around the map, fill the background.
     # this background will end up being the ocean color, since
     # the continents will be drawn on top.
-    m.drawmapboundary(fill_color='snow')
+    #m.drawmapboundary(fill_color='snow')
     # fill continents, set lake color same as ocean color.
-    m.fillcontinents(color='lightgray',lake_color='snow')
+    #m.fillcontinents(color='lightgray',lake_color='snow')
     # draw parallels and meridians.
     # label parallels on right and top
     # meridians on bottom and left
     parallels = np.arange(0.,90,5.)
     # labels = [left,right,top,bottom]
-    m.drawparallels(parallels,labels=[False,True,True,False])
+    #m.drawparallels(parallels,labels=[False,True,True,False])
     meridians = np.arange(10.,351.,5.)
-    m.drawmeridians(meridians,labels=[True,False,False,True])
-    m.drawcountries()
+    #m.drawmeridians(meridians,labels=[True,False,False,True])
+    #m.drawcountries()
 
     # Make a patch from the shapefile
     # All this stuff from:
@@ -183,12 +194,12 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
         DataDirectory = DataDirectory+os.sep
     
     # Set up the figure. This is needed to both size the figure and get the axis handle for plotting polygons
-    fig, ax = plt.subplots(figsize=(FigWidthInches, FigHeightInches))
+    fig = plt.figure(figsize=(FigWidthInches, FigHeightInches))
     
     # get some filenames
     RasterSplit = RasterFile.split(".")
     Raster_prefix = RasterSplit[0]
-    Shape_name = DataDirectory+Raster_prefix+"_footprint"
+    Shape_name = DataDirectory+Raster_prefix+"_footprint.shp"
     SName = "Shape"
     
     # Get the name of the image
@@ -200,7 +211,7 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     # Now we get the extents from the raster
     centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDMGDAL.GetCentreAndExtentOfRaster(DataDirectory, RasterFile)
     
-
+    
     
     
     # Calculate the aspect ratio
@@ -210,6 +221,8 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     long_dimension = xproj_extent
     if yproj_extent > long_dimension:
         long_dimension = yproj_extent
+        
+    print("The long dimension is: "+str(long_dimension))
     
     # Get the full extent by mulitplying the longest extent by the multiplier
     full_dimension = long_dimension*regional_extent_multiplier
@@ -220,32 +233,58 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
         # This is when the figure is wider than tall
         x_ext = full_dimension*aspect_ratio
         y_ext = full_dimension
+        full_extent_long = extent_long*aspect_ratio*regional_extent_multiplier
+        full_extent_lat = extent_lat*regional_extent_multiplier
     else:
         x_ext = full_dimension
         y_ext = full_dimension*aspect_ratio
-       
+        full_extent_long = extent_long*regional_extent_multiplier
+        full_extent_lat = extent_lat*aspect_ratio*regional_extent_multiplier
+        
+    extents = [centre_long-0.5*full_extent_long,
+                   centre_long+0.5*full_extent_long,
+                   centre_lat-0.5*full_extent_lat,
+                   centre_lat+0.5*full_extent_lat]
+    
+    print("Extents are: ")
+    print(extents)
+
+        
+    # Now we try with cartopy
+    ax = fig.add_axes([0, 0, 1, 1], projection=ccrs.PlateCarree())
+    
+    ax.set_extent([centre_long-0.5*full_extent_long,
+                   centre_long+0.5*full_extent_long,
+                   centre_lat-0.5*full_extent_lat,
+                   centre_lat+0.5*full_extent_lat], ccrs.PlateCarree())
+    
+
+        
+        
     # Now for the basemap 
     # setup Lambert Conformal basemap.
-    m = Basemap(width=x_ext,height=y_ext,projection="lcc",
-                resolution="l",lat_1=45 ,lat_2=55,lat_0=centre_lat,lon_0=centre_long, satellite_height = 100000, area_thresh = 100000)    
+    #m = Basemap(width=x_ext,height=y_ext,projection="lcc",
+    #            resolution="l",lat_1=45 ,lat_2=55,lat_0=centre_lat,lon_0=centre_long, satellite_height = 100000, area_thresh = 100000)    
  
     # create the shapefile
     LSDMGDAL.CreateShapefileOfRasterFootprint(DataDirectory, RasterFile)
-    m.readshapefile(Shape_name, "footprint")
 
-    # draw coastlines.
-    m.drawcoastlines(linewidth = 0.5)
-    # draw a boundary around the map, fill the background.
-    # this background will end up being the ocean color, since
-    # the continents will be drawn on top.
-    m.drawmapboundary(fill_color='snow')
-    # fill continents, set lake color same as ocean color.
-    m.fillcontinents(color='lightgray',lake_color='snow')
-    m.drawcountries()
+
+    ax.add_feature(cfeature.LAND)
+    ax.add_feature(cfeature.OCEAN)
+    ax.add_feature(cfeature.COASTLINE)
+    ax.add_feature(cfeature.BORDERS, linestyle='--')
+    ax.add_feature(cfeature.LAKES, alpha=0.5)
+    ax.add_feature(cfeature.RIVERS)
+    
+    ax.add_geometries(
+        shpreader.Reader(Shape_name).geometries(),
+        ccrs.PlateCarree(),edgecolor='black', facecolor='green', alpha=0.5)
     
     #==========================================
     # draw parallels and meridians.    
     # Calculate the spacing of the meridians and parallels
+    # THIS IS ALL FROM BASEMAP AND NOT USED BY CARTOPY
     max_latlong_ext = extent_lat
     if extent_long < max_latlong_ext:
         max_latlong_ext = extent_long
@@ -263,23 +302,25 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     # meridians on bottom and left   
     parallels = np.arange(start_lat,end_lat,latlong_label_spacing)
     # labels = [left,right,top,bottom]
-    m.drawparallels(parallels,labels=[False,True,True,False])
+    #m.drawparallels(parallels,labels=[False,True,True,False])
     meridians = np.arange(start_long,end_long,latlong_label_spacing)
-    m.drawmeridians(meridians,labels=[True,False,False,True])
+    #m.drawmeridians(meridians,labels=[True,False,False,True])
     #==========================================
     
-
+    #==========================================
+    # THIS IS ALL FROM BASEMAP AND NOT USED BY CARTOPY
     # Make a patch from the shapefile
     # All this stuff from:
     # http://www.datadependence.com/2016/06/creating-map-visualisations-in-python/
-    df_poly = pd.DataFrame({
-            'shapes': [Polygon(np.array(shape), True) for shape in m.footprint]})    
+    #df_poly = pd.DataFrame({
+    #        'shapes': [Polygon(np.array(shape), True) for shape in m.footprint]})    
     
     #df_poly = df_poly.merge(new_areas, on='area', how='left')
     #cmap = plt.get_cmap('Oranges')   
-    pc = PatchCollection(df_poly.shapes, zorder=2, alpha = 0.5)
-    pc.set_facecolor("crimson")
-    ax.add_collection(pc)  
+    #pc = PatchCollection(df_poly.shapes, zorder=2, alpha = 0.5)
+    #pc.set_facecolor("crimson")
+    #ax.add_collection(pc)
+    #==========================================
 
     plt.savefig(FigFileName,format=FigFormat,dpi=fig_dpi)    
     

@@ -281,7 +281,7 @@ def main(argv):
     
     #==========================================================================
     # The location of the data files
-    parser.add_argument("-dir", "--base_directory", type=str, help="The base directory with the m/n analysis. If this isn't defined I'll assume it's the same as the current directory.")
+    parser.add_argument("-dir", "--base_directory", type=str, help="The base directory that contains your data files. If this isn't defined I'll assume it's the same as the current directory.")
     parser.add_argument("-fname", "--fname_prefix", type=str, help="The prefix of your DEM WITHOUT EXTENSION!!! This must be supplied or you will get an error (unless you're running the parallel plotting).")
     parser.add_argument("-out_fname", "--out_fname_prefix", type=str, help="The prefix of the figures WITHOUT EXTENSION!!! If not supplied the fname prefix will be used.")
     
@@ -334,13 +334,14 @@ def main(argv):
     parser.add_argument("-BM", "--create_basemap_figure",type=bool, default=False, help="If true, create a basemap file")
 
     # These control the format of your figures
+    parser.add_argument("-coord_type", "--coord_type", type=str, default='UTM_km', help="The tick coordinate type. Options are UTM, UTM_km and None. UTM has ticks in metres. None should produce no tick marks.")
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
     parser.add_argument("-ar", "--figure_aspect_ratio", type=float, default=2, help="The aspect ratio of profile plots. Doesn't affect maps, whose aspect ratio is set by the size of the DEM.")
     parser.add_argument("-parallel", "--parallel", type=bool, default=False, help="If this is true I'll assume you ran the code in parallel and append all your CSVs together before plotting.")
     parser.add_argument("-dpi", "--dpi", type=int, default=250, help="The dots per inch of your figure.")
     parser.add_argument("-bmpsm", "--basemap_parallel_spacing_multiplier", type=float, default=0.5, help="Basemap parallel spacing multiplier. Increase if parallels are too close on your basemap.")
-    parser.add_argument("-bmrem", "--basemap_regional_extent_multiplier", type=float, default=3, help="Basemap regional extent multiplier. The multiple of the size of the raster to make the basemap extent")
+    parser.add_argument("-bmrem", "--basemap_regional_extent_multiplier", type=float, default=4, help="Basemap regional extent multiplier. The multiple of the size of the raster to make the basemap extent")
    
     args = parser.parse_args()
 
@@ -348,6 +349,10 @@ def main(argv):
         if not args.parallel:
             print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
             sys.exit()
+
+    if not args.drape_fname_prefix:
+        print("WARNING! You haven't supplied a drape DEM name. I will assume it is the same as the fname")
+        args.drape_fname_prefix = args.fname_prefix          
             
     if not args.out_fname_prefix:
         print("You did not give me an out name prefix. I am using the raster prefix.")
@@ -491,7 +496,7 @@ def main(argv):
         print("Let me print a drape plot for you.")
         MakeRasterDirectory(this_dir)
         raster_out_prefix = "/raster_plots/"+out_fname_prefix
-        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label)
+        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label, coord_type = args.coord_type)
         
         
 
@@ -577,21 +582,7 @@ def main(argv):
             LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "Reds_r", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="elevation", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"_DrainArea", discrete_colours = False, colour_log = True, show_basins = False) 
         else:
             print("You didn't select a valid channel colouring scheme.\n Choices are elevation, source_key, basin_key, and drainage_area")
-        
-    # This prints a draped plot. All you need is a drape layer
-    if args.plot_drape:
-        print("I am going to print a draped plot.")
-        
-        # check if a raster directory exists. If not then make it.
-        raster_directory = this_dir+'raster_plots/'
-        print("I am printing to a raster directory:")
-        print(raster_directory)
-        if not os.path.isdir(raster_directory):
-            os.makedirs(raster_directory)  
-        
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix  
-        print("Hey, I am afraid my masters have not finished programming this bit.")
-            
+                   
         
     # This plots the chi coordinate. It plots three different versions. 
     # extension _CC_basins are the absins used in the chi plot
