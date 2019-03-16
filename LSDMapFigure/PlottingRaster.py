@@ -1742,6 +1742,86 @@ class MapFigure(object):
         for key, poly in polygons.items():
             this_patch = PolygonPatch(poly, fc=facecolour, ec=edgecolour, alpha=alpha)
             self.ax_list[0].add_patch(this_patch)
+            
+            
+    def add_scalebar(self,facecolour='black', edgecolour='black'):
+        """
+        This function adds a scalebar
+
+        Args:
+            facecolour: colour of face
+            edgecolour: colour of edge
+
+        Author: SMM
+        """
+
+        from matplotlib.collections import PatchCollection
+        from matplotlib.patches import Rectangle
+
+        print('Let me plot a scale bar for you.')
+        
+        # Get the axis limits to assert after
+        this_xlim = self.ax_list[0].get_xlim()
+        this_ylim = self.ax_list[0].get_ylim()
+        
+        print("X limits:")
+        print(this_xlim)
+        print("Y limits")
+        print(this_ylim)
+        
+        # First get the limits of x axis
+        xmax = this_xlim[1]
+        xmin = this_xlim[0]
+        
+        ymax = this_ylim[1]
+        ymin = this_ylim[0]
+        
+        xrange = xmax-xmin
+        yrange = ymax-ymin
+        
+        # The scale bar will be around a fifth of the range
+        scale_start = xrange/7
+        
+               
+        # Now do some stupid stuff to get a reasonable range
+        scale_start = int(scale_start)
+        
+        print("The range is "+str(xrange)+" metres and the scale start will be "+str(scale_start))
+        
+        scale_str = str(scale_start)
+        n_digits = len(scale_str)
+        print("number of digits are "+str(n_digits))
+        rounded_ss = float(round(scale_start,-n_digits+1))
+        print("Rounded scale str is "+str(rounded_ss))
+        
+        if(rounded_ss > 1000):
+            ss_text = str(int(rounded_ss/1000))+ "km"
+        else:
+            ss_text = str(int(rounded_ss))+"m"
+        
+        
+        
+        x_corner = xmax-1.2*(rounded_ss)
+        text_x_corner = xmax-0.22*(rounded_ss)
+        y_corner = ymin+yrange*0.02
+        text_y_corner = ymin+yrange*0.022
+        
+        # Now make the patch
+        rect = Rectangle((x_corner, y_corner), rounded_ss, rounded_ss/5)
+        PC = []
+        PC.append(rect)
+        pc = PatchCollection(PC, facecolor=facecolour, edgecolor=edgecolour,alpha=1.0,zorder=98)
+        
+
+
+        self.ax_list[0].add_collection(pc) 
+        self.ax_list[0].text(text_x_corner, text_y_corner, ss_text, horizontalalignment='right',verticalalignment='baseline', color = "white",fontsize = 6,zorder=99)
+        
+          
+        # Annoying but the scatter plot resets the extents so you need to reassert them
+        #self.ax_list[0].set_xlim(this_xlim)
+        #self.ax_list[0].set_ylim(this_ylim)
+         
 
     def _set_coord_type(self, coord_type):
         """Sets the coordinate type
