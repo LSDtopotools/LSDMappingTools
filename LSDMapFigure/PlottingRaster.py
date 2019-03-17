@@ -218,6 +218,20 @@ class BaseRaster(object):
             self._RasterArray[old_values_index] = new_values[idx]
         #print self._RasterArray
 
+        
+    def get_min_max(self):
+        """
+        Gets the minimum and maximum values from the raster array
+
+        Author: SMM
+
+        Date: 17/03/19
+        """
+        
+        zmin = np.nanmin(self._RasterArray)
+        zmax = np.nanmax(self._RasterArray)
+        
+        return([zmin,zmax])
 
 class MapFigure(object):
     """
@@ -579,7 +593,21 @@ class MapFigure(object):
             colourmap = self.cmap_discretize(colourmap, n_colours)
 
 
-
+        if(nroma == "none"):
+            nroma = "None"
+            
+        # Get minimum and maximum values
+        yp = Raster.get_min_max()
+        #print("Min and max are")
+        #print(yp)
+        rmin = yp[0]
+        rmax = yp[1]        
+        #print("Minimum is: ")
+        #print(rmin)
+        #print("Maximum is:")
+        #print(rmax)
+            
+        print("I am going to use the normalisation " + nroma)
 
         self._RasterList.append(Raster)
         self._RasterList[-1].set_colourmap(colourmap)
@@ -597,17 +625,23 @@ class MapFigure(object):
         if len(colour_min_max)!=0:
             if len(colour_min_max)== 2:
                 print("I am setting customisable colourbar minimum and maximum values: %s ¦¦ %s" %(colour_min_max[0],colour_min_max[1]))
-                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents,
-                                 interpolation="nearest",alpha = alpha, norm = mpl.colors.Normalize(vmin=colour_min_max[0], vmax=colour_min_max[1]),zorder=zorder)
+                if(nroma == "LogNorm"):
+                    im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, norm = mpl.colors.LogNorm(vmin=colour_min_max[0], vmax=colour_min_max[1]),zorder=zorder)
+                elif(nroma == "PowerNorm"):
+                    im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, norm = mpl.colors.PowerNorm(gamma=1. / 2.),zorder=zorder) 
+                else:
+                    im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, norm = mpl.colors.Normalize(vmin=colour_min_max[0], vmax=colour_min_max[1]),zorder=zorder)                    
             else:
                 print("I cannot customize your colour minimum and maximum because I don't understand your input. It should be [min,max] with min max as integers or floats")
         else:
-            if(nroma != "None"):
-                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents,
-                                 interpolation="nearest",alpha = alpha, norm = nroma, zorder=zorder)
+            if(nroma == "LogNorm"):
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents,interpolation="nearest",alpha = alpha, norm=colors.LogNorm(vmin=rmin, vmax=rmax), zorder=zorder)
+            elif(nroma == "PowerNorm"):
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents,interpolation="nearest",alpha = alpha, norm=colors.PowerNorm(gamma=1. / 2.), zorder=zorder)
             else:
-                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap,
-                                 extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, zorder=zorder)
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap,extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, zorder=zorder)
+                
+
         # This affects all axes because we set share_all = True.
         #ax.set_xlim(self._xmin,self._xmax)
         #ax.set_ylim(self._ymin,self._ymax)

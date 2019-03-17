@@ -334,6 +334,7 @@ def main(argv):
     parser.add_argument("-BM", "--create_basemap_figure",type=bool, default=False, help="If true, create a basemap file")
 
     # These control the format of your figures
+    parser.add_argument("-drape_colour_norm", "--drape_colour_norm", type=str, default='none', help="This allows the user to set the colour normalisation. The options are none (which is just linear), LogNorm, PowerNorm, and SymLogNorm. See https://matplotlib.org/gallery/userdemo/colormap_normalizations.html#sphx-glr-gallery-userdemo-colormap-normalizations-py for details. If these options (case sentitive) are not use it defaults to none.")    
     parser.add_argument("-coord_type", "--coord_type", type=str, default='UTM_km', help="The tick coordinate type. Options are UTM, UTM_km and None. UTM has ticks in metres. None should produce no tick marks.")
     parser.add_argument("-scalebar", "--use_scalebar", type=bool, default=False, help="A boolean that determines if you use a scalebar. This is currently only in operation for the simple drape plot.")    
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
@@ -497,7 +498,7 @@ def main(argv):
         print("Let me print a drape plot for you.")
         MakeRasterDirectory(this_dir)
         raster_out_prefix = "/raster_plots/"+out_fname_prefix
-        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label, coord_type = args.coord_type, use_scalebar = args.use_scalebar)
+        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label, coord_type = args.coord_type, use_scalebar = args.use_scalebar, drape_cnorm = args.drape_colour_norm)
         
         
 
