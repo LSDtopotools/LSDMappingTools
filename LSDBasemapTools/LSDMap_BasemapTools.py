@@ -167,7 +167,7 @@ def GenerateBasemapImage(DataDirectory, RasterFile, FigWidthInches = 4, FigHeigh
     plt.savefig(FigFileName,format=FigFormat,dpi=fig_dpi)    
     
     
-def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500, regional_extent_multiplier = 5, label_spacing_multiplier = 0.5, out_fname_prefix = ""):
+def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4, FigHeightInches = 3, FigFormat = "png", fig_dpi = 500, regional_extent_multiplier = 5, label_spacing_multiplier = 0.5, out_fname_prefix = "", is_orthographic = False):
     """
     This makes the basemap image. Uses data from the raster to size the figure and locate the centrepoint 
     
@@ -211,9 +211,7 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     # Now we get the extents from the raster
     centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDMGDAL.GetCentreAndExtentOfRaster(DataDirectory, RasterFile)
     
-    
-    
-    
+       
     # Calculate the aspect ratio
     aspect_ratio = BasemapExtentSizer(FigWidthInches,  FigHeightInches)
     
@@ -229,16 +227,17 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
          
         
     # now get the two dimensions for the extent of the figure
+    print("The aspect ratio is: "+str(aspect_ratio))
     if aspect_ratio > 1:
         # This is when the figure is wider than tall
         x_ext = full_dimension*aspect_ratio
         y_ext = full_dimension
         full_extent_long = extent_long*aspect_ratio*regional_extent_multiplier
-        full_extent_lat = extent_lat*regional_extent_multiplier
+        full_extent_lat = extent_long*regional_extent_multiplier
     else:
         x_ext = full_dimension
         y_ext = full_dimension*aspect_ratio
-        full_extent_long = extent_long*regional_extent_multiplier
+        full_extent_long = extent_lat*regional_extent_multiplier
         full_extent_lat = extent_lat*aspect_ratio*regional_extent_multiplier
         
     extents = [centre_long-0.5*full_extent_long,
@@ -250,36 +249,47 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     print(extents)
 
         
-    # Now we try with cartopy
-    ax = fig.add_axes([0, 0, 1, 1], projection=ccrs.PlateCarree())
+    # Now we set up the extents and coordinate system
+    if (is_orthographic):
+        ax = fig.add_axes([0, 0, 1, 1], projection=ccrs.Orthographic(centre_lat, centre_long))
+        
+        ax.add_feature(cfeature.LAND)
+        ax.add_feature(cfeature.OCEAN, edgecolor='black')
+        ax.set_global()
+        ax.gridlines()
+     
+    else:    
+        ax = fig.add_axes([0, 0, 1, 1], projection=ccrs.PlateCarree())
     
-    ax.set_extent([centre_long-0.5*full_extent_long,
+        ax.set_extent([centre_long-0.5*full_extent_long,
                    centre_long+0.5*full_extent_long,
                    centre_lat-0.5*full_extent_lat,
                    centre_lat+0.5*full_extent_lat], ccrs.PlateCarree())
+        
+        land_50m = cfeature.NaturalEarthFeature('physical', 'land', '50m',
+                                        edgecolor='face',
+                                        facecolor=cfeature.COLORS['land'])
+        borders_50m = cfeature.NaturalEarthFeature('cultural', 'admin_0_boundary_lines_land', '50m',
+                                        edgecolor='face',
+                                        facecolor=cfeature.COLORS['land'])
+        ax.add_feature(land_50m, edgecolor='black', linewidth=0.5)
+        ax.add_feature(borders_50m, edgecolor='black', facecolor = "none",linewidth=0.5)
+        #ax.add_feature(cfeature.LAND)
+        #ax.add_feature(cfeature.OCEAN)
+        #ax.add_feature(cfeature.COASTLINE)
+        #ax.add_feature(cfeature.BORDERS, linestyle='--')
+        #ax.add_feature(cfeature.LAKES, alpha=0.5)
+        #ax.add_feature(cfeature.RIVERS)
     
-
-        
-        
-    # Now for the basemap 
-    # setup Lambert Conformal basemap.
-    #m = Basemap(width=x_ext,height=y_ext,projection="lcc",
-    #            resolution="l",lat_1=45 ,lat_2=55,lat_0=centre_lat,lon_0=centre_long, satellite_height = 100000, area_thresh = 100000)    
  
     # create the shapefile
     LSDMGDAL.CreateShapefileOfRasterFootprint(DataDirectory, RasterFile)
 
 
-    ax.add_feature(cfeature.LAND)
-    ax.add_feature(cfeature.OCEAN)
-    ax.add_feature(cfeature.COASTLINE)
-    ax.add_feature(cfeature.BORDERS, linestyle='--')
-    ax.add_feature(cfeature.LAKES, alpha=0.5)
-    ax.add_feature(cfeature.RIVERS)
     
     ax.add_geometries(
         shpreader.Reader(Shape_name).geometries(),
-        ccrs.PlateCarree(),edgecolor='black', facecolor='green', alpha=0.5)
+        ccrs.PlateCarree(),edgecolor='black', facecolor='green', alpha=0.5, linewidth=0.5)
     
     #==========================================
     # draw parallels and meridians.    
