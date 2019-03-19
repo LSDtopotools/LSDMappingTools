@@ -250,12 +250,23 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
 
         
     # Now we set up the extents and coordinate system
-    if (is_orthographic):
-        ax = fig.add_axes([0, 0, 1, 1], projection=ccrs.Orthographic(centre_lat, centre_long))
+    #if (is_orthographic):
+    #    ax = fig.add_axes([0, 0, 1, 1], projection=ccrs.Orthographic(centre_lat, #centre_long))
+    #    
+    #    ax.add_feature(cfeature.LAND)
+    #    ax.add_feature(cfeature.OCEAN, edgecolor='black')
+    #    ax.set_global()
+    #    ax.gridlines()       
+    if(is_orthographic):
+    
+        ax = fig.add_axes([0, 0, 1, 1], projection=ccrs.NearsidePerspective(
+                        central_latitude=centre_lat,
+                        central_longitude=centre_long,
+                        satellite_height=10000000.0))
         
-        ax.add_feature(cfeature.LAND)
-        ax.add_feature(cfeature.OCEAN, edgecolor='black')
-        ax.set_global()
+        ax.coastlines(resolution='110m',linewidth=0.5)
+        borders_110m = cfeature.NaturalEarthFeature('cultural', 'admin_0_boundary_lines_land', '110m',edgecolor='face', facecolor=cfeature.COLORS['land'])
+        ax.add_feature(borders_110m, edgecolor='black', facecolor = "none",linewidth=0.5)
         ax.gridlines()
      
     else:    
