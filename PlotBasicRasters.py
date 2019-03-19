@@ -344,7 +344,9 @@ def main(argv):
     parser.add_argument("-dpi", "--dpi", type=int, default=250, help="The dots per inch of your figure.")
     parser.add_argument("-bmpsm", "--basemap_parallel_spacing_multiplier", type=float, default=0.5, help="Basemap parallel spacing multiplier. Increase if parallels are too close on your basemap.")
     parser.add_argument("-bmrem", "--basemap_regional_extent_multiplier", type=float, default=4, help="Basemap regional extent multiplier. The multiple of the size of the raster to make the basemap extent")
-    parser.add_argument("-bmortho", "--basemap_orthographic", type=bool, default=False, help="If this is true the basemap creates an orthographic map, that is a globe.")
+    parser.add_argument("-bmortho", "--basemap_orthographic", type=bool, default=False, help="If this is true the basemap creates an orthographic map, that is a globe.")   
+    parser.add_argument("-bmwidth", "--basemap_width_inches", type=float, default=4, help="Basemap width in inches (since matplotlib is written by yanks).")
+    parser.add_argument("-bmar", "--basemap_aspect_ratio", type=float, default=1, help="Basemap aspect ratio.")
    
     args = parser.parse_args()
 
@@ -418,8 +420,11 @@ def main(argv):
         # This gets the positioning
         centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDP.GetCentreAndExtentOfRaster(this_dir, RasterFile)
         
+        FWI = args.basemap_width_inches
+        FHI = FWI/(args.basemap_aspect_ratio)
+        
         print("The basemap centrepoint is: "+str(centre_lat)+"," +str(centre_long))
-        LSDBM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = 4, FigHeightInches = 3, regional_extent_multiplier = args.basemap_regional_extent_multiplier, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier, out_fname_prefix = basemap_out_prefix, fig_dpi = args.dpi, is_orthographic = args.basemap_orthographic)
+        LSDBM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = FWI, FigHeightInches = FHI, regional_extent_multiplier = args.basemap_regional_extent_multiplier, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier, out_fname_prefix = basemap_out_prefix, fig_dpi = args.dpi, is_orthographic = args.basemap_orthographic)
         
           
     # Parse any lists, dicts, or list of lists from the arguments   

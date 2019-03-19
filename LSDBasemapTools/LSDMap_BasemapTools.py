@@ -196,6 +196,8 @@ def GenerateBasemapImageAutomated(DataDirectory, RasterFile, FigWidthInches = 4,
     # Set up the figure. This is needed to both size the figure and get the axis handle for plotting polygons
     fig = plt.figure(figsize=(FigWidthInches, FigHeightInches))
     
+    print("The size is: " +str(FigWidthInches)+", "+str(FigHeightInches))
+    
     # get some filenames
     RasterSplit = RasterFile.split(".")
     Raster_prefix = RasterSplit[0]
