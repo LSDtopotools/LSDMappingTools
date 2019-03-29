@@ -101,6 +101,10 @@ def SimpleDrape(DataDirectory,Base_file, Drape_prefix, cmap = "jet", cbar_loc = 
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
         out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
+        coord_type (str): this can be in UTM_km or UTM_m
+        use_scalebar (bool): If true inserts a scalebar in the image
+        drape_cnorm (str): Sets the normalisation of the colourbar. 
+        colour_min_max (float list): Sets the minimum and maximum values of the colourbar
 
     Returns:
         Shaded relief plot. The elevation is also included in the plot.

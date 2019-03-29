@@ -56,7 +56,20 @@ def MakeBasemapDirectory(this_dir):
     print(basemap_directory)
     if not os.path.isdir(basemap_directory):
         os.makedirs(basemap_directory)    
-    
+
+#=============================================================================
+# The normal float parsing doesn't work if on of the floats is 
+# negative so I need to do this malarky -- SMM 2/03/2019
+# see
+# https://stackoverflow.com/questions/9025204/python-argparse-issue-with-optional-arguments-which-are-negative-numbers
+#=============================================================================  
+#def two_floats(value):
+#    values = value.split()
+#    if len(values) != 2:
+#        raise argparse.ArgumentError
+#    values = map(float, values)
+#    return values       
+        
 #=============================================================================
 # This parses a comma separated string
 #=============================================================================    
@@ -89,6 +102,7 @@ def parse_list_from_string(a_string):
         print(return_list)
         
     return return_list
+
 
 #=============================================================================
 # This parses a dict separated string
@@ -293,7 +307,7 @@ def main(argv):
     parser.add_argument("-drape_cbar_loc", "--drape_cbar_loc", type=str, default = "right", help="This is the location of the colourbar for the drape plot. Options are None, left, right, top and bottom.")
     parser.add_argument("-drape_cbar_label", "--drape_cbar_label", type=str, default = "colourbar_label", help="This is the label on the colourbar.")
     parser.add_argument("-drape_cmap", "--drape_cmap", type=str, default = "jet", help="This is colourmap. See matplotlib docs for options.") 
-    parser.add_argument("-drape_colour_min_max", "--drape_colour_min_max", type=str, default = "", help="Add a comma separated minimum and maximum colour for plotting.") 
+    parser.add_argument("-drape_colour_min_max", "--drape_colour_min_max", default = "", help="Add a comma separated minimum and maximum colour for plotting. WARNING if one of the floats in negative you need to add a space before it in the string or else it will be treated as an option.") 
     #===============================================================================
     # Some formatting flags
     
@@ -435,6 +449,13 @@ def main(argv):
     chi_offset_list = parse_list_from_string(args.chi_offsets)
     fd_offset_list = parse_list_from_string(args.flow_distance_offsets)
     this_drape_colour_min_max = parse_list_from_string(args.drape_colour_min_max)
+    
+    # Get the colour min and max
+    #if (args.drape_colour_min_max[0] == -99.99 & args.drape_colour_min_max[1] == -99.99):
+    #    this_drape_colour_min_max = []
+    #else:
+    #    this_drape_colour_min_max = args.drape_colour_min_max
+    
 
     # Find the basin keys, if they exist
     BasinInfoDF,existing_basin_keys = DoesBasinInfoExist(this_dir, args.fname_prefix)
@@ -504,8 +525,11 @@ def main(argv):
     # This is the most basic draped plot. 
     if args.plot_drape:
         print("Let me print a drape plot for you.")
-        print("The colour min and max are (if enpty lis, just used min and max of data):")
+        print("The colour min and max are (if empty lis, just used min and max of data):")
         print(this_drape_colour_min_max)
+        print(this_drape_colour_min_max[0])
+        print(this_drape_colour_min_max[1])
+        
         MakeRasterDirectory(this_dir)
         raster_out_prefix = "/raster_plots/"+out_fname_prefix
         LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label, coord_type = args.coord_type, use_scalebar = args.use_scalebar, drape_cnorm = args.drape_colour_norm, colour_min_max = this_drape_colour_min_max)

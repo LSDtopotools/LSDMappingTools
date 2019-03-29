@@ -614,17 +614,22 @@ class MapFigure(object):
         # I am recasting the raster to custom extents
         if len(custom_min_max)!=0:
             if len(custom_min_max)== 2:
-                print("I am setting customisable minimum and maximum values: %s ¦¦ %s" %(custom_min_max[0],custom_min_max[1]))
+                print("I am setting customisable minimum and maximum values: "+str(custom_min_max[0])+", "+str(custom_min_max[1]))
                 self._RasterList[-1]._RasterArray[self._RasterList[-1]._RasterArray<custom_min_max[0]] = custom_min_max[0]
                 self._RasterList[-1]._RasterArray[self._RasterList[-1]._RasterArray>custom_min_max[1]] = custom_min_max[1]
             else:
                 print("I cannot customize your minimum and maximum because I don't understand your input. It should be [min,max] with min max as integers or floats")
+        else:
+            print("I am using the full range of values in the raster.")
 
         # We need to initiate with a figure
         #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
         if len(colour_min_max)!=0:
             if len(colour_min_max)== 2:
-                print("I am setting customisable colourbar minimum and maximum values: %s ¦¦ %s" %(colour_min_max[0],colour_min_max[1]))
+                print("custom min and max are:")
+                print(colour_min_max[0])
+                print(colour_min_max[1])
+                print("I am setting customisable colourbar minimum and maximum values: "+str(colour_min_max[0])+","+str(colour_min_max[1]))
                 if(nroma == "LogNorm"):
                     im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, norm = mpl.colors.LogNorm(vmin=colour_min_max[0], vmax=colour_min_max[1]),zorder=zorder)
                 elif(nroma == "PowerNorm"):
