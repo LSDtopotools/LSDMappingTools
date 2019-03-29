@@ -292,7 +292,8 @@ def main(argv):
     parser.add_argument("-drape_fname", "--drape_fname_prefix", type=str, help="The prefix of a raster that is used in a drape plot WITHOUT EXTENSION!!! If not supplied this will just use the hillshade.")
     parser.add_argument("-drape_cbar_loc", "--drape_cbar_loc", type=str, default = "right", help="This is the location of the colourbar for the drape plot. Options are None, left, right, top and bottom.")
     parser.add_argument("-drape_cbar_label", "--drape_cbar_label", type=str, default = "colourbar_label", help="This is the label on the colourbar.")
-    parser.add_argument("-drape_cmap", "--drape_cmap", type=str, default = "jet", help="This is colourmap. See matplotlib docs for options.")    
+    parser.add_argument("-drape_cmap", "--drape_cmap", type=str, default = "jet", help="This is colourmap. See matplotlib docs for options.") 
+    parser.add_argument("-drape_colour_min_max", "--drape_colour_min_max", type=str, default = "", help="Add a comma separated minimum and maximum colour for plotting.") 
     #===============================================================================
     # Some formatting flags
     
@@ -433,6 +434,7 @@ def main(argv):
     basin_stack_list = parse_list_of_list_from_string(args.basin_lists)
     chi_offset_list = parse_list_from_string(args.chi_offsets)
     fd_offset_list = parse_list_from_string(args.flow_distance_offsets)
+    this_drape_colour_min_max = parse_list_from_string(args.drape_colour_min_max)
 
     # Find the basin keys, if they exist
     BasinInfoDF,existing_basin_keys = DoesBasinInfoExist(this_dir, args.fname_prefix)
@@ -502,9 +504,11 @@ def main(argv):
     # This is the most basic draped plot. 
     if args.plot_drape:
         print("Let me print a drape plot for you.")
+        print("The colour min and max are (if enpty lis, just used min and max of data):")
+        print(this_drape_colour_min_max)
         MakeRasterDirectory(this_dir)
         raster_out_prefix = "/raster_plots/"+out_fname_prefix
-        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label, coord_type = args.coord_type, use_scalebar = args.use_scalebar, drape_cnorm = args.drape_colour_norm)
+        LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label, coord_type = args.coord_type, use_scalebar = args.use_scalebar, drape_cnorm = args.drape_colour_norm, colour_min_max = this_drape_colour_min_max)
         
         
 
