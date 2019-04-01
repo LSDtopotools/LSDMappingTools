@@ -527,8 +527,7 @@ def main(argv):
         print("Let me print a drape plot for you.")
         print("The colour min and max are (if empty lis, just used min and max of data):")
         print(this_drape_colour_min_max)
-        print(this_drape_colour_min_max[0])
-        print(this_drape_colour_min_max[1])
+
         
         MakeRasterDirectory(this_dir)
         raster_out_prefix = "/raster_plots/"+out_fname_prefix
