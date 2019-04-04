@@ -403,3 +403,86 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
                        plotting_data_format = plotting_data_format,
                        label_sources = False, source_thinning_threshold = 0,
                        size_format = size_format, aspect_ratio = figure_aspect_ratio, dpi = dpi, rotate_labels=rotate_labels)
+    
+    
+def PrintMultipleStacked(DataDirectory,fname_prefix, ChannelFileNameList, cmap = "jet", cbar_loc = "bottom", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plot_data_name = "file_number", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2, X_offset = 5, rotate_labels=False):
+    """
+    This function takes a list of files and converst them to a stacked plot
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar.
+        cmap (str or colourmap): The colourmap to use for the plot
+        cbar_loc (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
+                        If you want only a hillshade set to none and the cmap to "gray"
+        size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
+        fig_format (str): An image format. png, pdf, eps, svg all valid
+        dpi (int): The dots per inch of the figure
+        plotting_column (str): the name of the column to plot
+        discrete_colours (bool): if true use a discrete colourmap
+        NColours (int): the number of colours to cycle through when making the colourmap
+        Basin_remove_list (list): A lists containing either key or junction indices of basins you want to remove from plotting
+        Basin_rename_dict (dict): A dict where the key is either basin key or junction index, and the value is a new name for the basin denoted by the key
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
+        axis_data_name (str): the data used as the x axis
+        plot_data_name (str): the data name used to colour the plot
+
+    Returns:
+        Plots of chi or flow distance profiles
+    """
+
+    print("Let me print some multiply stacked profile plots for you")
+
+    # specify the figure size and format
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_size_inches = 6.25
+    elif size_format == "big":
+        fig_size_inches = 16
+    else:
+        fig_size_inches = 4.92126
+    ax_style = "Normal"
+
+    # get the basin IDs to make a discrete colourmap for each ID
+    BasinInfoDF = PlotHelp.ReadBasinInfoCSV(DataDirectory, fname_prefix)
+
+    basin_keys = list(BasinInfoDF['basin_key'])
+    basin_keys = [int(x) for x in basin_keys]
+
+    basin_junctions = list(BasinInfoDF['outlet_junction'])
+    basin_junctions = [float(x) for x in basin_junctions]
+
+    print ('Basin keys are: ')
+    print (basin_keys)
+
+
+    chi_csv_fname = DataDirectory+ChannelFileName
+
+    # Save the image
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+fname_prefix+"_Multistacked_chi."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_Multistacked_chi."+fig_format
+
+    if axis_data_name == "flow_distance" and X_offset <= 10:
+        print("WARNING! You have a weird flow distance offset. I think it is the chi offset. Check your offset.")
+        x_offset = 50000
+    else:
+        x_offset = X_offset
+
+    # print("The colourbar is located on the "+cbar_loc)
+    # print("Cmap is: "+cmap)
+
+    print("About to go into the stacks. My x_offset is: " +str(x_offset)+ ", and my rename dict is:" )
+    print(Basin_rename_dict)
+    LSDCP.StackedProfilesGradient(chi_csv_fname, FigFileName = ImageName,
+                       FigFormat = fig_format,elevation_threshold = 0,
+                       first_basin = first_basin, last_basin = last_basin, basin_order_list = Basin_select_list,
+                       basin_rename_dict = Basin_rename_dict,
+                       this_cmap = cmap,axis_data_name = axis_data_name, colour_data_name = plot_data_name,
+                       discrete_colours = discrete_colours, NColours = NColours,
+                       colorbarlabel = colorbarlabel, cbar_loc = cbar_loc, X_offset = x_offset,
+                       plotting_data_format = plotting_data_format,
+                       label_sources = False, source_thinning_threshold = 0,
+                       size_format = size_format, aspect_ratio = figure_aspect_ratio, dpi = dpi, rotate_labels=rotate_labels)

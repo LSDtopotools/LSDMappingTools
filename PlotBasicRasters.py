@@ -75,13 +75,13 @@ def MakeBasemapDirectory(this_dir):
 #=============================================================================    
 def parse_list_from_string(a_string):
     """
-    This just parses a comma separated string and returns an INTEGER list
+    This just parses a comma separated string and returns an INTEGER or FLOAT list
     
     Args: 
         a_string (str): The string to be parsed
         
     Returns:
-        A list of integers
+        A list of integers or floats. Floats if there is a decimal in the string
         
     Author: SMM
     
@@ -98,6 +98,34 @@ def parse_list_from_string(a_string):
         print(return_list)
     else:
         return_list = [int(item) for item in a_string.split(',')]
+        print("The parsed string is:")
+        print(return_list)
+        
+    return return_list
+
+#=============================================================================
+# This parses a comma separated string of strongs
+#=============================================================================    
+def parse_string_list_from_string(a_string):
+    """
+    This just parses a comma separated string and returns an string list
+    
+    Args: 
+        a_string (str): The string to be parsed
+        
+    Returns:
+        A list of strings
+        
+    Author: SMM
+    
+    Date: 10/01/2018
+    """
+    print("Hey pardner, I'm a gonna parse a string into a list. Yeehaw.")
+    if len(a_string) == 0:
+        print("No items found, I am returning and empty list.")
+        return_list = []
+    else:
+        return_list = a_string.split(',')
         print("The parsed string is:")
         print(return_list)
         
@@ -308,11 +336,12 @@ def main(argv):
     parser.add_argument("-drape_cbar_label", "--drape_cbar_label", type=str, default = "colourbar_label", help="This is the label on the colourbar.")
     parser.add_argument("-drape_cmap", "--drape_cmap", type=str, default = "jet", help="This is colourmap. See matplotlib docs for options.") 
     parser.add_argument("-drape_colour_min_max", "--drape_colour_min_max", default = "", help="Add a comma separated minimum and maximum colour for plotting. WARNING if one of the floats in negative you need to add a space before it in the string or else it will be treated as an option.") 
+
+    
     #===============================================================================
-    # Some formatting flags
-    
-    
-    
+    # These are some arguments for stacking plots
+    parser.add_argument("-profile_stack_fnames", "--profile_stack_fnames", type=str, default = "", help="This is a comma separated list of file prefixes for stacking profile plots.")
+   
     
     #===============================================================================
     # Selecting and renaming basins
@@ -331,6 +360,7 @@ def main(argv):
     parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.") 
     parser.add_argument("-SimpleChFmt", "--simple_channel_format", type=str, default="elevation", help="The column in the channel file used to colour the channels.")    
     parser.add_argument("-SStack", "--simple_stacked_plots", type=bool, default=False, help="Plots chi and  channel profile plots using only the chi data map csv.")  
+    parser.add_argument("-MStack", "--multiple_stacked_plots", type=bool, default=False, help="Plots profiles from different files on top of one another.")  
     
     #===============================================================================    
     # What sort of analyses you want--these are rather simple versions   
@@ -450,6 +480,7 @@ def main(argv):
     chi_offset_list = parse_list_from_string(args.chi_offsets)
     fd_offset_list = parse_list_from_string(args.flow_distance_offsets)
     this_drape_colour_min_max = parse_list_from_string(args.drape_colour_min_max)
+    profile_stack_files = parse_string_list_from_string(args.profile_stack_fnames)
     
     # Get the colour min and max
     #if (args.drape_colour_min_max[0] == -99.99 & args.drape_colour_min_max[1] == -99.99):
@@ -723,6 +754,36 @@ def main(argv):
             # This prints the channel profiles coloured by source number
             LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)    
 
+    if args.multiple_stacked_plots:
+        
+        print("I am going to stack some profile plots for you.")
+        print("The list of profile files is: ")
+        print(profile_stack_files)
+        
+       # check if a chi profile directory exists. If not then make it.
+        chi_profile_directory = this_dir+'chi_profile_plots/'
+        if not os.path.isdir(chi_profile_directory):
+            os.makedirs(chi_profile_directory)   
+            
+        ChannelFnameList = []
+        for file in profile_stack_files:
+            ChannelFname = args.base_directory+"/"+file+"_chi_data_map.csv"
+            ChannelFnameList.append(ChannelFname)
+            
+        print("Filenames are:")
+        print(ChannelFnameList)
+            
+
+        # Get the names of the relevant files
+        little_list = [0]
+        this_prefix = "chi_profile_plots/MultiStacked_"
+        # This prints the channel profiles coloured by source number
+        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFnameList, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = 0, figure_aspect_ratio = args.figure_aspect_ratio)  
+            
+            
+        
+    
+            
     if args.all_stacked_plots:
  
         # check if a chi profile directory exists. If not then make it.
