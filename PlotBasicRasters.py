@@ -778,7 +778,7 @@ def main(argv):
         little_list = [0]
         this_prefix = "chi_profile_plots/MultiStacked_"
         # This prints the channel profiles coloured by source number
-        LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFnameList, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = 0, figure_aspect_ratio = args.figure_aspect_ratio)  
+        LSDMW.PrintMultipleStacked(this_dir, args.fname_prefix, ChannelFnameList, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = 0, figure_aspect_ratio = args.figure_aspect_ratio)  
             
             
         

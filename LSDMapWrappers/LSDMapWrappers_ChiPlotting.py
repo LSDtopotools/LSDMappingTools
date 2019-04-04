@@ -19,6 +19,7 @@ matplotlib.use('Agg')
 
 
 import matplotlib.pyplot as plt
+import pandas as pd
 import matplotlib
 from matplotlib import rcParams
 
@@ -405,14 +406,14 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
                        size_format = size_format, aspect_ratio = figure_aspect_ratio, dpi = dpi, rotate_labels=rotate_labels)
     
     
-def PrintMultipleStacked(DataDirectory,fname_prefix, ChannelFileNameList, cmap = "jet", cbar_loc = "bottom", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plot_data_name = "file_number", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2, X_offset = 5, rotate_labels=False):
+def PrintMultipleStacked(DataDirectory,fname_prefix, ChannelFileNameList, cmap = "jet", cbar_loc = "bottom", size_format = "ESURF", fig_format = "png", dpi = 250,discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2, X_offset = 5, rotate_labels=False):
     """
     This function takes a list of files and converst them to a stacked plot
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
-        add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar.
+        ChannelFileNameList (str): A list of strongs with the full paths to the csv files containg the profile data
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_loc (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
@@ -429,9 +430,12 @@ def PrintMultipleStacked(DataDirectory,fname_prefix, ChannelFileNameList, cmap =
         plot_data_name (str): the data name used to colour the plot
 
     Returns:
-        Plots of chi or flow distance profiles
+        Plots of chi or flow distance profiles stacked on top of each other
     """
 
+    # We need to import this because we need to convert point formats
+    import LSDPlottingTools.LSDMap_PointTools as LSDMap_PD
+    
     print("Let me print some multiply stacked profile plots for you")
 
     # specify the figure size and format
@@ -443,21 +447,6 @@ def PrintMultipleStacked(DataDirectory,fname_prefix, ChannelFileNameList, cmap =
     else:
         fig_size_inches = 4.92126
     ax_style = "Normal"
-
-    # get the basin IDs to make a discrete colourmap for each ID
-    BasinInfoDF = PlotHelp.ReadBasinInfoCSV(DataDirectory, fname_prefix)
-
-    basin_keys = list(BasinInfoDF['basin_key'])
-    basin_keys = [int(x) for x in basin_keys]
-
-    basin_junctions = list(BasinInfoDF['outlet_junction'])
-    basin_junctions = [float(x) for x in basin_junctions]
-
-    print ('Basin keys are: ')
-    print (basin_keys)
-
-
-    chi_csv_fname = DataDirectory+ChannelFileName
 
     # Save the image
     if len(out_fname_prefix) == 0:
@@ -473,16 +462,36 @@ def PrintMultipleStacked(DataDirectory,fname_prefix, ChannelFileNameList, cmap =
 
     # print("The colourbar is located on the "+cbar_loc)
     # print("Cmap is: "+cmap)
+    
+    # Now we need to reformat the data into a single data frame and then print the data frame to csv
+    PD_list = []
+    i = 0;
+    for fname in ChannelFileNameList:
+        #print("Getting data from the file: "+ChannelFileNameList[i])
+        new_DF = pd.read_csv(ChannelFileNameList[i], sep=",")
+        elev = new_DF["elevation"].tolist()
+        n_data = len(elev)
+        #print("The number of elevations are:"+str(n_data))
+        this_index = [i]*n_data
+        new_DF['file_index'] = pd.Series(this_index, index=new_DF.index)
+        #print("The new dataframe is:")
+        #print(new_DF)
+        PD_list.append(new_DF)
+        i = i+1
+        
+    new_csv = DataDirectory+fname_prefix+"_concat_chi.csv"
+    print("Printing to")
+    print(new_csv)
+    
+    concat_DF = pd.concat([PD_list[0],PD_list[1]]) 
+    concat_DF.to_csv(path_or_buf=new_csv,index=False)
+    
+    chi_csv_fname = new_csv
+    plot_data_name = "file_index"
+    
+    
+    
 
-    print("About to go into the stacks. My x_offset is: " +str(x_offset)+ ", and my rename dict is:" )
-    print(Basin_rename_dict)
-    LSDCP.StackedProfilesGradient(chi_csv_fname, FigFileName = ImageName,
-                       FigFormat = fig_format,elevation_threshold = 0,
-                       first_basin = first_basin, last_basin = last_basin, basin_order_list = Basin_select_list,
-                       basin_rename_dict = Basin_rename_dict,
-                       this_cmap = cmap,axis_data_name = axis_data_name, colour_data_name = plot_data_name,
-                       discrete_colours = discrete_colours, NColours = NColours,
-                       colorbarlabel = colorbarlabel, cbar_loc = cbar_loc, X_offset = x_offset,
-                       plotting_data_format = plotting_data_format,
-                       label_sources = False, source_thinning_threshold = 0,
-                       size_format = size_format, aspect_ratio = figure_aspect_ratio, dpi = dpi, rotate_labels=rotate_labels)
+    #print("About to go into the stacks. My x_offset is: " +str(x_offset)+ ", and my rename dict is:" )
+    #print(Basin_rename_dict)
+    LSDCP.StackedProfilesGradient(chi_csv_fname, FigFileName = ImageName,FigFormat = fig_format,elevation_threshold = 0,first_basin = first_basin, last_basin = last_basin, basin_order_list = Basin_select_list,basin_rename_dict = Basin_rename_dict,this_cmap = cmap,axis_data_name = axis_data_name, colour_data_name = plot_data_name,discrete_colours = discrete_colours, NColours = NColours,colorbarlabel = colorbarlabel, cbar_loc = cbar_loc, X_offset = x_offset,plotting_data_format = plotting_data_format,label_sources = False, source_thinning_threshold = 0,size_format = size_format, aspect_ratio = figure_aspect_ratio, dpi = dpi, rotate_labels=rotate_labels)
