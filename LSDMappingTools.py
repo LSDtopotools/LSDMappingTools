@@ -538,7 +538,7 @@ def DrapedPlot(FileName,DrapeFilename):
     ax1.set_xlabel("Easting (m)")
     ax1.set_ylabel("Northing (m)")
     
-    plt.hold(True)    
+    #plt.hold(True)    
     im2 = ax1.imshow(DrapeRaster, cmap=plt.cm.jet, alpha=.6, extent = extent_raster)    
     
     #im.set_clim(0, np.max(raster))

@@ -691,7 +691,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
         print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
 
-    plt.hold(True)
+    #plt.hold(True)
 
     # Now for the drape: it is in grayscale
     im3 = ax.imshow(raster_drape[::-1], drape_cmap, extent = extent_raster, alpha = drape_alpha, interpolation="nearest")
@@ -1072,7 +1072,7 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
         print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
 
-    plt.hold(True)
+    #plt.hold(True)
 
     # Now for the drape: it is in grayscale
     #print "drape_cmap is: "+drape_cmap
@@ -1214,7 +1214,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, basin_
         print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
 
-    plt.hold(True)
+    #plt.hold(True)
 
     # Now for the drape: it is in grayscale
     #print "drape_cmap is: "+drape_cmap

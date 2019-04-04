@@ -245,7 +245,7 @@ def BasicChiPlotGridPlotKirby(FileName, DrapeName, chi_csv_fname, thiscmap='gray
         print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
 
-    plt.hold(True)
+    #plt.hold(True)
 
     # Now for the drape: it is in grayscale
     #print "drape_cmap is: "+drape_cmap
@@ -402,7 +402,7 @@ def BasicChiPlotGridPlot(FileName, DrapeName, chi_csv_fname, thisPointData, this
         print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
 
-    plt.hold(True)
+    #plt.hold(True)
 
     # Now for the drape: it is in grayscale
     #print "drape_cmap is: "+drape_cmap
@@ -574,7 +574,7 @@ def BasicChiCoordinatePlot(FileName, DrapeName, csvfile, thiscmap='gray',drape_c
         print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
 
-    plt.hold(True)
+    #plt.hold(True)
 
     # Now for the drape: it is in grayscale
     #print "drape_cmap is: "+drape_cmap
@@ -743,7 +743,7 @@ def BasicChannelPlotGridPlotCategories(FileName, DrapeName, chi_csv_fname, thisc
         print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
 
-    plt.hold(True)
+    #plt.hold(True)
 
     # Now for the drape: it is in grayscale
     #print "drape_cmap is: "+drape_cmap
@@ -908,7 +908,7 @@ def BasicChannelPlotByBasin(FileName, DrapeName, chi_csv_fname, thiscmap='gray',
         print("Now setting colour limits to "+str(clim_val[0])+" and "+str(clim_val[1]))
         im1.set_clim(clim_val[0],clim_val[1])
 
-    plt.hold(True)
+    #plt.hold(True)
 
     # Now for the drape: it is in grayscale
     #print "drape_cmap is: "+drape_cmap
@@ -1376,7 +1376,7 @@ def StackedChiProfiles(chi_csv_fname, FigFileName = 'Image.pdf',
     cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
     #scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
     Source_colors = [x % NUM_COLORS for x in Source]
-    plt.hold(True)
+    #plt.hold(True)
 
     # Logic for stacked labels. You need to run this after source thinning to
     # get an updated source dict
@@ -1669,7 +1669,7 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         elevation_range = z_axis_max-z_axis_min
         z_axis_min = z_axis_min - 0.075*elevation_range
 
-    plt.hold(True)
+    #plt.hold(True)
 
 
     # Now calculate the spacing of the stacks
