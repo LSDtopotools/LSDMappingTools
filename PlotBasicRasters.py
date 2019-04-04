@@ -329,7 +329,8 @@ def main(argv):
     parser.add_argument("-PCh", "--plot_channels", type=bool, default=False, help="If this is true, I'll make a simple plot of channels.") 
     parser.add_argument("-PD", "--plot_drape", type=bool, default=False, help="If this is true, I'll make a simple draped plot that puts a colour scale on a drape of your choice.")
     parser.add_argument("-PC", "--plot_chi_coord", type=bool, default=False, help="If this is true, I'll make a chi coordinate plot.") 
-    parser.add_argument("-SimpleChFmt", "--simple_channel_format", type=str, default="elevation", help="The colum in the channel file used to colour the channels.")     
+    parser.add_argument("-SimpleChFmt", "--simple_channel_format", type=str, default="elevation", help="The column in the channel file used to colour the channels.")    
+    parser.add_argument("-SStack", "--simple_stacked_plots", type=bool, default=False, help="Plots chi and  channel profile plots using only the chi data map csv.")  
     
     #===============================================================================    
     # What sort of analyses you want--these are rather simple versions   
@@ -685,7 +686,43 @@ def main(argv):
         
         # Now plot the channels coloured by the source number
         LSDMW.PrintChiChannelsAndBasins(this_dir, args.fname_prefix, ChannelFileName = ChannelFname, add_basin_labels = False, cmap = "tab20b", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,plotting_column="source_key", Basin_remove_list = Mask_basin_keys, Basin_rename_dict = this_rename_dict, value_dict = this_value_dict, out_fname_prefix = raster_out_prefix+"sources", discrete_colours = True, NColours = 20, colour_log = False)
+  
+    if args.simple_stacked_plots:
+ 
+        # check if a chi profile directory exists. If not then make it.
+        chi_profile_directory = this_dir+'chi_profile_plots/'
+        if not os.path.isdir(chi_profile_directory):
+            os.makedirs(chi_profile_directory)   
+
+        # Get the names of the relevant files
+        ChannelFname = args.fname_prefix+"_chi_data_map.csv"
         
+        raster_out_prefix = "/raster_plots/"+args.fname_prefix       
+        
+        print("I am going to plot simple chi and channel profile plots for you.")
+        cbl = "$\mathrm{log}_{10} \; \mathrm{of} \; k_{sn}$"  
+        print("The basins to print are")
+        print(basin_stack_list)
+        
+        i = 0
+        for little_list in basin_stack_list:
+            i = i+1
+            this_prefix = "chi_profile_plots/SimpleStacked_"+str(i) 
+            
+            print("The offset is: ")
+            print("chi: "+str(final_chi_offsets[i-1]) )
+            print("flow distance: "+ str(final_fd_offsets[i-1]) )
+            
+            
+            # This prints the chi profiles coloured by k_sn
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="chi",plot_data_name = "elevation",colorbarlabel = cbl, cbar_loc = "bottom", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi",X_offset = final_chi_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)
+        
+            # This prints channel profiles coloured by k_sn
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "elevation", plotting_data_format = 'log', colorbarlabel = cbl, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_FD", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)    
+
+            # This prints the channel profiles coloured by source number
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)    
+
     if args.all_stacked_plots:
  
         # check if a chi profile directory exists. If not then make it.

@@ -325,7 +325,7 @@ def PrintChiCoordChannelsAndBasins(DataDirectory,fname_prefix, ChannelFileName, 
 
 def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", cbar_loc = "bottom", size_format = "ESURF", fig_format = "png", dpi = 250,plotting_column = "source_key",discrete_colours = False, NColours = 10,colorbarlabel = "Colourbar", axis_data_name = "chi", plot_data_name = "m_chi", plotting_data_format = 'log', Basin_select_list = [], Basin_rename_dict = {}, out_fname_prefix = "", first_basin = 0, last_basin = 0, figure_aspect_ratio = 2, X_offset = 5, rotate_labels=False):
     """
-    This function prints a channel map over a hillshade.
+    This function prints chi profiles with stacks of chi or flow distance
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
@@ -347,7 +347,7 @@ def PrintChiStacked(DataDirectory,fname_prefix, ChannelFileName, cmap = "jet", c
         plot_data_name (str): the data name used to colour the plot
 
     Returns:
-        Shaded relief plot with the basins coloured by basin ID. Includes channels. These can be plotted by various metrics denoted but the plotting_column parameter.
+        Plots of chi or flow distance profiles
     """
 
 
