@@ -745,11 +745,11 @@ def main(argv):
             print("flow distance: "+ str(final_fd_offsets[i-1]) )
             
             
-            # This prints the chi profiles coloured by k_sn
-            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="chi",plot_data_name = "elevation",colorbarlabel = cbl, cbar_loc = "bottom", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi",X_offset = final_chi_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)
+            # This prints the chi profiles coloured by elevation
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="chi",plot_data_name = "elevation", plotting_data_format = 'normal',colorbarlabel = "elevation (m)", cbar_loc = "bottom", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi",X_offset = final_chi_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)
         
-            # This prints channel profiles coloured by k_sn
-            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "elevation", plotting_data_format = 'log', colorbarlabel = cbl, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_FD", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)    
+            # This prints channel profiles coloured by elevation
+            LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "viridis", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "elevation", plotting_data_format = 'normal', colorbarlabel = "elevation (m)", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_FD", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)    
 
             # This prints the channel profiles coloured by source number
             LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = "tab20b", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="flow_distance",plot_data_name = "source_key", plotting_data_format = 'normal', colorbarlabel = cbl, cbar_loc = "None", discrete_colours = True, NColours = 20, Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_Sources", X_offset = final_fd_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio)    
