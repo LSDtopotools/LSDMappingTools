@@ -1367,7 +1367,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
         mchi_upper_err.append(mchi_upperP-this_median)
 
     # set up the figure
-    fig, ax = plt.subplots(nrows = 8, ncols=1, sharex=True, figsize=(6,15), facecolor='white')
+    fig, ax = plt.subplots(nrows = 7, ncols=1, sharex=True, figsize=(6,12), facecolor='white')
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
@@ -1409,31 +1409,31 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     # get the data
     uplift_rate_old = uplift_df['Uplift_rate_old']
     uplift_rate_new = uplift_df['Uplift_rate_new']
-    ax[6].scatter(basin_keys, uplift_rate_new, c='None', edgecolors='k', label = '0 - 72 ka')
-    ax[6].scatter(basin_keys, uplift_rate_old, edgecolors='k', c='k', label = '96 - 305 ka')
+    #ax[6].scatter(basin_keys, uplift_rate_new, c='None', edgecolors='k', label = '0 - 72 ka')
+    ax[6].plot(basin_keys, uplift_rate_new, c='k', ls='--', label = '96 - 305 ka')
     ax[6].set_ylabel('Uplift rate (mm/yr)')
-    ax[6].legend(loc='upper right')
+    #ax[6].legend(loc='upper right')
 
     # erosion rate
     be_erosion = uplift_df['Erosion_rate_Be']
     al_erosion = uplift_df['Erosion_rate_Al']
     al_min_erosion = uplift_df['Al_min']
-    # ax[7].scatter(basin_keys, be_erosion, c='k', label='Be')
-    ax[7].errorbar(basin_keys, be_erosion, xerr=None, yerr=uplift_df['Be_error'], fmt='o', ecolor='0.5',markersize=6,mec='k', mfc='k', label='Be')
-    # ax[7].scatter(basin_keys, al_erosion, c='None', edgecolors='k', marker='D', label='Al')
-    ax[7].errorbar(basin_keys, al_erosion, xerr=None, yerr=uplift_df['Al_error'], fmt='D', ecolor='0.5', markersize=6, mec='k', mfc='white', label='Al')
-    ax[7].scatter(basin_keys, al_min_erosion, c='None', edgecolors='k', marker='^', label='Al (min)')
-    ax[7].set_ylabel('Erosion rate (mm/yr)')
-    ax[7].legend(loc='upper right')
+    # # ax[7].scatter(basin_keys, be_erosion, c='k', label='Be')
+    # ax[7].errorbar(basin_keys, be_erosion, xerr=None, yerr=uplift_df['Be_error'], fmt='o', ecolor='0.5',markersize=6,mec='k', mfc='k', label='Be')
+    # # ax[7].scatter(basin_keys, al_erosion, c='None', edgecolors='k', marker='D', label='Al')
+    # ax[7].errorbar(basin_keys, al_erosion, xerr=None, yerr=uplift_df['Al_error'], fmt='D', ecolor='0.5', markersize=6, mec='k', mfc='white', label='Al')
+    # ax[7].scatter(basin_keys, al_min_erosion, c='None', edgecolors='k', marker='^', label='Al (min)')
+    # ax[7].set_ylabel('Erosion rate (mm/yr)')
+    # ax[7].legend(loc='upper right')
 
     # set the axes labels
-    ax[7].set_xlabel('Basin ID')
+    ax[6].set_xlabel('Basin ID')
     plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1), rotation=45, fontsize=8)
     plt.tight_layout()
     #plt.subplots_adjust(bottom=0.1)
 
     #save output
-    plt.savefig(PlotDirectory+FilenamePrefix +"_basin_hillslope_data.png", dpi=300)
+    plt.savefig(PlotDirectory+FilenamePrefix +"_basin_hillslope_data.pdf", dpi=300)
     plt.clf()
 
     output_list = [('basin_keys', basin_keys),
@@ -1654,7 +1654,10 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     tick_locator = ticker.MaxNLocator(nbins=5)
     cbar.locator = tick_locator
     cbar.update_ticks()
+    cbar.ax.invert_yaxis()
     cbar.set_label('Basin ID')
+
+    print("Made the E*R* plots")
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix +"_estar_rstar_subplots.png", dpi=300)
