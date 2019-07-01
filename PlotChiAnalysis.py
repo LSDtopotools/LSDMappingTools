@@ -496,11 +496,6 @@ def main(argv):
             i = i+1
             this_prefix = "chi_profile_plots/Stacked_"+str(i)
 
-            print("The offset is: ")
-            print("chi: "+str(final_chi_offsets[i-1]) )
-            print("flow distance: "+ str(final_fd_offsets[i-1]) )
-
-
             # This prints the chi profiles coloured by k_sn
             LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = args.cmap, size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, plotting_data_format=args.plotting_data_format, cbar_loc = "bottom", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi",X_offset = final_chi_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio, rotate_labels = args.rotate_labels)
 

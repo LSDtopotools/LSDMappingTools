@@ -1729,6 +1729,8 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         maskElevation = np.ma.masked_where(np.ma.getmask(m), Elevation)
         maskMChi = np.ma.masked_where(np.ma.getmask(m), M_chi)
         maskSource = np.ma.masked_where(np.ma.getmask(m), Source)
+        
+        
 
         print("adding an offset of: "+str(this_X_offset))
 
@@ -1820,7 +1822,22 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
                         verticalalignment='bottom', horizontalalignment='left',fontsize=8,bbox=bbox_props))
 
         # Now plot the scatter for this stack. The colour limits are for all plots
+        print("The min and max are:")
+        print([M_chi_axis_min,M_chi_axis_max])
+        
+        print("The cmap is:")
+        print(this_cmap)
+        
+        print("The mChi is:")
+        print(maskMChi)
+        
+        print("the chi is:")
+        print(maskX)
+        
         cnorm = colors.Normalize( M_chi_axis_min, M_chi_axis_max)
+              
+        print("cmap is:")
+        print(this_cmap)
         sc = ax.scatter(maskX,maskElevation,s=2.0, c=maskMChi,cmap=this_cmap,edgecolors='none',norm = cnorm, vmin = M_chi_axis_min, vmax = M_chi_axis_max)
 
         # increment the offset
@@ -1834,11 +1851,14 @@ def StackedProfilesGradient(chi_csv_fname, FigFileName = 'Image.pdf',
         cbar_orient = "horizontal"
         if cbar_loc == "right" or cbar_loc == "left":
             cbar_orient = "vertical"
+            
+        print("The colourbar orientation is:"+cbar_orient)
+        print("The normalisation is")
+        print(cnorm)
 
         ax2 = fig.add_axes([0.1,0.8,0.2,0.5])
-        cbar = mpl.colorbar.ColorbarBase(ax2, cmap=this_cmap,
-                                norm=cnorm,
-                                orientation=cbar_orient)
+        #cbar = mpl.colorbar.ColorbarBase(ax2,orientation=cbar_orient,norm=cnorm,cmap=cmap_for_cbar)
+        cbar = plt.colorbar(sc,orientation=cbar_orient,norm=cnorm,cmap=this_cmap,cax=ax2)
 
         #Will's changes:
         # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
