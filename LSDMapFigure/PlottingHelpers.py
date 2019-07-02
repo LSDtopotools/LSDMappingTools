@@ -494,7 +494,7 @@ def ReadChiProfileCSV(DataDirectory, fname_prefix):
 
 def ReadBasinStatsCSV(DataDirectory, fname_prefix):
     """
-    This function reads in the file with the suffix '_movernstats_basinstats.csv'
+    This function reads in the file with the suffix '_disorder_basinstats.csv'
     to a pandas dataframe
 
     Args:
@@ -507,7 +507,7 @@ def ReadBasinStatsCSV(DataDirectory, fname_prefix):
     Author: FJC
     """
     # get the csv filename
-    basin_stats_suffix = '_movernstats_basinstats.csv'
+    basin_stats_suffix = '_disorder_basinstats.csv'
     fname = fname_prefix+basin_stats_suffix
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)
@@ -530,7 +530,7 @@ def AppendBasinStatsCSVs(DataDirectory, FilenamePrefix):
     """
 
     # get the csv filename
-    basin_stats_suffix = '_movernstats_basinstats.csv'
+    basin_stats_suffix = '_disorder_basinstats.csv'
 
     # decclare empty data frame
     MasterDF = pd.DataFrame()

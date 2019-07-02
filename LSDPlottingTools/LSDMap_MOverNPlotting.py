@@ -430,6 +430,20 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     summary_directory = DataDirectory+'summary_plots/'
     if not os.path.isdir(summary_directory):
         os.makedirs(summary_directory)
+        
+    # First, we need to check if the full chi actually is there
+    Fname_bootstrap_stats = DataDirectory+fname_prefix+'_movernstats_basinstats.csv'
+    from pathlib import Path
+
+    bootstrap_exists = False
+    my_file = Path(Fname_bootstrap_stats)
+    if my_file.is_file():
+        bootstrap_exists = True
+        print("The bootstrap data exists. I hope it was worth the wait. ")
+    else:
+        print("I did not find bootstrap data, so I am assuming only S-A data and disorder data.")
+        
+    
 
     # read in the full chi dataframe
     if not parallel:
@@ -448,28 +462,22 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['basin_key'] = pd.Series(basin_list)
 
     # get the best fit m/n for each basin in the list from the full chi method
-    FullChiMOverNDict = SimpleMaxMLECheck(FullChiBasinDF)
-    OutDF['Chi_MLE_full'] = OutDF['basin_key'].map(FullChiMOverNDict)
+    if bootstrap_exists:
+        FullChiMOverNDict = SimpleMaxMLECheck(FullChiBasinDF)
+        OutDF['Chi_MLE_full'] = OutDF['basin_key'].map(FullChiMOverNDict)
 
     # get the best fit m/n from the points method
-    if not parallel:
-        PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
-    else:
-        PointsChiBasinDF = Helper.AppendBasinPointCSVs(DataDirectory,fname_prefix)
-    PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
+    if bootstrap_exists:
+        if not parallel:
+            PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
+        else:
+            PointsChiBasinDF = Helper.AppendBasinPointCSVs(DataDirectory,fname_prefix)
+        PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
 
-    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF, start_movern, d_movern, n_movern)
-    OutDF['Chi_MLE_points'] = UncertaintyDF['Median_MOverNs']
-    OutDF['Chi_MLE_points_min'] = UncertaintyDF['Min_MOverNs']
-    OutDF['Chi_MLE_points_max'] = UncertaintyDF['Max_MOverNs']
-
-    # We don't do this any more since residuals don't work!!!
-    #print ("Now getting the m/n from the chi residuals")
-    # get the best fit m/n from the chi residuals method
-    #ResidualsDF = GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list, parallel=parallel)
-    #OutDF['Chi_residuals'] = ResidualsDF['Median_MOverNs']
-    #OutDF['Chi_residuals_min'] = ResidualsDF['FirstQ_MOverNs']
-    #OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
+        UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF, start_movern, d_movern, n_movern)
+        OutDF['Chi_MLE_points'] = UncertaintyDF['Median_MOverNs']
+        OutDF['Chi_MLE_points_min'] = UncertaintyDF['Min_MOverNs']
+        OutDF['Chi_MLE_points_max'] = UncertaintyDF['Max_MOverNs']
 
     print ("Getting the m/n from the SA data")
 
@@ -2186,6 +2194,8 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # read in the summary csv
     df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
+    
+    
 
     if basin_list != []:
         basin_keys = basin_list
@@ -2201,44 +2211,49 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     full_chi_keys = full_chi_keys.astype(float) - 0.2
     print("Full chi keys are: ")
     print(full_chi_keys)
-
-    if Chi_all:
-        ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
-
-    # plot the points data
-    median_movern = df['Chi_MLE_points'].values
-    points_max_err = df['Chi_MLE_points_max'].values
-    points_max_err = points_max_err.astype(float)-median_movern.astype(float)
-    points_min_err = df['Chi_MLE_points_min'].values
-    points_min_err = median_movern.astype(float)-points_min_err.astype(float)
-    errors = np.array(list(zip(points_min_err, points_max_err))).T
     
-    print("The errors or the point data are")
-    print(errors)
+    # Now check what is in the dataframe
+    if 'Chi_MLE_full' in df:
+        if Chi_all:
+            ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
 
-    print(df['basin_key'].values)
-    points_chi_keys = df['basin_key'].values
-    points_chi_keys = points_chi_keys.astype(float) - 0.1
+    # Now see if there is points data
+    if 'Chi_MLE_points' in df:
+        # plot the points data
+        median_movern = df['Chi_MLE_points'].values
+        points_max_err = df['Chi_MLE_points_max'].values
+        points_max_err = points_max_err.astype(float)-median_movern.astype(float)
+        points_min_err = df['Chi_MLE_points_min'].values
+        points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+        errors = np.array(list(zip(points_min_err, points_max_err))).T
+    
+        print("The errors or the point data are")
+        print(errors)
 
-    if Chi_bootstrap:
-        ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors,
+        print(df['basin_key'].values)
+        points_chi_keys = df['basin_key'].values
+        points_chi_keys = points_chi_keys.astype(float) - 0.1
+
+        if Chi_bootstrap:
+            ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors,
                     ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
-        ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k',
+            ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k',
                    lw=0.5,facecolors='#fdbb84', label='Chi bootstrap',zorder=200)
 
     # plot the chi disorder data if you want it
-    if Chi_disorder:
-        median_movern = df['Chi_disorder'].values
-        points_max_err = df['Chi_disorder_max'].values
-        points_max_err = points_max_err.astype(float)-median_movern.astype(float)
-        points_min_err = df['Chi_disorder_min'].values
-        points_min_err = median_movern.astype(float)-points_min_err.astype(float)
-        errors = np.array(list(zip(points_min_err, points_max_err))).T
+    if 'Chi_disorder' in df:
+        if Chi_disorder:
+            median_movern = df['Chi_disorder'].values
+            points_max_err = df['Chi_disorder_max'].values
+            points_max_err = points_max_err.astype(float)-median_movern.astype(float)
+            points_min_err = df['Chi_disorder_min'].values
+            points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+            errors = np.array(list(zip(points_min_err, points_max_err))).T
 
-        disorder_chi_keys = df['basin_key'].values
-        disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
-        ax.errorbar(disorder_chi_keys, df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
-        ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#F06292', s=15, zorder=100, label='Chi disorder')
+            disorder_chi_keys = df['basin_key'].values
+            disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
+            ax.errorbar(disorder_chi_keys, df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
+            ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#F06292', s=15, zorder=100, label='Chi disorder')
 
 
     # plot the SA data
@@ -2499,19 +2514,31 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     else:
       print ("MakeMOverNSummaryHistogram not parallelised yet")
       return
+    
+    Chi_disorder_only = False
+    if Chi_disorder: 
+        if 'Chi_MLE_points' not in df:
+            print("I didn't find a bootstrap data line. Switching to disorder only")
+            Chi_disorder_only= True
 
     # get the basin keys
     basin_keys = df['basin_key'].tolist()
     print (basin_keys)
-    if Chi_disorder:
-        columns = ['Chi_MLE_full', 'Chi_MLE_points', 'Chi_disorder', 'SA_raw', 'SA_segments']
-        these_labels = ['Chi all data', 'Chi bootstrap', 'Chi disorder', 'S-A all data', 'Segmented S-A']
-        colours = ['#e34a33', '#fdbb84', '#F06292', '#2b8cbe', '#a6bddb']
-
+    if Chi_disorder_only:
+        columns = ['Chi_disorder', 'SA_raw', 'SA_segments']
+        these_labels = ['Chi disorder', 'S-A all data', 'Segmented S-A']
+        colours = ['#F06292', '#2b8cbe', '#a6bddb']
     else:
-        columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
-        these_labels = ['Chi all data', 'Chi bootstrap', 'S-A all data', 'Segmented S-A']
-        colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
+        if Chi_disorder:
+            columns = ['Chi_MLE_full', 'Chi_MLE_points', 'Chi_disorder', 'SA_raw', 'SA_segments']
+            these_labels = ['Chi all data', 'Chi bootstrap', 'Chi disorder', 'S-A all data', 'Segmented S-A']
+            colours = ['#e34a33', '#fdbb84', '#F06292', '#2b8cbe', '#a6bddb']
+
+        else:
+            columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
+            these_labels = ['Chi all data', 'Chi bootstrap', 'S-A all data', 'Segmented S-A']
+            colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
+            
     x_spacing = 0.1
     fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit '+r'$\theta$' +' distribution',x_spacing=x_spacing)
     #plt.xlabel('Best fit $m/n$')
