@@ -2539,9 +2539,17 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
             these_labels = ['Chi all data', 'Chi bootstrap', 'S-A all data', 'Segmented S-A']
             colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
             
-    x_spacing = 0.1
+    x_spacing = 0.05
     fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit '+r'$\theta$' +' distribution',x_spacing=x_spacing)
     #plt.xlabel('Best fit $m/n$')
+    
+    # change tick spacing
+    x_loc = np.arange(0,1.01,0.05)
+    print("x_loc is:")
+    print(x_loc)
+    labels = ["0","","","","0.2","","","","0.4","","","","0.6","","","","0.8","","","","1"]
+    plt.xticks(x_loc, labels, rotation='vertical')
+    
 
     newFilename = summary_directory+fname_prefix+"_movern_hist."+FigFormat
 
