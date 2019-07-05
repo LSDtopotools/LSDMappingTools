@@ -1354,6 +1354,167 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             subprocess.call(system_call, shell=True)
     plt.close(fig)
 
+    
+    
+def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7,
+                    size_format='ESURF', FigFormat='png', animate=False, keep_pngs=False, parallel=False):
+    """
+    This function makes chi-elevation plots for each basin and each value of m/n
+    where the channels are coloured by the chi value compared to the main stem.
+    The main stem is plotted in black.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        animate (bool): If this is true then it creates a movie of the chi-elevation plots coloured by MLE.
+        keep_pngs (bool): If this is false and the animation flag is true, then the pngs are deleted and just the video is kept.
+
+    Returns:
+        Plot of each m/n value for each basin.
+
+    Author: SMM, from FJC code
+    """
+    from matplotlib.ticker import FormatStrFormatter
+
+    # check if a directory exists for the chi plots. If not then make it.
+    MLE_directory = DataDirectory+'chi_plots/'
+    if not os.path.isdir(MLE_directory):
+        os.makedirs(MLE_directory)
+
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    fig = makefigure(size_format)
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[10:95,5:80])
+    #colorbar axis
+    ax2 = fig.add_subplot(gs[10:95,82:85])
+
+    # read in the csv files
+    if not parallel:
+        ProfileDF = Helper.ReadChiProfileCSV(DataDirectory, fname_prefix)
+        DisorderDF = Helper.ReadDisorderUncertCSV(DataDirectory, fname_prefix)
+    else:
+        ProfileDF = Helper.AppendMovernCSV(DataDirectory, fname_prefix)
+        DisorderDF = Helper.AppendDisorderCSV(DataDirectory, fname_prefix)
+    best_fit_moverns = DisorderDF['median'].tolist()
+    
+    # get the number of basins
+    basin_keys = list(DisorderDF['basin_key'])
+    basin_keys = [int(x) for x in basin_keys]
+    
+    MOverNDict = dict(zip(basin_keys,best_fit_moverns))
+
+    # get the list of basins
+    if basin_list == []:
+        print("You didn't give me a list of basins, so I'll just run the analysis on all of them!")
+        basin_list = basin_keys
+
+    # loop through each m over n value
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
+    m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
+
+    for m_over_n in m_over_n_values:
+        # read in the full stats file
+
+        #Stupid floating point representation issues
+        movern_str = "%.2f" % round(m_over_n,2)
+        if movern_str.endswith('0'):
+            movern_str = movern_str[:-1]
+
+        print("This m/n is: "+movern_str)
+
+        # loop through all the basins in the basin list
+        for basin_key in basin_list:
+            print("This basin key is: "+str(basin_key))
+
+            # mask the data frames for this basin
+            ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_key]
+
+            # get the chi and elevation data for the main stem
+            movern_key = 'm_over_n = %s' % movern_str
+            X = list(ProfileDF_basin[movern_key])
+            Elevation = list(ProfileDF_basin['elevation'])
+
+            # get the colourmap to colour channels by the MLE value
+            #NUM_COLORS = len(MLE)
+            MLE_array = np.asarray(X)
+            this_cmap = plt.cm.coolwarm
+            cNorm  = colors.Normalize(vmin=np.min(X), vmax=np.max(X))
+            plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+
+            # now plot the data with a colourmap
+            sc = ax.scatter(X,Elevation,c=X,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+
+            # some formatting of the figure
+            ax.spines['top'].set_linewidth(1)
+            ax.spines['left'].set_linewidth(1)
+            ax.spines['right'].set_linewidth(1)
+            ax.spines['bottom'].set_linewidth(1)
+
+            # make the lables
+            ax.set_xlabel("$\chi$ (m)")
+            ax.set_ylabel("Elevation (m)")
+
+            # the best fit m/n
+            best_fit_movern = best_fit_moverns[basin_key]
+
+            # label with the basin and m/n
+            title_string = "Basin "+str(basin_key)+", "+ r"$\theta$ = "+movern_str
+            if best_fit_movern == m_over_n:
+                ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='red', fontsize=10)
+            else:
+                ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='black', fontsize=10)
+
+            # add the colorbar
+            colorbarlabel = "$\chi$ (m)"
+            cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
+            cbar.set_label(colorbarlabel, fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            ax2.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+
+            #save the plot
+            newFilename = MLE_directory+"chi_profiles"+str(basin_key)+"_"+movern_str+"."+str(FigFormat)
+
+            # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+            ax.tick_params(axis='both', width=1, pad = 2)
+            for tick in ax.xaxis.get_major_ticks():
+                tick.set_pad(2)
+
+            plt.savefig(newFilename,format=FigFormat,dpi=300)
+            ax.cla()
+            ax2.cla()
+
+    if animate:
+        # animate the pngs using ffmpeg
+        system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+MLE_directory+"chi_profiles*.png' -y -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+MLE_directory+"chi_profiles.mp4"
+        print (system_call)
+        subprocess.call(system_call, shell=True)
+        # delete the pngs if you want
+        if not keep_pngs:
+            system_call = "rm "+MLE_directory+"chi_profiles*.png"
+            subprocess.call(system_call, shell=True)
+    plt.close(fig)    
+    
+    
 def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7,size_format='ESURF', FigFormat='png', animate=False, keep_pngs=False, parallel=False):
     """
     This function makes chi-elevation plots for each basin and each value of m/n

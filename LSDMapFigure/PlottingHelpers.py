@@ -479,14 +479,17 @@ def ReadChiProfileCSV(DataDirectory, fname_prefix):
     Author: FJC
     """
     import os
+    
     # get the csv filename
     profile_suffix = '_burned_movern.csv'
     fname = fname_prefix+profile_suffix
 
     # check if this exists. if not then use the burned one.
     if not os.path.isfile(DataDirectory+fname):
-        print ("Reading the burned csv...")
+        print ("Reading the csv...")
         fname = fname_prefix+'_movern.csv'
+    else:
+        print("Reading the burned csv...")
 
     # read in the dataframe using pandas
     df = pd.read_csv(DataDirectory+fname)

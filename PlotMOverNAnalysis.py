@@ -36,6 +36,18 @@ def print_welcome():
     print("   python PlotMOverNAnalysis.py -h\n")
     print("=======================================================================\n\n ")
 
+ 
+def check_if_disorder_metric_only(this_dir, this_fname_prefix):
+    Chi_disorder_only = False
+    from pathlib import Path
+    config = Path(this_dir+this_fname_prefix+'_movernstats_0.5_fullstats.csv')
+    if config.is_file():
+        print("The bootstrap files exist")
+    else:
+        print("I didn't find the bootstrap files.")
+        Chi_disorder_only = True
+    return Chi_disorder_only
+    
 #=============================================================================
 # This is the main function that runs the whole thing
 #=============================================================================
@@ -128,7 +140,10 @@ def main(argv):
             this_dir = this_dir+"/"
     else:
         this_dir = os.getcwd()
-
+        
+    # This checks to see if chi points method is being used. 
+    # If not, assumes only the disorder metric has been calculated
+    Using_disorder_metric_only = check_if_disorder_metric_only(this_dir, args.fname_prefix)
 
     # get the range of moverns, needed for plotting
     if not args.parallel:
@@ -143,7 +158,7 @@ def main(argv):
         #args.fname_prefix = split_fname # commented out for now since base fname given, basins will always have basinX fname_prefix
 
 
-#    # we need the column headers
+    # we need the column headers
     columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
     moverns = [float(x.split("=")[-1]) for x in columns]
     start_movern = moverns[0]
@@ -194,40 +209,60 @@ def main(argv):
         MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=simple_format, size_format=args.size_format, show_legend=args.show_legend,Chi_disorder=True)
 
     if args.plot_summary:
-        MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern,
+        MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys,
+                                            start_movern=start_movern, d_movern=d_movern,
                                             n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
-        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
+        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,
+                                 start_movern=start_movern, d_movern=d_movern,
                                  n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend,parallel=args.parallel, Chi_disorder=True)
 
         # This only prints the summary plots for bootstrap and disorder metrics
-        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
+        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,
+                                 start_movern=start_movern, d_movern=d_movern,
                                  n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format,
                                  show_legend=args.show_legend,parallel=args.parallel,
                                  Chi_all = False, SA_raw = False, SA_segmented = False,
                                  SA_channels = False, Chi_bootstrap = True, Chi_disorder=True)
 
-        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
+        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,
+                                      start_movern=start_movern, d_movern=d_movern,
                                       n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend, Chi_disorder=True)
     if args.plot_disorder:
         MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_disorder", size_format=args.size_format, FigFormat=args.FigFormat,parallel=args.parallel)
+        
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
+        
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend,parallel=args.parallel, Chi_disorder=True)
+        
         MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend, Chi_disorder=True)
 
     if args.all_movern_estimates:
         # plot the rasters
         MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat,parallel=args.parallel)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_full", size_format=args.size_format,
+        
+        if not Using_disorder_metric_only:
+            MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, 
+                                 movern_method="Chi_full", size_format=args.size_format,
                                  FigFormat=args.FigFormat,parallel=args.parallel)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_points", size_format=args.size_format,
+            MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern,
+                                 movern_method="Chi_points", size_format=args.size_format,
                                  FigFormat=args.FigFormat,parallel=args.parallel)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="SA", size_format=args.size_format,
+            
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, 
+                                 movern_method="SA", size_format=args.size_format,
                                  FigFormat=args.FigFormat,parallel=args.parallel)
-        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_disorder",
+        MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, 
+                                 d_movern, movern_method="Chi_disorder",
                                  size_format=args.size_format, FigFormat=args.FigFormat,parallel=args.parallel)
 
         # make the chi plots
-        MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern,
+        if Using_disorder_metric_only:
+            MN.MakeChiPlotsChi(this_dir, args.fname_prefix, basin_list=these_basin_keys, 
+                           start_movern=start_movern, d_movern=d_movern, n_movern=n_movern,
+                           size_format=args.size_format, FigFormat = args.FigFormat, animate=True, keep_pngs=True,parallel=args.parallel)
+        else:
+            MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, 
+                           start_movern=start_movern, d_movern=d_movern, n_movern=n_movern,
                            size_format=args.size_format, FigFormat = args.FigFormat, animate=True, keep_pngs=True,parallel=args.parallel)
 
         # make the SA plots
@@ -237,19 +272,23 @@ def main(argv):
                         show_raw = args.show_SA_raw, show_segments = False, basin_keys = these_basin_keys, parallel=args.parallel)
 
         #summary plots
-        MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern,
+        MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys,
+                                            start_movern=start_movern, d_movern=d_movern,
                                             n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
-        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
+        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, 
+                                 d_movern=d_movern,
                                  n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend,parallel=args.parallel, Chi_disorder=True)
 
         # This only prints the summary plots for bootstrap and disorder metrics
-        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
+        MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,
+                                 start_movern=start_movern, d_movern=d_movern,
                                  n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format,
                                  show_legend=args.show_legend,parallel=args.parallel,
                                  Chi_all = False, SA_raw = False, SA_segmented = False,
                                  SA_channels = False, Chi_bootstrap = True, Chi_disorder=True)
 
-        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern,
+        MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,
+                                      start_movern=start_movern, d_movern=d_movern,
                                       n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend, Chi_disorder=True)
 
 
