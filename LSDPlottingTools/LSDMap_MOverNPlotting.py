@@ -1398,9 +1398,10 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
     fig = makefigure(size_format)
 
     gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
-    ax = fig.add_subplot(gs[10:95,5:80])
+    ax = fig.add_subplot(gs[10:95,5:90])
+    
     #colorbar axis
-    ax2 = fig.add_subplot(gs[10:95,82:85])
+    #ax2 = fig.add_subplot(gs[10:95,82:85])
 
     # read in the csv files
     if not parallel:
@@ -1439,7 +1440,26 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
         # loop through all the basins in the basin list
         for basin_key in basin_list:
             print("This basin key is: "+str(basin_key))
-
+            #print("The best fit concavity is:")
+            #print(MOverNDict[basin_key])
+            
+            # Format the best fit concavity string
+            bf_movernstr = "%.2f" % round(MOverNDict[basin_key],2)
+            if bf_movernstr.endswith('0'):
+                bf_movernstr = bf_movernstr[:-1]
+                
+            print("This concavity is:")
+            print(movern_str)
+            print("Best fit concavity in string format is:")
+            print(bf_movernstr)
+            
+            this_is_bf_concavity = False
+            if (movern_str == bf_movernstr):
+                print("==================================")
+                print("This is the best fitting concavity")
+                print("==================================")
+                this_is_bf_concavity = True
+                
             # mask the data frames for this basin
             ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_key]
 
@@ -1456,7 +1476,14 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
 
             # now plot the data with a colourmap
-            sc = ax.scatter(X,Elevation,c=X,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+            if this_is_bf_concavity:
+                sc = ax.scatter(X,Elevation,c='r', s=2.5, edgecolors='none')
+                #sc = ax.scatter(X,Elevation,c=X,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+            else:
+                sc = ax.scatter(X,Elevation,c='k', s=2.5, edgecolors='none')
+                #sc = ax.scatter(X,Elevation,c=X,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+                
+            
 
             # some formatting of the figure
             ax.spines['top'].set_linewidth(1)
@@ -1470,6 +1497,8 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
 
             # the best fit m/n
             best_fit_movern = best_fit_moverns[basin_key]
+            
+            print("The best fit concavity is: "+str(best_fit_movern))
 
             # label with the basin and m/n
             title_string = "Basin "+str(basin_key)+", "+ r"$\theta$ = "+movern_str
@@ -1485,11 +1514,11 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
                         color='black', fontsize=10)
 
             # add the colorbar
-            colorbarlabel = "$\chi$ (m)"
-            cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
-            cbar.set_label(colorbarlabel, fontsize=10)
-            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
-            ax2.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+            #colorbarlabel = "$\chi$ (m)"
+            #cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
+            #cbar.set_label(colorbarlabel, fontsize=10)
+            #ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            #ax2.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
             #save the plot
             newFilename = MLE_directory+"chi_profiles"+str(basin_key)+"_"+movern_str+"."+str(FigFormat)
@@ -1501,7 +1530,7 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
 
             plt.savefig(newFilename,format=FigFormat,dpi=300)
             ax.cla()
-            ax2.cla()
+            #ax2.cla()
 
     if animate:
         # animate the pngs using ffmpeg

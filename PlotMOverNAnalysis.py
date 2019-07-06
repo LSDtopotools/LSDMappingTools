@@ -184,8 +184,17 @@ def main(argv):
         MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, simple_format, parallel=args.parallel)
     if args.plot_basic_chi:
         MN.MakePlotsWithMLEStats(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern,parallel=args.parallel)
-    if args.plot_chi_profiles:
-        MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat = simple_format, animate=args.animate, keep_pngs=args.keep_pngs, parallel=args.parallel)
+ 
+    if args.plot_chi_profiles:    
+        if Using_disorder_metric_only:
+            MN.MakeChiPlotsChi(this_dir, args.fname_prefix, basin_list=these_basin_keys, 
+                           start_movern=start_movern, d_movern=d_movern, n_movern=n_movern,
+                           size_format=args.size_format, FigFormat = args.FigFormat, animate=True, keep_pngs=True,parallel=args.parallel)
+        else:
+            MN.MakeChiPlotsMLE(this_dir, args.fname_prefix, basin_list=these_basin_keys, 
+                           start_movern=start_movern, d_movern=d_movern, n_movern=n_movern,
+                           size_format=args.size_format, FigFormat = args.FigFormat, animate=True, keep_pngs=True,parallel=args.parallel)  
+    
     if args.plot_chi_by_K:
         MN.MakeChiPlotsColouredByK(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, size_format=args.size_format, FigFormat=simple_format, animate=args.animate, keep_pngs=args.keep_pngs, parallel=args.parallel)
     if args.plot_chi_by_lith:
