@@ -1435,7 +1435,7 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
         if movern_str.endswith('0'):
             movern_str = movern_str[:-1]
 
-        print("This m/n is: "+movern_str)
+        print("This concavity is: "+movern_str)
 
         # loop through all the basins in the basin list
         for basin_key in basin_list:
@@ -1448,16 +1448,16 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             if bf_movernstr.endswith('0'):
                 bf_movernstr = bf_movernstr[:-1]
                 
-            print("This concavity is:")
-            print(movern_str)
-            print("Best fit concavity in string format is:")
-            print(bf_movernstr)
+            #print("This concavity is:")
+            #print(movern_str)
+            #print("Best fit concavity in string format is:")
+            #print(bf_movernstr)
             
             this_is_bf_concavity = False
             if (movern_str == bf_movernstr):
-                print("==================================")
-                print("This is the best fitting concavity")
-                print("==================================")
+                #print("==================================")
+                #print("This is the best fitting concavity")
+                #print("==================================")
                 this_is_bf_concavity = True
                 
             # mask the data frames for this basin
@@ -1498,12 +1498,16 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             # the best fit m/n
             best_fit_movern = best_fit_moverns[basin_key]
             
-            print("The best fit concavity is: "+str(best_fit_movern))
+            #print("The best fit concavity is: "+str(best_fit_movern))
 
             # label with the basin and m/n
             title_string = "Basin "+str(basin_key)+", "+ r"$\theta$ = "+movern_str
-            if best_fit_movern == m_over_n:
+            if this_is_bf_concavity:
                 ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='red', fontsize=10)
+                ax.text(0.05, 0.85, "Best fit concavity",
                         verticalalignment='top', horizontalalignment='left',
                         transform=ax.transAxes,
                         color='red', fontsize=10)
