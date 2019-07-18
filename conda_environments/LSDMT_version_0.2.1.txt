@@ -1,5 +1,6 @@
 # This file may be used to create an environment using:
-# $ conda create --name <env> --file <this file>
+# You must be in a linux 64 bit environment
+# $ conda create --name LSDMT --file LSDMT_version_0.2.1.txt
 # platform: linux-64
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/noarch/conda-env-2.6.0-1.tar.bz2
