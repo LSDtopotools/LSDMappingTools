@@ -288,7 +288,7 @@ def LogStretchDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in 
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size 
 
     # get the data
@@ -389,7 +389,7 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size 
 
     # get the data
@@ -487,7 +487,7 @@ def DrapedPlot(FileName,DrapeFilename):
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size 
 
     # get the data
@@ -654,7 +654,7 @@ def simple_density_plot_asc(rfname):
 
   # Set up fonts for plots
   rcParams['font.family'] = 'sans-serif'
-  rcParams['font.sans-serif'] = ['arial']
+  rcParams['font.sans-serif'] = ['Liberation Sans']
   rcParams['font.size'] = label_size 
 
   # get the data
@@ -789,7 +789,7 @@ def vectorize(hillshade_file, m_value_file):
     
     #fonts
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 12  
     
     fig, ax = pp.subplots()

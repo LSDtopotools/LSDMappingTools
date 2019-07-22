@@ -103,7 +103,7 @@ def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 8
     rcParams['text.usetex'] = False
 

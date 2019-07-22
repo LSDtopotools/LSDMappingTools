@@ -44,7 +44,7 @@ def PlotBasinPerimeter(DataDirectory, fname_prefix, size_format='ESURF', FigForm
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure

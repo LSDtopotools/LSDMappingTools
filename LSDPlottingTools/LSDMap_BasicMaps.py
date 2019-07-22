@@ -54,7 +54,7 @@ def PlotTopoRaster(DataDirectory, fname_prefix, size_format='ESURF', FigFormat='
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format
@@ -125,7 +125,7 @@ def PlotSlopeRaster(DataDirectory, fname_prefix, size_format='ESURF', FigFormat=
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format
@@ -195,7 +195,7 @@ def PlotCurveRaster(DataDirectory, fname_prefix, size_format='ESURF', FigFormat=
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format

@@ -20,7 +20,7 @@ from LSDMapFigure.PlottingRaster import MapFigure
 
 #label_size = 100
 rcParams['font.family'] = 'sans-serif'
-rcParams['font.sans-serif'] = ['arial']
+rcParams['font.sans-serif'] = ['Liberation Sans']
 #rcParams['font.size'] = label_size
 #rcParams['lines.linewidth']  = 1.5   
 

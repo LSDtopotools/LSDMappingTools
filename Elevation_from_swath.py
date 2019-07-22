@@ -54,7 +54,7 @@ def make_elevation_plots(DataDirectory, DEM_prefix, DEM_swathed,info_file, data_
 
     # Set up fonts
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 14
 
     distance, MeanValues, MinValues, MaxValues, Nlines, info = read_all_data(DataDirectory, DEM_prefix,info_file, data_file)

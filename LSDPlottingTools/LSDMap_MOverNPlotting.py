@@ -48,7 +48,7 @@ def makefigure(size_format = "EPSL", aspect_ratio=16./9.):
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
     rcParams['text.usetex'] = False
 
@@ -1020,7 +1020,7 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
     size_format = "default"
 
@@ -1207,7 +1207,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -1328,7 +1328,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             colorbarlabel = "$MLE$"
             cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             cbar.set_label(colorbarlabel, fontsize=10)
-            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
             ax2.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
             #save the plot
@@ -1391,7 +1391,7 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -1521,7 +1521,7 @@ def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             #colorbarlabel = "$\chi$ (m)"
             #cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             #cbar.set_label(colorbarlabel, fontsize=10)
-            #ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            #ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
             #ax2.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
             #save the plot
@@ -1581,7 +1581,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -1704,7 +1704,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
             colorbarlabel = "$K$"
             cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             cbar.set_label(colorbarlabel, fontsize=10)
-            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
 
             #change labels to scientific notation
             colours.fix_colourbar_ticks(cbar,n_colours, cbar_type=float, min_value = min_K, max_value = max_K, cbar_label_rotation=0, cbar_orientation='vertical')
@@ -1778,7 +1778,7 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -1903,7 +1903,7 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
             colorbarlabel = "$Lith$"
             cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             cbar.set_label(colorbarlabel, fontsize=10)
-            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
 
             #change labels to scientific notation
             colours.fix_colourbar_ticks(cbar,n_colours, cbar_type=float, min_value = min_K, max_value = max_K, cbar_label_rotation=0, cbar_orientation='vertical')
@@ -1967,7 +1967,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2135,7 +2135,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
             colorbarlabel = "$MLE$"
             cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             cbar.set_label(colorbarlabel, fontsize=10)
-            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
 
             #save the plot
             newFilename = DataDirectory+"MLE_profiles"+str(basin_number)+"_"+str(best_fit_movern)+"_removed_"+str(idx)+".png"
@@ -2182,7 +2182,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set colours for tributaries
@@ -2370,7 +2370,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2575,7 +2575,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
         # Set up fonts for plots
         label_size = 10
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans']
         rcParams['font.size'] = label_size
 
         # make a figure
@@ -2688,7 +2688,7 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2796,7 +2796,7 @@ def PlotMOverNByBasin(DataDirectory, fname_prefix, basin_list = [], size_format=
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2867,7 +2867,7 @@ def PlotMOverNByBasin(DataDirectory, fname_prefix, basin_list = [], size_format=
 #     # Set up fonts for plots
 #     label_size = 10
 #     rcParams['font.family'] = 'sans-serif'
-#     rcParams['font.sans-serif'] = ['arial']
+#     rcParams['font.sans-serif'] = ['Liberation Sans']
 #     rcParams['font.size'] = label_size
 #
 #     # make a figure
@@ -2943,7 +2943,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format
@@ -3047,7 +3047,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3233,7 +3233,7 @@ def PlotMOverNDicts(DataDirectory,fname_prefix,SA_based_dict,Chi_based_dict, Fig
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3311,7 +3311,7 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3416,7 +3416,7 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3555,7 +3555,7 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3639,7 +3639,7 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
 #     # Set up fonts for plots
 #     label_size = 10
 #     rcParams['font.family'] = 'sans-serif'
-#     rcParams['font.sans-serif'] = ['arial']
+#     rcParams['font.sans-serif'] = ['Liberation Sans']
 #     rcParams['font.size'] = label_size
 #
 #     # make a figure

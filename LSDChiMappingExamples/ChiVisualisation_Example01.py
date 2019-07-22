@@ -92,7 +92,7 @@ def ExampleOne_PartTwo_PrintBasins(DataDirectory,fname_prefix):
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
     size_format  = "geomorphology"
 
@@ -170,7 +170,7 @@ def ExampleOne_PartThree_PrintBasinsWithLabels(DataDirectory, fname_prefix):
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format
@@ -262,7 +262,7 @@ def ExampleOne_PartFour_MaskBasins(DataDirectory, fname_prefix):
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format
@@ -380,7 +380,7 @@ def ExampleOne_PartFive_MaskBasinsMF(DataDirectory, fname_prefix):
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format

@@ -19,7 +19,7 @@ def plot_swath_profile(full_file_path, ax):
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 16
     rcParams['legend.numpoints'] = 1
     axis_size = 16

@@ -42,7 +42,7 @@ def field_sites(DataDirectory, N_HSFiles, NRows, NCols, n_target_ticks):
 
     # Set up fonts
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 6
 
     # Read in the files for each site
@@ -140,7 +140,7 @@ def multiple_flood_maps(DataDirectory):
 
     # Set up fonts
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 12
 
     # Read in the files for each site
@@ -220,7 +220,7 @@ def flood_maps_with_shapefile(DataDirectory):
 
     # Set up fonts
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 8
 
     # Read in the files for each site

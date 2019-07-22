@@ -994,13 +994,13 @@ class MapFigure(object):
         # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
 
         if self.colourbar_location == 'top':
-            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Liberation Sans',labelpad=5)
         elif self.colourbar_location == 'bottom':
-            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Liberation Sans',labelpad=5)
         elif self.colourbar_location == 'left':
-            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Liberation Sans',labelpad=-75,rotation=90)
         elif self.colourbar_location == 'right':
-            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Liberation Sans',labelpad=10,rotation=270)
         return ax_list
 
     def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours, cbar_type=float,
@@ -1096,13 +1096,13 @@ class MapFigure(object):
         cbar = plt.colorbar(sc,cmap=cmap, orientation=self.colourbar_orientation,cax=ax_list[-1])
 
         if self.colourbar_location == 'top':
-            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Liberation Sans',labelpad=5)
         elif self.colourbar_location == 'bottom':
-            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Liberation Sans',labelpad=5)
         elif self.colourbar_location == 'left':
-            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Liberation Sans',labelpad=-75,rotation=90)
         elif self.colourbar_location == 'right':
-            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Liberation Sans',labelpad=10,rotation=270)
         return ax_list
 
 
@@ -1142,13 +1142,13 @@ class MapFigure(object):
         # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
 
         if self.colourbar_location == 'top':
-            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Liberation Sans',labelpad=5)
         elif self.colourbar_location == 'bottom':
-            ax_list[-1].set_xlabel(colorbarlabel, fontname='Arial',labelpad=5)
+            ax_list[-1].set_xlabel(colorbarlabel, fontname='Liberation Sans',labelpad=5)
         elif self.colourbar_location == 'left':
-            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=-75,rotation=90)
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Liberation Sans',labelpad=-75,rotation=90)
         elif self.colourbar_location == 'right':
-            ax_list[-1].set_ylabel(colorbarlabel, fontname='Arial',labelpad=10,rotation=270)
+            ax_list[-1].set_ylabel(colorbarlabel, fontname='Liberation Sans',labelpad=10,rotation=270)
         return ax_list
 
 
@@ -2022,7 +2022,7 @@ class MapFigure(object):
         """
         print("I am setting the font size to: "+str(label_size))
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans']
         rcParams['font.size'] = label_size
         rcParams['lines.linewidth']  = 1.5
 

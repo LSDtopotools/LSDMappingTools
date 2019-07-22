@@ -58,7 +58,7 @@ def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 10
 
     Fig = plt.figure(figsize=(FigWidth_Inches,FigWidth_Inches/AspectRatio))
@@ -906,7 +906,7 @@ def MakeRasterPlotTerraceIDs(DataDirectory,fname_prefix, FigFormat='png', size_f
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -997,7 +997,7 @@ def MakeRasterPlotTerraceElev(DataDirectory,fname_prefix, FigFormat='png', size_
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -1091,7 +1091,7 @@ def MakeRasterPlotTerraceDips(DataDirectory,fname_prefix,min_size=5000,FigFormat
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure

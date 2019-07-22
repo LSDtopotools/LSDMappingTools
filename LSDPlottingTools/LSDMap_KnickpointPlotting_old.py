@@ -1053,7 +1053,7 @@ class KnickInfo(object):
 
         # Set up fonts for plots
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans']
         rcParams['font.size'] = 8
 
         # set figure sizes based on format
@@ -1108,7 +1108,7 @@ class KnickInfo(object):
 
         # Set up fonts for plots
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans']
         rcParams['font.size'] = 8
 
         # set figure sizes based on format
@@ -1174,7 +1174,7 @@ class KnickInfo(object):
 
         # Set up fonts for plots
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans']
         rcParams['font.size'] = 8
 
         # set figure sizes based on format
@@ -1235,7 +1235,7 @@ class KnickInfo(object):
         # Set up fonts for plots
         label_size = 8
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans']
         rcParams['font.size'] = label_size
 
         #now plotting
@@ -1416,7 +1416,7 @@ class KnickInfo(object):
         self.get_base_to_lip_from_knickpoint(df)
         # Set up fonts for plots
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans']
         rcParams['font.size'] = 8
 
         # set figure sizes based on format
@@ -1619,7 +1619,7 @@ def map_knickpoint_standard(DataDirectory, fname_prefix, size_format='ESURF', Fi
     basls = basin_list
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format
@@ -1709,7 +1709,7 @@ def basic_hist(DataDirectory, fname_prefix ,basin_list = [] , size_format="ESURF
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -1792,7 +1792,7 @@ def chi_profile_knickpoint(DataDirectory, fname_prefix, size_format='ESURF', Fig
     basls = basin_list
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     
@@ -1935,7 +1935,7 @@ def chi_profile_knickzone_old(DataDirectory, fname_prefix, size_format='ESURF', 
     basls = basin_list
     label_size = 8
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # read the knickpoint informations
@@ -2114,7 +2114,7 @@ def chi_profile_knickzone_old(DataDirectory, fname_prefix, size_format='ESURF', 
     basls = basin_list
     label_size = 8
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # read the knickpoint informations
@@ -2377,7 +2377,7 @@ def plot_knickpoint_elevations(PointData, DataDirectory, basin_key=0, kp_thresho
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2469,7 +2469,7 @@ def plot_diff_ratio(PointData, DataDirectory, saveName = "Basic_diff_ratio", sav
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2517,7 +2517,7 @@ def plot_basic_DA(PointData, DataDirectory, saveName = "Basic_DA", save_fmt = ".
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2579,7 +2579,7 @@ def plot_basic_FD(PointData, DataDirectory, saveName = "Basic_FD", save_fmt = ".
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2641,7 +2641,7 @@ def plot_basic_Z(PointData, DataDirectory, saveName = "Basic_Z", save_fmt = ".pn
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2710,7 +2710,7 @@ def plot_outliers_x_vs_diff_ratio(PointData, DataDirectory,x_col = "elevation", 
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2799,7 +2799,7 @@ def plot_outliers_vs_others(PointData, DataDirectory, saveName = "Basic_diff_rat
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3191,7 +3191,7 @@ def plot_pdf_diff_ratio(df, DataDirectory, saveName = "pdf_diff_ratio", save_fmt
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3258,7 +3258,7 @@ def violin_by_bin(ldf, DataDirectory, saveName = "Violin", column = "elevation",
     plt.clf()
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3300,7 +3300,7 @@ def pdf_from_bin(ldf, DataDirectory, saveName = "BasicPDF_", column = "elevation
         plt.clf()
         label_size = 10
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans']
         rcParams['font.size'] = label_size
 
         # make a figure
@@ -3348,7 +3348,7 @@ def pdf_from_bin_one_col(ldf, DataDirectory, saveName = "BasicPDF_", column = "e
         plt.clf()
         label_size = 10
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans']
         rcParams['font.size'] = label_size
 
 
