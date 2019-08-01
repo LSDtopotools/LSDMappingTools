@@ -1600,17 +1600,17 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(10,5))
 
     #choose colormap
-    ColourMap = cm.viridis
+    ColourMap = cm.RdYlBu
 
     # get the basins
     basins = df['basin_keys'].unique()
     NoBasins = len(basins)
     print(basins)
 
-    sc = ax[0].scatter(df.Estar_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100)
+    sc = ax[0].scatter(df.Estar_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, cmap=ColourMap)
     ax[0].errorbar(df.Estar_median,df.Rstar_median,xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
-    sc = ax[1].scatter(df.mchi_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100)
+    sc = ax[1].scatter(df.mchi_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, cmap=ColourMap)
     ax[1].errorbar(df.mchi_median,df.Rstar_median,xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
     # plot the theoretical relationships for each one
