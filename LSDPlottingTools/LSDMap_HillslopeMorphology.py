@@ -1838,6 +1838,42 @@ def Make3DHillslopePlot(DataDirectory, FilenamePrefix, PlotDirectory):
     plt.savefig(PlotDirectory+FilenamePrefix +"_hs_data_3d.png", dpi=300)
     plt.clf()
 
+def PlotHillslopeLengthDistribution(DataDirectory, FilenamePrefix, PlotDirectory, basin_keys=[], basin_labels=[]):
+    """
+    Function to plot the full distribution of hillslope lengths for specified basins
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        basin_keys (list): the keys of the basins you want to plot
+        basin_labels (list): some labels for the basins
+
+    FJC
+    """
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    basin_dict = MapBasinKeysToJunctions(DataDirectory,FilenamePrefix)
+    print(basin_dict)
+    fig, axes = plt.subplots(nrows = 1, ncols= len(basin_keys), figsize=(12,5), sharey=False)
+    print(basin_keys)
+
+    # get hillslope data for each basin in the list of keys
+    i=0
+    for key in basin_keys:
+        jn = basin_dict[int(key)]
+        BasinHillslopeData = HillslopeData[HillslopeData.BasinID == jn]
+        n = len(BasinHillslopeData.hilltop_id)
+        hist = BasinHillslopeData.hist(column='Lh', bins=50, ax=axes[i], grid=False)
+        axes[i].set_title(basin_labels[i], fontsize=14)
+        axes[i].text(0.72,0.92,'n = '+str(n),transform=axes[i].transAxes, fontsize=12, bbox=dict(facecolor='white', alpha=0.5))
+        axes[i].set_xlabel("Hillslope length (m)", fontsize=14)
+        i=i+1
+
+    axes[0].set_ylabel("Count",fontsize=14)
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_LH_dist.png", dpi=300)
+    plt.clf()
 
 def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExtent=[-9999],FigSizeFormat="epsl"):
     """

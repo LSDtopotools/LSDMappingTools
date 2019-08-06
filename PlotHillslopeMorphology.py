@@ -100,7 +100,7 @@ def main(argv):
     # The basins you want to plot
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
     parser.add_argument("-basin_lists", "--basin_lists",type=str,default = "", help = "This is a string that initiates a list of a list for grouping basins. The object becomes a list of a list but the syntax is comma seperated lists, and each one is separated by a colon. Default = no dict")
-
+    parser.add_argument("-basin_labels", "--basin_labels",type=str,default = "", help = "This is a list of labels if you want to change the naming of the basins. Must be the same length as the basin keys")
     # The analysis you want to do
     parser.add_argument("-Mchi", "--plot_mchi", type=bool, default=False, help="If this is true, I'll make some plots of the hillslope-channel data against Mchi")
     parser.add_argument("-CHT", "--plot_CHT", type=bool, default=False, help="If this is true, I'll make some plots of hilltop curvature against data from the channel segments.")
@@ -117,7 +117,7 @@ def main(argv):
     parser.add_argument("-plot_stacked_Es_Rs_by_chi", "--plot_stacked_Es_Rs_by_chi", type=bool, default=False, help="This plots stacked E* or R* as function of Chi.")
     parser.add_argument("-plot_clustered_Es_Rs_by_chi", "--plot_clustered_Es_Rs_by_chi", type=bool, default=False, help="This plots clustered E* or R* as function of Chi.")
     parser.add_argument("-plot_clustered_Es_Rs_plus_theoretical", "--plot_clustered_Es_Rs_plus_theoretical", type=bool, default=False, help="This plots clustered E* or R* plots that have been clustered.")
-
+    parser.add_argument("-plot_Lh_hist", "--plot_Lh_hist", type=bool, default=False, help="This plots the full distribution of hillslope lengths for specified basins")
 
     # Parameters that are used within plotting functions
     parser.add_argument("-sc", "--sc", type=float, default=0.8, help="Critical slope for E*R* calculations. Default = 0.8")
@@ -165,6 +165,11 @@ def main(argv):
         these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
         print("The basins I will plot are:")
         print(these_basin_keys)
+
+    if len(args.basin_labels) != 0:
+        these_basin_labels = [item for item in args.basin_labels.split(',')]
+        print("I will use these basin labels:")
+        print(these_basin_labels)
 
 
     # This is the basin stack
@@ -234,6 +239,11 @@ def main(argv):
         HS.PlotHillslopeTraces(this_dir, args.fname_prefix, PlotDirectory, args.custom_plot_extent)
       else:
         HS.PlotHillslopeTraces(this_dir, args.fname_prefix, PlotDirectory)
+
+    # make a plot of hillslope length distribution for specific basins (FJC)
+    if args.plot_Lh_hist:
+        HS.PlotHillslopeLengthDistribution(this_dir, args.fname_prefix, PlotDirectory, these_basin_keys, these_basin_labels)
+
 
     # This seems to be working but not extensively tested
     if args.determine_sc:
