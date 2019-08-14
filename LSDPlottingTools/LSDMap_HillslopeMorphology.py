@@ -1367,7 +1367,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
         mchi_upper_err.append(mchi_upperP-this_median)
 
     # set up the figure
-    fig, ax = plt.subplots(nrows = 8, ncols=1, sharex=True, figsize=(6,15), facecolor='white')
+    fig, ax = plt.subplots(nrows = 6, ncols=1, sharex=True, figsize=(6,10), facecolor='white')
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
@@ -1380,20 +1380,20 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     ax[0].set_ylabel('$L_H$')
 
     #plot the cht
-    ax[1].errorbar(basin_keys,median_cht,yerr=[cht_lower_err, cht_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[1],mec='k')
-    ax[1].set_ylabel('$C_{HT}$')
+    #ax[1].errorbar(basin_keys,median_cht,yerr=[cht_lower_err, cht_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[1],mec='k')
+    #ax[1].set_ylabel('$C_{HT}$')
 
     #plot the E*
-    ax[2].errorbar(basin_keys,median_Estar,yerr=[Estar_lower_err, Estar_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[2],mec='k')
-    ax[2].set_ylabel('$E*$')
+    ax[1].errorbar(basin_keys,median_Estar,yerr=[Estar_lower_err, Estar_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[2],mec='k')
+    ax[1].set_ylabel('$E*$')
 
     #plot the R*
-    ax[3].errorbar(basin_keys,median_Rstar,yerr=[Rstar_lower_err, Rstar_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[3],mec='k')
-    ax[3].set_ylabel('$R*$')
+    ax[2].errorbar(basin_keys,median_Rstar,yerr=[Rstar_lower_err, Rstar_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[3],mec='k')
+    ax[2].set_ylabel('$R*$')
 
     #plot the Mchi
-    ax[4].errorbar(basin_keys,median_mchi,yerr=[mchi_lower_err, mchi_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[5],mec='k')
-    ax[4].set_ylabel('$k_{sn}$')
+    ax[3].errorbar(basin_keys,median_mchi,yerr=[mchi_lower_err, mchi_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[5],mec='k')
+    ax[3].set_ylabel('$k_{sn}$')
 
     # read the uplift data in
     # read in the csv
@@ -1401,33 +1401,38 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     dd_df = pd.read_csv(DataDirectory+FilenamePrefix+'_basin_dd.csv')
 
     # get the drainage density
-    drainage_density = dd_df['drainage_density']*1000000
-    ax[5].scatter(basin_keys, drainage_density, c=colors[6], edgecolors='k', s=30)
-    ax[5].set_ylim(np.min(drainage_density)-1000, np.max(drainage_density)+1000)
-    ax[5].set_ylabel('$D_d$ (m/km$^2$)')
+    drainage_density = dd_df['total_drainage_density'].unique()*1000000
+    dd_lower_err = dd_df.groupby(['junction_number'])['us_drainage_density'].apply(lambda x: np.percentile(x,16))*1000000
+    dd_upper_err = dd_df.groupby(['junction_number'])['us_drainage_density'].apply(lambda x: np.percentile(x,84))*1000000
+    dd_med = dd_df.groupby(['junction_number'])['us_drainage_density'].median()*1000000
+
+    #ax[5].scatter(basin_keys, drainage_density, c=colors[6], edgecolors='k', s=30,zorder=2)
+    ax[4].errorbar(basin_keys, dd_med, yerr=[dd_med - dd_lower_err, dd_upper_err - dd_med], fmt='o', ecolor='0.5', markersize=6, mfc=colors[6], mec='k',zorder=1)
+    #ax[5].set_ylim(np.min(drainage_density)-1000, np.max(drainage_density)+1000)
+    ax[4].set_ylabel('$D_d$ (m/km$^2$)')
 
     # get the data
     uplift_rate_old = uplift_df['Uplift_rate_old']
     uplift_rate_new = uplift_df['Uplift_rate_new']
-    ax[6].scatter(basin_keys, uplift_rate_new, c='None', edgecolors='k', label = '0 - 72 ka')
-    ax[6].scatter(basin_keys, uplift_rate_old, edgecolors='k', c='k', label = '96 - 305 ka')
-    ax[6].set_ylabel('Uplift rate (mm/yr)')
-    ax[6].legend(loc='upper right')
+    ax[5].plot(basin_keys, uplift_rate_new, 'k--', label = '0 - 72 ka')
+    #ax[6].scatter(basin_keys, uplift_rate_old, edgecolors='k', c='k', label = '96 - 305 ka')
+    ax[5].set_ylabel('Uplift rate (mm/yr)')
+    #ax[6].legend(loc='upper right')
 
     # erosion rate
-    be_erosion = uplift_df['Erosion_rate_Be']
-    al_erosion = uplift_df['Erosion_rate_Al']
-    al_min_erosion = uplift_df['Al_min']
+    #be_erosion = uplift_df['Erosion_rate_Be']
+    #al_erosion = uplift_df['Erosion_rate_Al']
+    #al_min_erosion = uplift_df['Al_min']
     # ax[7].scatter(basin_keys, be_erosion, c='k', label='Be')
-    ax[7].errorbar(basin_keys, be_erosion, xerr=None, yerr=uplift_df['Be_error'], fmt='o', ecolor='0.5',markersize=6,mec='k', mfc='k', label='Be')
+    #ax[7].errorbar(basin_keys, be_erosion, xerr=None, yerr=uplift_df['Be_error'], fmt='o', ecolor='0.5',markersize=6,mec='k', mfc='k', label='Be')
     # ax[7].scatter(basin_keys, al_erosion, c='None', edgecolors='k', marker='D', label='Al')
-    ax[7].errorbar(basin_keys, al_erosion, xerr=None, yerr=uplift_df['Al_error'], fmt='D', ecolor='0.5', markersize=6, mec='k', mfc='white', label='Al')
-    ax[7].scatter(basin_keys, al_min_erosion, c='None', edgecolors='k', marker='^', label='Al (min)')
-    ax[7].set_ylabel('Erosion rate (mm/yr)')
-    ax[7].legend(loc='upper right')
+    #ax[7].errorbar(basin_keys, al_erosion, xerr=None, yerr=uplift_df['Al_error'], fmt='D', ecolor='0.5', markersize=6, mec='k', mfc='white', label='Al')
+    #ax[7].scatter(basin_keys, al_min_erosion, c='None', edgecolors='k', marker='^', label='Al (min)')
+    #ax[7].set_ylabel('Erosion rate (mm/yr)')
+    #ax[7].legend(loc='upper right')
 
     # set the axes labels
-    ax[7].set_xlabel('Basin ID')
+    ax[5].set_xlabel('Basin ID')
     plt.xticks(np.arange(min(basin_keys), max(basin_keys)+1, 1), rotation=45, fontsize=8)
     plt.tight_layout()
     #plt.subplots_adjust(bottom=0.1)
@@ -1439,11 +1444,11 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     output_list = [('basin_keys', basin_keys),
                    ('uplift_rate_old', uplift_rate_old),
                    ('uplift_rate_new', uplift_rate_new),
-                   ('Erosion_rate_Be', be_erosion),
-                   ('Be_error', uplift_df['Be_error']),
-                   ('Erosion_rate_Al', al_erosion),
-                   ('Al_error', uplift_df['Al_error']),
-                   ('Erosion_rate_Al_min', al_min_erosion),
+                #   ('Erosion_rate_Be', be_erosion),
+                #   ('Be_error', uplift_df['Be_error']),
+                #   ('Erosion_rate_Al', al_erosion),
+                #   ('Al_error', uplift_df['Al_error']),
+                #   ('Erosion_rate_Al_min', al_min_erosion),
                    ('Lh_median', median_Lh),
                    ('Lh_lower_err', Lh_lower_err),
                    ('Lh_upper_err', Lh_upper_err),
