@@ -199,7 +199,7 @@ def MakeRasterLithoBasinMap(DataDirectory, fname_prefix, lname_prefix, lithodict
 	# Set up fonts for plots
 	label_size = 10
 	rcParams['font.family'] = 'sans-serif'
-	rcParams['font.sans-serif'] = ['arial']
+	rcParams['font.sans-serif'] = ['Liberation Sans']
 	rcParams['font.size'] = label_size
 
 	# set figure sizes based on format
@@ -627,7 +627,7 @@ def MakeChiPlotsByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern
 	# Set up fonts for plots
 	label_size = 10
 	rcParams['font.family'] = 'sans-serif'
-	rcParams['font.sans-serif'] = ['arial']
+	rcParams['font.sans-serif'] = ['Liberation Sans']
 	rcParams['font.size'] = label_size
 
 	# make a figure
@@ -763,7 +763,7 @@ def MakeChiPlotsByLith(DataDirectory, fname_prefix, basin_list=[0], start_movern
 				colorbarlabel = "$Lith$"
 				cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
 				cbar.set_label(colorbarlabel, fontsize=10)
-				ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+				ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
 
 				# #change labels to scientific notation
 				# colours.fix_colourbar_ticks(cbar,n_colours, cbar_type=float, min_value = min_K, max_value = max_K, cbar_label_rotation=0, cbar_orientation='vertical')

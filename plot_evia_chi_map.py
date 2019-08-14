@@ -80,7 +80,7 @@ def main(argv):
     # Set up fonts for plots
     label_size = 8
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format

@@ -494,7 +494,7 @@ def SegmentedSlopeAreaPlot(PointData, DataDirectory, FigFileName = 'Image.pdf',
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -630,7 +630,7 @@ def SegmentedWithRawSlopeAreaPlot(PointData, RawPointData, DataDirectory, FigFil
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -810,7 +810,7 @@ def BinnedWithRawSlopeAreaPlot(DataDirectory, fname_prefix, FigFileName = 'Image
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure

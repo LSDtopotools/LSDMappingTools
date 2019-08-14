@@ -178,7 +178,7 @@ def vectorize(hillshade_file, m_value_file):
     
     #fonts
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 12  
     
     fig, ax = pp.subplots()
@@ -243,7 +243,7 @@ def plot_ChiMValues_hillshade(hillshade_file, m_value_file):
     
     #fonts
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 12  
 
     fig, ax = pp.subplots()
@@ -297,7 +297,7 @@ def cumulative_rainfall_catchment(hillshade_file, radar_data_totals):
     
     #fonts
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size      
     
     fig = pp.figure(1, facecolor='white',figsize=(10,7.5))
@@ -339,7 +339,7 @@ def coloured_chans_like_graphs(hillshade_file, tree_file):
     
     #fonts
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size  
 
     #get coordinates of streams from tree file   
@@ -477,7 +477,7 @@ def m_values_over_hillshade(hillshade_file, tree_file):
     
     #fonts
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size  
 
     #get coordinates of streams from tree file   

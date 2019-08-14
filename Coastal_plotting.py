@@ -80,7 +80,7 @@ def ElevationSwaths(path, filename, axis, fprefix):
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure, sized for a ppt slide
@@ -168,7 +168,7 @@ def BedThickSwaths(path, filename, axis, fprefix):
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure, sized for a ppt slide

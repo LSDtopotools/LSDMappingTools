@@ -38,7 +38,7 @@ def PlotSwath(swath_csv_name, FigFileName = 'Image.png', size_format = "geomorph
     # Set up fonts for plots
     label_size = 12
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure,

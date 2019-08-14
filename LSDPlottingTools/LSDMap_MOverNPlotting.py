@@ -48,7 +48,7 @@ def makefigure(size_format = "EPSL", aspect_ratio=16./9.):
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
     rcParams['text.usetex'] = False
 
@@ -430,6 +430,20 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     summary_directory = DataDirectory+'summary_plots/'
     if not os.path.isdir(summary_directory):
         os.makedirs(summary_directory)
+        
+    # First, we need to check if the full chi actually is there
+    Fname_bootstrap_stats = DataDirectory+fname_prefix+'_movernstats_basinstats.csv'
+    from pathlib import Path
+
+    bootstrap_exists = False
+    my_file = Path(Fname_bootstrap_stats)
+    if my_file.is_file():
+        bootstrap_exists = True
+        print("The bootstrap data exists. I hope it was worth the wait. ")
+    else:
+        print("I did not find bootstrap data, so I am assuming only S-A data and disorder data.")
+        
+    
 
     # read in the full chi dataframe
     if not parallel:
@@ -448,28 +462,22 @@ def CompareMOverNEstimatesAllMethods(DataDirectory, fname_prefix, basin_list=[0]
     OutDF['basin_key'] = pd.Series(basin_list)
 
     # get the best fit m/n for each basin in the list from the full chi method
-    FullChiMOverNDict = SimpleMaxMLECheck(FullChiBasinDF)
-    OutDF['Chi_MLE_full'] = OutDF['basin_key'].map(FullChiMOverNDict)
+    if bootstrap_exists:
+        FullChiMOverNDict = SimpleMaxMLECheck(FullChiBasinDF)
+        OutDF['Chi_MLE_full'] = OutDF['basin_key'].map(FullChiMOverNDict)
 
     # get the best fit m/n from the points method
-    if not parallel:
-        PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
-    else:
-        PointsChiBasinDF = Helper.AppendBasinPointCSVs(DataDirectory,fname_prefix)
-    PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
+    if bootstrap_exists:
+        if not parallel:
+            PointsChiBasinDF = Helper.ReadMCPointsCSV(DataDirectory,fname_prefix)
+        else:
+            PointsChiBasinDF = Helper.AppendBasinPointCSVs(DataDirectory,fname_prefix)
+        PointsChiBasinDF = PointsChiBasinDF[PointsChiBasinDF['basin_key'].isin(basin_list)]
 
-    UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF, start_movern, d_movern, n_movern)
-    OutDF['Chi_MLE_points'] = UncertaintyDF['Median_MOverNs']
-    OutDF['Chi_MLE_points_min'] = UncertaintyDF['Min_MOverNs']
-    OutDF['Chi_MLE_points_max'] = UncertaintyDF['Max_MOverNs']
-
-    # We don't do this any more since residuals don't work!!!
-    #print ("Now getting the m/n from the chi residuals")
-    # get the best fit m/n from the chi residuals method
-    #ResidualsDF = GetRangeMOverNChiResiduals(DataDirectory, fname_prefix, basin_list, parallel=parallel)
-    #OutDF['Chi_residuals'] = ResidualsDF['Median_MOverNs']
-    #OutDF['Chi_residuals_min'] = ResidualsDF['FirstQ_MOverNs']
-    #OutDF['Chi_residuals_max'] = ResidualsDF['ThirdQ_MOverNs']
+        UncertaintyDF = GetMOverNRangeMCPoints(PointsChiBasinDF, start_movern, d_movern, n_movern)
+        OutDF['Chi_MLE_points'] = UncertaintyDF['Median_MOverNs']
+        OutDF['Chi_MLE_points_min'] = UncertaintyDF['Min_MOverNs']
+        OutDF['Chi_MLE_points_max'] = UncertaintyDF['Max_MOverNs']
 
     print ("Getting the m/n from the SA data")
 
@@ -1012,7 +1020,7 @@ def MakePlotsWithMLEStats(DataDirectory, fname_prefix, basin_list = [0],
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
     size_format = "default"
 
@@ -1199,7 +1207,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -1320,7 +1328,7 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             colorbarlabel = "$MLE$"
             cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             cbar.set_label(colorbarlabel, fontsize=10)
-            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
             ax2.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
             #save the plot
@@ -1346,6 +1354,200 @@ def MakeChiPlotsMLE(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.
             subprocess.call(system_call, shell=True)
     plt.close(fig)
 
+    
+    
+def MakeChiPlotsChi(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7,
+                    size_format='ESURF', FigFormat='png', animate=False, keep_pngs=False, parallel=False):
+    """
+    This function makes chi-elevation plots for each basin and each value of m/n
+    where the channels are coloured by the chi value compared to the main stem.
+    The main stem is plotted in black.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: a list of the basins to make the plots for. If an empty list is passed then
+        all the basins will be analysed. Default = basin 0.
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        animate (bool): If this is true then it creates a movie of the chi-elevation plots coloured by MLE.
+        keep_pngs (bool): If this is false and the animation flag is true, then the pngs are deleted and just the video is kept.
+
+    Returns:
+        Plot of each m/n value for each basin.
+
+    Author: SMM, from FJC code
+    """
+    from matplotlib.ticker import FormatStrFormatter
+
+    # check if a directory exists for the chi plots. If not then make it.
+    MLE_directory = DataDirectory+'chi_plots/'
+    if not os.path.isdir(MLE_directory):
+        os.makedirs(MLE_directory)
+
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['Liberation Sans']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    fig = makefigure(size_format)
+
+    gs = plt.GridSpec(100,100,bottom=0.15,left=0.1,right=1.0,top=1.0)
+    ax = fig.add_subplot(gs[10:95,5:90])
+    
+    #colorbar axis
+    #ax2 = fig.add_subplot(gs[10:95,82:85])
+
+    # read in the csv files
+    if not parallel:
+        ProfileDF = Helper.ReadChiProfileCSV(DataDirectory, fname_prefix)
+        DisorderDF = Helper.ReadDisorderUncertCSV(DataDirectory, fname_prefix)
+    else:
+        ProfileDF = Helper.AppendMovernCSV(DataDirectory, fname_prefix)
+        DisorderDF = Helper.AppendDisorderCSV(DataDirectory, fname_prefix)
+    best_fit_moverns = DisorderDF['median'].tolist()
+    
+    # get the number of basins
+    basin_keys = list(DisorderDF['basin_key'])
+    basin_keys = [int(x) for x in basin_keys]
+    
+    MOverNDict = dict(zip(basin_keys,best_fit_moverns))
+
+    # get the list of basins
+    if basin_list == []:
+        print("You didn't give me a list of basins, so I'll just run the analysis on all of them!")
+        basin_list = basin_keys
+
+    # loop through each m over n value
+    end_movern = float(start_movern)+float(d_movern)*(float(n_movern)-1)
+    m_over_n_values = np.linspace(start_movern,end_movern,n_movern)
+
+    for m_over_n in m_over_n_values:
+        # read in the full stats file
+
+        #Stupid floating point representation issues
+        movern_str = "%.2f" % round(m_over_n,2)
+        if movern_str.endswith('0'):
+            movern_str = movern_str[:-1]
+
+        print("This concavity is: "+movern_str)
+
+        # loop through all the basins in the basin list
+        for basin_key in basin_list:
+            print("This basin key is: "+str(basin_key))
+            #print("The best fit concavity is:")
+            #print(MOverNDict[basin_key])
+            
+            # Format the best fit concavity string
+            bf_movernstr = "%.2f" % round(MOverNDict[basin_key],2)
+            if bf_movernstr.endswith('0'):
+                bf_movernstr = bf_movernstr[:-1]
+                
+            #print("This concavity is:")
+            #print(movern_str)
+            #print("Best fit concavity in string format is:")
+            #print(bf_movernstr)
+            
+            this_is_bf_concavity = False
+            if (movern_str == bf_movernstr):
+                #print("==================================")
+                #print("This is the best fitting concavity")
+                #print("==================================")
+                this_is_bf_concavity = True
+                
+            # mask the data frames for this basin
+            ProfileDF_basin = ProfileDF[ProfileDF['basin_key'] == basin_key]
+
+            # get the chi and elevation data for the main stem
+            movern_key = 'm_over_n = %s' % movern_str
+            X = list(ProfileDF_basin[movern_key])
+            Elevation = list(ProfileDF_basin['elevation'])
+
+            # get the colourmap to colour channels by the MLE value
+            #NUM_COLORS = len(MLE)
+            MLE_array = np.asarray(X)
+            this_cmap = plt.cm.coolwarm
+            cNorm  = colors.Normalize(vmin=np.min(X), vmax=np.max(X))
+            plt.cm.ScalarMappable(norm=cNorm, cmap=this_cmap)
+
+            # now plot the data with a colourmap
+            if this_is_bf_concavity:
+                sc = ax.scatter(X,Elevation,c='r', s=2.5, edgecolors='none')
+                #sc = ax.scatter(X,Elevation,c=X,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+            else:
+                sc = ax.scatter(X,Elevation,c='k', s=2.5, edgecolors='none')
+                #sc = ax.scatter(X,Elevation,c=X,cmap=this_cmap, norm=cNorm, s=2.5, edgecolors='none')
+                
+            
+
+            # some formatting of the figure
+            ax.spines['top'].set_linewidth(1)
+            ax.spines['left'].set_linewidth(1)
+            ax.spines['right'].set_linewidth(1)
+            ax.spines['bottom'].set_linewidth(1)
+
+            # make the lables
+            ax.set_xlabel("$\chi$ (m)")
+            ax.set_ylabel("Elevation (m)")
+
+            # the best fit m/n
+            best_fit_movern = best_fit_moverns[basin_key]
+            
+            #print("The best fit concavity is: "+str(best_fit_movern))
+
+            # label with the basin and m/n
+            title_string = "Basin "+str(basin_key)+", "+ r"$\theta$ = "+movern_str
+            if this_is_bf_concavity:
+                ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='red', fontsize=10)
+                ax.text(0.05, 0.85, "Best fit concavity",
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='red', fontsize=10)
+            else:
+                ax.text(0.05, 0.95, title_string,
+                        verticalalignment='top', horizontalalignment='left',
+                        transform=ax.transAxes,
+                        color='black', fontsize=10)
+
+            # add the colorbar
+            #colorbarlabel = "$\chi$ (m)"
+            #cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
+            #cbar.set_label(colorbarlabel, fontsize=10)
+            #ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
+            #ax2.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+
+            #save the plot
+            newFilename = MLE_directory+"chi_profiles"+str(basin_key)+"_"+movern_str+"."+str(FigFormat)
+
+            # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+            ax.tick_params(axis='both', width=1, pad = 2)
+            for tick in ax.xaxis.get_major_ticks():
+                tick.set_pad(2)
+
+            plt.savefig(newFilename,format=FigFormat,dpi=300)
+            ax.cla()
+            #ax2.cla()
+
+    if animate:
+        # animate the pngs using ffmpeg
+        system_call = "ffmpeg -framerate 3 -pattern_type glob -i '"+MLE_directory+"chi_profiles*.png' -y -vcodec libx264 -s 1230x566 -pix_fmt yuv420p "+MLE_directory+"chi_profiles.mp4"
+        print (system_call)
+        subprocess.call(system_call, shell=True)
+        # delete the pngs if you want
+        if not keep_pngs:
+            system_call = "rm "+MLE_directory+"chi_profiles*.png"
+            subprocess.call(system_call, shell=True)
+    plt.close(fig)    
+    
+    
 def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_movern=0.2, d_movern=0.1, n_movern=7,size_format='ESURF', FigFormat='png', animate=False, keep_pngs=False, parallel=False):
     """
     This function makes chi-elevation plots for each basin and each value of m/n
@@ -1379,7 +1581,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -1502,7 +1704,7 @@ def MakeChiPlotsColouredByK(DataDirectory, fname_prefix, basin_list=[0], start_m
             colorbarlabel = "$K$"
             cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             cbar.set_label(colorbarlabel, fontsize=10)
-            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
 
             #change labels to scientific notation
             colours.fix_colourbar_ticks(cbar,n_colours, cbar_type=float, min_value = min_K, max_value = max_K, cbar_label_rotation=0, cbar_orientation='vertical')
@@ -1576,7 +1778,7 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -1701,7 +1903,7 @@ def MakeChiPlotsColouredByLith(DataDirectory, fname_prefix, basin_list=[0], star
             colorbarlabel = "$Lith$"
             cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             cbar.set_label(colorbarlabel, fontsize=10)
-            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
 
             #change labels to scientific notation
             colours.fix_colourbar_ticks(cbar,n_colours, cbar_type=float, min_value = min_K, max_value = max_K, cbar_label_rotation=0, cbar_orientation='vertical')
@@ -1765,7 +1967,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -1933,7 +2135,7 @@ def PlotProfilesRemovingOutliers(DataDirectory, fname_prefix, basin_list=[0], st
             colorbarlabel = "$MLE$"
             cbar = plt.colorbar(sc,cmap=this_cmap,spacing='uniform', orientation='vertical',cax=ax2)
             cbar.set_label(colorbarlabel, fontsize=10)
-            ax2.set_ylabel(colorbarlabel, fontname='Arial', fontsize=10)
+            ax2.set_ylabel(colorbarlabel, fontname='Liberation Sans', fontsize=10)
 
             #save the plot
             newFilename = DataDirectory+"MLE_profiles"+str(basin_number)+"_"+str(best_fit_movern)+"_removed_"+str(idx)+".png"
@@ -1980,7 +2182,7 @@ def PlotMLEWithMOverN(DataDirectory, fname_prefix, basin_list = [0], size_format
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set colours for tributaries
@@ -2168,7 +2370,7 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2186,6 +2388,8 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
 
     # read in the summary csv
     df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
+    
+    
 
     if basin_list != []:
         basin_keys = basin_list
@@ -2201,44 +2405,49 @@ def MakeMOverNSummaryPlot(DataDirectory, fname_prefix, basin_list=[], start_move
     full_chi_keys = full_chi_keys.astype(float) - 0.2
     print("Full chi keys are: ")
     print(full_chi_keys)
-
-    if Chi_all:
-        ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
-
-    # plot the points data
-    median_movern = df['Chi_MLE_points'].values
-    points_max_err = df['Chi_MLE_points_max'].values
-    points_max_err = points_max_err.astype(float)-median_movern.astype(float)
-    points_min_err = df['Chi_MLE_points_min'].values
-    points_min_err = median_movern.astype(float)-points_min_err.astype(float)
-    errors = np.array(list(zip(points_min_err, points_max_err))).T
     
-    print("The errors or the point data are")
-    print(errors)
+    # Now check what is in the dataframe
+    if 'Chi_MLE_full' in df:
+        if Chi_all:
+            ax.scatter(full_chi_keys, df['Chi_MLE_full'],marker='o', edgecolors='k', lw=0.5, facecolors='#e34a33', s=15, zorder=200, label='Chi all data')
 
-    print(df['basin_key'].values)
-    points_chi_keys = df['basin_key'].values
-    points_chi_keys = points_chi_keys.astype(float) - 0.1
+    # Now see if there is points data
+    if 'Chi_MLE_points' in df:
+        # plot the points data
+        median_movern = df['Chi_MLE_points'].values
+        points_max_err = df['Chi_MLE_points_max'].values
+        points_max_err = points_max_err.astype(float)-median_movern.astype(float)
+        points_min_err = df['Chi_MLE_points_min'].values
+        points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+        errors = np.array(list(zip(points_min_err, points_max_err))).T
+    
+        print("The errors or the point data are")
+        print(errors)
 
-    if Chi_bootstrap:
-        ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors,
+        print(df['basin_key'].values)
+        points_chi_keys = df['basin_key'].values
+        points_chi_keys = points_chi_keys.astype(float) - 0.1
+
+        if Chi_bootstrap:
+            ax.errorbar(points_chi_keys, df['Chi_MLE_points'], s=15, marker='o', xerr=None, yerr=errors,
                     ecolor='#fdbb84', fmt='none', elinewidth=1,label='_nolegend_')
-        ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k',
+            ax.scatter(points_chi_keys, df['Chi_MLE_points'], s=15, c='#fdbb84', marker='o', edgecolors='k',
                    lw=0.5,facecolors='#fdbb84', label='Chi bootstrap',zorder=200)
 
     # plot the chi disorder data if you want it
-    if Chi_disorder:
-        median_movern = df['Chi_disorder'].values
-        points_max_err = df['Chi_disorder_max'].values
-        points_max_err = points_max_err.astype(float)-median_movern.astype(float)
-        points_min_err = df['Chi_disorder_min'].values
-        points_min_err = median_movern.astype(float)-points_min_err.astype(float)
-        errors = np.array(list(zip(points_min_err, points_max_err))).T
+    if 'Chi_disorder' in df:
+        if Chi_disorder:
+            median_movern = df['Chi_disorder'].values
+            points_max_err = df['Chi_disorder_max'].values
+            points_max_err = points_max_err.astype(float)-median_movern.astype(float)
+            points_min_err = df['Chi_disorder_min'].values
+            points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+            errors = np.array(list(zip(points_min_err, points_max_err))).T
 
-        disorder_chi_keys = df['basin_key'].values
-        disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
-        ax.errorbar(disorder_chi_keys, df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
-        ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#F06292', s=15, zorder=100, label='Chi disorder')
+            disorder_chi_keys = df['basin_key'].values
+            disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
+            ax.errorbar(disorder_chi_keys, df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
+            ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#F06292', s=15, zorder=100, label='Chi disorder')
 
 
     # plot the SA data
@@ -2366,7 +2575,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
         # Set up fonts for plots
         label_size = 10
         rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['arial']
+        rcParams['font.sans-serif'] = ['Liberation Sans']
         rcParams['font.size'] = label_size
 
         # make a figure
@@ -2479,7 +2688,7 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2499,22 +2708,42 @@ def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_
     else:
       print ("MakeMOverNSummaryHistogram not parallelised yet")
       return
+    
+    Chi_disorder_only = False
+    if Chi_disorder: 
+        if 'Chi_MLE_points' not in df:
+            print("I didn't find a bootstrap data line. Switching to disorder only")
+            Chi_disorder_only= True
 
     # get the basin keys
     basin_keys = df['basin_key'].tolist()
     print (basin_keys)
-    if Chi_disorder:
-        columns = ['Chi_MLE_full', 'Chi_MLE_points', 'Chi_disorder', 'SA_raw', 'SA_segments']
-        these_labels = ['Chi all data', 'Chi bootstrap', 'Chi disorder', 'S-A all data', 'Segmented S-A']
-        colours = ['#e34a33', '#fdbb84', '#F06292', '#2b8cbe', '#a6bddb']
-
+    if Chi_disorder_only:
+        columns = ['Chi_disorder', 'SA_raw', 'SA_segments']
+        these_labels = ['Chi disorder', 'S-A all data', 'Segmented S-A']
+        colours = ['#F06292', '#2b8cbe', '#a6bddb']
     else:
-        columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
-        these_labels = ['Chi all data', 'Chi bootstrap', 'S-A all data', 'Segmented S-A']
-        colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
-    x_spacing = 0.1
+        if Chi_disorder:
+            columns = ['Chi_MLE_full', 'Chi_MLE_points', 'Chi_disorder', 'SA_raw', 'SA_segments']
+            these_labels = ['Chi all data', 'Chi bootstrap', 'Chi disorder', 'S-A all data', 'Segmented S-A']
+            colours = ['#e34a33', '#fdbb84', '#F06292', '#2b8cbe', '#a6bddb']
+
+        else:
+            columns = ['Chi_MLE_full', 'Chi_MLE_points', 'SA_raw', 'SA_segments']
+            these_labels = ['Chi all data', 'Chi bootstrap', 'S-A all data', 'Segmented S-A']
+            colours = ['#e34a33', '#fdbb84', '#2b8cbe', '#a6bddb']
+            
+    x_spacing = 0.05
     fig, ax = joyplot.joyplot(df, figsize=figsize, column=columns, label_strings=these_labels, x_range=[0,1],grid="x",color=colours,x_title='Best fit '+r'$\theta$' +' distribution',x_spacing=x_spacing)
     #plt.xlabel('Best fit $m/n$')
+    
+    # change tick spacing
+    x_loc = np.arange(0,1.01,0.05)
+    print("x_loc is:")
+    print(x_loc)
+    labels = ["0","","","","0.2","","","","0.4","","","","0.6","","","","0.8","","","","1"]
+    plt.xticks(x_loc, labels, rotation='vertical')
+    
 
     newFilename = summary_directory+fname_prefix+"_movern_hist."+FigFormat
 
@@ -2567,7 +2796,7 @@ def PlotMOverNByBasin(DataDirectory, fname_prefix, basin_list = [], size_format=
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -2638,7 +2867,7 @@ def PlotMOverNByBasin(DataDirectory, fname_prefix, basin_list = [], size_format=
 #     # Set up fonts for plots
 #     label_size = 10
 #     rcParams['font.family'] = 'sans-serif'
-#     rcParams['font.sans-serif'] = ['arial']
+#     rcParams['font.sans-serif'] = ['Liberation Sans']
 #     rcParams['font.size'] = label_size
 #
 #     # make a figure
@@ -2714,7 +2943,7 @@ def MakeRasterPlotsBasins(DataDirectory, fname_prefix, size_format='ESURF', FigF
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # set figure sizes based on format
@@ -2818,7 +3047,7 @@ def MakeRasterPlotsMOverN(DataDirectory, fname_prefix, start_movern=0.2, n_mover
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3004,7 +3233,7 @@ def PlotMOverNDicts(DataDirectory,fname_prefix,SA_based_dict,Chi_based_dict, Fig
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3082,7 +3311,7 @@ def plot_MCMC_analysis(DataDirectory,fname_prefix,basin_list=[],FigFormat='png',
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3187,7 +3416,7 @@ def PlotMCPointsUncertainty(DataDirectory,fname_prefix, basin_list=[0], FigForma
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3326,7 +3555,7 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
     # Set up fonts for plots
     label_size = 10
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure
@@ -3410,7 +3639,7 @@ def PlotSensitivityResultsSigma(DataDirectory,fname_prefix, FigFormat = "png", s
 #     # Set up fonts for plots
 #     label_size = 10
 #     rcParams['font.family'] = 'sans-serif'
-#     rcParams['font.sans-serif'] = ['arial']
+#     rcParams['font.sans-serif'] = ['Liberation Sans']
 #     rcParams['font.size'] = label_size
 #
 #     # make a figure

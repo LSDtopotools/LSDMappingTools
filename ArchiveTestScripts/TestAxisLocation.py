@@ -16,7 +16,7 @@ def TestAxisLocation():
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = text_size 
     rcParams['xtick.labelsize'] = tick_label_size
     rcParams['ytick.labelsize'] = tick_label_size 

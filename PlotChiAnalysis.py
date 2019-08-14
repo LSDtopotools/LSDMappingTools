@@ -37,6 +37,18 @@ def print_welcome():
     print("   python PlotChiAnalysis.py -h\n")
     print("=======================================================================\n\n ")
 
+    
+#=============================================================================
+# Some functions for managing directories
+#=============================================================================     
+def MakeBasemapDirectory(this_dir):
+    # check if a raster directory exists. If not then make it.
+    basemap_directory = this_dir+'basemap_plots/'
+    print("I am printing to a raster directory:")
+    print(basemap_directory)
+    if not os.path.isdir(basemap_directory):
+        os.makedirs(basemap_directory)        
+    
 #=============================================================================
 # This parses a comma separated string
 #=============================================================================
@@ -259,6 +271,13 @@ def main(argv):
     parser.add_argument("-cmap", "--cmap", type=str, default="viridis", help = "The colourmap for the chi plots. Default = viridis")
     parser.add_argument("-data_fmt", "--plotting_data_format", type=str, default="log", help = "Plotting data format for chi plots. Default is log.")
 
+    # These control the appearance of the basemap
+    parser.add_argument("-bmpsm", "--basemap_parallel_spacing_multiplier", type=float, default=0.5, help="Basemap parallel spacing multiplier. Increase if parallels are too close on your basemap.")
+    parser.add_argument("-bmrem", "--basemap_regional_extent_multiplier", type=float, default=4, help="Basemap regional extent multiplier. The multiple of the size of the raster to make the basemap extent")
+    parser.add_argument("-bmortho", "--basemap_orthographic", type=bool, default=False, help="If this is true the basemap creates an orthographic map, that is a globe.")   
+    parser.add_argument("-bmwidth", "--basemap_width_inches", type=float, default=4, help="Basemap width in inches (since matplotlib is written by yanks).")
+    parser.add_argument("-bmar", "--basemap_aspect_ratio", type=float, default=1, help="Basemap aspect ratio.")    
+    
     args = parser.parse_args()
 
     if not args.fname_prefix:
@@ -293,15 +312,20 @@ def main(argv):
 
     # See if you should create a basemap
     if args.create_basemap_figure:
-        import LSDBasemapTools as LSDM
-
+        import LSDBasemapTools as LSDBM
+        
+        MakeBasemapDirectory(this_dir)
         RasterFile = args.fname_prefix+".bil"
-
-        lat_0 = 25.7
-        lon_0 = 91.5
-        LSDM.GenerateBasemapImage(this_dir, RasterFile,lat_0 = lat_0 , lon_0 = lon_0)
-
-
+        basemap_out_prefix = "/basemap_plots/"+out_fname_prefix
+        
+        # This gets the positioning
+        centre_lat, centre_long, extent_lat, extent_long, xproj_extent, yproj_extent = LSDP.GetCentreAndExtentOfRaster(this_dir, RasterFile)
+        
+        FWI = args.basemap_width_inches
+        FHI = FWI/(args.basemap_aspect_ratio)
+        
+        print("The basemap centrepoint is: "+str(centre_lat)+"," +str(centre_long))
+        LSDBM.GenerateBasemapImageAutomated(this_dir, RasterFile, FigWidthInches = FWI, FigHeightInches = FHI, regional_extent_multiplier = args.basemap_regional_extent_multiplier, label_spacing_multiplier = args.basemap_parallel_spacing_multiplier, out_fname_prefix = basemap_out_prefix, fig_dpi = args.dpi, is_orthographic = args.basemap_orthographic)
 
     # See if a basin info file exists and if so get the basin list
     print("Let me check if there is a basins info csv file.")
@@ -495,11 +519,6 @@ def main(argv):
         for little_list in basin_stack_list:
             i = i+1
             this_prefix = "chi_profile_plots/Stacked_"+str(i)
-
-            print("The offset is: ")
-            print("chi: "+str(final_chi_offsets[i-1]) )
-            print("flow distance: "+ str(final_fd_offsets[i-1]) )
-
 
             # This prints the chi profiles coloured by k_sn
             LSDMW.PrintChiStacked(this_dir, args.fname_prefix, ChannelFname, cmap = args.cmap, size_format = args.size_format, fig_format = simple_format, dpi = args.dpi,axis_data_name="chi",plot_data_name = "m_chi",colorbarlabel = cbl, plotting_data_format=args.plotting_data_format, cbar_loc = "bottom", Basin_select_list = little_list, Basin_rename_dict = this_rename_dict, out_fname_prefix = this_prefix+"_chi",X_offset = final_chi_offsets[i-1], figure_aspect_ratio = args.figure_aspect_ratio, rotate_labels = args.rotate_labels)

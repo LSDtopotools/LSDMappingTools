@@ -510,7 +510,7 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     label_size = 20
 
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # get the data
@@ -558,7 +558,7 @@ def BasicDensityPlot(FileName, thiscmap='gray',colorbarlabel='Elevation in meter
     plt.colorbar(im,cmap=thiscmap,spacing='uniform', orientation='horizontal',cax=ax2)
     ax2.text(0,1,colorbarlabel,horizontalalignment='left',
         verticalalignment='bottom',transform=ax2.transAxes)
-    #ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=0)
+    #ax2.set_xlabel(colorbarlabel, fontname='Liberation Sans',labelpad=0)
     #cbar = plt.colorbar(im)
     #cbar.set_label(colorbarlabel)
 
@@ -645,7 +645,7 @@ def BasicDrapedPlotGridPlot(FileName, DrapeName, thiscmap='gray',drape_cmap='gra
     # Set up fonts for plots
     label_size = 20
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # get the data
@@ -776,7 +776,7 @@ def DrapedOverHillshade(FileName, DrapeName, thiscmap='gray',drape_cmap='gray',
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     hillshade = Hillshade(FileName)
@@ -908,7 +908,7 @@ def DrapedOverHillshade_Categories(FileName, DrapeName, nCategories,
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     hillshade = Hillshade(FileName)
@@ -1033,7 +1033,7 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # get the data
@@ -1114,7 +1114,7 @@ def DrapedOverFancyHillshade(FileName, HSName, DrapeName, thiscmap='gray',drape_
 
     cbar = plt.colorbar(im3,cmap=drape_cmap,spacing='uniform', orientation='horizontal',cax=ax2)
     cbar.set_label(colorbarlabel, fontsize=10)
-    ax2.set_xlabel(colorbarlabel, fontname='Arial',labelpad=-35)
+    ax2.set_xlabel(colorbarlabel, fontname='Liberation Sans',labelpad=-35)
 
     print("The figure format is: " + FigFormat)
     if FigFormat == 'show':
@@ -1170,7 +1170,7 @@ def BasinsOverFancyHillshade(FileName, HSName, BasinName, Basin_csv_name, basin_
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # get the data
@@ -1486,7 +1486,7 @@ def SwathPlot(path, filename, axis):
     # Set up fonts for plots
     label_size = 20
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = label_size
 
     # make a figure, sized for a ppt slide

@@ -103,7 +103,7 @@ def CreateFigure(FigSizeFormat="default", AspectRatio=16./9.):
 
     # Set up fonts for plots
     rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['arial']
+    rcParams['font.sans-serif'] = ['Liberation Sans']
     rcParams['font.size'] = 8
     rcParams['text.usetex'] = False
 
@@ -1368,6 +1368,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     # set up the figure
     fig, ax = plt.subplots(nrows = 6, ncols=1, sharex=True, figsize=(6,10), facecolor='white')
+
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
 
@@ -1414,6 +1415,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     # get the data
     uplift_rate_old = uplift_df['Uplift_rate_old']
     uplift_rate_new = uplift_df['Uplift_rate_new']
+
     ax[5].plot(basin_keys, uplift_rate_new, 'k--', label = '0 - 72 ka')
     #ax[6].scatter(basin_keys, uplift_rate_old, edgecolors='k', c='k', label = '96 - 305 ka')
     ax[5].set_ylabel('Uplift rate (mm/yr)')
@@ -1438,7 +1440,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     #plt.subplots_adjust(bottom=0.1)
 
     #save output
-    plt.savefig(PlotDirectory+FilenamePrefix +"_basin_hillslope_data.png", dpi=300)
+    plt.savefig(PlotDirectory+FilenamePrefix +"_basin_hillslope_data.pdf", dpi=300)
     plt.clf()
 
     output_list = [('basin_keys', basin_keys),
@@ -1605,17 +1607,17 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(10,5))
 
     #choose colormap
-    ColourMap = cm.viridis
+    ColourMap = cm.RdYlBu
 
     # get the basins
     basins = df['basin_keys'].unique()
     NoBasins = len(basins)
     print(basins)
 
-    sc = ax[0].scatter(df.Estar_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100)
+    sc = ax[0].scatter(df.Estar_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, cmap=ColourMap)
     ax[0].errorbar(df.Estar_median,df.Rstar_median,xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
-    sc = ax[1].scatter(df.mchi_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100)
+    sc = ax[1].scatter(df.mchi_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, cmap=ColourMap)
     ax[1].errorbar(df.mchi_median,df.Rstar_median,xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
     # plot the theoretical relationships for each one
@@ -1659,7 +1661,10 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     tick_locator = ticker.MaxNLocator(nbins=5)
     cbar.locator = tick_locator
     cbar.update_ticks()
+    cbar.ax.invert_yaxis()
     cbar.set_label('Basin ID')
+
+    print("Made the E*R* plots")
 
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix +"_estar_rstar_subplots.png", dpi=300)
@@ -1840,6 +1845,42 @@ def Make3DHillslopePlot(DataDirectory, FilenamePrefix, PlotDirectory):
     plt.savefig(PlotDirectory+FilenamePrefix +"_hs_data_3d.png", dpi=300)
     plt.clf()
 
+def PlotHillslopeLengthDistribution(DataDirectory, FilenamePrefix, PlotDirectory, basin_keys=[], basin_labels=[]):
+    """
+    Function to plot the full distribution of hillslope lengths for specified basins
+    Args:
+        DataDirectory (str): the data directory
+        FilenamePrefix (str): the file name prefix
+        PlotDirectory (str): The directory into which the plots are saved
+        basin_keys (list): the keys of the basins you want to plot
+        basin_labels (list): some labels for the basins
+
+    FJC
+    """
+    # load the hillslopes data
+    HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+
+    basin_dict = MapBasinKeysToJunctions(DataDirectory,FilenamePrefix)
+    print(basin_dict)
+    fig, axes = plt.subplots(nrows = 1, ncols= len(basin_keys), figsize=(12,5), sharey=False)
+    print(basin_keys)
+
+    # get hillslope data for each basin in the list of keys
+    i=0
+    for key in basin_keys:
+        jn = basin_dict[int(key)]
+        BasinHillslopeData = HillslopeData[HillslopeData.BasinID == jn]
+        n = len(BasinHillslopeData.hilltop_id)
+        hist = BasinHillslopeData.hist(column='Lh', bins=50, ax=axes[i], grid=False)
+        axes[i].set_title(basin_labels[i], fontsize=14)
+        axes[i].text(0.72,0.92,'n = '+str(n),transform=axes[i].transAxes, fontsize=12, bbox=dict(facecolor='white', alpha=0.5))
+        axes[i].set_xlabel("Hillslope length (m)", fontsize=14)
+        i=i+1
+
+    axes[0].set_ylabel("Count",fontsize=14)
+    #save output
+    plt.savefig(PlotDirectory+FilenamePrefix +"_LH_dist.png", dpi=300)
+    plt.clf()
 
 def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExtent=[-9999],FigSizeFormat="epsl"):
     """
