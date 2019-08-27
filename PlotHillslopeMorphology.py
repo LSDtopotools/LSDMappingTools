@@ -170,6 +170,8 @@ def main(argv):
         these_basin_labels = [item for item in args.basin_labels.split(',')]
         print("I will use these basin labels:")
         print(these_basin_labels)
+    else:
+        these_basin_labels = these_basin_keys
 
 
     # This is the basin stack
@@ -229,6 +231,7 @@ def main(argv):
         #HS.PlotEStarRStarSubPlots(this_dir, args.fname_prefix, PlotDirectory, args.sc)
         #HS.PlotDataAgainstErosionRate(this_dir, args.fname_prefix, PlotDirectory)
         #HS.Make3DHillslopePlot(this_dir, args.fname_prefix, PlotDirectory)
+        HS.PlotDdLh(this_dir, args.fname_prefix, PlotDirectory)
 
     # SMM: again, this is hard coded for mendocino at the moment
     if args.plot_means_with_uplift:

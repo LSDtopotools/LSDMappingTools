@@ -301,6 +301,7 @@ def MapBasinKeysToJunctions(DataDirectory,FilenamePrefix):
     basin_dict = {}
 
     for i, key in enumerate(basin_keys):
+        print(basin_junctions[i], key)
         basin_dict[key] = basin_junctions[i]
 
     print(basin_dict)
@@ -1398,14 +1399,15 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     # read the uplift data in
     # read in the csv
-    uplift_df = pd.read_csv(DataDirectory+'MTJ_basin_uplift.csv')
+    uplift_df = pd.read_csv(DataDirectory+'MTJ_basin_uplift.csv',error_bad_lines=False)
     dd_df = pd.read_csv(DataDirectory+FilenamePrefix+'_basin_dd.csv')
 
     # get the drainage density
     drainage_density = dd_df['total_drainage_density'].unique()*1000000
-    dd_lower_err = dd_df.groupby(['junction_number'])['us_drainage_density'].apply(lambda x: np.percentile(x,16))*1000000
-    dd_upper_err = dd_df.groupby(['junction_number'])['us_drainage_density'].apply(lambda x: np.percentile(x,84))*1000000
-    dd_med = dd_df.groupby(['junction_number'])['us_drainage_density'].median()*1000000
+    dd_lower_err = (dd_df.groupby(['junction_number'])['us_drainage_density'].apply(lambda x: np.percentile(x,16))*1000000).as_matrix()
+    dd_upper_err = (dd_df.groupby(['junction_number'])['us_drainage_density'].apply(lambda x: np.percentile(x,84))*1000000).as_matrix()
+    dd_med = (dd_df.groupby(['junction_number'])['us_drainage_density'].median()*1000000).as_matrix()
+    print("Length DD", len(dd_med))
 
     #ax[5].scatter(basin_keys, drainage_density, c=colors[6], edgecolors='k', s=30,zorder=2)
     ax[4].errorbar(basin_keys, dd_med, yerr=[dd_med - dd_lower_err, dd_upper_err - dd_med], fmt='o', ecolor='0.5', markersize=6, mfc=colors[6], mec='k',zorder=1)
@@ -1413,7 +1415,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     ax[4].set_ylabel('$D_d$ (m/km$^2$)')
 
     # get the data
-    uplift_rate_old = uplift_df['Uplift_rate_old']
+    #uplift_rate_old = uplift_df['Uplift_rate_old']
     uplift_rate_new = uplift_df['Uplift_rate_new']
 
     ax[5].plot(basin_keys, uplift_rate_new, 'k--', label = '0 - 72 ka')
@@ -1440,36 +1442,38 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     #plt.subplots_adjust(bottom=0.1)
 
     #save output
-    plt.savefig(PlotDirectory+FilenamePrefix +"_basin_hillslope_data.pdf", dpi=300)
+    plt.savefig(PlotDirectory+FilenamePrefix +"_basin_hillslope_data.png", dpi=300)
     plt.clf()
 
-    output_list = [('basin_keys', basin_keys),
-                   ('uplift_rate_old', uplift_rate_old),
-                   ('uplift_rate_new', uplift_rate_new),
+    output_list = {'basin_keys': basin_keys,
+                #   ('uplift_rate_old', uplift_rate_old),
+                   'uplift_rate_new': uplift_rate_new,
                 #   ('Erosion_rate_Be', be_erosion),
                 #   ('Be_error', uplift_df['Be_error']),
                 #   ('Erosion_rate_Al', al_erosion),
                 #   ('Al_error', uplift_df['Al_error']),
                 #   ('Erosion_rate_Al_min', al_min_erosion),
-                   ('Lh_median', median_Lh),
-                   ('Lh_lower_err', Lh_lower_err),
-                   ('Lh_upper_err', Lh_upper_err),
-                   ('cht_median', median_cht),
-                   ('cht_lower_err', cht_lower_err),
-                   ('cht_upper_err', cht_upper_err),
-                   ('Rstar_median', median_Rstar),
-                   ('Rstar_lower_err', Rstar_lower_err),
-                   ('Rstar_upper_err', Rstar_upper_err),
-                   ('Estar_median', median_Estar),
-                   ('Estar_lower_err', Estar_lower_err),
-                   ('Estar_upper_err', Estar_upper_err),
-                   ('mchi_median', median_mchi),
-                   ('mchi_lower_err', mchi_lower_err),
-                   ('mchi_upper_err', mchi_upper_err),
-                   ('drainage_density', drainage_density)]
+                   'Lh_median': median_Lh,
+                   'Lh_lower_err': Lh_lower_err,
+                   'Lh_upper_err': Lh_upper_err,
+                   'cht_median': median_cht,
+                   'cht_lower_err': cht_lower_err,
+                   'cht_upper_err': cht_upper_err,
+                   'Rstar_median': median_Rstar,
+                   'Rstar_lower_err': Rstar_lower_err,
+                   'Rstar_upper_err': Rstar_upper_err,
+                   'Estar_median': median_Estar,
+                   'Estar_lower_err': Estar_lower_err,
+                   'Estar_upper_err': Estar_upper_err,
+                   'mchi_median': median_mchi,
+                   'mchi_lower_err': mchi_lower_err,
+                   'mchi_upper_err': mchi_upper_err,
+                   'dd_median': dd_med,
+                   'dd_lower_err': dd_lower_err,
+                   'dd_upper_err': dd_upper_err}
 
     # write output to csv
-    OutDF = pd.DataFrame.from_items(output_list)
+    OutDF = pd.DataFrame.from_dict(output_list)
     csv_outname = PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv'
     OutDF.to_csv(csv_outname,index=False)
 
@@ -1859,6 +1863,7 @@ def PlotHillslopeLengthDistribution(DataDirectory, FilenamePrefix, PlotDirectory
     """
     # load the hillslopes data
     HillslopeData = ReadHillslopeData(DataDirectory, FilenamePrefix)
+    print(basin_keys)
 
     basin_dict = MapBasinKeysToJunctions(DataDirectory,FilenamePrefix)
     print(basin_dict)
@@ -1875,11 +1880,68 @@ def PlotHillslopeLengthDistribution(DataDirectory, FilenamePrefix, PlotDirectory
         axes[i].set_title(basin_labels[i], fontsize=14)
         axes[i].text(0.72,0.92,'n = '+str(n),transform=axes[i].transAxes, fontsize=12, bbox=dict(facecolor='white', alpha=0.5))
         axes[i].set_xlabel("Hillslope length (m)", fontsize=14)
+        axes[i].set_xlim(0,800)
+
+        median = BasinHillslopeData.Lh.median()
+        print("basin key: ", key)
+        print("median hillslope length: ", median)
+        print("16th per: ", np.percentile(BasinHillslopeData.Lh.as_matrix(), 16))
+        print("84th per: ", np.percentile(BasinHillslopeData.Lh.as_matrix(), 84))
+        axes[i].axvline(x=median, c='k')
         i=i+1
 
     axes[0].set_ylabel("Count",fontsize=14)
     #save output
     plt.savefig(PlotDirectory+FilenamePrefix +"_LH_dist.png", dpi=300)
+    plt.clf()
+
+def PlotDdLh(DataDirectory, FilenamePrefix, PlotDirectory):
+    """
+    Plot drainage density vs hillslope length
+    FJC
+    """
+
+    df = pd.read_csv(PlotDirectory+FilenamePrefix+'_basin_hillslope_data.csv')
+
+    #choose colormap
+    ColourMap = cm.RdYlBu
+
+    # get the basins
+    basins = df['basin_keys'].unique()
+
+    # set up the figure
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6,5))
+    #ax = ax.ravel()
+    # make a big subplot to allow sharing of axis labels
+    #fig.add_subplot(111, frameon=False)
+    # hide tick and tick label of the big axes
+    #plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+
+    plt.scatter(df['Lh_median'], df['dd_median'], c=basins, cmap=ColourMap, edgecolors='k', zorder=100, s=50)
+    plt.errorbar(df.Lh_median,df.dd_median,xerr=[df['Lh_lower_err'], df['Lh_upper_err']], yerr=[df['dd_lower_err'], df['dd_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+    plt.xlabel('Hillslope length (m)')
+    plt.ylabel('Drainage density (m/km$^2$)')
+    #plt.xlim(100, 500)
+    #plt.ylim(3500, 10000)
+
+    # linregress
+    slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(df['Lh_median']),np.log10(df['dd_median']))
+    print(slope, 10**intercept, r_value, p_value)
+    ax.text(0.5,0.9, '$D_d$ = {0:.{0}f}$L_H^{{{1:f}}}$'.format(10**intercept, round(slope,2), 2)+'\n p = '+str(round(p_value, 2)), transform=ax.transAxes)
+
+    # add colour bar
+    m = cm.ScalarMappable(cmap=ColourMap)
+    m.set_array(basins)
+    cbar = plt.colorbar(m)
+    #tick_locator = ticker.MaxNLocator(nbins=5)
+    #cbar.locator = tick_locator
+    #cbar.update_ticks()
+    cbar.ax.invert_yaxis()
+    cbar.set_label('Basin ID')
+
+    #save output
+    plt.subplots_adjust(left=0.2)
+    plt.savefig(PlotDirectory+FilenamePrefix +"_dd_lh.png", dpi=300)
     plt.clf()
 
 def PlotHillslopeTraces(DataDirectory, FilenamePrefix, PlotDirectory, CustomExtent=[-9999],FigSizeFormat="epsl"):
