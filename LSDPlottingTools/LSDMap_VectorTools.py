@@ -396,7 +396,7 @@ def Rasterize_geologic_maps_pythonic(shapefile_name, raster_resolution = 400, ge
 	print("The rocks are: ")
 	print(geol_dict)
 
-	with open(outcsv, 'wb') as f:
+	with open(outcsv, 'w') as f:
 		f.write('ID,rocktype\n')
 		for key in geol_dict:
 			f.write(str(key)+','+ str(geol_dict[key])+'\n')
