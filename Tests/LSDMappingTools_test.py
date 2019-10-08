@@ -76,7 +76,7 @@ def main(argv):
     print("Let me check the fonts. They are:")
     import matplotlib.font_manager as fm
     flist = fm.get_fontconfig_fonts()
-    names = [fm.FontProperties(fname=fname).get_name() for fname in flist]   
+    names = [fm.FontProperties(fname=fname).get_family() for fname in flist]   
     print(names)
     
     fm.findfont('Liberation Sans',rebuild_if_missing=True)
