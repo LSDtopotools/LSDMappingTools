@@ -274,13 +274,14 @@ def PrintAllChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap =
 
 
 
-def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = ""):
+def PrintChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels = True, cmap = "jet", cbar_loc = "right", size_format = "ESURF", fig_format = "png", dpi = 250, out_fname_prefix = "", plotting_column = "basin_key"):
     """
     This function prints a channel map over a hillshade.
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
+        ChannelFileName (str): The name of the channel file. Doesn't need path but needs extension
         add_basin_labels (bool): If true, label the basins with text. Otherwise use a colourbar.
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_lox (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
@@ -289,6 +290,7 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
         out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
+        plotting_column (str): the column to plot from the csv file
 
 
     Returns:
@@ -309,7 +311,6 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
     # Get the filenames you want
     BackgroundRasterName = fname_prefix+"_hs.bil"
     DrapeRasterName = fname_prefix+".bil"
-    ChannelFileName = fname_prefix+"_chi_data_map.csv"
     chi_csv_fname = DataDirectory+ChannelFileName
 
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
@@ -321,9 +322,9 @@ def PrintChannels(DataDirectory,fname_prefix, add_basin_labels = True, cmap = "j
     # set up the base image and the map
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = "None")
     MF.add_drape_image(DrapeRasterName,DataDirectory,colourmap = cmap, alpha = 0.6)
-    MF.add_point_data(thisPointData,column_for_plotting = "basin_key",
+    MF.add_point_data(thisPointData,column_for_plotting = plotting_column,
                        scale_points = True,column_for_scaling = "drainage_area",
-                       scaled_data_in_log = True,
+                       this_colourmap = cmap, scaled_data_in_log = True,
                        max_point_size = 5, min_point_size = 1)
 
     # Save the image
