@@ -62,7 +62,7 @@ def main(argv):
     parser.add_argument("-fd", "--field", type=str, help="The name of the field")     
  
     # This is for specifying raster values
-    parser.add_argument("-lt", "--use_lookup_table", type=bool, default='false', help="If true, uses a lookup table to set the values of the raster")  
+    parser.add_argument("-lt", "--use_lookup_table", type=bool, default=False, help="If true, uses a lookup table to set the values of the raster")  
     parser.add_argument("-ltfname", "--lookup_table_fname", type=str, help="The prefix of your lookup table WITH EXTENSION!!!")
     parser.add_argument("-lfd", "--lookup_field", type=str, help="The name of the lookup field")  
 
@@ -96,41 +96,63 @@ def main(argv):
     print(out_fn)
 
     # read the shapefle
-    tgdf = gpd.read_file(shp_fn)   
+    tgdf = gpd.read_file(shp_fn) 
     
-    if args.lookup_table_fname:
+    print("Are we going to use a lookup table?")
+    print(args.use_lookup_table)
+    
+    if args.use_lookup_table:
         print("I am going to proceed using a lookup table")
         
         # Load the dataframe
         lookup_fn = this_dir+args.lookup_table_fname
         
- 
         # creating the rasterization column
-        tgdf['rasterization_equivalent'] = '' 
+        tgdf[args.lookup_field] = '' 
         
         lookup_df = gpd.read_file(lookup_fn) 
         
-        keys = df.values[field]
-        values = float(df.values[args.lookup_field])
+        keys = lookup_df[field].values
         
-        dictionary = dict(zip(lookup, values))
+        strvalues = lookup_df[args.lookup_field].values
+        values = [float(i) for i in strvalues]
+        
+        dictionary = dict(zip(keys, values))
         
         print("The dictionary is:")
         print(dictionary)
         
+        print("The field is: "+field)
+        
         # Loop through the unique values
         for key in keys:
             print("The key is: "+key)
-            tgdf['rasterization_equivalent'][tgdf[field] == key] = dictionary[key]
+            tgdf[args.lookup_field][tgdf[field] == key] = dictionary[key]
             raster_val.append(dictionary[key])
             shp_val.append(key)     
+            
+        # Get the template raster
+        rst = rasterio.open(rst_fn)
+
+        # copy and update the metadata from the input raster for the output
+        meta = rst.meta.copy()
+        meta.update(compress='lzw')
+
+        with rasterio.open(out_fn, 'w+', **meta) as out:
+            out_arr = out.read(1)
+
+            # this is where we create a generator of geom, value pairs to use in rasterizing
+            shapes = ((geom,value) for geom, value in zip(tgdf.geometry, tgdf[args.lookup_field]))
+
+            burned = features.rasterize(shapes=shapes, fill=0, out=out_arr, transform=out.transform)
+            out.write_band(1, burned)
 
     else:
         
         print("I am going to proceed using unique values")
         print("This will relsult in a new shapefile")
         # creating the rasterization column
-        tgdf['rasterization_equivalent'] = '' 
+        tgdf['RZ_key'] = '' 
 
         #Hosts the equivalences
         eqdic = {}
@@ -152,28 +174,29 @@ def main(argv):
         for val in uniquevals:
             print(val)
             eqdic[incre] = val
-            tgdf['rasterization_equivalent'][tgdf[field] == val] = incre
+            tgdf['RZ_key'][tgdf[field] == val] = incre
             raster_val.append(incre)
             shp_val.append(val)
             incre += 1
         eqdic[-9999] = 'NoData'
 
+        tgdf.to_file(temp_shp_fn)        
+        
+        # Get the template raster
+        rst = rasterio.open(rst_fn)
 
-    # Get the template raster
-    rst = rasterio.open(rst_fn)
-    
-    # copy and update the metadata from the input raster for the output
-    meta = rst.meta.copy()
-    meta.update(compress='lzw')
-    
-    with rasterio.open(out_fn, 'w+', **meta) as out:
-        out_arr = out.read(1)
+        # copy and update the metadata from the input raster for the output
+        meta = rst.meta.copy()
+        meta.update(compress='lzw')
 
-        # this is where we create a generator of geom, value pairs to use in rasterizing
-        shapes = ((geom,value) for geom, value in zip(tgdf.geometry, tgdf.rasterization_equivalent))
+        with rasterio.open(out_fn, 'w+', **meta) as out:
+            out_arr = out.read(1)
 
-        burned = features.rasterize(shapes=shapes, fill=0, out=out_arr, transform=out.transform)
-        out.write_band(1, burned)
+            # this is where we create a generator of geom, value pairs to use in rasterizing
+            shapes = ((geom,value) for geom, value in zip(tgdf.geometry, tgdf.RZ_key))
+
+            burned = features.rasterize(shapes=shapes, fill=0, out=out_arr, transform=out.transform)
+            out.write_band(1, burned)
 
 #=============================================================================
 if __name__ == "__main__":
