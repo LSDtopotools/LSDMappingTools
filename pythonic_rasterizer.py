@@ -87,13 +87,12 @@ def main(argv):
     shp_fn = this_dir+args.shapefile_fname+".shp"
     temp_shp_fn = this_dir+args.shapefile_fname+"_temp_shapefile.shp"
     rst_fn = this_dir+args.template_fname
-    out_fn = this_dir+args.fname_prefix+".tif"
+    
     
     
     print("The files being used are:")
     print(shp_fn)
     print(rst_fn)
-    print(out_fn)
 
     # read the shapefle
     tgdf = gpd.read_file(shp_fn) 
@@ -103,6 +102,7 @@ def main(argv):
     
     if args.use_lookup_table:
         print("I am going to proceed using a lookup table")
+        out_fn = this_dir+args.lookup_field+"_raster.tif"
         
         # Load the dataframe
         lookup_fn = this_dir+args.lookup_table_fname
@@ -146,6 +146,7 @@ def main(argv):
             out.write_band(1, burned)
 
     else:
+        out_fn = this_dir+args.fname_prefix+".tif"
         
         print("I am going to proceed using unique values")
         print("This will relsult in a new shapefile")
