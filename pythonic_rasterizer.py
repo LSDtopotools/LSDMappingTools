@@ -127,9 +127,7 @@ def main(argv):
         # Loop through the unique values
         for key in keys:
             print("The key is: "+key)
-            tgdf[args.lookup_field][tgdf[field] == key] = dictionary[key]
-            raster_val.append(dictionary[key])
-            shp_val.append(key)     
+            tgdf[args.lookup_field][tgdf[field] == key] = dictionary[key]  
             
         # Get the template raster
         rst = rasterio.open(rst_fn)
