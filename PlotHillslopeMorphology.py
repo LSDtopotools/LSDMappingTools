@@ -228,10 +228,10 @@ def main(argv):
     if args.plot_mean_basin_data:
         # NOTE this requires uplift data!!
         HS.PlotHillslopeDataWithBasins(this_dir, args.fname_prefix, PlotDirectory)
-        #HS.PlotEStarRStarSubPlots(this_dir, args.fname_prefix, PlotDirectory, args.sc)
+        HS.PlotEStarRStarSubPlots(this_dir, args.fname_prefix, PlotDirectory, args.sc)
         #HS.PlotDataAgainstErosionRate(this_dir, args.fname_prefix, PlotDirectory)
         #HS.Make3DHillslopePlot(this_dir, args.fname_prefix, PlotDirectory)
-        HS.PlotDdLh(this_dir, args.fname_prefix, PlotDirectory)
+        #HS.PlotDdLh(this_dir, args.fname_prefix, PlotDirectory)
 
     # SMM: again, this is hard coded for mendocino at the moment
     if args.plot_means_with_uplift:

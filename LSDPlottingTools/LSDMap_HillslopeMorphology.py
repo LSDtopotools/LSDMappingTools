@@ -1379,7 +1379,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     # plot the hillslope length
     ax[0].errorbar(basin_keys,median_Lh,yerr=[Lh_lower_err, Lh_upper_err],fmt='o', ecolor='0.5',markersize=6,mec='k',mfc=colors[0])
-    ax[0].set_ylabel('$L_H$')
+    ax[0].set_ylabel('$L_{\mathrm{H}}$ (m)')
 
     #plot the cht
     #ax[1].errorbar(basin_keys,median_cht,yerr=[cht_lower_err, cht_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[1],mec='k')
@@ -1395,7 +1395,7 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
 
     #plot the Mchi
     ax[3].errorbar(basin_keys,median_mchi,yerr=[mchi_lower_err, mchi_upper_err],fmt='o', ecolor='0.5',markersize=6,mfc=colors[5],mec='k')
-    ax[3].set_ylabel('$k_{sn}$')
+    ax[3].set_ylabel('$k_{\mathrm{sn}}$')
 
     # read the uplift data in
     # read in the csv
@@ -1412,7 +1412,9 @@ def PlotHillslopeDataWithBasins(DataDirectory,FilenamePrefix,PlotDirectory):
     #ax[5].scatter(basin_keys, drainage_density, c=colors[6], edgecolors='k', s=30,zorder=2)
     ax[4].errorbar(basin_keys, dd_med, yerr=[dd_med - dd_lower_err, dd_upper_err - dd_med], fmt='o', ecolor='0.5', markersize=6, mfc=colors[6], mec='k',zorder=1)
     #ax[5].set_ylim(np.min(drainage_density)-1000, np.max(drainage_density)+1000)
-    ax[4].set_ylabel('$D_d$ (m/km$^2$)')
+    ax[4].set_ylabel('$D_{\mathrm{D}}$ (m/km$^2$)')
+    # bullshit geology formatting
+    ax[4].get_yaxis().set_major_formatter(ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
 
     # get the data
     #uplift_rate_old = uplift_df['Uplift_rate_old']
@@ -1618,11 +1620,11 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     NoBasins = len(basins)
     print(basins)
 
-    sc = ax[0].scatter(df.Estar_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, cmap=ColourMap)
-    ax[0].errorbar(df.Estar_median,df.Rstar_median,xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+    sc = ax[1].scatter(df.Estar_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, cmap=ColourMap)
+    ax[1].errorbar(df.Estar_median,df.Rstar_median,xerr=[df['Estar_lower_err'], df['Estar_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
-    sc = ax[1].scatter(df.mchi_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, cmap=ColourMap)
-    ax[1].errorbar(df.mchi_median,df.Rstar_median,xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
+    sc = ax[0].scatter(df.mchi_median,df.Rstar_median,c=basins,s=50, edgecolors='k', zorder=100, cmap=ColourMap)
+    ax[0].errorbar(df.mchi_median,df.Rstar_median,xerr=[df['mchi_lower_err'], df['mchi_upper_err']], yerr=[df['Rstar_lower_err'], df['Rstar_upper_err']],fmt='o', zorder=1, ecolor='0.5',markersize=1,mfc='white',mec='k')
 
     # plot the theoretical relationships for each one
     # Calculate analytical relationship for estar rstar
@@ -1630,7 +1632,7 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     RStar_model = CalculateRStar(EStar_model)
 
     # Plot with open figure
-    ax[0].plot(EStar_model,RStar_model,c='0.5',ls='--')
+    ax[1].plot(EStar_model,RStar_model,c='0.5',ls='--')
 
     # calculate linear fit for Rstar ksn
     slope, intercept, r_value, p_value, std_err = stats.linregress(df.mchi_median, df.Rstar_median)
@@ -1638,7 +1640,7 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     x = df.mchi_median.values
     print(x)
     new_y = slope*x + intercept
-    ax[1].plot(x, new_y, c='0.5', ls='--')
+    ax[0].plot(x, new_y, c='0.5', ls='--')
 
     # get the difference between the linear fit and the real R* for each basin and
     # print to csv for plotting
@@ -1649,14 +1651,14 @@ def PlotEStarRStarSubPlots(DataDirectory, FilenamePrefix, PlotDirectory, Sc = 0.
     df.to_csv(OutputFilename, index=False)
 
     # Finalise the figure
-    ax[0].set_xlabel('$E^*={{-2\:C_{HT}\:L_H}/{S_C}}$')
-    ax[0].set_ylabel('$R^*=S/S_C$')
-    ax[0].set_xlim(0.1,25)
-    ax[0].set_ylim(0.2,1)
-
-    ax[1].set_xlim(10,90)
+    ax[1].set_xlabel('$E^*={-2\:C_{\mathrm{HT}}\:L_{\mathrm{H}}}/{S_{\mathrm{c}}}$')
+    ax[0].set_ylabel('$R^*=S/S_{\mathrm{c}}$')
+    ax[1].set_xlim(0.1,25)
     ax[1].set_ylim(0.2,1)
-    ax[1].set_xlabel('$k_{sn}$')
+
+    ax[0].set_xlim(10,90)
+    ax[0].set_ylim(0.2,1)
+    ax[0].set_xlabel('$k_{\mathrm{sn}}$')
 
     # add colour bar
     m = cm.ScalarMappable(cmap=ColourMap)
