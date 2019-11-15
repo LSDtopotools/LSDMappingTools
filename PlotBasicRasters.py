@@ -667,22 +667,25 @@ def main(argv):
         # Get the names of the relevant files
         ChannelFname = args.fname_prefix+"_points.csv"
         
-        raster_out_prefix = "/raster_plots/"+out_fname_prefix   
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix 
         
         # First the basins, with blue channels scaled by drainage area
         # Now plot the channels coloured by the elevation
         if args.simple_channel_format == "elevation":
             # Now plot the channels coloured by the source number
-            LSDMW.PrintChannels(this_dir, args.fname_prefix, ChannelFname,add_basin_labels = False, cmap = "Blues_r", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi, out_fname_prefix = "", plotting_column = "elevation" )
+            LSDMW.PrintChannels(this_dir, args.fname_prefix, ChannelFname,add_basin_labels = False, cmap = "gist_earth", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi, out_fname_prefix = "", plotting_column = "elevation" )
         elif args.simple_channel_format == "source_key":
             # Now plot the channels coloured by the source number
-            LSDMW.PrintChannels(this_dir, args.fname_prefix, ChannelFname,add_basin_labels = False, cmap = "Blues_r", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi, out_fname_prefix = "", plotting_column = "source_key" )
+            LSDMW.PrintChannels(this_dir, args.fname_prefix, ChannelFname,add_basin_labels = False, cmap = "gist_earth", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi, out_fname_prefix = "", plotting_column = "source_key" )
         elif args.simple_channel_format == "basin_key":
             # Now plot the channels coloured by the source number
-            LSDMW.PrintChannels(this_dir, args.fname_prefix, ChannelFname,add_basin_labels = False, cmap = "Blues_r", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi, out_fname_prefix = "", plotting_column = "basin_key" )
+            LSDMW.PrintChannels(this_dir, args.fname_prefix, ChannelFname,add_basin_labels = False, cmap = "gist_earth", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi, out_fname_prefix = "", plotting_column = "basin_key" )
         elif args.simple_channel_format == "drainage_area":
             # Now plot the channels coloured by the source number
-            LSDMW.PrintChannels(this_dir, args.fname_prefix, ChannelFname,add_basin_labels = False, cmap = "Blues_r", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi, out_fname_prefix = "", plotting_column = "drainage_area" )
+            LSDMW.PrintChannels(this_dir, args.fname_prefix, ChannelFname,add_basin_labels = False, cmap = "gist_earth", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi, out_fname_prefix = "", plotting_column = "drainage_area" )
+        elif args.simple_channel_format == "none":
+            # Now plot the channels coloured by the source number
+            LSDMW.PrintChannels(this_dir, args.fname_prefix, ChannelFname,add_basin_labels = False, cmap = "gist_earth", cbar_loc = "None", size_format = args.size_format, fig_format = simple_format, dpi = args.dpi, out_fname_prefix = "", plotting_column = "none" )
         else:
             print("You didn't select a valid channel colouring scheme.\n Choices are elevation, source_key, basin_key, and drainage_area")
 

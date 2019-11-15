@@ -36,7 +36,80 @@ def print_welcome():
     print("   python PlotMOverNAnalysis.py -h\n")
     print("=======================================================================\n\n ")
 
- 
+
+#=============================================================================
+# This parses a comma separated string
+#=============================================================================
+def parse_list_from_string(a_string):
+    """
+    This just parses a comma separated string and returns an INTEGER list
+
+    Args:
+        a_string (str): The string to be parsed
+
+    Returns:
+        A list of integers
+
+    Author: SMM
+
+    Date: 10/01/2018
+    """
+    print("Hey pardner, I'm a gonna parse a string into a list. Yeehaw.")
+    if len(a_string) == 0:
+        print("No items found, I am returning and empty list.")
+        return_list = []
+    elif "." in a_string:
+        print("I found a decimal in your string. I am going to assume these are floats")
+        return_list = [float(item) for item in a_string.split(',')]
+        print("The parsed string is:")
+        print(return_list)
+    else:
+        return_list = [int(item) for item in a_string.split(',')]
+        print("The parsed string is:")
+        print(return_list)
+
+    return return_list    
+    
+    
+#=============================================================================
+# This parses a list of lists separated string. Each list is separated by a colon
+#=============================================================================
+def parse_list_of_list_from_string(a_string):
+    """
+    This parses a list of lists separated string. Each list is separated by a colon
+
+    Args:
+        a_string (str): This creates a list of lists. Each sub list is separated by colons and the sub list items are separated by commas. So `1,2,3:4,5` would produce [ [1,2,3],[4,5]]
+
+    Returns:
+        list_of_list (list): A list of lists
+
+    Author: SMM
+
+    Date: 11/01/2018
+    """
+    if len(a_string) == 0:
+        print("No list of list found. I will return an empty list.")
+        list_of_list = []
+    else:
+        listified_entry = [item for item in a_string.split(':')]
+        list_of_list = []
+
+        # now loop through these creating a dict
+        for entry in listified_entry:
+            split_entry = [int(item) for item in entry.split(',')]
+            list_of_list.append(split_entry)
+
+    print("This list of lists is: ")
+    print(list_of_list)
+
+    return list_of_list
+
+
+
+#=============================================================================
+# Returns true if the data only uses the disorder metric
+#============================================================================= 
 def check_if_disorder_metric_only(this_dir, this_fname_prefix):
     Chi_disorder_only = False
     from pathlib import Path
@@ -87,9 +160,9 @@ def main(argv):
     parser.add_argument("-pts", "--point_uncertainty", type=bool, default=False, help="If this is true, I'll make a plot of the range in m/n from the MC points analysis")
     parser.add_argument("-hist", "--plot_histogram", type=bool, default=False, help="If this is true, I'll make plots of the pdfs of m/n values for each method.")
     parser.add_argument("-disorder", "--plot_disorder", type=bool, default=False, help="If this is true, I'll make plots of the chi disorder analysis.")
-    # parser.add_argument("-basin_joyplot", "--basin_joyplot", type=bool, default=False, help="If this is true, I'll make a joyplot showing m/n for each basin from the chi points")
     parser.add_argument("-SUM", "--plot_summary", type=bool, default=False, help="If this is true, I'll make the summary CSV file and plot of the best fit concavity from each of the methods.")
     parser.add_argument("-ALL", "--all_movern_estimates", type=bool, default=False, help="If this is true, I'll make all the plots")
+    parser.add_argument("-DisFxnDist", "--disorder_function_of_distance", type=bool, default=False, help="If this is true, I'll make a plot of the disorder metric as a function of position")
 
 
     # Plotting options
@@ -100,7 +173,9 @@ def main(argv):
     parser.add_argument("-show_legend", "--show_legend", type=bool, default=True, help="If this is true, I'll display the legend for plots.")
     parser.add_argument("-no_legend", "--no_legend", dest="show_legend", action="store_false", help="Flag to not display legends, I'll not display the legend for plots, default is for legend to be displayed. Note taht setting show_legend False does not achieve this due to bool issues with python parsing")
 
+    # Options about basin selection
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
+    parser.add_argument("-basin_lists", "--basin_lists",type=str,default = "", help = "This is a string that initiates a list of a list for grouping basins. The object becomes a list of a list but the syntax is comma seperated lists, and each one is separated by a colon. Default = no dict")
 
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
@@ -119,18 +194,7 @@ def main(argv):
             print("WARNING! You haven't supplied your DEM name. Please specify this with the flag '-fname'")
             sys.exit()
 
-    # check the basins
-    print("You told me that the basin keys are: ")
-    print(args.basin_keys)
-
-    if len(args.basin_keys) == 0:
-        print("No basins found, I will plot all of them")
-        these_basin_keys = []
-    else:
-        these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
-        print("The basins I will plot are:")
-        print(these_basin_keys)
-
+            
     # get the base directory
     if args.base_directory:
         this_dir = args.base_directory
@@ -139,13 +203,62 @@ def main(argv):
             print("You forgot the '/' at the end of the directory, appending...")
             this_dir = this_dir+"/"
     else:
-        this_dir = os.getcwd()
+        this_dir = os.getcwd()            
+            
+    # check the basins
+    print("You told me that the basin keys are: ")
+    print(args.basin_keys)
+
+ 
+    # See if a basin info file exists and if so get the basin list
+    print("Let me check if there is a basins info csv file.")
+    BasinInfoPrefix = args.fname_prefix+"_AllBasinsInfo.csv"
+    BasinInfoFileName = this_dir+BasinInfoPrefix
+    existing_basin_keys = []
+    if os.path.isfile(BasinInfoFileName):
+        print("There is a basins info csv file")
+        BasinInfoDF = Helper.ReadBasinInfoCSV(this_dir, args.fname_prefix)
+        existing_basin_keys = list(BasinInfoDF['basin_key'])
+        existing_basin_keys = [int(x) for x in existing_basin_keys]
+    else:
+        print("I didn't find a basins info csv file. Check directory or filename.")
+
+    # Parse any lists, dicts, or list of lists from the arguments
+    these_basin_keys = parse_list_from_string(args.basin_keys)
+    basin_stack_list = parse_list_of_list_from_string(args.basin_lists)
+
+
+    # If the basin keys are not supplied then assume all basins are used.
+    if these_basin_keys == []:
+        these_basin_keys = existing_basin_keys
+
+    # Python is so amazing. Look at the line below.
+    Mask_basin_keys = [i for i in existing_basin_keys if i not in these_basin_keys]
+    print("All basins are: ")
+    print(existing_basin_keys)
+    print("The basins to keep are:")
+    print(these_basin_keys)
+    print("The basins to mask are:")
+    print(Mask_basin_keys)
+
+    # This is an old version. It passes empty strings to the plotting functions. 
+    #if len(args.basin_keys) == 0:
+    #    print("No basins found, I will plot all of them")
+    #    # Note that if you pass an empty list to the plotting functions, they will plot all the basins
+    #    these_basin_keys = []
+    #else:
+    #    these_basin_keys = [int(item) for item in args.basin_keys.split(',')]
+    #    print("The basins I will plot are:")
+    #    print(these_basin_keys)     
+        
+        
+
         
     # This checks to see if chi points method is being used. 
     # If not, assumes only the disorder metric has been calculated
     Using_disorder_metric_only = check_if_disorder_metric_only(this_dir, args.fname_prefix)
 
-    # get the range of moverns, needed for plotting
+    
     if not args.parallel:
         BasinDF = Helper.ReadBasinStatsCSV(this_dir, args.fname_prefix)
     else:
@@ -155,9 +268,9 @@ def main(argv):
         # something sensible that relates to the DEM name.
         split_fname = this_dir.split("/")
         split_fname = split_fname[len(split_fname)-2]
-        #args.fname_prefix = split_fname # commented out for now since base fname given, basins will always have basinX fname_prefix
 
 
+    # get the range of moverns, needed for plotting
     # we need the column headers
     columns = BasinDF.columns[BasinDF.columns.str.contains('m_over_n')].tolist()
     moverns = [float(x.split("=")[-1]) for x in columns]
@@ -218,9 +331,11 @@ def main(argv):
         MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=simple_format, size_format=args.size_format, show_legend=args.show_legend,Chi_disorder=True)
 
     if args.plot_summary:
+        # This function creates a csv that has the concavity statistics in it
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys,
                                             start_movern=start_movern, d_movern=d_movern,
                                             n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
+        
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,
                                  start_movern=start_movern, d_movern=d_movern,
                                  n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend,parallel=args.parallel, Chi_disorder=True)
@@ -239,6 +354,7 @@ def main(argv):
     if args.plot_disorder:
         MN.MakeRasterPlotsMOverN(this_dir, args.fname_prefix, start_movern, n_movern, d_movern, movern_method="Chi_disorder", size_format=args.size_format, FigFormat=args.FigFormat,parallel=args.parallel)
         
+        # This function creates a csv that has the concavity statistics in it
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys, start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
         
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend,parallel=args.parallel, Chi_disorder=True)
@@ -246,6 +362,7 @@ def main(argv):
         MN.MakeMOverNSummaryHistogram(this_dir, args.fname_prefix,basin_list=these_basin_keys,start_movern=start_movern, d_movern=d_movern, n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend, Chi_disorder=True)
 
     if args.all_movern_estimates:
+        print("I am going to print out loads and loads of figures for you.")
         # plot the rasters
         MN.MakeRasterPlotsBasins(this_dir, args.fname_prefix, args.size_format, args.FigFormat,parallel=args.parallel)
         
@@ -281,9 +398,11 @@ def main(argv):
                         show_raw = args.show_SA_raw, show_segments = False, basin_keys = these_basin_keys, parallel=args.parallel)
 
         #summary plots
+        # This function creates a csv that has the concavity statistics in it
         MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys,
                                             start_movern=start_movern, d_movern=d_movern,
                                             n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
+        
         MN.MakeMOverNSummaryPlot(this_dir, args.fname_prefix, basin_list=these_basin_keys,start_movern=start_movern, 
                                  d_movern=d_movern,
                                  n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format, show_legend=args.show_legend,parallel=args.parallel, Chi_disorder=True)
@@ -301,6 +420,18 @@ def main(argv):
                                       n_movern=n_movern, FigFormat=args.FigFormat, size_format=args.size_format, show_legend=args.show_legend, Chi_disorder=True)
 
 
+        
+    if args.disorder_function_of_distance:
+        # This function creates a csv that has the concavity statistics in it
+        MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys,
+                                            start_movern=start_movern, d_movern=d_movern,
+                                            n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
+        
+        # Okay, now we plot the metrics as a function of distance
+        print("I am going to print the following lists of basins: ")
+        print(basin_stack_list)
+        
+        
 #=============================================================================
 if __name__ == "__main__":
     main(sys.argv[1:])

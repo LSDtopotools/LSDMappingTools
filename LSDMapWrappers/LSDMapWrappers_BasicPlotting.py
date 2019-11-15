@@ -312,8 +312,13 @@ def PrintChannels(DataDirectory,fname_prefix, ChannelFileName, add_basin_labels 
     BackgroundRasterName = fname_prefix+"_hs.bil"
     DrapeRasterName = fname_prefix+".bil"
     chi_csv_fname = DataDirectory+ChannelFileName
-
+    
+    print("Let me get the point data")
+    print("The filename is: "+chi_csv_fname)
     thisPointData = LSDMap_PD.LSDMap_PointData(chi_csv_fname)
+    print("The parameter names are")
+    thisPointData.GetParameterNames(True)
+    
 
 
     # clear the plot

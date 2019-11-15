@@ -2560,11 +2560,11 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
             n_movern (float): the number of m/n values analysed. Default is 7.
             size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
             FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
-            movern_method (str): the method you want to plot. Can be 'chi_all', 'chi_points', 'SA_raw', or 'SA_segments'. Default 'chi_points'
+            movern_method (str): the method you want to plot. Can be 'chi_all', 'chi_points', 'chi_disorder', SA_raw', or 'SA_segments'. Default 'chi_points'
         Returns:
             Makes a summary plot
 
-        Author: FJC
+        Author: FJC edit SMM 15/11/2019
         """
         # check if a directory exists for the summary plots. If not then make it.
         summary_directory = DataDirectory+'summary_plots/'
@@ -2625,6 +2625,21 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
                 ax.errorbar(SA_keys, df['SA_raw'], yerr=SA_sterr, c='#2b8cbe', elinewidth=1, fmt='none',label='_nolegend_')
                 ax.scatter(SA_keys, df['SA_raw'], s=15, c='#2b8cbe', edgecolors='k',lw=0.5, label='S-A all data', zorder=100)
 
+                
+        # plot the chi disorder data if you want it
+        elif movern_method=='chi_disorder':
+            median_movern = df['Chi_disorder'].values
+            points_max_err = df['Chi_disorder_max'].values
+            points_max_err = points_max_err.astype(float)-median_movern.astype(float)
+            points_min_err = df['Chi_disorder_min'].values
+            points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+            errors = np.array(list(zip(points_min_err, points_max_err))).T
+
+            disorder_chi_keys = df['basin_key'].values
+            disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
+            ax.errorbar(disorder_chi_keys, df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
+            ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors='#F06292', s=15, zorder=100, label='Chi disorder')                
+                
         else:
             # plot the segmented SA data
             median_movern = df['SA_segments'].values
