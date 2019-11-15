@@ -25,6 +25,7 @@ from matplotlib import colors
 import math
 import os
 import subprocess
+from matplotlib import cm
 #from shapely.geometry import Polygon
 from LSDMapFigure import PlottingHelpers as Helper
 from LSDMapFigure.PlottingRaster import MapFigure
@@ -2672,9 +2673,159 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
         ax.cla()
         plt.close(fig)
 
+        
+        
+def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=[], start_movern=0.2, d_movern=0.1, n_movern=7,
+                            size_format='ESURF', FigFormat='png', show_legend=True,parallel=False):
+    """
+    This function makes a summary plot of the best fit m/n, you choose which method
+    you want to plot.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        basin_list: list of basin keys to analyse, default = [] (all basins)
+        start_movern (float): the starting m/n value. Default is 0.2
+        d_movern (float): the increment between the m/n values. Default is 0.1
+        n_movern (float): the number of m/n values analysed. Default is 7.
+        size_format (str): Can be "big" (16 inches wide), "geomorphology" (6.25 inches wide), or "ESURF" (4.92 inches wide) (defualt esurf).
+        FigFormat (str): The format of the figure. Usually 'png' or 'pdf'. If "show" then it calls the matplotlib show() command.
+        movern_method (str): the method you want to plot. Can be 'chi_all', 'chi_points', 'chi_disorder', SA_raw', or 'SA_segments'. Default 'chi_points'
+    Returns:
+        Makes a summary plot
+
+    Author: SMM 15/11/2019
+    """
+    # check if a directory exists for the summary plots. If not then make it.
+    summary_directory = DataDirectory+'summary_plots/'
+    if not os.path.isdir(summary_directory):
+        os.makedirs(summary_directory)
+
+    from matplotlib.ticker import FuncFormatter, MaxNLocator
+    # Set up fonts for plots
+    label_size = 10
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['Liberation Sans']
+    rcParams['font.size'] = label_size
+
+    # make a figure
+    fig = makefigure(size_format)
+
+
+    print("SHOW LEGEND", show_legend)
+
+    if show_legend:
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.75,top=0.9)
+    else:
+        gs = plt.GridSpec(100,100,bottom=0.15,left=0.05,right=0.95,top=0.95)
+
+    ax = fig.add_subplot(gs[5:100,10:95])
+
+    # read in the summary csv
+    df = Helper.ReadMOverNSummaryCSV(summary_directory,fname_prefix)
+    
+    # you also need the basin info
+    df_basin_info = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
+    
+    print("The data frame is")
+    print(df)
+    
+    print("The basin info df is:")
+    print(df_basin_info)
+    
+    # Now merge the two dataframes
+    df_new = pd.merge(df,df_basin_info,on='basin_key')
+    df = df_new
+    
+    print("The new dataframe is")
+    print(df)
+
+    if basin_list_list != []:
+        basin_keys_list = basin_list_list
+    else:
+        # get the basin keys
+        basin_keys_list = []
+        basin_keys = df['basin_key'].tolist()
+        basin_keys_list.append(basin_keys)
+        print("You didn't select basin keys. I am picking all of them:")
+        print (basin_keys_list)
+
+    # This just makes a colour list for plotting
+    colour_list = []
+    colour_list.append('#F06292')
+    
+    tab20_cm = cm.get_cmap('tab20')
+    
+        
+    # Loop through the basin key list
+    for basin_keys in basin_list_list:
+        this_df = df[df['basin_key'].isin(basin_keys)]
+
+
+
+        # plot the chi disorder data if you want it. This will fail if the 
+        colour_index = 0;
+        if 'Chi_disorder' in df:
+            label_name = "Group "+str(colour_index)
+            median_movern = df['Chi_disorder'].values
+            points_max_err = df['Chi_disorder_max'].values
+            points_max_err = points_max_err.astype(float)-median_movern.astype(float)
+            points_min_err = df['Chi_disorder_min'].values
+            points_min_err = median_movern.astype(float)-points_min_err.astype(float)
+            errors = np.array(list(zip(points_min_err, points_max_err))).T
+
+            disorder_chi_keys = df['basin_key'].values
+            disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
+            ax.errorbar(disorder_chi_keys, df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
+            ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors=tab20_cm(colour_index/20), s=15, zorder=100, label=label_name)
+            colour_index = colour_index+1
+
+
+
+    # set the axis labels
+    ax.set_xlabel('Basin key')
+    ax.set_ylabel('Best fit '+r'$\theta$')
+
+    if show_legend:
+        print ("ADDING THE LEGEND")
+        # sort both labels and handles by labels
+        handles, labels = ax.get_legend_handles_labels()
+        labels, handles = list(zip(*sorted(list(zip(labels, handles)), key=lambda t: t[0])))
+        # add the legend
+        ax.legend(handles, labels,fontsize=8, bbox_to_anchor=(1.0,0.7),bbox_transform=plt.gcf().transFigure)
+
+    # This gets all the ticks, and pads them away from the axis so that the corners don't overlap
+    ax.tick_params(axis='both', width=1, pad = 2)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.set_pad(2)
+
+    # change tick spacing
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=2))
+    ax.set_xlim(-1,)
+    #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
+
+    # remove first tick from the x axis
+    #ax.xaxis.set_major_locator(MaxNLocator(prune='lower'))
+
+    #set y axis lims
+    #end_movern = end_movern = start_movern+d_movern*(n_movern-1)
+    #ax.set_ylim(start_movern-d_movern,1.3)
+
+    # change y axis to the moverns tested
+    # end_movern = end_movern = start_movern+d_movern*(n_movern-1)
+    # print end_movern
+    # ax.yaxis.set_ticks(np.arange(start_movern, end_movern, d_movern))
+
+
+    newFilename = summary_directory+fname_prefix+"_concavity_dist."+FigFormat
+    plt.savefig(newFilename,format=FigFormat,dpi=300)
+    ax.cla()
+    plt.close(fig)    
+        
+        
 def MakeMOverNSummaryHistogram(DataDirectory, fname_prefix, basin_list=[], size_format='ESURF', FigFormat='png', start_movern=0.1, n_movern=7, d_movern=0.1, mn_method = "Chi", show_legend=True, parallel=False, Chi_disorder=False):
     """
-    This function makes a joyplot showing the distribution of m/n values for each method
+    This function makes a stacked histogram showing the distribution of concavity (~m/n) values for each method
 
     Args:
         DataDirectory (str): the data directory with the m/n csv files

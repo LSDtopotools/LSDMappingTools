@@ -423,13 +423,36 @@ def main(argv):
         
     if args.disorder_function_of_distance:
         # This function creates a csv that has the concavity statistics in it
-        MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys,
+        print("=====================================================")
+        print("=====================================================")
+        print("\n\n\n\nI am going to get the summary information.")
+        
+        
+        # See if the summary already exists
+        
+        
+        print("Let me check if there is a concavity summary csv file.")
+        SummaryPrefix = args.fname_prefix+"_movern_summary.csv"
+        SummaryFileName = this_dir+"summary_plots/"+SummaryPrefix
+        print("The summary filename is: "+SummaryFileName)
+        if os.path.isfile(SummaryFileName):
+            print("There is already a summary file")
+        else:
+            print("No summray csv found. I will calculate a new one.")
+            MN.CompareMOverNEstimatesAllMethods(this_dir, args.fname_prefix, basin_list=these_basin_keys,
                                             start_movern=start_movern, d_movern=d_movern,
                                             n_movern=n_movern, parallel=args.parallel, Chi_disorder=True)
         
         # Okay, now we plot the metrics as a function of distance
         print("I am going to print the following lists of basins: ")
         print(basin_stack_list)
+        
+        MN.MakeMOverNDisorderDistancePlot(this_dir, args.fname_prefix, basin_list_list=basin_stack_list,
+                                 start_movern=start_movern, d_movern=d_movern,
+                                 n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format,
+                                 show_legend=args.show_legend,parallel=args.parallel)
+        
+        
         
         
 #=============================================================================

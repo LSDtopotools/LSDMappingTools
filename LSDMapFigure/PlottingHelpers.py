@@ -411,6 +411,7 @@ def ReadSourceKeysCSV(DataDirectory, fname_prefix):
 
     Author: FJC
     """
+    
     # get the csv filename
     source_keys_suffix = '_SourceKeys.csv'
     fname = fname_prefix+source_keys_suffix
@@ -433,6 +434,7 @@ def ReadBasinInfoCSV(DataDirectory, fname_prefix):
 
     Author: FJC
     """
+    
     # get the csv filename
     basin_suffix = '_AllBasinsInfo.csv'
     fname = fname_prefix+basin_suffix
@@ -456,6 +458,7 @@ def ReadFullStatsCSV(DataDirectory, fname_prefix, m_over_n):
 
     Author: FJC
     """
+    
     # get the csv filename
     fullstats_suffix = '_movernstats_%s_fullstats.csv' % m_over_n
     fname = fname_prefix+fullstats_suffix
@@ -478,6 +481,7 @@ def ReadChiProfileCSV(DataDirectory, fname_prefix):
 
     Author: FJC
     """
+    
     import os
     
     # get the csv filename
@@ -509,6 +513,7 @@ def ReadBasinStatsCSV(DataDirectory, fname_prefix):
 
     Author: FJC
     """
+    
     # get the csv filename
     basin_stats_suffix = '_disorder_basinstats.csv'
     fname = fname_prefix+basin_stats_suffix
@@ -839,6 +844,7 @@ def ReadRawSAData(DataDirectory, fname_prefix):
 
     Author: FJC
     """
+    
     # get the csv filename
     fname_suffix = "_SAvertical.csv"
     fname = fname_prefix+fname_suffix
@@ -860,6 +866,7 @@ def AppendRawSAData(DataDirectory, FilenamePrefix):
 
     Author: MDH, FJC
     """
+    
     # get the csv filename
     csv_suffix = "_SAvertical.csv"
 
@@ -889,6 +896,7 @@ def ReadSegmentedSAData(DataDirectory, fname_prefix):
 
     Author: FJC
     """
+    
     # get the csv filename
     fname_suffix = "_SAsegmented.csv"
     fname = fname_prefix+fname_suffix
@@ -910,6 +918,7 @@ def ReadBinnedSAData(DataDirectory, fname_prefix):
 
     Author: FJC
     """
+    
     # get the csv filename
     fname_suffix = "_SAbinned.csv"
     fname = fname_prefix+fname_suffix
