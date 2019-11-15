@@ -2727,18 +2727,18 @@ def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=
     # you also need the basin info
     df_basin_info = Helper.ReadBasinInfoCSV(DataDirectory,fname_prefix)
     
-    print("The data frame is")
-    print(df)
+    #print("The data frame is")
+    #print(df)
     
-    print("The basin info df is:")
-    print(df_basin_info)
+    #print("The basin info df is:")
+    #print(df_basin_info)
     
     # Now merge the two dataframes
     df_new = pd.merge(df,df_basin_info,on='basin_key')
     df = df_new
     
-    print("The new dataframe is")
-    print(df)
+    #print("The new dataframe is")
+    #print(df)
 
     if basin_list_list != []:
         basin_keys_list = basin_list_list
@@ -2759,26 +2759,28 @@ def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=
         
     # Loop through the basin key list
     for basin_keys in basin_list_list:
+        
+        print("\n\n\nI am selecting the following basins")
+        print(basin_keys)
+        
         this_df = df[df['basin_key'].isin(basin_keys)]
-
-
 
         # plot the chi disorder data if you want it. This will fail if the 
         colour_index = 0;
         if 'Chi_disorder' in df:
             label_name = "Group "+str(colour_index)
-            median_movern = df['Chi_disorder'].values
-            points_max_err = df['Chi_disorder_max'].values
+            median_movern = this_df['Chi_disorder'].values
+            points_max_err = this_df['Chi_disorder_max'].values
             points_max_err = points_max_err.astype(float)-median_movern.astype(float)
-            points_min_err = df['Chi_disorder_min'].values
+            points_min_err = this_df['Chi_disorder_min'].values
             points_min_err = median_movern.astype(float)-points_min_err.astype(float)
             errors = np.array(list(zip(points_min_err, points_max_err))).T
 
-            disorder_chi_keys = df['basin_key'].values
+            disorder_chi_keys = this_df['basin_key'].values
             disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
-            ax.errorbar(disorder_chi_keys, df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
-            ax.scatter(disorder_chi_keys, df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors=tab20_cm(colour_index/20), s=15, zorder=100, label=label_name)
-            colour_index = colour_index+1
+            ax.errorbar(disorder_chi_keys, this_df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
+            ax.scatter(disorder_chi_keys, this_df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors=tab20_cm(colour_index/10), s=15, zorder=100, label=label_name)
+        colour_index = colour_index+1
 
 
 
