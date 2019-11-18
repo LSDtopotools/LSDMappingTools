@@ -2752,7 +2752,15 @@ def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=
 
     # This just makes a colour list for plotting
     colour_list = []
-    colour_list.append('#F06292')
+    colour_list.append('#e41a1c')
+    colour_list.append('#377eb8')
+    colour_list.append('#4daf4a')
+    colour_list.append('#984ea3')
+    colour_list.append('#ff7f00')
+    colour_list.append('#ffff33')
+    colour_list.append('#a65628')
+    colour_list.append('#f781bf')
+    colour_list.append('#999999')
     
     tab20_cm = cm.get_cmap('tab20')
     
@@ -2768,6 +2776,7 @@ def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=
         # plot the chi disorder data if you want it. This will fail if the 
         colour_index = 0;
         if 'Chi_disorder' in df:
+            colour_index_mod = colour_index % 9
             label_name = "Group "+str(colour_index)
             median_movern = this_df['Chi_disorder'].values
             points_max_err = this_df['Chi_disorder_max'].values
@@ -2779,7 +2788,7 @@ def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=
             disorder_chi_keys = this_df['basin_key'].values
             disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
             ax.errorbar(disorder_chi_keys, this_df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
-            ax.scatter(disorder_chi_keys, this_df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors=tab20_cm(colour_index/10), s=15, zorder=100, label=label_name)
+            ax.scatter(disorder_chi_keys, this_df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors=colour_list[colour_index_mod], s=15, zorder=100, label=label_name)
         colour_index = colour_index+1
 
 
