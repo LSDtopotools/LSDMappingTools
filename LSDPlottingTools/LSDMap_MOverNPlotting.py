@@ -2766,16 +2766,19 @@ def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=
     
         
     # Loop through the basin key list
+    colour_index = 0;
     for basin_keys in basin_list_list:
+        
         
         print("\n\n\nI am selecting the following basins")
         print(basin_keys)
+        print("The colour indexs is: "+str(colour_index))
         
         this_df = df[df['basin_key'].isin(basin_keys)]
 
         # plot the chi disorder data if you want it. This will fail if the 
-        colour_index = 0;
-        if 'Chi_disorder' in df:
+        
+        if 'Chi_disorder' in this_df:
             colour_index_mod = colour_index % 9
             label_name = "Group "+str(colour_index)
             median_movern = this_df['Chi_disorder'].values
@@ -2784,17 +2787,19 @@ def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=
             points_min_err = this_df['Chi_disorder_min'].values
             points_min_err = median_movern.astype(float)-points_min_err.astype(float)
             errors = np.array(list(zip(points_min_err, points_max_err))).T
+            lat_vals =  this_df['latitude'].values
+            long_vals =  this_df['longitude'].values
 
             disorder_chi_keys = this_df['basin_key'].values
             disorder_chi_keys = disorder_chi_keys.astype(float)-0.3
-            ax.errorbar(disorder_chi_keys, this_df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor='#F06292', fmt='none', elinewidth=1,label='_nolegend_')
-            ax.scatter(disorder_chi_keys, this_df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors=colour_list[colour_index_mod], s=15, zorder=100, label=label_name)
+            ax.errorbar(long_vals, this_df['Chi_disorder'], s=15, marker='o', xerr=None, yerr=errors, ecolor=colour_list[colour_index_mod], fmt='none', elinewidth=1,label='_nolegend_')
+            ax.scatter(long_vals, this_df['Chi_disorder'],marker='o', edgecolors='k', lw=0.5, facecolors=colour_list[colour_index_mod], s=15, zorder=100, label=label_name)
         colour_index = colour_index+1
 
 
 
     # set the axis labels
-    ax.set_xlabel('Basin key')
+    ax.set_xlabel('Longitude (decimal degrees)')
     ax.set_ylabel('Best fit '+r'$\theta$')
 
     if show_legend:
@@ -2811,8 +2816,8 @@ def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=
         tick.set_pad(2)
 
     # change tick spacing
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=2))
-    ax.set_xlim(-1,)
+    #ax.xaxis.set_major_locator(ticker.MultipleLocator(base=2))
+    #ax.set_xlim(-1,)
     #ax.yaxis.set_major_locator(ticker.MultipleLocator(base=d_movern))
 
     # remove first tick from the x axis
