@@ -42,13 +42,14 @@ def print_welcome():
 #=============================================================================
 def parse_list_from_string(a_string):
     """
-    This just parses a comma separated string and returns an INTEGER list
+    This just parses a comma separated string and returns either a float or an int. 
+    Will return a float if there is a decimal in any of the data entries
 
     Args:
         a_string (str): The string to be parsed
 
     Returns:
-        A list of integers
+        A list of integers or floats
 
     Author: SMM
 
@@ -69,7 +70,36 @@ def parse_list_from_string(a_string):
         print(return_list)
 
     return return_list    
+ 
     
+#=============================================================================
+# This parses a comma separated string into strings
+#=============================================================================
+def parse_string_list_from_string(a_string):
+    """
+    This just parses a comma separated string and returns either a float or an int. 
+    Will return a float if there is a decimal in any of the data entries
+
+    Args:
+        a_string (str): The string to be parsed
+
+    Returns:
+        A list of integers
+
+    Author: SMM
+
+    Date: 18/11/2019
+    """
+    print("Hey pardner, I'm a gonna parse a string into a list. Yeehaw.")
+    if len(a_string) == 0:
+        print("No items found, I am returning and empty list.")
+        return_list = []
+    else:
+        return_list = [item for item in a_string.split(',')]
+        print("The parsed string is:")
+        print(return_list)
+
+    return return_list       
     
 #=============================================================================
 # This parses a list of lists separated string. Each list is separated by a colon
@@ -176,7 +206,9 @@ def main(argv):
     # Options about basin selection
     parser.add_argument("-basin_keys", "--basin_keys",type=str,default = "", help = "This is a comma delimited string that gets the list of basins you want for the plotting. Default = no basins")
     parser.add_argument("-basin_lists", "--basin_lists",type=str,default = "", help = "This is a string that initiates a list of a list for grouping basins. The object becomes a list of a list but the syntax is comma seperated lists, and each one is separated by a colon. Default = no dict")
-
+    parser.add_argument("-group_names", "--group_names",type=str,default = "", help = "Names of the groups provided by basin_lists. Used in legends")
+    
+    
     # These control the format of your figures
     parser.add_argument("-fmt", "--FigFormat", type=str, default='png', help="Set the figure format for the plots. Default is png")
     parser.add_argument("-size", "--size_format", type=str, default='ESURF', help="Set the size format for the figure. Can be 'big' (16 inches wide), 'geomorphology' (6.25 inches wide), or 'ESURF' (4.92 inches wide) (defualt esurf).")
@@ -226,6 +258,7 @@ def main(argv):
     # Parse any lists, dicts, or list of lists from the arguments
     these_basin_keys = parse_list_from_string(args.basin_keys)
     basin_stack_list = parse_list_of_list_from_string(args.basin_lists)
+    basin_stack_names = parse_string_list_from_string(args.group_names)
 
 
     # If the basin keys are not supplied then assume all basins are used.
@@ -450,7 +483,7 @@ def main(argv):
         MN.MakeMOverNDisorderDistancePlot(this_dir, args.fname_prefix, basin_list_list=basin_stack_list,
                                  start_movern=start_movern, d_movern=d_movern,
                                  n_movern=n_movern, FigFormat = simple_format,size_format=args.size_format,
-                                 show_legend=args.show_legend,parallel=args.parallel)
+                                 show_legend=args.show_legend,parallel=args.parallel,group_names=basin_stack_names)
         
         
         

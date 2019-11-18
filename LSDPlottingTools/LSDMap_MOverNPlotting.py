@@ -2676,7 +2676,7 @@ def MakeMOverNPlotOneMethod(DataDirectory, fname_prefix, basin_list=[], start_mo
         
         
 def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=[], start_movern=0.2, d_movern=0.1, n_movern=7,
-                            size_format='ESURF', FigFormat='png', show_legend=True,parallel=False):
+                            size_format='ESURF', FigFormat='png', show_legend=True,parallel=False, group_names=[]): 
     """
     This function makes a summary plot of the best fit m/n, you choose which method
     you want to plot.
@@ -2780,7 +2780,10 @@ def MakeMOverNDisorderDistancePlot(DataDirectory, fname_prefix, basin_list_list=
         
         if 'Chi_disorder' in this_df:
             colour_index_mod = colour_index % 9
-            label_name = "Group "+str(colour_index)
+            if group_names == []:
+                label_name = "Group "+str(colour_index)
+            else:
+                label_name = group_names[colour_index]
             median_movern = this_df['Chi_disorder'].values
             points_max_err = this_df['Chi_disorder_max'].values
             points_max_err = points_max_err.astype(float)-median_movern.astype(float)
