@@ -567,11 +567,9 @@ class MapFigure(object):
     def add_categorised_drape_image(self,RasterName,Directory,colourmap = "gray",
                         alpha=0.5,
                         show_colourbar = False,
-                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10,
+                        colorbarlabel = "Colourbar", 
                         norm = "None",
                         colour_min_max = [],
-                        modify_raster_values=False,
-                        old_values=[], new_values=[], cbar_type=float,
                         NFF_opti = False, custom_min_max = [], zorder=1):
         """
         This function adds a drape over the base raster.
@@ -583,18 +581,14 @@ class MapFigure(object):
             alpha (float): The transparency of the drape (1 is opaque, 0 totally transparent)
             show_colourbar (bool): True to show colourbar
             colourbarlabel (string): The label of the colourbar
-            discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
-            n_colours (int): number of colours in discrete colourbar
             norm (string): Normalisation of colourbar. I don't understand this so don't change
             colour_min_max( list of int/float): if it contains two elements, map the colourbar between these two values.
-            modify_raster_values (bool): If true, it takes old_values in list and replaces them with new_values
-            old_values (list): A list of values to be replaced in raster. Useful for masking and renaming
-            new_values (list): A list of the new values. This probably should be done with a map: TODO
-            cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
             NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.
             custom_min_max (list of int/float): if it contains two elements, recast the raster to [min,max] values for display.
 
         Author: SMM
+        
+        Date: 23/03/2020
         """
         Raster = BaseRaster(RasterName,Directory, NFF_opti = NFF_opti)
         
@@ -624,6 +618,7 @@ class MapFigure(object):
         Raster.replace_raster_values(unique_val, replace_ints)
 
         print("N colours: "+str(len(str_vals)))
+        n_colours = len(str_vals)
         colourmap = self.cmap_discretize(colourmap, len(str_vals))
 
 
@@ -690,9 +685,12 @@ class MapFigure(object):
         print("The number of axes are: "+str(len(self._drape_list)))
 
         if self.colourbar_orientation != "None":
+            print("Now I am going to do a categorized colourbar!!")
+            print("The categories are")
+            print(str_vals)
             self.ax_list = self.add_colourbar(self.ax_list,im,self._RasterList[-1],
-                                              colorbarlabel = colorbarlabel, discrete=discrete_cmap,
-                                              n_colours=n_colours, cbar_type=cbar_type)
+                                              colorbarlabel = colorbarlabel, discrete=True,
+                                              n_colours=n_colours, categorized = True, cbar_type=str,categories_string=str_vals)
 
 
         return self.ax_list    
@@ -1138,7 +1136,10 @@ class MapFigure(object):
             if categorized==False:
                 self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type)
             else:
+                print("I am printing a categorized raster")
                 n_colours = len(categories_string)
+                print("The categories string is")
+                print(categories_string)
                 cbar_type=str
                 self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type=str,categories_string = categories_string)
 
@@ -1197,14 +1198,29 @@ class MapFigure(object):
         print(cbar_type)
 
         # get the additional end spacing for colourbar
-        tick_spacing = float(vmax-vmin)/float(n_colours)
-        print(tick_spacing)
-        new_vmin = vmin-(tick_spacing/2)
-        new_vmax = vmax+(tick_spacing/2) #+tick_spacing
+        if cbar_type==str:
+            print("Checking tick spacing")
+            print("vmin: "+str(vmin)+" and vmax: "+str(vmax))
+            tick_spacing = float(vmax-vmin)/float(n_colours)
+            print("tick spacing is: "+str(tick_spacing))
+            
+            new_vmin = vmin+(tick_spacing/2)
+            new_vmax = vmax+(tick_spacing/2+0.0005) #+tick_spacing
+            
+            
+            
+            tick_locs = np.arange(new_vmin, new_vmax, step=tick_spacing)
+            print(tick_locs)
+            
+        else:
+            tick_spacing = float(vmax-vmin)/float(n_colours)
+            print(tick_spacing)
+            new_vmin = vmin-(tick_spacing/2)
+            new_vmax = vmax+(tick_spacing/2) #+tick_spacing
 
-        #get list of tick locations
-        tick_locs = np.arange(new_vmin, new_vmax, step=tick_spacing)
-        tick_locs = tick_locs[::thinningfactor]-1
+            #get list of tick locations
+            tick_locs = np.arange(new_vmin, new_vmax, step=tick_spacing)
+            tick_locs = tick_locs[::thinningfactor]-1
 
         # update ticks
         tick_locator = ticker.FixedLocator(tick_locs)
@@ -1220,6 +1236,9 @@ class MapFigure(object):
         if cbar_type == int:
             tick_labels = [str(int(x)) for x in tick_labels]
         elif cbar_type == str:
+            print("Getting the string categories")
+            print("These are:")
+            print(categories_string)
             tick_labels = categories_string
         else:
             tick_labels = [str(x) for x in tick_labels]
