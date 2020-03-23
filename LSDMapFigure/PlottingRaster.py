@@ -604,12 +604,27 @@ class MapFigure(object):
         print("Unique values are:")
         print(unique_val)
         
-        if modify_raster_values == True:
-            Raster.replace_raster_values(old_values, new_values)
+        dictOfVal = { i : unique_val[i] for i in range(0, len(unique_val) ) }
+        
+        replace_ints  = list(range(0, len(unique_val) ))
+        
+        str_vals = []
+        for val in unique_val:
+            #x = Decimal(val)
+            str_val = '{:.1e}'.format(val)
+            str_vals.append(str_val)
+            
+        dictOfStr = { i : str_vals[i] for i in range(0, len(str_vals) ) }
+        
+        print(dictOfVal)
+        print(dictOfStr)
+        print(replace_ints)
+        
+        # Replace the raster vales with integers
+        Raster.replace_raster_values(unique_val, replace_ints)
 
-        if discrete_cmap == True:
-            print("N colours: "+str(n_colours))
-            colourmap = self.cmap_discretize(colourmap, n_colours)
+        print("N colours: "+str(len(str_vals)))
+        colourmap = self.cmap_discretize(colourmap, len(str_vals))
 
 
         if(norm == "none"):
@@ -1098,7 +1113,7 @@ class MapFigure(object):
         # Return colormap object.
         return _mcolors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
 
-    def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar",discrete=False, n_colours=10, cbar_type=float):
+    def add_colourbar(self,ax_list,im,BaseRaster,colorbarlabel = "Colourbar",discrete=False, n_colours=10, cbar_type=float, categorized = False, categories_string = []):
         """
         This adds the colourbar to the image.
         IMPORTANT: It assumes the colourbar occupies the last axis element
@@ -1120,7 +1135,12 @@ class MapFigure(object):
 
         if discrete==True:
             # change ticks
-            self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type)
+            if categorized==False:
+                self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type)
+            else:
+                n_colours = len(categories_string)
+                cbar_type=str
+                self.fix_colourbar_ticks(BaseRaster, cbar, n_colours, cbar_type=str,categories_string = categories_string)
 
         #Will's changes:
         # Changed rotation of colourbar text to 90 and the labelpad to -75 for "left"
@@ -1136,7 +1156,7 @@ class MapFigure(object):
         return ax_list
 
     def fix_colourbar_ticks(self, BaseRaster, cbar,n_colours, cbar_type=float,
-                            use_baseraster = True, min_value = 0, max_value = 0, cbar_label_rotation=30,thinningfactor=1):
+                            use_baseraster = True, min_value = 0, max_value = 0, cbar_label_rotation=30,thinningfactor=1, categories_string = []):
         """
         This function takes a discrete colourbar and fixes the ticks so they are
         in the middle of each colour
@@ -1199,6 +1219,8 @@ class MapFigure(object):
         tick_labels = np.linspace(vmin, vmax, n_colours)
         if cbar_type == int:
             tick_labels = [str(int(x)) for x in tick_labels]
+        elif cbar_type == str:
+            tick_labels = categories_string
         else:
             tick_labels = [str(x) for x in tick_labels]
         print(tick_labels)
