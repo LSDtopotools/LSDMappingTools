@@ -232,6 +232,19 @@ class BaseRaster(object):
         zmax = np.nanmax(self._RasterArray)
         
         return([zmin,zmax])
+    
+    def get_unique(self):
+        """
+        Gets unique values from the raster. Used for categorised plotting
+
+        Author: SMM
+
+        Date: 23/03/2020
+        """
+        
+        vals = np.unique(self._RasterArray)
+        
+        return(vals)
 
 class MapFigure(object):
     """
@@ -550,6 +563,125 @@ class MapFigure(object):
         #print("Getting axis limits in drape function: ")
         #print(self.ax_list[0].get_xlim())
 
+        
+    def add_categorised_drape_image(self,RasterName,Directory,colourmap = "gray",
+                        alpha=0.5,
+                        show_colourbar = False,
+                        colorbarlabel = "Colourbar", discrete_cmap=False, n_colours=10,
+                        norm = "None",
+                        colour_min_max = [],
+                        modify_raster_values=False,
+                        old_values=[], new_values=[], cbar_type=float,
+                        NFF_opti = False, custom_min_max = [], zorder=1):
+        """
+        This function adds a drape over the base raster.
+
+        Args:
+            RasterName (string): The name of the raster (no directory, but need extension)
+            Directory (string): directory of the data
+            colourmap (string or colourmap): The colourmap. Can be a strong for default colourmaps
+            alpha (float): The transparency of the drape (1 is opaque, 0 totally transparent)
+            show_colourbar (bool): True to show colourbar
+            colourbarlabel (string): The label of the colourbar
+            discrete_cmap (bool): If true, make discrete values for colours, otherwise a gradient.
+            n_colours (int): number of colours in discrete colourbar
+            norm (string): Normalisation of colourbar. I don't understand this so don't change
+            colour_min_max( list of int/float): if it contains two elements, map the colourbar between these two values.
+            modify_raster_values (bool): If true, it takes old_values in list and replaces them with new_values
+            old_values (list): A list of values to be replaced in raster. Useful for masking and renaming
+            new_values (list): A list of the new values. This probably should be done with a map: TODO
+            cbar_type (type): Sets the type of the colourbar (if you want int labels, set to int)
+            NFF_opti (bool): If true, uses the new file loading functions. It is faster but hasn't been completely tested.
+            custom_min_max (list of int/float): if it contains two elements, recast the raster to [min,max] values for display.
+
+        Author: SMM
+        """
+        Raster = BaseRaster(RasterName,Directory, NFF_opti = NFF_opti)
+        
+        
+        # Get unique values
+        unique_val = Raster.get_unique()
+        print("Unique values are:")
+        print(unique_val)
+        
+        if modify_raster_values == True:
+            Raster.replace_raster_values(old_values, new_values)
+
+        if discrete_cmap == True:
+            print("N colours: "+str(n_colours))
+            colourmap = self.cmap_discretize(colourmap, n_colours)
+
+
+        if(norm == "none"):
+            norm = "None"
+            
+        # Get minimum and maximum values
+        yp = Raster.get_min_max()
+        #print("Min and max are")
+        #print(yp)
+        rmin = yp[0]
+        rmax = yp[1]        
+        #print("Minimum is: ")
+        #print(rmin)
+        #print("Maximum is:")
+        #print(rmax)
+            
+        print("I am going to use the normalisation " + norm)
+
+        self._RasterList.append(Raster)
+        self._RasterList[-1].set_colourmap(colourmap)
+        # I am recasting the raster to custom extents
+        if len(custom_min_max)!=0:
+            if len(custom_min_max)== 2:
+                print("I am setting customisable minimum and maximum values: "+str(custom_min_max[0])+", "+str(custom_min_max[1]))
+                self._RasterList[-1]._RasterArray[self._RasterList[-1]._RasterArray<custom_min_max[0]] = custom_min_max[0]
+                self._RasterList[-1]._RasterArray[self._RasterList[-1]._RasterArray>custom_min_max[1]] = custom_min_max[1]
+            else:
+                print("I cannot customize your minimum and maximum because I don't understand your input. It should be [min,max] with min max as integers or floats")
+        else:
+            print("I am using the full range of values in the raster.")
+
+        # We need to initiate with a figure
+        #self.ax = self.fig.add_axes([0.1,0.1,0.7,0.7])
+        if len(colour_min_max)!=0:
+            if len(colour_min_max)== 2:
+                print("custom min and max are:")
+                print(colour_min_max[0])
+                print(colour_min_max[1])
+                print("I am setting customisable colourbar minimum and maximum values: "+str(colour_min_max[0])+","+str(colour_min_max[1]))
+                if(norm == "LogNorm"):
+                    im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, norm = mpl.colors.LogNorm(vmin=colour_min_max[0], vmax=colour_min_max[1]),zorder=zorder)
+                elif(norm == "PowerNorm"):
+                    im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, norm = mpl.colors.PowerNorm(gamma=1. / 2.),zorder=zorder) 
+                else:
+                    im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, norm = mpl.colors.Normalize(vmin=colour_min_max[0], vmax=colour_min_max[1]),zorder=zorder)                    
+            else:
+                print("I cannot customize your colour minimum and maximum because I don't understand your input. It should be [min,max] with min max as integers or floats")
+        else:
+            if(norm == "LogNorm"):
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents,interpolation="nearest",alpha = alpha, norm=colors.LogNorm(vmin=rmin, vmax=rmax), zorder=zorder)
+            elif(norm == "PowerNorm"):
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap, extent = self._RasterList[0].extents,interpolation="nearest",alpha = alpha, norm=colors.PowerNorm(gamma=1. / 2.), zorder=zorder)
+            else:
+                im = self.ax_list[0].imshow(self._RasterList[-1]._RasterArray, self._RasterList[-1]._colourmap,extent = self._RasterList[0].extents, interpolation="nearest",alpha = alpha, zorder=zorder)
+                
+
+        # This affects all axes because we set share_all = True.
+        #ax.set_xlim(self._xmin,self._xmax)
+        #ax.set_ylim(self._ymin,self._ymax)
+        self.ax_list[0] = self.add_ticks_to_axis(self.ax_list[0])
+        self._drape_list.append(im)
+
+        print("The number of axes are: "+str(len(self._drape_list)))
+
+        if self.colourbar_orientation != "None":
+            self.ax_list = self.add_colourbar(self.ax_list,im,self._RasterList[-1],
+                                              colorbarlabel = colorbarlabel, discrete=discrete_cmap,
+                                              n_colours=n_colours, cbar_type=cbar_type)
+
+
+        return self.ax_list    
+        
 
     def _add_drape_image(self,ax_list,RasterName,Directory,
                          colourmap = "gray",

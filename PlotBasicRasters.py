@@ -361,7 +361,8 @@ def main(argv):
     parser.add_argument("-SimpleChFmt", "--simple_channel_format", type=str, default="elevation", help="The column in the channel file used to colour the channels.")    
     parser.add_argument("-SStack", "--simple_stacked_plots", type=bool, default=False, help="Plots chi and  channel profile plots using only the chi data map csv.")  
     parser.add_argument("-MStack", "--multiple_stacked_plots", type=bool, default=False, help="Plots profiles from different files on top of one another.")  
-    parser.add_argument("-PP", "--plot_points", type=bool, default=False, help="This plots points onto the map. You just need a lat-long file of points.")  
+    parser.add_argument("-PP", "--plot_points", type=bool, default=False, help="This plots points onto the map. You just need a lat-long file of points.")
+    parser.add_argument("-PCat", "--plot_categorised", type=bool, default=False, help="This plots categorised data. Everything else works like a drape plot.")    
     
     #===============================================================================    
     # What sort of analyses you want--these are rather simple versions   
@@ -566,7 +567,23 @@ def main(argv):
         raster_out_prefix = "/raster_plots/"+out_fname_prefix
         LSDMW.SimpleDrape(this_dir,args.fname_prefix, args.drape_fname_prefix, cmap = args.drape_cmap, size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix, cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label, coord_type = args.coord_type, use_scalebar = args.use_scalebar, drape_cnorm = args.drape_colour_norm, colour_min_max = this_drape_colour_min_max)
         
+ 
+    # This just plots the basins. Useful for checking on basin selection
+    if args.plot_categorised:
+        print("I am going to plot categorised data.")
         
+        # check if a raster directory exists. If not then make it.
+        raster_directory = this_dir+'raster_plots/'
+        print("I am printing to a raster directory:")
+        print(raster_directory)
+        if not os.path.isdir(raster_directory):
+            os.makedirs(raster_directory)
+        
+        raster_out_prefix = "/raster_plots/"+out_fname_prefix      
+        # Now for raster plots
+        # First the basins, labeled:
+        LSDMW.PrintCategorised(this_dir,args.fname_prefix,show_colourbar = False,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_cat")
+
 
     # This just plots the basins. Useful for checking on basin selection
     if args.plot_basins:

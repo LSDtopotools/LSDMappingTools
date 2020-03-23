@@ -618,3 +618,71 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
         ImageName = DataDirectory+out_fname_prefix+"_selected_basins."+fig_format
 
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi, transparent=True) # Save the figure
+
+    
+def PrintCategorised(DataDirectory,fname_prefix,
+                     show_colourbar = False,
+                     cmap = "jet", cbar_loc = "right", cbar_label = "drape colourbar", size_format = "ESURF",
+                     fig_format = "png", dpi = 250, out_fname_prefix = ""):
+    """
+    This function makes a shaded relief plot of the DEM a drape plot that has categorised colours.
+
+    Args:
+        DataDirectory (str): the data directory with the m/n csv files
+        fname_prefix (str): The prefix for the m/n csv files
+        show_colourbar (bool): if true show the colourbar
+        cmap (str or colourmap): The colourmap to use for the plot
+        cbar_loc (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
+                        If you want only a hillshade set to none and the cmap to "gray"
+        size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
+        fig_format (str): An image format. png, pdf, eps, svg all valid
+        dpi (int): The dots per inch of the figure
+        out_fname_prefix (str): The prefix of the image file. If blank uses the fname_prefix
+
+    Returns:
+        Shaded relief plot with categorised data.
+
+    Author: SMM
+    """
+    #import modules
+    from LSDMapFigure.PlottingRaster import MapFigure
+
+    # set figure sizes based on format
+    if size_format == "geomorphology":
+        fig_width_inches = 6.25
+    elif size_format == "big":
+        fig_width_inches = 16
+    else:
+        fig_width_inches = 4.92126
+
+
+
+    # going to make the basin plots - need to have bil extensions.
+    print("I'm going to make a plot of categorised data. Your topographic data must be in ENVI bil format or I'll break!!")
+
+    # get the rasters
+    raster_ext = '.bil'
+    #BackgroundRasterName = fname_prefix+raster_ext
+    BackgroundRasterName = fname_prefix+'_hs'+raster_ext
+    CatName = fname_prefix+'_KRaster'+raster_ext
+
+
+    # clear the plot
+    plt.clf()
+
+    # set up the base image and the map
+    MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
+    #MF.add_drape_image(ElevationName,DataDirectory,colourmap = "gray", alpha = 0.6, colorbarlabel = None)
+    MF.add_categorised_drape_image(CatName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = cbar_label, norm = "none")    
+    
+
+    # Save the image
+    if len(out_fname_prefix) == 0:
+        ImageName = DataDirectory+fname_prefix+"_selected_basins."+fig_format
+    else:
+        ImageName = DataDirectory+out_fname_prefix+"_selected_basins."+fig_format
+
+    MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi, transparent=True) # Save the figure
+    
+    
+    
