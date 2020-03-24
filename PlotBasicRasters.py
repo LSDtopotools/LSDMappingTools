@@ -570,7 +570,7 @@ def main(argv):
  
     # This just plots the basins. Useful for checking on basin selection
     if args.plot_categorised:
-        print("I am going to plot categorised data.")
+        print("I am going to plot categorised data. You need to define a drape name.")
         
         # check if a raster directory exists. If not then make it.
         raster_directory = this_dir+'raster_plots/'
@@ -582,7 +582,7 @@ def main(argv):
         raster_out_prefix = "/raster_plots/"+out_fname_prefix      
         # Now for raster plots
         # First the basins, labeled:
-        LSDMW.PrintCategorised(this_dir,args.fname_prefix,show_colourbar = False,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_cat")
+        LSDMW.PrintCategorised(this_dir,args.fname_prefix, args.drape_fname_prefix, show_colourbar = False,cmap = "jet", size_format = args.size_format,fig_format = simple_format, dpi = args.dpi, out_fname_prefix = raster_out_prefix+"_cat", cbar_loc = args.drape_cbar_loc, cbar_label = args.drape_cbar_label)
 
 
     # This just plots the basins. Useful for checking on basin selection

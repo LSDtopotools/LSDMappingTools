@@ -94,9 +94,11 @@ def SimpleDrape(DataDirectory,Base_file, Drape_prefix, cmap = "jet", cbar_loc = 
     Args:
         DataDirectory (str): the data directory with the rasters
         Base_file (str): The prefix for the rasters
+        Drape_prefix (str): The prefix of the drape name
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_loc (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
+        cbar_label (str): The text on the colourbar label
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
@@ -620,7 +622,7 @@ def PrintBasins_Complex(DataDirectory,fname_prefix,
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi, transparent=True) # Save the figure
 
     
-def PrintCategorised(DataDirectory,fname_prefix,
+def PrintCategorised(DataDirectory,fname_prefix, Drape_prefix, 
                      show_colourbar = False,
                      cmap = "jet", cbar_loc = "right", cbar_label = "drape colourbar", size_format = "ESURF",
                      fig_format = "png", dpi = 250, out_fname_prefix = ""):
@@ -630,10 +632,12 @@ def PrintCategorised(DataDirectory,fname_prefix,
     Args:
         DataDirectory (str): the data directory with the m/n csv files
         fname_prefix (str): The prefix for the m/n csv files
+        Drape_prefix (str): The prefix of the drape name
         show_colourbar (bool): if true show the colourbar
         cmap (str or colourmap): The colourmap to use for the plot
         cbar_loc (str): where you want the colourbar. Options are none, left, right, top and botton. The colourbar will be of the elevation.
                         If you want only a hillshade set to none and the cmap to "gray"
+        cbar_label (str): The text on the colourbar label
         size_format (str): Either geomorphology or big. Anything else gets you a 4.9 inch wide figure (standard ESURF size)
         fig_format (str): An image format. png, pdf, eps, svg all valid
         dpi (int): The dots per inch of the figure
@@ -664,8 +668,7 @@ def PrintCategorised(DataDirectory,fname_prefix,
     raster_ext = '.bil'
     #BackgroundRasterName = fname_prefix+raster_ext
     BackgroundRasterName = fname_prefix+'_hs'+raster_ext
-    CatName = fname_prefix+'_KRaster'+raster_ext
-
+    CatName = Drape_prefix+raster_ext
 
     # clear the plot
     plt.clf()
@@ -673,14 +676,14 @@ def PrintCategorised(DataDirectory,fname_prefix,
     # set up the base image and the map
     MF = MapFigure(BackgroundRasterName, DataDirectory,coord_type="UTM_km",colourbar_location = cbar_loc)
     #MF.add_drape_image(ElevationName,DataDirectory,colourmap = "gray", alpha = 0.6, colorbarlabel = None)
-    MF.add_categorised_drape_image(CatName,DataDirectory,colourmap = cmap, alpha = 0.6, colorbarlabel = cbar_label, norm = "none")    
+    MF.add_categorised_drape_image(CatName,DataDirectory,colourmap = cmap, alpha = 0.7, colorbarlabel = cbar_label, norm = "none")    
     
 
     # Save the image
     if len(out_fname_prefix) == 0:
-        ImageName = DataDirectory+fname_prefix+"_selected_basins."+fig_format
+        ImageName = DataDirectory+fname_prefix+"_categorised."+fig_format
     else:
-        ImageName = DataDirectory+out_fname_prefix+"_selected_basins."+fig_format
+        ImageName = DataDirectory+out_fname_prefix+"_categorised."+fig_format
 
     MF.save_fig(fig_width_inches = fig_width_inches, FigFileName = ImageName, FigFormat=fig_format, Fig_dpi = dpi, transparent=True) # Save the figure
     
