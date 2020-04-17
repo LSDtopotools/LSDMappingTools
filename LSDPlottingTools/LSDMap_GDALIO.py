@@ -291,15 +291,15 @@ def GetUTMEPSG(FileName):
 
     # get the projection
     print("Let me get that projection for you")
+    print("In this function I will extract the UTM zone")
     prj=SourceDS.GetProjection()
     srs=osr.SpatialReference(wkt=prj)
 
     if srs.IsProjected:
+        print("The dataset is projected.")
         #print("Trying projcs")
         #print(str(srs.GetAttrValue(str('PROJCS'),0)))
-
-
-        print(srs.GetAttrValue(str('projcs')))
+        #print(srs.GetAttrValue(str('projcs')))
         proj_str = srs.GetAttrValue(str('projcs'))
         print("The projection string is: "+proj_str)
 
@@ -307,9 +307,13 @@ def GetUTMEPSG(FileName):
 
 
         if proj_str != None:
+            
+            
 
             # extract the UTM information
             if "UTM Zone" in proj_str:
+                print("Found the string UTM zone")
+
                 first_split = proj_str.split(',')
                 first_half = first_split[0]
                 second_half = first_split[1]
@@ -319,6 +323,24 @@ def GetUTMEPSG(FileName):
                     N_or_S = "S"
                 second_split = first_half.split(' ')
                 zone = second_split[2]
+                    
+                                   
+            elif "UTM zone" in proj_str:
+  
+                print("This seems to be from the new gdal version")
+                first_split = proj_str.split(' ')
+                zone_str = first_split[-1]
+                print("Zone string is: "+zone_str)
+                zone = zone_str[:-1]
+                print("The zone is: "+zone)
+
+                if zone_str[-1]=="S":
+                    N_or_S = "S"
+                else:
+                    N_or_S = "N"    
+
+                print("And the hemisphere is: "+N_or_S)
+
 
             elif "_Hemisphere" in proj_str:
                 if "Southern" in proj_str:
@@ -745,6 +767,7 @@ def PolygoniseRaster(DataDirectory, RasterFile, OutputShapefile='polygons'):
     # define shapefile attributes
     # crs = src.crs.wkt
     # print (crs)
+    print("Let me grab the coordinate reference system.")
     crs = GetUTMEPSG(DataDirectory+RasterFile)
     schema = {'geometry': 'Polygon',
               'properties': { 'ID': 'float'}}
