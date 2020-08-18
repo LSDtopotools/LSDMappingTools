@@ -7,7 +7,7 @@
 ##############################################################################
 
 import numpy as np
-from pandas.plotting._tools import (_subplots, _flatten)
+from pandas.plotting._matplotlib.tools import (_subplots, _flatten)
 from matplotlib import pyplot as plt
 from pandas import (DataFrame, Series)
 from pandas.core.dtypes.common import is_number
