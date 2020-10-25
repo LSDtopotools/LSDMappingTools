@@ -7,7 +7,6 @@
 ##############################################################################
 
 import numpy as np
-from pandas.plotting._matplotlib.tools import (_subplots, _flatten)
 from matplotlib import pyplot as plt
 from pandas import (DataFrame, Series)
 from pandas.core.dtypes.common import is_number
@@ -15,6 +14,14 @@ from pandas.core.groupby import DataFrameGroupBy
 from scipy.stats import gaussian_kde
 from warnings import warn
 from matplotlib import ticker
+
+try:
+    from pandas.plotting._tools import (_subplots, _flatten)
+    print("You are using a quite old version of pandas (<=0.24). Have you thought about upgrading?")
+except:
+    #TODO this is a quick fix for #38
+    from pandas.plotting._matplotlib.tools import (_subplots, _flatten)
+
 
 _DEBUG = False
 
